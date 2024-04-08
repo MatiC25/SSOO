@@ -30,8 +30,6 @@ bool cargar_configuraciones(t_config_k *config_kernel, t_log *logger)
   char *configuraciones[] = {
       "IP_MEMORIA",
       "PUERTO_MEMORIA",
-      "IP_FILESYSTEM",
-      "PUERTO_FILESYSTEM",
       "IP_CPU",
       "PUERTO_CPU_DISPATCH",
       "PUERTO_CPU_INTERRUPT",
@@ -52,11 +50,9 @@ bool cargar_configuraciones(t_config_k *config_kernel, t_log *logger)
 
   copiar_valor(&config_kernel->ip_memoria, config_get_string_value(config, "IP_MEMORIA"));
   copiar_valor(&config_kernel->ip_cpu, config_get_string_value(config, "IP_CPU"));
-  copiar_valor(&config_kernel->ip_fs, config_get_string_value(config, "IP_FILESYSTEM"));
   copiar_valor(&config_kernel->algoritmo_planificacion, config_get_string_value(config, "ALGORITMO_PLANIFICACION"));
 
   config_kernel->puerto_memoria = config_get_int_value(config, "PUERTO_MEMORIA");
-  config_kernel->puerto_fs = config_get_int_value(config, "PUERTO_FILESYSTEM");
   config_kernel->puerto_cpu_ds = config_get_int_value(config, "PUERTO_CPU_DISPATCH");
   config_kernel->puerto_cpu_it = config_get_int_value(config, "PUERTO_CPU_INTERRUPT");
 
@@ -84,7 +80,7 @@ void cerrar_programa(t_log *logger)
   log_destroy(logger);
 }
 
-void borrar_conexiones(int* md_cpu_dt,int* md_cpu_it, int* md_memoria){
+void borrar_conexiones(int md_cpu_dt,int md_cpu_it, int md_memoria){
   liberar_conexion(md_cpu_dt);
   liberar_conexion(md_cpu_it);
   liberar_conexion(md_memoria);
