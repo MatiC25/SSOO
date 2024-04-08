@@ -5,6 +5,9 @@
 #include <stdbool.h>
 #include <commons/config.h>
 #include <commons/string.h>
+#include <commons/log.h>
+#include <utils/socket.h>
+#include <utils/shared.h>
 
 typedef struct
 {

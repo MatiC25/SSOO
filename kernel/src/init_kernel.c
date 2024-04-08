@@ -1,4 +1,4 @@
-#include "../kernel/src/init_kernel.h"
+#include "init_kernel.h"
 
 bool generar_conexiones(t_log *logger, t_config_k *config_kernel, int *md_memoria, int *md_cpu_dt, int *md_cpu_it)
 {
@@ -8,9 +8,6 @@ bool generar_conexiones(t_log *logger, t_config_k *config_kernel, int *md_memori
   char *ip_cpu = config_kernel->ip_cpu;
   char *puerto_cpu_dispatch = string_itoa(config_kernel->puerto_cpu_ds);
   char *puerto_cpu_interrupt = string_itoa(config_kernel->puerto_cpu_it);
-
-  char *ip_fs = config_kernel->ip_fs;
-  char *puerto_fs = string_itoa(config_kernel->puerto_fs); // string_itoa convierte un int a un string!
 
   *md_cpu_dt = crear_conexion(logger, "CPU-DT", ip_cpu, puerto_cpu_dispatch);
   *md_cpu_it = crear_conexion(logger, "CPU-IT", ip_cpu, puerto_cpu_interrupt);
@@ -42,8 +39,9 @@ bool cargar_configuraciones(t_config_k *config_kernel, t_log *logger)
       "QUANTUM",
       "RECURSOS",
       "INSTANCIAS_RECURSOS",
-      "GRADO_MULTIPROGRAMACION_INI",
-      NULL};
+      "GRADO_MULTIPROGRAMACION",
+      NULL
+      };
 
   if (!tiene_todas_las_configuraciones(config, configuraciones))
   {
@@ -76,6 +74,7 @@ bool cargar_configuraciones(t_config_k *config_kernel, t_log *logger)
 
   log_info(logger, "Se pudieron cargar todas las configuraciones necesarias!");
   config_destroy(config);
+  
 
   return true;
 }
@@ -83,4 +82,10 @@ bool cargar_configuraciones(t_config_k *config_kernel, t_log *logger)
 void cerrar_programa(t_log *logger)
 {
   log_destroy(logger);
+}
+
+void borrar_conexiones(int* md_cpu_dt,int* md_cpu_it, int* md_memoria){
+  liberar_conexion(md_cpu_dt);
+  liberar_conexion(md_cpu_it);
+  liberar_conexion(md_memoria);
 }
