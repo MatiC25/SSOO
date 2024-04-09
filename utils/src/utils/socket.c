@@ -23,13 +23,28 @@ int iniciar_servidor(t_log *logger, const char *name, char *ip, char *puerto)
 	struct addrinfo hints, *servinfo;
 
 	// Inicializando hints
-	memset(&hints, 0, sizeof(hints));
+	memset(&hints, 0, sizeof(hints)); 
 	hints.ai_family = AF_UNSPEC;
 	hints.ai_socktype = SOCK_STREAM;
 	hints.ai_flags = AI_PASSIVE;
 
 	// Recibe los addrinfo
 	getaddrinfo(ip, puerto, &hints, &servinfo);
+
+	 socket_servidor = socket(servinfo->ai_family,
+                				servinfo->ai_socktype,
+                				servinfo->ai_protocol);
+	// Asociamos el socket a un puerto
+	bind(socket_servidor, servinfo->ai_addr, servinfo->ai_addrlen);
+	// Escuchamos las conexiones entrantes
+	listen(socket_servidor, SOMAXCONN);
+	freeaddrinfo(servinfo);
+	log_trace(logger, "Listo para escuchar a mi cliente"); 
+
+	return socket_servidor;
+}
+//Como lo hizo fede
+/*
 
 	bool conecto = false;
 
@@ -65,8 +80,9 @@ int iniciar_servidor(t_log *logger, const char *name, char *ip, char *puerto)
 	freeaddrinfo(servinfo);
 
 	return socket_servidor;
+	
 }
-
+*/
 // ESPERAR CONEXION DE CLIENTE EN UN SERVER ABIERTO
 int esperar_cliente(t_log *logger, const char *name, int socket_servidor)
 {
@@ -125,10 +141,9 @@ int crear_conexion(t_log *logger, const char *server_name, char *ip, char *puert
 // Crear funcion que permita crear una conexion con un timer
 
 // CERRAR CONEXION
-void liberar_conexion(int *socket_cliente)
+void liberar_conexion(int socket_cliente)
 {
-	close(*socket_cliente);
-	*socket_cliente = -1;
+	close(socket_cliente);
 }
 
 void enviar_mensaje(char *mensaje, int socket_cliente)
@@ -193,10 +208,6 @@ void eliminar_paquete(t_paquete *paquete)
 	free(paquete);
 }
 
-void liberar_conexion(int socket_cliente)
-{
-	close(socket_cliente);
-}
 
 int recibir_operacion(int socket_cliente)
 {
@@ -225,7 +236,7 @@ void recibir_mensaje(int socket_cliente)
 {
 	int size;
 	char *buffer = recibir_buffer(&size, socket_cliente);
-	log_info(logger, "Me llego el mensaje %s", buffer);
+	//log_info(logger, "Me llego el mensaje %s", buffer); //Por ahi cambiar
 	free(buffer);
 }
 

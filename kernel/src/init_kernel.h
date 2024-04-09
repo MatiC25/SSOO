@@ -11,6 +11,7 @@
 
 typedef struct
 {
+  char* puerto_escucha;
   char *ip_memoria;
   int puerto_memoria;
   char *ip_cpu;
@@ -21,11 +22,15 @@ typedef struct
   char **recursos;
   int *inst_recursos;
   int grado_multip;
-
 } t_config_k;
+
+
+extern t_log* logger;
 
 bool generar_conexiones(t_log *logger, t_config_k *config_kernel, int *md_memoria, int *md_cpu_dt, int *md_cpu_it);
 bool cargar_configuraciones(t_config_k *config_kernel, t_log *logger);
 void cerrar_programa(t_log *logger);
+void iterator(char* value);
+int crear_servidor(t_log *logger, const char *name, char *ip, char *puerto);
 
 #endif // INIT_KERNEL_H

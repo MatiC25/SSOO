@@ -29,7 +29,8 @@ typedef struct
 	t_buffer *buffer;
 } t_paquete;
 
-extern t_log *logger;
+
+
 
 int crear_conexion(t_log *logger, const char *server_name, char *ip, char *puerto);
 void enviar_mensaje(char *mensaje, int socket_cliente);
