@@ -40,8 +40,10 @@ int main()
    inicializar_config(); // Inicializo la variable global config_kernel! -> No se si es la mejor forma de hacerlo!
    
 
- // int md_memoria = 0, md_cpu_dt = 0, md_cpu_it = 0;
-    if (!cargar_configuraciones(config_kernel, logger_kernel) /* || !generar_conexiones(logger_kernel, config_kernel, &md_memoria, &md_cpu_dt, &md_cpu_it)*/)
+    int md_memoria = 0;
+    int md_cpu_dt = 0;
+    int md_cpu_it = 0;
+    if (!cargar_configuraciones(config_kernel, logger_kernel) || !generar_conexiones(logger_kernel, config_kernel, &md_memoria, &md_cpu_dt, &md_cpu_it))
     { // Generar conexiones, no va a mantener la conexion, sino que va a crear la conexion y la va a cerrar!
         log_error(logger_kernel, "No se pudieron generar las conexiones");
 
@@ -59,9 +61,7 @@ int main()
     // EXEC = crear_cola()
     // BLOCK = crear_cola()
     // EXIT = crear_cola()
-
-   
-
+    
 //abrimos el servidor
     pthread_t hilo1,hilo2;
    char* mensaje_1 = "Hilo 1";
@@ -69,7 +69,6 @@ int main()
    
     iret1 = pthread_create(&hilo1, NULL, wrapper_crear_servidor, mensaje_1);
     pthread_join(hilo1,NULL);
-
      
     return 0;
 }

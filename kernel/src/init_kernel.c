@@ -6,8 +6,8 @@ t_log* logger;
 
 bool generar_conexiones(t_log *logger, t_config_k *config_kernel, int *md_memoria, int *md_cpu_dt, int *md_cpu_it)
 {
-  char *ip_memoria = config_kernel->ip_memoria;
-  char *puerto_memoria = string_itoa(config_kernel->puerto_memoria);
+  //char *ip_memoria = config_kernel->ip_memoria;
+  //char *puerto_memoria = string_itoa(config_kernel->puerto_memoria);
 
   char *ip_cpu = config_kernel->ip_cpu;
   char *puerto_cpu_dispatch = string_itoa(config_kernel->puerto_cpu_ds);
@@ -15,9 +15,9 @@ bool generar_conexiones(t_log *logger, t_config_k *config_kernel, int *md_memori
 
   *md_cpu_dt = crear_conexion(logger, "CPU-DT", ip_cpu, puerto_cpu_dispatch);
   *md_cpu_it = crear_conexion(logger, "CPU-IT", ip_cpu, puerto_cpu_interrupt);
-  *md_memoria = crear_conexion(logger, "MEMORIA", ip_memoria, puerto_memoria); // Valores leidos de archivo de configuracion!
+  //*md_memoria = crear_conexion(logger, "MEMORIA", ip_memoria, puerto_memoria); // Valores leidos de archivo de configuracion!
 
-  return *md_memoria != 0 && *md_cpu_dt != 0 && *md_cpu_it != 0; // Aca pregunto por el nuevo valor!
+  return *md_cpu_dt != 0 && *md_cpu_it != 0; // && *md_memoria != 0 Aca pregunto por el nuevo valor!
 }
 
 bool cargar_configuraciones(t_config_k *config_kernel, t_log *logger)
@@ -108,7 +108,7 @@ int crear_servidor(t_log *logger, const char *name, char *ip, char *puerto){
   	
 	int server_fd = iniciar_servidor(logger,"Kernel",NULL,puerto); //IP generica
 	log_info(logger, "Servidor listo para recibir al cliente");
-	int cliente_fd = esperar_cliente(logger,"Kernel",server_fd);
+	int cliente_fd = esperar_cliente(logger,"I/O",server_fd);
 
 	t_list* lista;
 	while (1) {
@@ -138,4 +138,26 @@ int crear_servidor(t_log *logger, const char *name, char *ip, char *puerto){
 
 void iterator(char* value) {
 	log_info(logger,"%s", value);
+}
+
+
+void paquete(int conexion)
+{
+	// Ahora toca lo divertido!
+	char* leido;
+	t_paquete* paquete = crear_paquete();
+
+	// Leemos y esta vez agregamos las lineas al paquete
+	leido = readline("> ");
+	while(strcmp(leido, "") != 0)
+	{	
+		agregar_a_paquete(paquete, leido, strlen(leido) + 1);
+		free(leido);
+		leido = readline("> ");
+	}
+
+	// ¡No te olvides de liberar las líneas y el paquete antes de regresar!
+	free(leido);
+	enviar_paquete(paquete, conexion);
+	eliminar_paquete(paquete);
 }

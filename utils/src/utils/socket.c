@@ -84,14 +84,14 @@ int iniciar_servidor(t_log *logger, const char *name, char *ip, char *puerto)
 }
 */
 // ESPERAR CONEXION DE CLIENTE EN UN SERVER ABIERTO
-int esperar_cliente(t_log *logger, const char *name, int socket_servidor)
+int esperar_cliente(t_log *logger, const char *name, int socket_servidor) //name -> quién se conecta
 {
 	struct sockaddr_in dir_cliente;
 	socklen_t tam_direccion = sizeof(struct sockaddr_in);
 
 	int socket_cliente = accept(socket_servidor, (void *)&dir_cliente, &tam_direccion);
 
-	log_info(logger, "Cliente conectado (a %s)\n", name);
+	log_info(logger, "¡Cliente %s conectado!\n", name);
 
 	return socket_cliente;
 }
@@ -106,7 +106,7 @@ int crear_conexion(t_log *logger, const char *server_name, char *ip, char *puert
 	memset(&hints, 0, sizeof(hints));
 	hints.ai_family = AF_UNSPEC;
 	hints.ai_socktype = SOCK_STREAM;
-	hints.ai_flags = AI_PASSIVE;
+	
 
 	// Recibe addrinfo
 	getaddrinfo(ip, puerto, &hints, &servinfo);
@@ -260,4 +260,52 @@ t_list *recibir_paquete(int socket_cliente)
 	}
 	free(buffer);
 	return valores;
+}
+
+void atender_conexion(t_log* logger, char* server_name, int cliente_socket) { // Si el server tuviera que procesar varias solicitudes del mismo cliente, esto debería ser un while
+    op_code cop;
+
+    // while (cliente_socket != -1) {
+
+    //     if(recv(cliente_socket, &cop, sizeof(op_code), 0) != sizeof(op_code)) {
+    //         log_info(logger, "DISCONNECT!");
+
+    //         return;
+    //     }
+
+        // switch (cop) {
+
+        //     case EJECUTAR_PROCESO:
+        //     {
+        //         t_pcb* proceso = rcv_contexto_ejecucion(cliente_socket);
+
+        //         //ciclo_de_instruccion(proceso);
+        //         //send_contexto_ejecucion(RECIBIR_PROCESO, cliente_socket, proceso);
+        //         //check_interrupt = false;
+        //         break;
+        //     }
+        //     case INTERRUPT:
+        //     {
+        //         break;
+        //     }
+        //     case DEVOLVER_PROCESO:
+        //     {
+        //         //send_contexto_ejecucion(RECIBIR_PROCESO, cliente_socket, proceso);
+        //         break;
+        //     }
+
+        //     // Errores
+        //     case -1:
+        //         log_error(logger, "Cliente desconectado de %s...", server_name);
+        //         return;
+        //     default:
+        //         log_error(logger, "Algo anduvo mal en el server de %s", server_name);
+        //         return;
+        // }
+
+        log_warning(logger, "El cliente se desconecto de %s server", server_name);
+
+   // }
+
+    return;
 }

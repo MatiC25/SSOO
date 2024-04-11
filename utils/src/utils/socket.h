@@ -45,5 +45,6 @@ int esperar_cliente(t_log *logger, const char *name, int socket_servidor);
 t_list *recibir_paquete(int);
 void recibir_mensaje(int);
 int recibir_operacion(int);
+void atender_conexion(t_log* logger, char* server_name, int cliente_socket);
 
 #endif /* UTILS_H_ */
