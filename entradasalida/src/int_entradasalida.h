@@ -22,8 +22,8 @@ typedef struct
   int block_count;
 }t_config_k;
 
-bool generar_conexiones(t_log *logger, t_config_k *config_entradasalida, int *md_memoria, int *md_kernel);
-bool cargar_configuraciones(t_config_k *config_entradasalida, t_log *logger);
+int generar_conexiones(t_log *logger, t_config_k *config_entradasalida, int *md_memoria, int *md_kernel);
+int cargar_configuraciones(t_config_k *config_entradasalida, t_log *logger);
 void cerrar_programa(t_log *logger);
 void borrar_conexiones(int md_memoria, int md_kernel);
 

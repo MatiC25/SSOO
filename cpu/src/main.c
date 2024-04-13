@@ -25,7 +25,7 @@ int main(void)
 
     inicializar_config(); // Inicializo la variable global config_kernel! -> No se si es la mejor forma de hacerlo!
 
-    if(!cargar_configuraciones(config_cpu, logger_cpu))
+    if(cargar_configuraciones(config_cpu, logger_cpu) == 1 )
     {
         log_error(logger_cpu, "Error al cargar el .config");
         return EXIT_FAILURE;

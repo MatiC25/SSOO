@@ -1,5 +1,6 @@
 #include "socket.h"
 
+t_log* logger;
 // usuario
 void *serializar_paquete(t_paquete *paquete, int bytes)
 {
@@ -39,7 +40,7 @@ int iniciar_servidor(t_log *logger, const char *name, char *ip, char *puerto)
 	// Escuchamos las conexiones entrantes
 	listen(socket_servidor, SOMAXCONN);
 	freeaddrinfo(servinfo);
-	log_trace(logger, "Listo para escuchar a mi cliente"); 
+	log_info(logger, "Listo para escuchar a mi cliente"); 
 
 	return socket_servidor;
 }
@@ -236,7 +237,7 @@ void recibir_mensaje(int socket_cliente)
 {
 	int size;
 	char *buffer = recibir_buffer(&size, socket_cliente);
-	//log_info(logger, "Me llego el mensaje %s", buffer); //Por ahi cambiar
+	log_info(logger, "Me llego el mensaje %s", buffer); //Por ahi cambiar
 	free(buffer);
 }
 
@@ -262,7 +263,7 @@ t_list *recibir_paquete(int socket_cliente)
 	return valores;
 }
 
-void atender_conexion(t_log* logger, char* server_name, int cliente_socket) { // Si el server tuviera que procesar varias solicitudes del mismo cliente, esto debería ser un while
+void 		atender_conexion(t_log* logger, char* server_name, int cliente_socket) { // Si el server tuviera que procesar varias solicitudes del mismo cliente, esto debería ser un while
     op_code cop;
 
     // while (cliente_socket != -1) {

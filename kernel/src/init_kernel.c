@@ -1,10 +1,10 @@
 #include "init_kernel.h"
 
 
-t_log* logger;
+t_log* logger_kernel;
 
 
-bool generar_conexiones(t_log *logger, t_config_k *config_kernel, int *md_memoria, int *md_cpu_dt, int *md_cpu_it)
+int generar_conexiones(t_log *logger_kernel, t_config_k *config_kernel, int *md_memoria, int *md_cpu_dt, int *md_cpu_it)
 {
   //char *ip_memoria = config_kernel->ip_memoria;
   //char *puerto_memoria = string_itoa(config_kernel->puerto_memoria);
@@ -13,22 +13,25 @@ bool generar_conexiones(t_log *logger, t_config_k *config_kernel, int *md_memori
   char *puerto_cpu_dispatch = string_itoa(config_kernel->puerto_cpu_ds);
   char *puerto_cpu_interrupt = string_itoa(config_kernel->puerto_cpu_it);
 
-  *md_cpu_dt = crear_conexion(logger, "CPU-DT", ip_cpu, puerto_cpu_dispatch);
-  *md_cpu_it = crear_conexion(logger, "CPU-IT", ip_cpu, puerto_cpu_interrupt);
-  //*md_memoria = crear_conexion(logger, "MEMORIA", ip_memoria, puerto_memoria); // Valores leidos de archivo de configuracion!
+  *md_cpu_dt = crear_conexion(logger_kernel, "CPU-DT", ip_cpu, puerto_cpu_dispatch);
+  *md_cpu_it = crear_conexion(logger_kernel, "CPU-IT", ip_cpu, puerto_cpu_interrupt);
+  //*md_memoria = crear_conexion(logger_kernel, "MEMORIA", ip_memoria, puerto_memoria); // Valores leidos de archivo de configuracion!
 
-  return *md_cpu_dt != 0 && *md_cpu_it != 0; // && *md_memoria != 0 Aca pregunto por el nuevo valor!
+//paquete(md_cpu_dt);
+//paquete(md_cpu_it);
+
+  return (*md_cpu_dt != 0 && *md_cpu_it != 0) ? 1 : -1; // && *md_memoria != 0 Aca pregunto por el nuevo valor!
 }
 
-bool cargar_configuraciones(t_config_k *config_kernel, t_log *logger)
+int cargar_configuraciones(t_config_k *config_kernel, t_log *logger_kernel)
 {
   t_config *config = config_create("kernel.config");
 
   if (config == NULL)
   {
-    log_info(logger, "No se pudo abrir el archivo de configuraciones!");
+    log_info(logger_kernel, "No se pudo abrir el archivo de configuraciones!");
 
-    return false;
+    return -1;
   }
 
   char *configuraciones[] = {
@@ -46,21 +49,21 @@ bool cargar_configuraciones(t_config_k *config_kernel, t_log *logger)
       NULL
       };
 
-//para despues
+//Para despues
 /*
   if (!tiene_todas_las_configuraciones(config, configuraciones))
   {
-    log_info(logger, "No se encontraron todas las configuraciones necesarias!");
+    log_info(logger_kernel, "No se encontraron todas las configuraciones necesarias!");
 
-    return false;
+    return -1 ;
   }
 */
-  copiar_valor(&config_kernel->puerto_escucha, config_get_string_value(config, "PUERTO_ESCUCHA"));
+  //copiar_valor(&config_kernel->puerto_escucha, config_get_string_value(config, "PUERTO_ESCUCHA"));
   copiar_valor(&config_kernel->ip_memoria, config_get_string_value(config, "IP_MEMORIA"));
   copiar_valor(&config_kernel->ip_cpu, config_get_string_value(config, "IP_CPU"));
   copiar_valor(&config_kernel->algoritmo_planificacion, config_get_string_value(config, "ALGORITMO_PLANIFICACION"));
 
-  
+  config_kernel->puerto_escucha = config_get_int_value(config, "PUERTO_ESCUCHA");
   config_kernel->puerto_memoria = config_get_int_value(config, "PUERTO_MEMORIA");
   config_kernel->puerto_cpu_ds = config_get_int_value(config, "PUERTO_CPU_DISPATCH");
   config_kernel->puerto_cpu_it = config_get_int_value(config, "PUERTO_CPU_INTERRUPT");
@@ -69,7 +72,7 @@ bool cargar_configuraciones(t_config_k *config_kernel, t_log *logger)
 /*
   if (!tiene_algun_algoritmo_de_planificacion(config_kernel->algoritmo_planificacion))
   {
-    log_info(logger, "El algoritmo de planificacion no es valido!");
+    log_info(logger_kernel, "El algoritmo de planificacion no es valido!");
 
     return false;
   }
@@ -81,65 +84,68 @@ bool cargar_configuraciones(t_config_k *config_kernel, t_log *logger)
   crear_vector_dinamico_char(&config_kernel->recursos, config_get_array_value(config, "RECURSOS"));
   crear_vector_dinamico_int(&config_kernel->inst_recursos, config_get_array_value(config, "INSTANCIAS_RECURSOS"));
 
-  log_info(logger, "Se pudieron cargar todas las configuraciones necesarias!");
+  log_info(logger_kernel, "Se pudieron cargar todas las configuraciones necesarias!");
   
   config_destroy(config);
   */
 
-  return true;
+  return 1;
 }
 
-void cerrar_programa(t_log *logger)
-{
-  log_destroy(logger);
+
+
+
+
+int crear_servidor(t_log* logger_kernel, t_config_k* config_kernel, int * md_EntradaySalida) {
+    char* puerto_entradasalida = string_itoa(config_kernel->puerto_escucha); // Convierte un int a una cadena de char
+    char* ip_memoria = NULL;  //Ip generica
+
+    *md_EntradaySalida = iniciar_servidor(logger_kernel, "I/O", ip_memoria, puerto_entradasalida); // Guarda ID del socket
+    
+
+    return (md_EntradaySalida != 0) ? 1 : -1 ;
 }
 
-void borrar_conexiones(int md_cpu_dt,int md_cpu_it, int md_memoria){
-  liberar_conexion(md_cpu_dt);
-  liberar_conexion(md_cpu_it);
-  liberar_conexion(md_memoria);
-}
 
-//Servidor
+void server_escuchar(void* args) {
+    t_procesar_server* args_hilo = (t_procesar_server*) args;
+    t_log* logger_server = args_hilo->logger_kernel;
+    char* server_name = args_hilo->server_name;
+    int socket_server = args_hilo->socket_server;
+
+    while (1)
+    {
+        int socket_cliente = esperar_cliente(logger_server, server_name, socket_server);
+
+        if(socket_cliente != -1) {
+            atender_conexion(logger_server, server_name, socket_cliente);
+        }
+      }
+    }
 
 
+void iniciar_modulo(t_log* logger_kernel, t_config_k* config_kernel) {
+int md_EntradaySalida = 0;
 
-int crear_servidor(t_log *logger, const char *name, char *ip, char *puerto){
-  	
-	int server_fd = iniciar_servidor(logger,"Kernel",NULL,puerto); //IP generica
-	log_info(logger, "Servidor listo para recibir al cliente");
-	int cliente_fd = esperar_cliente(logger,"I/O",server_fd);
+      if(crear_servidor(logger_kernel, config_kernel, & md_EntradaySalida) != 1) {
+        log_error(logger_kernel, "No se pudo crear los servidores de escucha");
 
-	t_list* lista;
-	while (1) {
-		int cod_op = recibir_operacion(cliente_fd);
-		switch (cod_op) {
-		case MENSAJE:
-			recibir_mensaje(cliente_fd);
-			break;
-		case PAQUETE:
-			lista = recibir_paquete(cliente_fd);
-			log_info(logger, "Me llegaron los siguientes valores:\n");
-			list_iterate(lista, (void*)iterator);
-			break;
-		case -1:
-			log_error(logger, "el cliente se desconecto. Terminando servidor");
-			return EXIT_FAILURE;
-		default:
-			log_warning(logger,"Operacion desconocida. No quieras meter la pata");
-			break;
-		}
-	}
-	return EXIT_SUCCESS;
+        return ;
+    }
 
   
+    pthread_t hilo_enetradaysalida;
+    
+    t_procesar_server* args_ds = malloc(sizeof(t_procesar_server));
+    args_ds->logger_kernel = logger_kernel;
+    args_ds->socket_server = md_EntradaySalida;
+    args_ds->server_name = "I/O";
+
+    pthread_create(&hilo_enetradaysalida, NULL, (void*) server_escuchar, (void*) args_ds); //Se guarda la info que tenemos antes en el struct
+    pthread_join(hilo_enetradaysalida, NULL);
+    
+  
 }
-
-
-void iterator(char* value) {
-	log_info(logger,"%s", value);
-}
-
 
 void paquete(int conexion)
 {
@@ -160,4 +166,16 @@ void paquete(int conexion)
 	free(leido);
 	enviar_paquete(paquete, conexion);
 	eliminar_paquete(paquete);
+}
+
+
+void cerrar_programa(t_log *logger_kernel)
+{
+  log_destroy(logger_kernel);
+}
+
+void borrar_conexiones(int md_cpu_dt,int md_cpu_it, int md_memoria){
+  liberar_conexion(md_cpu_dt);
+  liberar_conexion(md_cpu_it);
+  liberar_conexion(md_memoria);
 }

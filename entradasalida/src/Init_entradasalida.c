@@ -2,7 +2,7 @@
 
 t_log*logge;
 
-bool generar_conexiones(t_log *logger, t_config_k *config_entradasalida, int *md_memoria, int *md_kernel)
+int generar_conexiones(t_log *logger, t_config_k *config_entradasalida, int *md_memoria, int *md_kernel)
 {
   char *ip_memoria = config_entradasalida->ip_memoria;
   char *puerto_memoria = string_itoa(config_entradasalida->puerto_memoria);
@@ -13,11 +13,11 @@ bool generar_conexiones(t_log *logger, t_config_k *config_entradasalida, int *md
   //*md_memoria = crear_conexion(logger, "MEmoria", ip_memoria, puerto_memoria);
   *md_kernel = crear_conexion(logger, "kernel", ip_kernel, puerto_kernel);
   
-
-  return /**md_memoria != 0 && */*md_kernel != 0; // Aca pregunto por el nuevo valor!
+  paquete(md_kernel);
+  return (/**md_memoria != 0 && */*md_kernel != 0) ? 1 : -1 ; // Aca pregunto por el nuevo valor!
 }
 
-bool cargar_configuraciones(t_config_k *config_entradasalida, t_log *logger)
+int cargar_configuraciones(t_config_k *config_entradasalida, t_log *logger)
 {
   t_config *config = config_create("entradasalida.config");
 
@@ -25,7 +25,7 @@ bool cargar_configuraciones(t_config_k *config_entradasalida, t_log *logger)
   {
     log_info(logger, "No se pudo abrir el archivo de configuraciones!");
 
-    return false;
+    return -1;
   }
 
   char *configuraciones[] = {
@@ -57,8 +57,30 @@ bool cargar_configuraciones(t_config_k *config_entradasalida, t_log *logger)
   config_destroy(config);
   
 
-  return true;
+  return 1;
 }
+
+void paquete(int conexion)
+{
+	// Ahora toca lo divertido!
+	char* leido;
+	t_paquete* paquete = crear_paquete();
+
+	// Leemos y esta vez agregamos las lineas al paquete
+	leido = readline("> ");
+	while(strcmp(leido, "") != 0)
+	{	
+		agregar_a_paquete(paquete, leido, strlen(leido) + 1);
+		free(leido);
+		leido = readline("> ");
+	}
+
+	// ¡No te olvides de liberar las líneas y el paquete antes de regresar!
+	free(leido);
+	enviar_paquete(paquete, conexion);
+	eliminar_paquete(paquete);
+}
+
 
 void cerrar_programa(t_log *logger)
 {

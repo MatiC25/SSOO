@@ -33,8 +33,8 @@ extern t_log* logger;
 
 
 int crear_servidor(t_log *logger, const char *name, char *ip, char *puerto);
-bool generar_conexiones(t_log *logger, t_config_cpu *config_cpu, int *md_memoria);
-bool cargar_configuraciones(t_config_cpu *config_cpu, t_log *logger);
+int generar_conexiones(t_log *logger, t_config_cpu *config_cpu, int *md_memoria);
+int cargar_configuraciones(t_config_cpu *config_cpu, t_log *logger);
 void cerrar_programa(t_log *logger);
 void iterator(char* value);
 void server_escuchar(void* args);
