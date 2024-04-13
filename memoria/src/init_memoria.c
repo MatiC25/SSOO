@@ -49,7 +49,7 @@ int crear_servidores(t_log* logger_memoria, t_config_memoria* config_memoria, in
 void iniciar_modulo(t_log* logger_memoria, t_config_memoria* config_memoria) {
     int md_generico = 0;
 
-    if(crear_servidores(logger_memoria, config_memoria, md_generico) != 1) {
+    if(crear_servidores(logger_memoria, config_memoria, &md_generico) != 1) {
         log_error(logger_memoria, "No se pudo crear los servidores de escucha");
 
         return;
@@ -81,7 +81,7 @@ void server_escuchar(t_log* logger_memoria, const char* server_name, int socket_
             args_hilo->server_name = server_name;
             args_hilo->socket_cliente = socket_cliente;
 
-            pthread_create(&hilo, NULL, (void*) atender_conexion, (void *) args_hilo);
+            pthread_create(&hilo, NULL, (void*) atender_conexiones_memoria, (void *) args_hilo);
             pthread_join(hilo, NULL);
             // pthread_detach(hilo);
         }
