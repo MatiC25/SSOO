@@ -39,17 +39,17 @@ int cargar_configuraciones(t_config_memoria* config_memoria, t_log* logger_memor
 
 int crear_servidores(t_log* logger_memoria, t_config_memoria* config_memoria, int* md_generico) {
     char* puerto_memoria = string_itoa(config_memoria->puerto_escucha); // Convierte un int a una cadena de char
-    char* ip_memoria = NULL;
+    
 
-    md_generico = iniciar_servidor(logger_memoria, puerto_memoria, ip_memoria);
+    *md_generico = iniciar_servidor(logger_memoria, "Memoria" , NULL, puerto_memoria);
 
-    return md_generioco != 0;
+    return *md_generico != 0;
 }
 
 void iniciar_modulo(t_log* logger_memoria, t_config_memoria* config_memoria) {
     int md_generico = 0;
 
-    if(crear_servidores(logger_memoria, config_memoria, md_generioco) != 1) {
+    if(crear_servidores(logger_memoria, config_memoria, md_generico) != 1) {
         log_error(logger_memoria, "No se pudo crear los servidores de escucha");
 
         return;
@@ -72,17 +72,18 @@ void server_escuchar(t_log* logger_memoria, const char* server_name, int socket_
 
     while (1)
     {
-        int socket_cliente = esperar_cliente(logger_server, server_name, socket_server);
+        int socket_cliente = esperar_cliente(logger_memoria, server_name, socket_server);
 
         if(socket_cliente != -1) {
             pthread_t hilo;
             t_procesar_cliente* args_hilo = malloc(sizeof(t_procesar_cliente));
-            args_hilo->logger_server = logger_server;
+            args_hilo->logger_memoria = logger_memoria;
             args_hilo->server_name = server_name;
             args_hilo->socket_cliente = socket_cliente;
 
-            pthread_create(&hilo, NULL, (void*) atender_conexion, args_hilo);
-            pthread_detach(hilo);
+            pthread_create(&hilo, NULL, (void*) atender_conexion, (void *) args_hilo);
+            pthread_join(hilo, NULL);
+            // pthread_detach(hilo);
         }
     }
 
