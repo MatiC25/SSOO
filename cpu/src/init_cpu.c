@@ -1,17 +1,6 @@
 #include "init_cpu.h"
 
-int generar_conexiones(t_log* logger, t_config_cpu* config_cpu, int* md_memoria) {
-    
-    // no es el puerto correcto, pero debo levantar por config
-    char* puerto_memoria = "8002";
-    char* ip = "127.0.0.1";
-
-    *md_memoria = crear_conexion(logger, "MEMORIA", ip, puerto_memoria); // No harcodearlo! Sino leerlo de kernel.config
-    // No existe valores por referencias en C! Primero le sacamos la direccion de memoria a la variable, y despues con *variable asignamos el nuevo valor!
-
-    return (*md_memoria != 0) ? 1 : -1; // Aca pregunto por el nuevo valor!
-}
-
+//CARGAMOS LOS DATOS DEL CONFIG
 int cargar_configuraciones(t_config_cpu* config_cpu, t_log* logger) {
     t_config* config = config_create("cpu.config");
 
@@ -26,6 +15,8 @@ int cargar_configuraciones(t_config_cpu* config_cpu, t_log* logger) {
         "PUERTO_MEMORIA",
         "PUERTO_ESCUCHA_DISPATCH",
         "PUERTO_ESCUCHA_INTERRUPT",
+        "CANTIDAD_ENTRADAS_TLB",
+        "ALGORITMO_TLB",
         NULL
     };
 
@@ -48,23 +39,37 @@ int cargar_configuraciones(t_config_cpu* config_cpu, t_log* logger) {
     return 1;
 }
 
+// GENERAMOS CONEXIONES DE CLIENTE A SERVER MEMORIA
+int generar_conexiones(t_log* logger, t_config_cpu* config_cpu, int* md_memoria) {
+    
+    // no es el puerto correcto, pero debo levantar por config
+    char* puerto_memoria = string_itoa(config_cpu->puerto_memoria);
+    char* ip_memoria = config_cpu->ip_memoria;
+
+    *md_memoria = crear_conexion(logger, "MEMORIA", ip_memoria, puerto_memoria); // No harcodearlo! Sino leerlo de kernel.config
+    // No existe valores por referencias en C! Primero le sacamos la direccion de memoria a la variable, y despues con *variable asignamos el nuevo valor!
+
+    return (*md_memoria != 0) ? 1 : -1; // Aca pregunto por el nuevo valor!
+}
+
+// CREAMOS SERVIDOR PARA EL CLIENTE KERNEL
 int crear_servidores(t_log* logger, t_config_cpu* config_cpu, int* md_cpu_ds, int* md_cpu_it) {
+    
     char* puerto_dispatch = string_itoa(config_cpu->puerto_escucha_dispatch); // Convierte un int a una cadena de char
     char* puerto_interrupt = string_itoa(config_cpu->puerto_escucha_interrupt);
-    char* ip_cpu_ds = config_cpu->ip_memoria;
-    char* ip_cpu_it = config_cpu->ip_memoria;
-
-    *md_cpu_ds = iniciar_servidor(logger, "DISPATCH", ip_cpu_ds, puerto_dispatch); // Guarda ID del socket
-    *md_cpu_it = iniciar_servidor(logger, "INTERRUPT", ip_cpu_it, puerto_interrupt); 
+    
+    *md_cpu_ds = iniciar_servidor(logger, "DISPATCH", NULL, puerto_dispatch); // Guarda ID del socket
+    *md_cpu_it = iniciar_servidor(logger, "INTERRUPT", NULL, puerto_interrupt); 
 
     return (*md_cpu_ds != 0 && *md_cpu_it != 0) ? 1 : -1;
 }
 
 void iniciar_modulo(t_log* logger_cpu, t_config_cpu* config_cpu) {
+
     int md_cpu_ds = 0;
     int md_cpu_it = 0;
 
-    if( crear_servidores(logger_cpu, config_cpu, &md_cpu_ds, &md_cpu_it) != 1) {
+    if(crear_servidores(logger_cpu, config_cpu, &md_cpu_ds, &md_cpu_it) != 1) {
         log_error(logger_cpu, "No se pudo crear los servidores de escucha");
 
         return;
@@ -90,11 +95,9 @@ void iniciar_modulo(t_log* logger_cpu, t_config_cpu* config_cpu) {
     pthread_join(hilo_cpu_it, NULL);
 }
 
-void cerrar_programa(t_log* logger) {
-    log_destroy(logger);
-}
 
 void server_escuchar(void* args) {
+
     t_procesar_server* args_hilo = (t_procesar_server*) args;
     t_log* logger_server = args_hilo->logger;
     char* server_name = args_hilo->server_name;
@@ -109,4 +112,8 @@ void server_escuchar(void* args) {
         }
     }
 
+}
+
+void cerrar_programa(t_log* logger) {
+    log_destroy(logger);
 }

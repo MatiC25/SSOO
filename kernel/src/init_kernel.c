@@ -6,8 +6,8 @@ t_log* logger_kernel;
 
 int generar_conexiones(t_log *logger_kernel, t_config_k *config_kernel, int *md_memoria, int *md_cpu_dt, int *md_cpu_it)
 {
-  //char *ip_memoria = config_kernel->ip_memoria;
-  //char *puerto_memoria = string_itoa(config_kernel->puerto_memoria);
+  char *ip_memoria = config_kernel->ip_memoria;
+  char *puerto_memoria = string_itoa(config_kernel->puerto_memoria);
 
   char *ip_cpu = config_kernel->ip_cpu;
   char *puerto_cpu_dispatch = string_itoa(config_kernel->puerto_cpu_ds);
@@ -15,12 +15,12 @@ int generar_conexiones(t_log *logger_kernel, t_config_k *config_kernel, int *md_
 
   *md_cpu_dt = crear_conexion(logger_kernel, "CPU-DT", ip_cpu, puerto_cpu_dispatch);
   *md_cpu_it = crear_conexion(logger_kernel, "CPU-IT", ip_cpu, puerto_cpu_interrupt);
-  //*md_memoria = crear_conexion(logger_kernel, "MEMORIA", ip_memoria, puerto_memoria); // Valores leidos de archivo de configuracion!
+  *md_memoria = crear_conexion(logger_kernel, "MEMORIA", ip_memoria, puerto_memoria); // Valores leidos de archivo de configuracion!
 
 //paquete(md_cpu_dt);
 //paquete(md_cpu_it);
 
-  return (*md_cpu_dt != 0 && *md_cpu_it != 0) ? 1 : -1; // && *md_memoria != 0 Aca pregunto por el nuevo valor!
+  return (*md_cpu_dt != 0 && *md_cpu_it != 0 && *md_memoria != 0) ? 1 : -1; //Aca pregunto por el nuevo valor!
 }
 
 int cargar_configuraciones(t_config_k *config_kernel, t_log *logger_kernel)

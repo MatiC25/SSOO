@@ -15,8 +15,10 @@ void inicializar_config(void)
 
 int main(void)
 {
+
     //Creando logger
     t_log* logger_cpu = log_create("CPUlog.log","CPU",1, LOG_LEVEL_INFO);
+
     if ( logger_cpu == NULL)
 	{
 		perror("No se puedo encontrar el archivo");
@@ -25,7 +27,8 @@ int main(void)
 
     inicializar_config(); // Inicializo la variable global config_kernel! -> No se si es la mejor forma de hacerlo!
 
-    if(cargar_configuraciones(config_cpu, logger_cpu) == 1 )
+    int md_memoria = 0;
+    if(cargar_configuraciones(config_cpu, logger_cpu) != 1 && generar_conexiones(logger_cpu, config_cpu, &md_memoria) != 1)
     {
         log_error(logger_cpu, "Error al cargar el .config");
         return EXIT_FAILURE;
