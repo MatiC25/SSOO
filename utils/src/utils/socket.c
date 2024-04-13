@@ -263,7 +263,7 @@ t_list *recibir_paquete(int socket_cliente)
 	return valores;
 }
 
-void 		atender_conexion(t_log* logger, char* server_name, int cliente_socket) { // Si el server tuviera que procesar varias solicitudes del mismo cliente, esto debería ser un while
+void atender_conexion(t_log* logger, char* server_name, int cliente_socket) { // Si el server tuviera que procesar varias solicitudes del mismo cliente, esto debería ser un while
     op_code cop;
 
     // while (cliente_socket != -1) {

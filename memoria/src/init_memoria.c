@@ -37,84 +37,75 @@ int cargar_configuraciones(t_config_memoria* config_memoria, t_log* logger_memor
     return 1;
 }
 
-int crear_servidores(t_log* logger_memoria, t_config_memoria* config_memoria, int* md_kernel, int* md_EntradaySalida, int* md_cpu) {
+int crear_servidores(t_log* logger_memoria, t_config_memoria* config_memoria, int* md_generico) {
     char* puerto_memoria = string_itoa(config_memoria->puerto_escucha); // Convierte un int a una cadena de char
     char* ip_memoria = NULL;
 
-    *md_kernel = iniciar_servidor(logger_memoria, "KERNEL", ip_memoria, puerto_memoria); // Guarda ID del socket
-    *md_EntradaySalida = iniciar_servidor(logger_memoria, "I/O", ip_memoria, puerto_memoria); 
-    *md_cpu = iniciar_servidor(logger_memoria, "CPU", ip_memoria, puerto_memoria); 
+    md_generico = iniciar_servidor(logger_memoria, puerto_memoria, ip_memoria);
 
-    return (*md_kernel != 0 && *md_cpu != 0 && *md_EntradaySalida != 0) ? 1 : -1;
+    return md_generioco != 0;
 }
 
 void iniciar_modulo(t_log* logger_memoria, t_config_memoria* config_memoria) {
-    int md_kernel = 0;
-    int md_EntradaySalida = 0;
-    int md_cpu = 0;
+    int md_generico = 0;
 
-    if( crear_servidores(logger_memoria, config_memoria, &md_kernel, &md_EntradaySalida, &md_cpu) != 1) {
+    if(crear_servidores(logger_memoria, config_memoria, md_generioco) != 1) {
         log_error(logger_memoria, "No se pudo crear los servidores de escucha");
 
         return;
     }
 
-
-
-
-
+    server_escuchar(logger_memoria, "Memoria", md_generico);
     //Creamos un hilo por cada proceso para administrar los requerimientos de concurrencia
     //Tambien pensanmos en agregar hilos para la administración de recursos
-    pthread_t hilo_kernel;
-    pthread_t hilo_cpu;
-    pthread_t hilo_entradaysalida;
-
-    t_procesar_server* args_k = malloc(sizeof(t_procesar_server));
-    args_k->logger_memoria = logger_memoria;
-    args_k->socket_server = md_kernel;
-    args_k->server_name = "KERNEL";
-
-    t_procesar_server* args_cpu = malloc(sizeof(t_procesar_server));
-    args_cpu->logger_memoria = logger_memoria;
-    args_cpu->socket_server = md_cpu;
-    args_cpu->server_name = "CPU";
-
-    t_procesar_server* args_i_o = malloc(sizeof(t_procesar_server));
-    args_i_o->logger_memoria = logger_memoria;
-    args_i_o->socket_server = md_EntradaySalida;
-    args_i_o->server_name = "I/O";
-
-    pthread_create(&hilo_kernel, NULL, (void*) server_escuchar, (void*) args_k); //Se guarda la info que tenemos antes en el struct
-    pthread_create(&hilo_cpu, NULL, (void*) server_escuchar, (void*) args_cpu);
-    pthread_create(&hilo_entradaysalida, NULL, (void*) server_escuchar, (void*) args_i_o);
-
-    pthread_join(hilo_kernel, NULL);
-    pthread_join(hilo_cpu, NULL);
-    pthread_join(hilo_entradaysalida, NULL);
 }
 
 void cerrar_programa(t_log* logger_memoria) {
     log_destroy(logger_memoria);
 }
 
-void server_escuchar(void* args) {
-    t_procesar_server* args_hilo = (t_procesar_server*) args;
-    t_log* logger_server = args_hilo->logger_memoria;
-    char* server_name = args_hilo->server_name;
-    int socket_server = args_hilo->socket_server;
+void server_escuchar(t_log* logger_memoria, const char* server_name, int socket_server) {
+    // t_procesar_server* args_hilo = (t_procesar_server*) args;
+    // t_log* logger_server = args_hilo->logger_memoria;
+    // char* server_name = args_hilo->server_name;
+    // int socket_server = args_hilo->socket_server;
 
     while (1)
     {
         int socket_cliente = esperar_cliente(logger_server, server_name, socket_server);
 
         if(socket_cliente != -1) {
-            atender_conexion(logger_server, server_name, socket_cliente);
+            pthread_t hilo;
+            t_procesar_cliente* args_hilo = malloc(sizeof(t_procesar_cliente));
+            args_hilo->logger_server = logger_server;
+            args_hilo->server_name = server_name;
+            args_hilo->socket_cliente = socket_cliente;
+
+            pthread_create(&hilo, NULL, (void*) atender_conexion, args_hilo);
+            pthread_detach(hilo);
         }
     }
 
 }
 
+void atender_conexiones_memoria(void *args)
+{
+	t_procesar_cliente *args_hilo = (t_procesar_cliente *)args;
+	t_log *logger = args_hilo->logger_memoria;
+	char *server_name = args_hilo->server_name;
+	int cliente_socket = args_hilo->socket_cliente;
 
+	op_code cop;
+
+	// while (1)
+	// {
+		
+	// }
+
+	log_warning(logger, "El cliente se desconecto de %s server", server_name);
+
+	return;
+}
 
 
 
