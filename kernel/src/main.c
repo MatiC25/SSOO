@@ -33,7 +33,7 @@ int main()
 //Inicializamos conexiones
 
     int md_memoria = 0, md_cpu_dt = 0, md_cpu_it = 0;
-    if (cargar_configuraciones(config_kernel, logger_kernel) == 1 && generar_conexiones(logger_kernel, config_kernel, &md_memoria, &md_cpu_dt, &md_cpu_it) != 1 )
+    if (cargar_configuraciones(config_kernel, logger_kernel) != 1  || generar_conexiones(logger_kernel, config_kernel, &md_memoria, &md_cpu_dt, &md_cpu_it) != 1 )
     { // Generar conexiones, no va a mantener la conexion, sino que va a crear la conexion y la va a cerrar!
         log_error(logger_kernel, "Cargar las configuraciones");
 
@@ -46,6 +46,7 @@ iniciar_modulo(logger_kernel,config_kernel); // Funcion en proceso de creacion!
 
 
 cerrar_programa(logger_kernel);
+//borrar_conexiones(md_memoria, md_cpu_dt, md_cpu_it)
     
     // NEW = crear_cola() // Hay que armar la PCB!
     // READY = crear_cola()

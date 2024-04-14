@@ -31,7 +31,6 @@ int main()
    
 //Inicializamos conexiones
 
-    int md_kernel = 0, md_cpu = 0, md_entradaysalida = 0;
     if (cargar_configuraciones(config_memoria, logger_memoria) != 1 )
     { // Generar conexiones, no va a mantener la conexion, sino que va a crear la conexion y la va a cerrar!
         log_error(logger_memoria, "Cargar las configuraciones");

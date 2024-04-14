@@ -46,6 +46,8 @@ int generar_conexiones(t_log* logger, t_config_cpu* config_cpu, int* md_memoria)
     char* puerto_memoria = string_itoa(config_cpu->puerto_memoria);
     char* ip_memoria = config_cpu->ip_memoria;
 
+
+
     *md_memoria = crear_conexion(logger, "MEMORIA", ip_memoria, puerto_memoria); // No harcodearlo! Sino leerlo de kernel.config
     // No existe valores por referencias en C! Primero le sacamos la direccion de memoria a la variable, y despues con *variable asignamos el nuevo valor!
 

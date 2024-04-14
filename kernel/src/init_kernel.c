@@ -86,8 +86,10 @@ int cargar_configuraciones(t_config_k *config_kernel, t_log *logger_kernel)
 
   log_info(logger_kernel, "Se pudieron cargar todas las configuraciones necesarias!");
   
-  config_destroy(config);
   */
+   
+  config_destroy(config);
+  
 
   return 1;
 }

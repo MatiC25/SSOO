@@ -24,32 +24,31 @@ int cargar_configuraciones(t_config_memoria* config_memoria, t_log* logger_memor
         return -1;
     }
     
+    copiar_valor(&config_memoria->path_instrucciones, config_get_string_value(config, "PATH_INSTRUCCIONES"));
 
     config_memoria->puerto_escucha = config_get_int_value(config, "PUERTO_ESCUCHA");
     config_memoria->tam_memoria = config_get_int_value(config, "TAM_MEMORIA");
     config_memoria->tam_pagina = config_get_int_value(config, "TAM_PAGINA");
-    copiar_valor(&config_memoria->path_instrucciones, config_get_string_value(config, "PATH_INSTRUCCIONES"));
     config_memoria->retardo_respuesta = config_get_int_value(config, "RETARDO_RESPUESTA");
 
     log_info(logger_memoria, "Configuraciones cargadas correctamente");
-    config_destroy(config);
+   config_destroy(config);
 
     return 1;
 }
 
 int crear_servidores(t_log* logger_memoria, t_config_memoria* config_memoria, int* md_generico) {
     char* puerto_memoria = string_itoa(config_memoria->puerto_escucha); // Convierte un int a una cadena de char
-    
 
     *md_generico = iniciar_servidor(logger_memoria, "Memoria" , NULL, puerto_memoria);
 
-    return *md_generico != 0;
+    return (*md_generico != 0) ? 1 : -1;
 }
 
 void iniciar_modulo(t_log* logger_memoria, t_config_memoria* config_memoria) {
     int md_generico = 0;
 
-    if(crear_servidores(logger_memoria, config_memoria, md_generico) != 1) {
+    if(crear_servidores(logger_memoria, config_memoria, &md_generico) != 1) {
         log_error(logger_memoria, "No se pudo crear los servidores de escucha");
 
         return;
@@ -64,7 +63,7 @@ void cerrar_programa(t_log* logger_memoria) {
     log_destroy(logger_memoria);
 }
 
-void server_escuchar(t_log* logger_memoria, const char* server_name, int socket_server) {
+void server_escuchar(t_log* logger_memoria, char* server_name, int socket_server) {
     // t_procesar_server* args_hilo = (t_procesar_server*) args;
     // t_log* logger_server = args_hilo->logger_memoria;
     // char* server_name = args_hilo->server_name;
@@ -77,13 +76,19 @@ void server_escuchar(t_log* logger_memoria, const char* server_name, int socket_
         if(socket_cliente != -1) {
             pthread_t hilo;
             t_procesar_cliente* args_hilo = malloc(sizeof(t_procesar_cliente));
+            if (args_hilo == NULL)
+            {   
+                log_error(logger_memoria,"Error al crear el hilo");
+            }
             args_hilo->logger_memoria = logger_memoria;
             args_hilo->server_name = server_name;
             args_hilo->socket_cliente = socket_cliente;
 
-            pthread_create(&hilo, NULL, (void*) atender_conexion, (void *) args_hilo);
-            pthread_join(hilo, NULL);
-            // pthread_detach(hilo);
+            pthread_create(&hilo, NULL, (void*) atender_conexiones_memoria, (void *) args_hilo);
+            pthread_detach(hilo);
+            //pthread_join(hilo, NULL);
+            
+            
         }
     }
 
@@ -96,14 +101,15 @@ void atender_conexiones_memoria(void *args)
 	char *server_name = args_hilo->server_name;
 	int cliente_socket = args_hilo->socket_cliente;
 
-	op_code cop;
-
-	// while (1)
-	// {
-		
-	// }
-
+	//op_code cop;
+    //while (1)
+    //{
+        /* code */
+    //}
+    
+	
 	log_warning(logger, "El cliente se desconecto de %s server", server_name);
+    //free(args_hilo);
 
 	return;
 }

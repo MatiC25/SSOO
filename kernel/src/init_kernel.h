@@ -34,6 +34,7 @@ typedef struct {
 
 extern t_log* logger_kernel;
 
+//void borrar_conexiones(int md_cpu_dt,int md_cpu_it, int md_memoria)
 int generar_conexiones(t_log *logger_kernel, t_config_k *config_kernel, int *md_memoria, int *md_cpu_dt, int *md_cpu_it);
 int cargar_configuraciones(t_config_k *config_kernel, t_log *logger_kernel);
 void cerrar_programa(t_log *logger_kernel);

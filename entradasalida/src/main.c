@@ -29,7 +29,7 @@ int main()
     inicializar_config(); // Inicializo la variable global config_entradasalida!
 
     int md_memoria = 0, md_kernel = 0;
-    if (cargar_configuraciones(config_entradasalida, logger_entradasalida) == 1 && generar_conexiones(logger_entradasalida, config_entradasalida, &md_memoria, &md_kernel) != 1 )
+    if (cargar_configuraciones(config_entradasalida, logger_entradasalida) != 1 || generar_conexiones(logger_entradasalida, config_entradasalida, &md_memoria, &md_kernel) != 1 )
     { // Generar conexiones, no va a mantener la conexion, sino que va a crear la conexion y la va a cerrar!
         log_error(logger_entradasalida, "No se pudieron generar las conexiones");
 
