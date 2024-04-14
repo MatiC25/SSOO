@@ -33,7 +33,11 @@ int main()
 //Inicializamos conexiones
 
     int md_memoria = 0, md_cpu_dt = 0, md_cpu_it = 0;
+<<<<<<< HEAD
     if (cargar_configuraciones(config_kernel, logger_kernel) != 1  || generar_conexiones(logger_kernel, config_kernel, &md_memoria, &md_cpu_dt, &md_cpu_it) != 1 )
+=======
+    if (cargar_configuraciones(config_kernel, logger_kernel) != 1 && generar_conexiones(logger_kernel, config_kernel, &md_memoria, &md_cpu_dt, &md_cpu_it) != 1 )
+>>>>>>> 3daa545628a9ab15344bec7b627175417907172e
     { // Generar conexiones, no va a mantener la conexion, sino que va a crear la conexion y la va a cerrar!
         log_error(logger_kernel, "Cargar las configuraciones");
 
