@@ -76,7 +76,6 @@ void iniciar_modulo(t_log* logger_cpu, t_config_cpu* config_cpu) {
 
         return;
     }
-
     pthread_t hilo_cpu_ds;
     pthread_t hilo_cpu_it;
 
