@@ -85,15 +85,10 @@ void server_escuchar(t_log* logger_memoria, char* server_name, int socket_server
             args_hilo->socket_cliente = socket_cliente;
 
             pthread_create(&hilo, NULL, (void*) atender_conexiones_memoria, (void *) args_hilo);
-<<<<<<< HEAD
             pthread_detach(hilo);
             //pthread_join(hilo, NULL);
             
             
-=======
-            pthread_join(hilo, NULL);
-            // pthread_detach(hilo);
->>>>>>> 3daa545628a9ab15344bec7b627175417907172e
         }
     }
 
