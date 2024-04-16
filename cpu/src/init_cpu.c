@@ -92,7 +92,7 @@ void iniciar_modulo(t_log* logger_cpu, t_config_cpu* config_cpu) {
     pthread_create(&hilo_cpu_ds, NULL, (void*) server_escuchar, (void*) args_ds); //Se guarda la info que tenemos antes en el struct
     pthread_create(&hilo_cpu_it, NULL, (void*) server_escuchar, (void*) args_it);
 
-    pthread_join(hilo_cpu_ds, NULL);
+    pthread_join(hilo_cpu_ds, NULL); //Entramos al hilo
     pthread_join(hilo_cpu_it, NULL);
 }
 
@@ -106,8 +106,8 @@ void server_escuchar(void* args) {
 
     while (1)
     {
-        int socket_cliente = esperar_cliente(logger_server, server_name, socket_server);
-
+        int socket_cliente = esperar_cliente(logger_server, server_name, socket_server);//Los sockest simpre deben ser != -1
+        
         if(socket_cliente != -1) {
             atender_conexion(logger_server, server_name, socket_cliente);
         }

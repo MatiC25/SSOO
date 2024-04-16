@@ -9,6 +9,7 @@
 #include <utils/socket.h>
 #include <utils/shared.h>
 #include <pthread.h>
+#include <utils/protocolo.h>
 
 typedef struct
 {

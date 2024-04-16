@@ -17,8 +17,6 @@ int generar_conexiones(t_log *logger_kernel, t_config_k *config_kernel, int *md_
   *md_cpu_it = crear_conexion(logger_kernel, "CPU-IT", ip_cpu, puerto_cpu_interrupt);
   *md_memoria = crear_conexion(logger_kernel, "MEMORIA", ip_memoria, puerto_memoria); // Valores leidos de archivo de configuracion!
 
-//paquete(md_cpu_dt);
-//paquete(md_cpu_it);
 
   return (*md_cpu_dt != 0 && *md_cpu_it != 0 && *md_memoria != 0) ? 1 : -1; //Aca pregunto por el nuevo valor!
 }
