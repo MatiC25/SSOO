@@ -37,6 +37,8 @@ typedef struct
 	t_buffer *buffer;
 } t_paquete;
 
+extern t_log* logger;
+
 void iterator(char* value);
 void recibir_mensaje(int socket_cliente);
 void agregar_a_paquete(t_paquete *paquete, void *valor, int tamanio);
