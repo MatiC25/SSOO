@@ -7,7 +7,6 @@
 #include<sys/socket.h>
 #include<unistd.h>
 #include<netdb.h>
-#include<commons/log.h>
 #include<commons/collections/list.h>
 #include<string.h>
 #include<assert.h>
@@ -40,6 +39,7 @@ typedef struct
 extern t_log* logger;
 
 void iterator(char* value);
+void paquete(int conexion , t_log* logger);
 void recibir_mensaje(int socket_cliente);
 void agregar_a_paquete(t_paquete *paquete, void *valor, int tamanio);
 void enviar_paquete(t_paquete *paquete, int socket_cliente);

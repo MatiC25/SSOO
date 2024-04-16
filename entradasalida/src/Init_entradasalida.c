@@ -60,26 +60,6 @@ int cargar_configuraciones(t_config_k *config_entradasalida, t_log *logger)
   return 1;
 }
 
-void paquete(int conexion)
-{
-	// Ahora toca lo divertido!
-	char* leido;
-	t_paquete* paquete = crear_paquete();
-
-	// Leemos y esta vez agregamos las lineas al paquete
-	leido = readline("> ");
-	while(strcmp(leido, "") != 0)
-	{	
-		agregar_a_paquete(paquete, leido, strlen(leido) + 1);
-		free(leido);
-		leido = readline("> ");
-	}
-
-	// ¡No te olvides de liberar las líneas y el paquete antes de regresar!
-	free(leido);
-	enviar_paquete(paquete, conexion);
-	eliminar_paquete(paquete);
-}
 
 
 void cerrar_programa(t_log *logger)

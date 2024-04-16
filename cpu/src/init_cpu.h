@@ -18,7 +18,6 @@ typedef struct
     int puerto_escucha_interrupt;
     int cant_entradas;
     char* algoritmo;
-
 } t_config_cpu;
 
 

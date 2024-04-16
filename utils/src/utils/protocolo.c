@@ -2,9 +2,9 @@
 
 
 
-void enviar_mensaje(char *mensaje, int socket_cliente)
+void enviar_mensaje(char* mensaje, int socket_cliente)
 {
-	t_paquete *paquete = malloc(sizeof(t_paquete));
+	t_paquete* paquete = malloc(sizeof(t_paquete));
 
 	paquete->codigo_operacion = MENSAJE;
 	paquete->buffer = malloc(sizeof(t_buffer));
@@ -12,11 +12,14 @@ void enviar_mensaje(char *mensaje, int socket_cliente)
 	paquete->buffer->stream = malloc(paquete->buffer->size);
 	memcpy(paquete->buffer->stream, mensaje, paquete->buffer->size);
 
-	int bytes = paquete->buffer->size + 2 * sizeof(int);
+	int bytes = paquete->buffer->size + 2* sizeof(int);
 
-	void *a_enviar = serializar_paquete(paquete, bytes);
+	void* a_enviar = serializar_paquete(paquete, bytes);
 
-	send(socket_cliente, a_enviar, bytes, 0);
+	int bytes_enviados = send(socket_cliente, a_enviar, bytes, 0);
+    if (bytes_enviados == -1) {
+        perror("Error al enviar el mensaje");
+    }
 
 	free(a_enviar);
 	eliminar_paquete(paquete);
@@ -92,7 +95,7 @@ void recibir_mensaje(int socket_cliente)
 {
 	int size;
 	char *buffer = recibir_buffer(&size, socket_cliente);
-	log_info(logger, "Me llego el mensaje %s", buffer); //Por ahi cambiar
+	log_info(logger, "Me llego el mensaje %s", buffer);
 	free(buffer);
 }
 
@@ -136,5 +139,31 @@ void *serializar_paquete(t_paquete *paquete, int bytes)
 
 void iterator(char* value) {
 	log_info(logger,"%s", value);
+}
+
+void paquete(int conexion , t_log* logger)
+{
+	// Ahora toca lo divertido!
+	char* leido = NULL;
+	t_paquete* paquete = crear_paquete();
+	printf("Escribi lo que quieras que sea mandado el servidor para comunicarte con el..\n");
+	log_info(logger,"-->  Comunicaciones con el servidor  <--");
+	leido = readline("--> ");
+	log_info(logger,"--> %s",leido); //opcional
+	// Leemos y esta vez agregamos las lineas al paquete
+	do{
+		agregar_a_paquete(paquete,leido, strlen(leido) + 1 );
+		
+		free(leido);
+		leido = readline("--> ");
+		log_info(logger,"--> %s",leido); //opcional 
+	}while (strcmp(leido,"")!= 0);
+
+	free(leido);
+
+	enviar_paquete(paquete,conexion);
+
+	// ¡No te olvides de liberar las líneas y el paquete antes de regresar!
+	eliminar_paquete(paquete);
 }
 

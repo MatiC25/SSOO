@@ -41,14 +41,14 @@ int main()
         return EXIT_FAILURE;
     }
 
-char* valor = "hola";
+char *valor = "hola";
 
 enviar_mensaje(valor,md_cpu_dt);
 enviar_mensaje(valor,md_cpu_it);
 //enviar_mensaje(valor,md_memoria);
 
-paquete(md_cpu_dt);
-paquete(md_cpu_it);
+paquete(md_cpu_dt, logger_kernel);
+paquete(md_cpu_it, logger_kernel);
 //paquete(md_memoria);
 
 

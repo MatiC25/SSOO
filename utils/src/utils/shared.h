@@ -11,8 +11,7 @@
 #include <string.h>
 
 
-
-
+extern t_log* logger;
 
 bool tiene_todas_las_configuraciones(t_config *config, char *configs[]);
 bool es_esta_palabra(char *palabra, char *palabraNecesaria);

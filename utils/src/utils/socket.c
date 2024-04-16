@@ -138,7 +138,7 @@ void liberar_conexion(int socket_cliente)
 void atender_conexion(t_log* logger, char* server_name, int cliente_socket) { // Si el server tuviera que procesar varias solicitudes del mismo cliente, esto debería ser un while
     
 
-	t_list* lista = NULL;
+	t_list* lista;
 	while (1) {
 		op_code cod_op = recibir_operacion(cliente_socket);
 		switch (cod_op) {
@@ -159,52 +159,5 @@ void atender_conexion(t_log* logger, char* server_name, int cliente_socket) { //
 		}
 	}
 	
-	
-	
-	
-	//op_code cop;
-
-    // while (cliente_socket != -1) {
-
-    //     if(recv(cliente_socket, &cop, sizeof(op_code), 0) != sizeof(op_code)) {
-    //         log_info(logger, "DISCONNECT!");
-
-    //         return;
-    //     }
-
-        // switch (cop) {
-
-        //     case EJECUTAR_PROCESO:
-        //     {
-        //         t_pcb* proceso = rcv_contexto_ejecucion(cliente_socket);
-
-        //         //ciclo_de_instruccion(proceso);
-        //         //send_contexto_ejecucion(RECIBIR_PROCESO, cliente_socket, proceso);
-        //         //check_interrupt = false;
-        //         break;
-        //     }
-        //     case INTERRUPT:
-        //     {
-        //         break;
-        //     }
-        //     case DEVOLVER_PROCESO:
-        //     {
-        //         //send_contexto_ejecucion(RECIBIR_PROCESO, cliente_socket, proceso);
-        //         break;
-        //     }
-
-        //     // Errores
-        //     case -1:
-        //         log_error(logger, "Cliente desconectado de %s...", server_name);
-        //         return;
-        //     default:
-        //         log_error(logger, "Algo anduvo mal en el server de %s", server_name);
-        //         return;
-        // }
-
-        log_warning(logger, "El cliente se desconecto de %s server", server_name);
-
-   // }
-
     return;
 }
