@@ -93,21 +93,17 @@ int cargar_configuraciones(t_config_k *config_kernel, t_log *logger_kernel)
 }
 
 
-
-
-
 int crear_servidor(t_log* logger_kernel, t_config_k* config_kernel, int * md_EntradaySalida) {
     char* puerto_entradasalida = string_itoa(config_kernel->puerto_escucha); // Convierte un int a una cadena de char
     char* ip_memoria = NULL;  //Ip generica
 
     *md_EntradaySalida = iniciar_servidor(logger_kernel, "I/O", ip_memoria, puerto_entradasalida); // Guarda ID del socket
-    
 
     return (md_EntradaySalida != 0) ? 1 : -1 ;
 }
 
-
-void server_escuchar(void* args) {
+void server_escuchar(void* args) 
+{
     t_procesar_server* args_hilo = (t_procesar_server*) args;
     t_log* logger_server = args_hilo->logger_kernel;
     char* server_name = args_hilo->server_name;
@@ -117,65 +113,30 @@ void server_escuchar(void* args) {
     {
         int socket_cliente = esperar_cliente(logger_server, server_name, socket_server);
 
-        if(socket_cliente != -1) {
+        if(socket_cliente != -1)
             atender_conexion(logger_server, server_name, socket_cliente);
-        }
-      }
     }
+}
 
 
 void iniciar_modulo(t_log* logger_kernel, t_config_k* config_kernel) {
-int md_EntradaySalida = 0;
+    int md_EntradaySalida = 0;
 
-      if(crear_servidor(logger_kernel, config_kernel, & md_EntradaySalida) != 1) {
+    if(crear_servidor(logger_kernel, config_kernel, & md_EntradaySalida) != 1) 
+    {
         log_error(logger_kernel, "No se pudo crear los servidores de escucha");
 
         return ;
     }
-
   
     pthread_t hilo_enetradaysalida;
-    
-    t_procesar_server* args_ds = malloc(sizeof(t_procesar_server));
-    args_ds->logger_kernel = logger_kernel;
-    args_ds->socket_server = md_EntradaySalida;
-    args_ds->server_name = "I/O";
+    t_procesar_conexion* args_ds = crear_procesar_conexion(logger_kernel, "Kernel", md_EntradaySalida);
 
     pthread_create(&hilo_enetradaysalida, NULL, (void*) server_escuchar, (void*) args_ds); //Se guarda la info que tenemos antes en el struct
     pthread_join(hilo_enetradaysalida, NULL);
-    
-  
 }
-
-// void paquete(int conexion)
-// {
-// 	// Ahora toca lo divertido!
-// 	char* leido;
-// 	t_paquete* paquete = crear_paquete();
-
-// 	// Leemos y esta vez agregamos las lineas al paquete
-// 	leido = readline("> ");
-// 	while(strcmp(leido, "") != 0)
-// 	{	
-// 		agregar_a_paquete(paquete, leido, strlen(leido) + 1);
-// 		free(leido);
-// 		leido = readline("> ");
-// 	}
-
-	// ¡No te olvides de liberar las líneas y el paquete antes de regresar!
-	// free(leido);
-	// enviar_paquete(paquete, conexion);
-	// eliminar_paquete(paquete);
-// }
-
 
 void cerrar_programa(t_log *logger_kernel)
 {
   log_destroy(logger_kernel);
-}
-
-void borrar_conexiones(int md_cpu_dt,int md_cpu_it, int md_memoria){
-  liberar_conexion(md_cpu_dt);
-  liberar_conexion(md_cpu_it);
-  liberar_conexion(md_memoria);
 }

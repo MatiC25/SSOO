@@ -59,63 +59,6 @@ void iniciar_modulo(t_log* logger_memoria, t_config_memoria* config_memoria) {
     //Tambien pensanmos en agregar hilos para la administración de recursos
 }
 
-void cerrar_programa(t_log* logger_memoria) {
-    log_destroy(logger_memoria);
-}
-
-void server_escuchar(t_log* logger_memoria, char* server_name, int socket_server) {
-    // t_procesar_server* args_hilo = (t_procesar_server*) args;
-    // t_log* logger_server = args_hilo->logger_memoria;
-    // char* server_name = args_hilo->server_name;
-    // int socket_server = args_hilo->socket_server;
-
-    while (1)
-    {
-        int socket_cliente = esperar_cliente(logger_memoria, server_name, socket_server);
-
-        if(socket_cliente != -1) {
-            pthread_t hilo;
-            t_procesar_cliente* args_hilo = malloc(sizeof(t_procesar_cliente));
-            if (args_hilo == NULL)
-            {   
-                log_error(logger_memoria,"Error al crear el hilo");
-            }
-            args_hilo->logger_memoria = logger_memoria;
-            args_hilo->server_name = server_name;
-            args_hilo->socket_cliente = socket_cliente;
-
-            pthread_create(&hilo, NULL, (void*) atender_conexiones_memoria, (void *) args_hilo);
-            pthread_detach(hilo);
-            //pthread_join(hilo, NULL);
-            
-            
-        }
-    }
-
-}
-
-void atender_conexiones_memoria(void *args)
-{
-	t_procesar_cliente *args_hilo = (t_procesar_cliente *)args;
-	t_log *logger = args_hilo->logger_memoria;
-	char *server_name = args_hilo->server_name;
-	int cliente_socket = args_hilo->socket_cliente;
-
-	//op_code cop;
-    //while (1)
-    //{
-        /* code */
-    //}
-    
-	
-	log_warning(logger, "El cliente se desconecto de %s server", server_name);
-    //free(args_hilo);
-
-	return;
-}
-
-
-
 
 
 

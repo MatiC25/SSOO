@@ -10,38 +10,34 @@
 #include <utils/shared.h>
 #include <pthread.h>
 #include <utils/protocolo.h>
+#include <utils/estructuras_compartidas.h>
 
 typedef struct
 {
-  int puerto_escucha;
-  char *ip_memoria;
-  int puerto_memoria;
-  char *ip_cpu;
-  int puerto_cpu_ds;
-  int puerto_cpu_it;
-  char *algoritmo_planificacion;
-  int quantum;
-  char **recursos;
-  int *inst_recursos;
-  int grado_multip;
+  	int puerto_escucha;
+	char *ip_memoria;
+	int puerto_memoria;
+	char *ip_cpu;
+	int puerto_cpu_ds;
+	int puerto_cpu_it;
+	char *algoritmo_planificacion;
+	int quantum;
+	char **recursos;
+	int *inst_recursos;
+	int grado_multip;
 } t_config_k;
-
-typedef struct {
-    t_log* logger_kernel;
-    char* server_name;
-    int socket_server;
-} t_procesar_server;
-
 
 extern t_log* logger_kernel;
 
-//void borrar_conexiones(int md_cpu_dt,int md_cpu_it, int md_memoria)
+// Funcion para cargar configuraciones de Kernel:
 int generar_conexiones(t_log *logger_kernel, t_config_k *config_kernel, int *md_memoria, int *md_cpu_dt, int *md_cpu_it);
 int cargar_configuraciones(t_config_k *config_kernel, t_log *logger_kernel);
-void cerrar_programa(t_log *logger_kernel);
-void server_escuchar(void* args);
-void iterator(char* value);
-void iniciar_modulo(t_log* logger_kernel, t_config_k * config_kernel);
+
+// Funciones para manejo de clientes y conexiones del modulo:
 int crear_servidores(t_log* logger_kernel, t_config_k* config_kernel, int* md_EntradaySalida);
+
+// Funciones de operaciones basicas del modulo:
+void iniciar_modulo(t_log* logger_kernel, t_config_k * config_kernel);
+void cerrar_programa(t_log *logger_kernel);
 
 #endif // INIT_KERNEL_H

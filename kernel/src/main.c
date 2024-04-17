@@ -19,7 +19,6 @@ void inicializar_config(void)
 
 int main()
 {
-
     //Creando logger
     t_log* logger_kernel = log_create("kernel.log","Kernel",1, LOG_LEVEL_INFO);
     if ( logger_kernel == NULL)
@@ -30,7 +29,7 @@ int main()
 
    inicializar_config(); // Inicializo la variable global config_kernel! -> No se si es la mejor forma de hacerlo!
    
-//Inicializamos conexiones
+    //Inicializamos conexiones
 
     int md_memoria = 0, md_cpu_dt = 0, md_cpu_it = 0;
     if (cargar_configuraciones(config_kernel, logger_kernel) != 1  || generar_conexiones(logger_kernel, config_kernel, &md_memoria, &md_cpu_dt, &md_cpu_it) != 1 )
@@ -41,23 +40,20 @@ int main()
         return EXIT_FAILURE;
     }
 
-char *valor = "hola";
+    char *valor = "hola";
 
-enviar_mensaje(valor,md_cpu_dt);
-enviar_mensaje(valor,md_cpu_it);
-//enviar_mensaje(valor,md_memoria);
-
-paquete(md_cpu_dt, logger_kernel);
-paquete(md_cpu_it, logger_kernel);
-//paquete(md_memoria);
+    enviar_mensaje(valor,md_cpu_dt);
+    enviar_mensaje(valor,md_cpu_it);
+    //enviar_mensaje(valor,md_memoria);
+    //paquete(md_memoria);
 
 
-//abrimos el servidor
-iniciar_modulo(logger_kernel,config_kernel); // Funcion en proceso de creacion!
+    //abrimos el servidor
+    iniciar_modulo(logger_kernel,config_kernel); // Funcion en proceso de creacion!
 
 
-//cerrar_programa(logger_kernel);
-//borrar_conexiones(md_memoria, md_cpu_dt, md_cpu_it)
+    //cerrar_programa(logger_kernel);
+    //borrar_conexiones(md_memoria, md_cpu_dt, md_cpu_it)
     
     // NEW = crear_cola() // Hay que armar la PCB!
     // READY = crear_cola()
