@@ -1,77 +1,52 @@
 #include "socket.h"
 
-
-t_log* logger;
-// usuario
-
-// INICIA SERVER ESCUCHANDO EN IP:PUERTO
-int iniciar_servidor(t_log *logger, const char *name, char *ip, char *puerto)
+int iniciar_servidor(t_log* logger, const char* name, char* ip, char* puerto) 
 {
-	int socket_servidor;
-	struct addrinfo hints, *servinfo;
+    int socket_servidor;
+    struct addrinfo hints, *servinfo;
 
-	// Inicializando hints
-	memset(&hints, 0, sizeof(hints)); 
-	hints.ai_family = AF_UNSPEC;
-	hints.ai_socktype = SOCK_STREAM;
-	hints.ai_flags = AI_PASSIVE;
+    // Inicializando hints
+    memset(&hints, 0, sizeof(hints));
+    hints.ai_family = AF_UNSPEC;
+    hints.ai_socktype = SOCK_STREAM;
+    hints.ai_flags = AI_PASSIVE;
 
-	// Recibe los addrinfo
-	getaddrinfo(ip, puerto, &hints, &servinfo);
+    // Recibe los addrinfo
+    getaddrinfo(ip, puerto, &hints, &servinfo);
 
-	 socket_servidor = socket(servinfo->ai_family,
-                				servinfo->ai_socktype,
-                				servinfo->ai_protocol);
-	// Asociamos el socket a un puerto
-	bind(socket_servidor, servinfo->ai_addr, servinfo->ai_addrlen);
-	// Escuchamos las conexiones entrantes
-	listen(socket_servidor, SOMAXCONN);
-	freeaddrinfo(servinfo);
-	log_info(logger, "Listo para escuchar a mi cliente"); 
+    int conecto = 0;
 
-	return socket_servidor;
+    // Itera por cada addrinfo devuelto
+    for (struct addrinfo *p = servinfo; p != NULL; p = p->ai_next) {
+        socket_servidor = socket(p->ai_family, p->ai_socktype, p->ai_protocol);
+        if (socket_servidor == -1) // fallo de crear socket
+            continue;
+
+        if (bind(socket_servidor, p->ai_addr, p->ai_addrlen) == -1) {
+            // Si entra aca fallo el bind
+            close(socket_servidor);
+            continue;
+        }
+        // Ni bien conecta uno nos vamos del for
+        conecto = 1;
+        break;
+    }
+
+    if(!conecto) {
+        free(servinfo);
+        return 0;
+    }
+
+    listen(socket_servidor, SOMAXCONN); // Escuchando (hasta SOMAXCONN conexiones simultaneas)
+
+    // Aviso al logger
+    log_info(logger, "Escuchando en %s:%s (%s)\n", ip, puerto, name);
+
+    freeaddrinfo(servinfo);
+
+    return socket_servidor;
 }
-//Como lo hizo fede
-/*
 
-	bool conecto = false;
-
-	// Itera por cada addrinfo devuelto
-	for (struct addrinfo *p = servinfo; p != NULL; p = p->ai_next)
-	{
-		socket_servidor = socket(p->ai_family, p->ai_socktype, p->ai_protocol);
-		if (socket_servidor == -1) // fallo de crear socket
-			continue;
-
-		if (bind(socket_servidor, p->ai_addr, p->ai_addrlen) == -1)
-		{
-			// Si entra aca fallo el bind
-			close(socket_servidor);
-			continue;
-		}
-		// Ni bien conecta uno nos vamos del for
-		conecto = true;
-		break;
-	}
-
-	if (!conecto)
-	{
-		free(servinfo);
-		return 0;
-	}
-
-	listen(socket_servidor, SOMAXCONN); // Escuchando (hasta SOMAXCONN conexiones simultaneas)
-
-	// Aviso al logger
-	log_info(logger, "Escuchando en %s:%s (%s)\n", ip, puerto, name);
-
-	freeaddrinfo(servinfo);
-
-	return socket_servidor;
-	
-}
-*/
-// ESPERAR CONEXION DE CLIENTE EN UN SERVER ABIERTO
 int esperar_cliente(t_log *logger, const char *name, int socket_servidor) //name -> quién se conecta
 {
 	struct sockaddr_in dir_cliente;
@@ -84,17 +59,14 @@ int esperar_cliente(t_log *logger, const char *name, int socket_servidor) //name
 	return socket_cliente;
 }
 
-// CLIENTE SE INTENTA CONECTAR A SERVER ESCUCHANDO EN IP:PUERTO
 int crear_conexion(t_log *logger, const char *server_name, char *ip, char *puerto)
 {
-
 	struct addrinfo hints, *servinfo;
 
 	// Init de hints
 	memset(&hints, 0, sizeof(hints));
 	hints.ai_family = AF_UNSPEC;
 	hints.ai_socktype = SOCK_STREAM;
-	
 
 	// Recibe addrinfo
 	getaddrinfo(ip, puerto, &hints, &servinfo);
@@ -126,38 +98,94 @@ int crear_conexion(t_log *logger, const char *server_name, char *ip, char *puert
 	return socket_cliente;
 }
 
-// Crear funcion que permita crear una conexion con un timer
-
-// CERRAR CONEXION
 void liberar_conexion(int socket_cliente)
 {
 	close(socket_cliente);
 }
 
-
-void atender_conexion(t_log* logger, char* server_name, int cliente_socket) { // Si el server tuviera que procesar varias solicitudes del mismo cliente, esto debería ser un while
-    
-
+void atender_conexion(t_log* logger, char* server_name, int cliente_socket) 
+{
 	t_list* lista;
-	while (1) {
+
+	while (1) 
+	{
 		op_code cod_op = recibir_operacion(cliente_socket);
-		switch (cod_op) {
-		case MENSAJE:
-			recibir_mensaje(cliente_socket);
-			break;
-		case PAQUETE:
-			lista = recibir_paquete(cliente_socket);
-			log_info(logger, "Me llegaron los siguientes valores:\n");
-			list_iterate(lista, (void*) iterator);
-			break;
-		case -1:
-			log_error(logger, "el cliente se desconecto. Terminando servidor");
-			return EXIT_FAILURE;
-		default:
-			log_warning(logger,"Operacion desconocida. No quieras meter la pata");
-			break;
+
+		switch (cod_op) 
+		{
+			case MENSAJE:
+				recibir_mensaje(logger, cliente_socket);
+				break;
+			case PAQUETE:
+				lista = recibir_paquete(cliente_socket);
+				log_info(logger, "Me llegaron los siguientes valores:\n");
+				list_iterate(lista, (void*) iterator);
+				break;
+			case -1:
+				log_error(logger, "el cliente se desconecto. Terminando servidor");
+				return EXIT_FAILURE;
+			default:
+				log_warning(logger,"Operacion desconocida. No quieras meter la pata");
+				break;
 		}
 	}
 	
     return;
 }
+
+void server_escuchar_sin_hilos(void* args) 
+{
+    
+    t_procesar_server* args_hilo = (t_procesar_server*) args;
+    t_log* logger_server = args_hilo->logger;
+    char* server_name = args_hilo->server_name;
+    int socket_server = args_hilo->socket_server;
+
+    while (1)
+    {
+        int socket_cliente = esperar_cliente(logger_server, server_name, socket_server);
+        
+        if(socket_cliente != -1)
+            atender_conexion(logger_server, server_name, socket_cliente);
+    }
+
+}
+
+void server_escuchar_con_hilos(t_log* logger, char* server_name, int socket_server) 
+{
+    while (1)
+    {
+        int socket_cliente = esperar_cliente(logger, server_name, socket_server);
+
+        if(socket_cliente != -1) 
+        {
+            pthread_t hilo;
+			t_procesar_conexion *args_hilo = crear_procesar_conexion(logger, server_name, socket_cliente);
+      
+            pthread_create(&hilo, NULL, (void*) atender_conexiones_memoria, (void *) args_hilo);
+            pthread_detach(hilo);            
+        }
+    }
+
+}
+
+void atender_conexiones_memoria(void *args)
+{
+	t_procesar_conexion *args_hilo = (t_procesar_conexion *)args;
+	t_log *logger = args_hilo->logger_memoria;
+	char *server_name = args_hilo->server_name;
+	int cliente_socket = args_hilo->socket_cliente;
+
+	//op_code cop;
+    //while (1)
+    //{
+        /* code */
+    //}
+    
+	
+	log_warning(logger, "El cliente se desconecto de %s server", server_name);
+    //free(args_hilo);
+
+	return;
+}
+
