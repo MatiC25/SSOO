@@ -46,7 +46,7 @@ int crear_servidores(t_log* logger_memoria, t_config_memoria* config_memoria, in
 }
 
 void iniciar_modulo(t_log* logger_memoria, t_config_memoria* config_memoria) {
-    int md_generico = 0;
+    int* md_generico = 0;
 
     if(crear_servidores(logger_memoria, config_memoria, &md_generico) != 1) {
         log_error(logger_memoria, "No se pudo crear los servidores de escucha");
@@ -54,18 +54,8 @@ void iniciar_modulo(t_log* logger_memoria, t_config_memoria* config_memoria) {
         return;
     }
 
-    server_escuchar(logger_memoria, "Memoria", md_generico);
+    server_escuchar_con_hilos(logger_memoria, "Memoria", md_generico);
     //Creamos un hilo por cada proceso para administrar los requerimientos de concurrencia
     //Tambien pensanmos en agregar hilos para la administración de recursos
+
 }
-
-
-
-
-
-
-
-
-
-
-

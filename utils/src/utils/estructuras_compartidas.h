@@ -26,7 +26,7 @@ typedef struct { // Registro de la CPU
 typedef struct { // PCB de un proceso
     int pid;
     int program_counter;
-    t_registros_cpu registros;
+    t_registros_cpu* registros;
     char** archivos_abiertos; 
 }t_pcb;
 

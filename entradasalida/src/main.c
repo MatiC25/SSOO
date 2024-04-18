@@ -37,7 +37,10 @@ int main()
         return 1;
     }
 
+char *valor = "hola";
 
+    enviar_mensaje(valor,md_memoria);
+    enviar_mensaje(valor,md_kernel);
   
    return 0;
 }

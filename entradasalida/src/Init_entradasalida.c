@@ -1,6 +1,6 @@
 #include "int_entradasalida.h"
 
-t_log*logge;
+
 
 int generar_conexiones(t_log *logger, t_config_k *config_entradasalida, int *md_memoria, int *md_kernel)
 {
@@ -13,7 +13,7 @@ int generar_conexiones(t_log *logger, t_config_k *config_entradasalida, int *md_
   *md_memoria = crear_conexion(logger, "Memoria", ip_memoria, puerto_memoria);
   *md_kernel = crear_conexion(logger, "kernel", ip_kernel, puerto_kernel);
   
-  //paquete(md_kernel);
+  
   return (*md_memoria != 0 && *md_kernel != 0) ? 1 : -1 ; // Aca pregunto por el nuevo valor!
 }
 

@@ -95,34 +95,19 @@ int cargar_configuraciones(t_config_k *config_kernel, t_log *logger_kernel)
 
 int crear_servidor(t_log* logger_kernel, t_config_k* config_kernel, int * md_EntradaySalida) {
     char* puerto_entradasalida = string_itoa(config_kernel->puerto_escucha); // Convierte un int a una cadena de char
-    char* ip_memoria = NULL;  //Ip generica
+    //char* ip_memoria = NULL;  //Ip generica
 
-    *md_EntradaySalida = iniciar_servidor(logger_kernel, "I/O", ip_memoria, puerto_entradasalida); // Guarda ID del socket
+    *md_EntradaySalida = iniciar_servidor(logger_kernel, "I/0", NULL, puerto_entradasalida);
 
-    return (md_EntradaySalida != 0) ? 1 : -1 ;
+    return (md_EntradaySalida != 0) ? 1 : -1 ; 
 }
 
-void server_escuchar(void* args) 
-{
-    t_procesar_server* args_hilo = (t_procesar_server*) args;
-    t_log* logger_server = args_hilo->logger_kernel;
-    char* server_name = args_hilo->server_name;
-    int socket_server = args_hilo->socket_server;
-
-    while (1)
-    {
-        int socket_cliente = esperar_cliente(logger_server, server_name, socket_server);
-
-        if(socket_cliente != -1)
-            atender_conexion(logger_server, server_name, socket_cliente);
-    }
-}
 
 
 void iniciar_modulo(t_log* logger_kernel, t_config_k* config_kernel) {
     int md_EntradaySalida = 0;
 
-    if(crear_servidor(logger_kernel, config_kernel, & md_EntradaySalida) != 1) 
+    if(crear_servidor(logger_kernel, config_kernel, &md_EntradaySalida) != 1) 
     {
         log_error(logger_kernel, "No se pudo crear los servidores de escucha");
 
@@ -130,9 +115,9 @@ void iniciar_modulo(t_log* logger_kernel, t_config_k* config_kernel) {
     }
   
     pthread_t hilo_enetradaysalida;
-    t_procesar_conexion* args_ds = crear_procesar_conexion(logger_kernel, "Kernel", md_EntradaySalida);
+    t_procesar_conexion* args_ds = crear_procesar_conexion(logger_kernel, "ENTRADAYSALIDA", md_EntradaySalida);
 
-    pthread_create(&hilo_enetradaysalida, NULL, (void*) server_escuchar, (void*) args_ds); //Se guarda la info que tenemos antes en el struct
+    pthread_create(&hilo_enetradaysalida, NULL, (void*) server_escuchar_sin_hilos, (void*) args_ds); //Se guarda la info que tenemos antes en el struct
     pthread_join(hilo_enetradaysalida, NULL);
 }
 

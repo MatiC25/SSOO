@@ -116,38 +116,48 @@ void atender_conexion(t_log* logger, char* server_name, int cliente_socket)
 			case MENSAJE:
 				recibir_mensaje(logger, cliente_socket);
 				break;
-			case PAQUETE:
-				lista = recibir_paquete(cliente_socket);
-				log_info(logger, "Me llegaron los siguientes valores:\n");
-				list_iterate(lista, (void*) iterator);
-				break;
-			case -1:
-				log_error(logger, "el cliente se desconecto. Terminando servidor");
-				return EXIT_FAILURE;
-			default:
-				log_warning(logger,"Operacion desconocida. No quieras meter la pata");
-				break;
+			//case PAQUETE:
+				//lista = recibir_paquete(cliente_socket);
+				//log_info(logger, "Me llegaron los siguientes valores:\n");
+				//list_iterate(lista, (void*) iterator);
+				//ietrar lista y mostart por logger.
+				//break;
+			//case -1:
+			// 	log_error(logger, "el cliente se desconecto. Terminando servidor");
+			// 	return EXIT_FAILURE;
+			// default:
+				// 	log_warning(logger,"Operacion desconocida. No quieras meter la pata");
+			// 	break;
+		//}
 		}
-	}
 	
-    return;
+    
+	}
+	return;
 }
+
+
+// void iterator(char* value) {
+// 	log_info(logger,"%s", value);
+
+
 
 void server_escuchar_sin_hilos(void* args) 
 {
-    
+
     t_procesar_server* args_hilo = (t_procesar_server*) args;
     t_log* logger_server = args_hilo->logger;
     char* server_name = args_hilo->server_name;
-    int socket_server = args_hilo->socket_server;
+    int socket_server = args_hilo->socket_servidor;
 
     while (1)
     {
         int socket_cliente = esperar_cliente(logger_server, server_name, socket_server);
         
-        if(socket_cliente != -1)
+        if(socket_cliente != -1){
             atender_conexion(logger_server, server_name, socket_cliente);
-    }
+    	}
+	}
 
 }
 
@@ -159,11 +169,13 @@ void server_escuchar_con_hilos(t_log* logger, char* server_name, int socket_serv
 
         if(socket_cliente != -1) 
         {
-            pthread_t hilo;
+          
+			pthread_t hilo;
 			t_procesar_conexion *args_hilo = crear_procesar_conexion(logger, server_name, socket_cliente);
       
             pthread_create(&hilo, NULL, (void*) atender_conexiones_memoria, (void *) args_hilo);
             pthread_detach(hilo);            
+			
         }
     }
 
@@ -172,17 +184,21 @@ void server_escuchar_con_hilos(t_log* logger, char* server_name, int socket_serv
 void atender_conexiones_memoria(void *args)
 {
 	t_procesar_conexion *args_hilo = (t_procesar_conexion *)args;
-	t_log *logger = args_hilo->logger_memoria;
+	t_log *logger = args_hilo->logger;
 	char *server_name = args_hilo->server_name;
 	int cliente_socket = args_hilo->socket_cliente;
-
-	//op_code cop;
-    //while (1)
-    //{
-        /* code */
-    //}
-    
 	
+	while (1) 
+	{
+		op_code cod_op = recibir_operacion(cliente_socket);
+
+		switch (cod_op) 
+		{
+			case MENSAJE:
+				recibir_mensaje(logger, cliente_socket);
+				break;
+		}
+	}	
 	log_warning(logger, "El cliente se desconecto de %s server", server_name);
     //free(args_hilo);
 

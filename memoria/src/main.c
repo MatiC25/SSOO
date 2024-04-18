@@ -43,7 +43,8 @@ int main()
 iniciar_modulo(logger_memoria,config_memoria); // Funcion en proceso de creacion!
 
 
-cerrar_programa(logger_memoria);
+//cerrar_programa(logger_memoria);
+//Esta en el utilitis cambiar 
     
 
 return 0;
