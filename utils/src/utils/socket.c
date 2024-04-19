@@ -1,5 +1,7 @@
 #include "socket.h"
 
+volatile int keepRunning = 0;
+
 int iniciar_servidor(t_log* logger, const char* name, char* ip, char* puerto) 
 {
     int socket_servidor;
@@ -144,7 +146,6 @@ void atender_conexion(t_log* logger, char* server_name, int cliente_socket)
 
 void server_escuchar_sin_hilos(void* args) 
 {
-
     t_procesar_server* args_hilo = (t_procesar_server*) args;
     t_log* logger_server = args_hilo->logger;
     char* server_name = args_hilo->server_name;
@@ -163,7 +164,7 @@ void server_escuchar_sin_hilos(void* args)
 
 void server_escuchar_con_hilos(t_log* logger, char* server_name, int socket_server) 
 {
-    while (1)
+    while (!keepRunning)
     {
         int socket_cliente = esperar_cliente(logger, server_name, socket_server);
 
@@ -178,7 +179,6 @@ void server_escuchar_con_hilos(t_log* logger, char* server_name, int socket_serv
 			
         }
     }
-
 }
 
 void atender_conexiones_memoria(void *args)
