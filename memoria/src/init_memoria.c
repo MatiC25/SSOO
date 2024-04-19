@@ -1,7 +1,5 @@
 #include "init_memoria.h"
 
-int md_generico = 0;
-
 int cargar_configuraciones(t_config_memoria* config_memoria, t_log* logger_memoria) {
     t_config* config = config_create("memoria.config");
 
@@ -39,39 +37,38 @@ int cargar_configuraciones(t_config_memoria* config_memoria, t_log* logger_memor
     return 1;
 }
 
-int crear_servidores(t_log* logger_memoria, t_config_memoria* config_memoria) {
+int crear_servidores(t_log* logger_memoria, t_config_memoria* config_memoria, int *md_generico) {
     char* puerto_memoria = string_itoa(config_memoria->puerto_escucha); // Convierte un int a una cadena de char
-    
-    md_generico = iniciar_servidor(logger_memoria, "Memoria" , "127.0.0.1", puerto_memoria);
 
-    return (md_generico != 0) ? 1 : -1;
+    *md_generico = iniciar_servidor(logger_memoria, "Memoria" , "127.0.0.1", puerto_memoria);
+
+    return (*md_generico != 0) ? 1 : -1;
 }
 
 void iniciar_modulo(t_log* logger_memoria, t_config_memoria* config_memoria) {
+    int md_generico = 0;
 
-    if(crear_servidores(logger_memoria, config_memoria) != 1) {
+    if(crear_servidores(logger_memoria, config_memoria, &md_generico) != 1) {
         log_error(logger_memoria, "No se pudo crear los servidores de escucha");
 
         return;
     }
 
-    signal(SIGINT, handler);
+    // signal(SIGINT, handler);
     server_escuchar_con_hilos(logger_memoria, "Memoria", md_generico);
     // cerrar_programa(logger_memoria, config_memoria, md_generico);
 }
+
 void handler(int num_signal)
 {
-    if (num_signal == SIGINT)
-    {
-        // log_info(logger_memoria, "Se recibio una señal SIGINT, cerrando el programa");
-        // cerrar_programa(logger_memoria, config_memoria, md_generico);
-        cerrar_programa(md_generico);
-    }
+    // printf("%i", socket_server);
+    // close(socket_server);
+    exit(EXIT_SUCCESS);
 }
 
-void cerrar_programa(int socket_server)
+void cerrar_programa(t_log *logger_memoria, t_config_memoria *config_memoria, int socket_server)
 {
-    // log_destroy(logger_memoria);
+    log_destroy(logger_memoria);
     // Falta implementar una funcion que se haga cargo de elimiar el t_config de cada modulo :)
     close(socket_server);
 }

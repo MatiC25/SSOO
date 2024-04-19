@@ -157,7 +157,6 @@ void server_escuchar_sin_hilos(void* args)
             atender_conexion(logger_server, server_name, socket_cliente);
     	}
 	}
-
 }
 
 void server_escuchar_con_hilos(t_log* logger, char* server_name, int socket_server) 
@@ -173,8 +172,7 @@ void server_escuchar_con_hilos(t_log* logger, char* server_name, int socket_serv
 			t_procesar_conexion *args_hilo = crear_procesar_conexion(logger, server_name, socket_cliente);
       
             pthread_create(&hilo, NULL, (void*) atender_conexiones_memoria, (void *) args_hilo);
-            pthread_detach(hilo);            
-			
+            pthread_detach(hilo);
         }
     }
 }
