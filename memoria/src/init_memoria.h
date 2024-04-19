@@ -3,6 +3,8 @@
 
 #include <stdio.h>
 #include <stdbool.h>
+#include <stdlib.h>
+#include <signal.h>
 #include <commons/config.h>
 #include <commons/string.h>
 #include <commons/log.h>
@@ -24,11 +26,11 @@ typedef struct
 int cargar_configuraciones(t_config_memoria *t_config_memoria, t_log *logger_memoria);
 
 // Funciones para manejo de clientes y conexiones del modulo:
-int crear_servidores(t_log* logger_memoria, t_config_memoria* config_memoria, int* md_generico);
+int crear_servidores(t_log* logger_memoria, t_config_memoria* config_memoria);
 
 // Funciones de operaciones basicas del modulo:
 void iniciar_modulo(t_log* logger_memoria, t_config_memoria* t_config_memoria);
-void cerrar_programa(t_log *logger_memoria, t_config_memoria *config_memoria, int socket_server);
+void cerrar_programa(int socket_server);
 
 
 #endif // INIT_MEMORIA_H

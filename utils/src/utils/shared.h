@@ -8,8 +8,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <signal.h>
-#include <unistd.h>
 
 // Funciones para el manejo de archivos de configuracion
 int tiene_todas_las_configuraciones(t_config* config, char* configs[]);

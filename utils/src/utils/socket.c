@@ -1,7 +1,5 @@
 #include "socket.h"
 
-volatile int keepRunning = 0;
-
 int iniciar_servidor(t_log* logger, const char* name, char* ip, char* puerto) 
 {
     int socket_servidor;
@@ -164,7 +162,7 @@ void server_escuchar_sin_hilos(void* args)
 
 void server_escuchar_con_hilos(t_log* logger, char* server_name, int socket_server) 
 {
-    while (!keepRunning)
+    while (1)
     {
         int socket_cliente = esperar_cliente(logger, server_name, socket_server);
 
