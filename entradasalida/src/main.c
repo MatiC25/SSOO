@@ -16,7 +16,6 @@ void inicializar_config(void)
 
 int main()
 {
-
     //Creando logger
     t_log* logger_entradasalida = log_create("entradasalida.log","I/O",1, LOG_LEVEL_INFO);
     if ( logger_entradasalida == NULL)
@@ -37,7 +36,7 @@ int main()
         return 1;
     }
 
-char *valor = "hola";
+    char *valor = "hola";
 
     enviar_mensaje(valor,md_memoria);
     enviar_mensaje(valor,md_kernel);

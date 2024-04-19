@@ -40,7 +40,7 @@ int cargar_configuraciones(t_config_memoria* config_memoria, t_log* logger_memor
 int crear_servidores(t_log* logger_memoria, t_config_memoria* config_memoria, int* md_generico) {
     char* puerto_memoria = string_itoa(config_memoria->puerto_escucha); // Convierte un int a una cadena de char
 
-    *md_generico = iniciar_servidor(logger_memoria, "Memoria" , NULL, puerto_memoria);
+    *md_generico = iniciar_servidor(logger_memoria, "Memoria" , "127.0.0.1", puerto_memoria);
 
     return (*md_generico != 0) ? 1 : -1;
 }

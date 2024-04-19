@@ -198,9 +198,9 @@ void atender_conexiones_memoria(void *args)
 				recibir_mensaje(logger, cliente_socket);
 				break;
 		}
-	}	
+	}
+	
 	log_warning(logger, "El cliente se desconecto de %s server", server_name);
-    //free(args_hilo);
 
 	return;
 }
