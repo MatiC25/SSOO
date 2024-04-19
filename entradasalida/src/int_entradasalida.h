@@ -22,9 +22,13 @@ typedef struct
   int block_count;
 }t_config_k;
 
-int generar_conexiones(t_log *logger, t_config_k *config_entradasalida, int *md_memoria, int *md_kernel);
+// Funcion para cargar configuraciones de I/O:
 int cargar_configuraciones(t_config_k *config_entradasalida, t_log *logger);
-void cerrar_programa(t_log *logger);
-void borrar_conexiones(int md_memoria, int md_kernel);
+
+// Funciones para manejo de clientes y conexiones del modulo:
+int generar_conexiones(t_log *logger, t_config_k *config_entradasalida, int *md_memoria, int *md_kernel);
+
+// Funciones de operaciones basicas del modulo:
+void cerrar_programa(t_log *logger, t_config_k *config_entradasalida, int md_memoria, int md_kernel);
 
 #endif // INIT_ENTRADASALIDA_H

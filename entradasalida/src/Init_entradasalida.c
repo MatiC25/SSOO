@@ -60,14 +60,10 @@ int cargar_configuraciones(t_config_k *config_entradasalida, t_log *logger)
   return 1;
 }
 
-
-
-void cerrar_programa(t_log *logger)
+void cerrar_programa(t_log *logger, t_config_k *config_entradasalida, int md_memoria, int md_kernel)
 {
   log_destroy(logger);
-}
-
-void borrar_conexiones(int md_memoria, int md_kernel){
-  liberar_conexion(md_memoria);
-  liberar_conexion(md_kernel);
+  config_destroy(config_entradasalida);
+  close(md_memoria);
+  close(md_kernel);
 }

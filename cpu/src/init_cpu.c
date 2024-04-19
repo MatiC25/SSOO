@@ -53,34 +53,32 @@ int generar_conexiones(t_log* logger, t_config_cpu* config_cpu, int* md_memoria)
 // // CREAMOS SERVIDOR PARA EL CLIENTE KERNEL
  int crear_servidores(t_log* logger, t_config_cpu* config_cpu, int* md_cpu_ds, int* md_cpu_it) 
 {
-    
     char* puerto_dispatch = string_itoa(config_cpu->puerto_escucha_dispatch); // Convierte un int a una cadena de char
     char* puerto_interrupt = string_itoa(config_cpu->puerto_escucha_interrupt);
     
     *md_cpu_ds = iniciar_servidor(logger, "DISPATCH", NULL, puerto_dispatch); // Guarda ID del socket
-    
     *md_cpu_it = iniciar_servidor(logger, "INTERRUPT", NULL, puerto_interrupt); 
 
     return (*md_cpu_ds != 0 && *md_cpu_it != 0) ? 1 : -1;
  }
 
 void iniciar_modulo(t_log* logger_cpu, t_config_cpu* config_cpu) {
-
     int md_cpu_ds = 0;
     int md_cpu_it = 0;
     
-
     if(crear_servidores(logger_cpu, config_cpu, &md_cpu_ds, &md_cpu_it) != 1) {
         log_error(logger_cpu, "No se pudo crear los servidores de escucha");
 
         return;
     }
    
+    // pthread_t vector_hilos[2]; -> Sugerecia
     pthread_t hilo_cpu_ds;
     pthread_t hilo_cpu_it;
     t_procesar_conexion* args_ds = crear_procesar_conexion(logger_cpu, "DISPATCH", md_cpu_ds);
     t_procesar_conexion* args_it = crear_procesar_conexion(logger_cpu, "INTERRUPT", md_cpu_it);
 
+    // Notas! -> Seguramente haga un vector de hilos, y que esto vaya en un for, pero por ahora lo dejo asi
     pthread_create(&hilo_cpu_ds, NULL, (void*) server_escuchar_sin_hilos, (void*) args_ds); //Se guarda la info que tenemos antes en el struct
     pthread_create(&hilo_cpu_it, NULL, (void*) server_escuchar_sin_hilos, (void*) args_it);
     
@@ -88,6 +86,9 @@ void iniciar_modulo(t_log* logger_cpu, t_config_cpu* config_cpu) {
     pthread_join(hilo_cpu_it, NULL);
 }
 
-void cerrar_programa(t_log* logger) {
+void cerrar_programa(t_log* logger, t_config_cpu* config_cpu, int md_memoria) 
+{
     log_destroy(logger);
+    config_destroy(config);
+    close(md_memoria);
 }

@@ -12,7 +12,6 @@ void inicializar_config(void)
 }
 
 
-
 int main(void)
 {
 
@@ -35,12 +34,8 @@ int main(void)
         return EXIT_FAILURE;
     }
 
-    char *valor = "hola";
-
-    enviar_mensaje(valor,md_memoria);
-
     iniciar_modulo(logger_cpu, config_cpu);
-    //cerrar_programa(logger_cpu);
+    cerrar_programa(logger_cpu, config_cpu, md_memoria);
 
     return EXIT_SUCCESS;
 }

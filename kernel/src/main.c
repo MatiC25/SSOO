@@ -15,8 +15,6 @@ void inicializar_config(void)
     config_kernel->recursos = NULL;
 }
 
-
-
 int main()
 {
     //Creando logger
@@ -42,17 +40,14 @@ int main()
 
     char *valor = "hola";
 
-    enviar_mensaje(valor,md_cpu_dt);
-    enviar_mensaje(valor,md_cpu_it);
+    enviar_mensaje(valor, md_cpu_dt);
+    enviar_mensaje(valor, md_cpu_it);
     //enviar_mensaje(valor,md_memoria);
     //paquete(md_memoria);
 
-
     //abrimos el servidor
     iniciar_modulo(logger_kernel,config_kernel); // Funcion en proceso de creacion!
-
-
-    //cerrar_programa(logger_kernel);
+    cerrar_programa(logger_kernel, config_kernel, md_memoria, md_cpu_dt, md_cpu_it);
     //borrar_conexiones(md_memoria, md_cpu_dt, md_cpu_it)
     
     // NEW = crear_cola() // Hay que armar la PCB!
@@ -62,7 +57,7 @@ int main()
     // EXIT = crear_cola()
     
 
-return 0;
+    return 0;
 }
 
 

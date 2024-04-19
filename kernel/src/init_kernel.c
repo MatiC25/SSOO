@@ -121,7 +121,11 @@ void iniciar_modulo(t_log* logger_kernel, t_config_k* config_kernel) {
     pthread_join(hilo_enetradaysalida, NULL);
 }
 
-void cerrar_programa(t_log *logger_kernel)
+void cerrar_programa(t_log *logger_kernel, t_config_k *config_kernel, int md_memoria, int md_cpu_dt, int md_cpu_it)
 {
   log_destroy(logger_kernel);
+  congif_destroy(config_kernel);
+  close(md_memoria);
+  close(md_cpu_dt);
+  close(md_cpu_it);
 }

@@ -38,8 +38,10 @@ int main()
 
     char *valor = "hola";
 
-    enviar_mensaje(valor,md_memoria);
-    enviar_mensaje(valor,md_kernel);
+    enviar_mensaje(valor, md_memoria);
+    enviar_mensaje(valor, md_kernel);
+
+    cerrar_programa(logger_entradasalida, config_entradasalida, md_memoria, md_kernel);
   
    return 0;
 }

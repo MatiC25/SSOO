@@ -39,7 +39,7 @@ int cargar_configuraciones(t_config_memoria* config_memoria, t_log* logger_memor
 
 int crear_servidores(t_log* logger_memoria, t_config_memoria* config_memoria, int* md_generico) {
     char* puerto_memoria = string_itoa(config_memoria->puerto_escucha); // Convierte un int a una cadena de char
-
+    
     *md_generico = iniciar_servidor(logger_memoria, "Memoria" , "127.0.0.1", puerto_memoria);
 
     return (*md_generico != 0) ? 1 : -1;
@@ -55,7 +55,10 @@ void iniciar_modulo(t_log* logger_memoria, t_config_memoria* config_memoria) {
     }
 
     server_escuchar_con_hilos(logger_memoria, "Memoria", md_generico);
-    //Creamos un hilo por cada proceso para administrar los requerimientos de concurrencia
-    //Tambien pensanmos en agregar hilos para la administración de recursos
+}
 
+void cerrar_programa(t_log *logger_memoria, t_config_memoria *config_memoria)
+{
+    log_destroy(logger_memoria);
+    config_destroy(config_memoria);
 }
