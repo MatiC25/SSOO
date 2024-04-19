@@ -39,7 +39,6 @@ int main()
 
     //abrimos el servidor
     iniciar_modulo(logger_memoria, config_memoria); // Funcion en proceso de creacion!
-    cerrar_programa(logger_memoria, config_memoria);
     //Esta en el utilitis cambiar 
 
     return 0;

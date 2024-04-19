@@ -28,7 +28,7 @@ int crear_servidores(t_log* logger_memoria, t_config_memoria* config_memoria, in
 
 // Funciones de operaciones basicas del modulo:
 void iniciar_modulo(t_log* logger_memoria, t_config_memoria* t_config_memoria);
-void cerrar_programa(t_log *logger_memoria, t_config_memoria *config_memoria);
+void cerrar_programa(t_log *logger_memoria, t_config_memoria *config_memoria, int socket_server);
 
 
 #endif // INIT_MEMORIA_H

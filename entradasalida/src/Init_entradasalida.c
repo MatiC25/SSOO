@@ -55,7 +55,7 @@ int cargar_configuraciones(t_config_k *config_entradasalida, t_log *logger)
 
   log_info(logger, "Se pudieron cargar todas las configuraciones necesarias!");
   config_destroy(config);
-  
+
 
   return 1;
 }
@@ -63,7 +63,7 @@ int cargar_configuraciones(t_config_k *config_entradasalida, t_log *logger)
 void cerrar_programa(t_log *logger, t_config_k *config_entradasalida, int md_memoria, int md_kernel)
 {
   log_destroy(logger);
-  config_destroy(config_entradasalida);
+  //config_destroy(config_entradasalida);
   close(md_memoria);
   close(md_kernel);
 }

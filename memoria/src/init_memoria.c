@@ -32,7 +32,7 @@ int cargar_configuraciones(t_config_memoria* config_memoria, t_log* logger_memor
     config_memoria->retardo_respuesta = config_get_int_value(config, "RETARDO_RESPUESTA");
 
     log_info(logger_memoria, "Configuraciones cargadas correctamente");
-   config_destroy(config);
+    config_destroy(config);
 
     return 1;
 }
@@ -55,10 +55,12 @@ void iniciar_modulo(t_log* logger_memoria, t_config_memoria* config_memoria) {
     }
 
     server_escuchar_con_hilos(logger_memoria, "Memoria", md_generico);
+    cerrar_programa(logger_memoria, config_memoria, md_generico);
 }
 
-void cerrar_programa(t_log *logger_memoria, t_config_memoria *config_memoria)
+void cerrar_programa(t_log *logger_memoria, t_config_memoria *config_memoria, int socket_server)
 {
     log_destroy(logger_memoria);
-    config_destroy(config_memoria);
+    // Falta implementar una funcion que se haga cargo de elimiar el t_config de cada modulo :)
+    close(socket_server);
 }
