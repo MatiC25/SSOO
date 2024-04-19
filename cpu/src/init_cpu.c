@@ -89,6 +89,6 @@ void iniciar_modulo(t_log* logger_cpu, t_config_cpu* config_cpu) {
 void cerrar_programa(t_log* logger, t_config_cpu* config_cpu, int md_memoria) 
 {
     log_destroy(logger);
-    config_destroy(config);
+    /// config_destroy(config_cpu);
     close(md_memoria);
 }
