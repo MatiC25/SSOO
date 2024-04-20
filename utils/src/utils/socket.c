@@ -1,6 +1,6 @@
 #include "socket.h"
 
-int iniciar_servidor(t_log* logger, const char* name, char* ip, char* puerto) 
+int iniciar_servidor(const char* name, char* ip, char* puerto) 
 {
     int socket_servidor;
     struct addrinfo hints, *servinfo;
@@ -20,12 +20,22 @@ int iniciar_servidor(t_log* logger, const char* name, char* ip, char* puerto)
     for (struct addrinfo *p = servinfo; p != NULL; p = p->ai_next) {
         socket_servidor = socket(p->ai_family, p->ai_socktype, p->ai_protocol);
         if (socket_servidor == -1) // fallo de crear socket
-            continue;
+			log_error(logger,"Error en el crear server socker_server");
+			//cambiar por un return y un log error.
+            return EXIT_SUCCESS;//Ojo esta cambiado
+
+		
+		if(setsockopt(socket_servidor, SOL_SOCKET, SO_REUSEPORT, &(int){1}, sizeof(int)) < 0){
+			
+			log_warning(logger,"Error setsockpt");
+			return EXIT_SUCCESS;
+		}
 
         if (bind(socket_servidor, p->ai_addr, p->ai_addrlen) == -1) {
             // Si entra aca fallo el bind
             close(socket_servidor);
-            continue;
+			Log_error(logger,"Error en el crear server socker_server");
+            return EXIT_SUCCESS; //Ojo esta cambiado
         }
         // Ni bien conecta uno nos vamos del for
         conecto = 1;
@@ -47,7 +57,7 @@ int iniciar_servidor(t_log* logger, const char* name, char* ip, char* puerto)
     return socket_servidor;
 }
 
-int esperar_cliente(t_log *logger, const char *name, int socket_servidor) //name -> quién se conecta
+int esperar_cliente(const char *name, int socket_servidor) //name -> quién se conecta
 {
 	struct sockaddr_in dir_cliente;
 	socklen_t tam_direccion = sizeof(struct sockaddr_in);
@@ -59,7 +69,7 @@ int esperar_cliente(t_log *logger, const char *name, int socket_servidor) //name
 	return socket_cliente;
 }
 
-int crear_conexion(t_log *logger, const char *server_name, char *ip, char *puerto)
+int crear_conexion(const char *server_name, char *ip, char *puerto)
 {
 	struct addrinfo hints, *servinfo;
 
@@ -103,7 +113,7 @@ void liberar_conexion(int socket_cliente)
 	close(socket_cliente);
 }
 
-void atender_conexion(t_log* logger, char* server_name, int cliente_socket) 
+void atender_conexion(char* server_name, int cliente_socket) 
 {
 	t_list* lista;
 
@@ -114,62 +124,61 @@ void atender_conexion(t_log* logger, char* server_name, int cliente_socket)
 		switch (cod_op) 
 		{
 			case MENSAJE:
-				recibir_mensaje(logger, cliente_socket);
+				recibir_mensaje(cliente_socket);
 				break;
-			//case PAQUETE:
-				//lista = recibir_paquete(cliente_socket);
-				//log_info(logger, "Me llegaron los siguientes valores:\n");
-				//list_iterate(lista, (void*) iterator);
+			case PAQUETE:
+				lista = recibir_paquete(cliente_socket);
+				log_info(logger, "Me llegaron los siguientes valores:\n");
+				list_iterate(lista, iterator);
 				//ietrar lista y mostart por logger.
-				//break;
-			//case -1:
-			// 	log_error(logger, "el cliente se desconecto. Terminando servidor");
-			// 	return EXIT_FAILURE;
-			// default:
-				// 	log_warning(logger,"Operacion desconocida. No quieras meter la pata");
-			// 	break;
-		//}
+				break;
+				case -1:
+			 	log_error(logger, "el cliente se desconecto. Terminando servidor");
+			 	return EXIT_FAILURE;
+			 default:
+				 	log_warning(logger,"Operacion desconocida. No quieras meter la pata");
+			 	break;
+		}
 		}
 	
-    
+    	return;	
 	}
-	return;
+	
+void  iterator(void* vaul){
+	log_info(logger,"%s",vaul);
 }
 
 
-// void iterator(char* value) {
-// 	log_info(logger,"%s", value);
 
 
 
 void server_escuchar_sin_hilos(void* args) 
 {
     t_procesar_server* args_hilo = (t_procesar_server*) args;
-    t_log* logger_server = args_hilo->logger;
     char* server_name = args_hilo->server_name;
     int socket_server = args_hilo->socket_servidor;
 
     while (1)
     {
-        int socket_cliente = esperar_cliente(logger_server, server_name, socket_server);
+        int socket_cliente = esperar_cliente(server_name, socket_server);
         
         if(socket_cliente != -1){
-            atender_conexion(logger_server, server_name, socket_cliente);
+            atender_conexion(server_name, socket_cliente);
     	}
 	}
 }
 
-void server_escuchar_con_hilos(t_log* logger, char* server_name, int socket_server) 
+void server_escuchar_con_hilos( char* server_name, int socket_server) 
 {
     while (1)
     {
-        int socket_cliente = esperar_cliente(logger, server_name, socket_server);
+        int socket_cliente = esperar_cliente(server_name, socket_server);
 
         if(socket_cliente != -1) 
         {
           
 			pthread_t hilo;
-			t_procesar_conexion *args_hilo = crear_procesar_conexion(logger, server_name, socket_cliente);
+			t_procesar_conexion *args_hilo = crear_procesar_conexion(server_name, socket_cliente);
       
             pthread_create(&hilo, NULL, (void*) atender_conexiones_memoria, (void *) args_hilo);
             pthread_detach(hilo);
@@ -180,7 +189,6 @@ void server_escuchar_con_hilos(t_log* logger, char* server_name, int socket_serv
 void atender_conexiones_memoria(void *args)
 {
 	t_procesar_conexion *args_hilo = (t_procesar_conexion *)args;
-	t_log *logger = args_hilo->logger;
 	char *server_name = args_hilo->server_name;
 	int cliente_socket = args_hilo->socket_cliente;
 	
@@ -191,7 +199,7 @@ void atender_conexiones_memoria(void *args)
 		switch (cod_op) 
 		{
 			case MENSAJE:
-				recibir_mensaje(logger, cliente_socket);
+				recibir_mensaje(cliente_socket);
 				break;
 		}
 	}
@@ -200,4 +208,3 @@ void atender_conexiones_memoria(void *args)
 
 	return;
 }
-

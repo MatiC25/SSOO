@@ -14,6 +14,7 @@
 #include <commons/string.h>
 #include <stddef.h>
 #include <utils/estructuras_compartidas.h>
+#include <utils/logger.h>
 
 typedef enum {
     MENSAJE,
@@ -49,7 +50,7 @@ void* recibir_buffer(int* size, int socket_cliente);
 
 // Funciones para realizar operaciones basicas:
 void enviar_mensaje(char* mensaje, int socket_cliente);
-void recibir_mensaje(t_log *logger, int socket_cliente);
+void recibir_mensaje(int socket_cliente);
 
 // Funciones para deserializcion:
 int recibir_operacion(int socket_cliente);
@@ -61,5 +62,6 @@ void agregar_a_paquete_registros(t_paquete* paquete, t_registros_cpu* registros)
 void agregar_a_paquete_archivos_abiertos(t_paquete* paquete, t_list* archivos_abiertos);
 void agregar_a_paquete_string(t_paquete* paquete, char* cadena, int tamanio);
 t_pcb* rcv_contexto_ejecucion(int socket_cliente);
+t_list* recibir_paquete(int socket_cliente);
 
 #endif //PROTOCOLO_H

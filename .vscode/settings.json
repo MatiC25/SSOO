@@ -1,5 +1,6 @@
 {
   "files.associations": {
-    "init_kernel.h": "c"
+    "init_kernel.h": "c",
+    "log.h": "c"
   }
 }

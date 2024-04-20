@@ -3,15 +3,14 @@
 
 #include <commons/log.h>
 #include <stdint.h>
+#include <utils/logger.h>
 
 typedef struct {
-    t_log* logger;
     char* server_name;
     int socket_cliente;
 } t_procesar_conexion;
 
 typedef struct {
-    t_log* logger;
     char* server_name;
     int socket_servidor;
 } t_procesar_server;
@@ -31,6 +30,6 @@ typedef struct { // PCB de un proceso
 }t_pcb;
 
 // Funciones para creacion de estructuras compartidas:
-t_procesar_conexion* crear_procesar_conexion(t_log *logger, char *server_name, int socket_cliente);
+t_procesar_conexion* crear_procesar_conexion(char *server_name, int socket_cliente);
 
-#endif 
+#endif //ESTRUCTURAS_SHARED_H_

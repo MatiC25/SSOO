@@ -87,7 +87,7 @@ void enviar_mensaje(char* mensaje, int socket_cliente)
 	eliminar_paquete(paquete);
 }
 
-void recibir_mensaje(t_log *logger, int socket_cliente)
+void recibir_mensaje(int socket_cliente)
 {
 	int size;
 	char *buffer = recibir_buffer(&size, socket_cliente);
@@ -187,4 +187,26 @@ t_pcb* rcv_contexto_ejecucion(int socket_cliente) {
 
     free(buffer);
     return proceso;
+}
+
+t_list* recibir_paquete(int socket_cliente)
+{
+	int size;
+	int desplazamiento = 0;
+	void * buffer;
+	t_list* valores = list_create();
+	int tamanio;
+
+	buffer = recibir_buffer(&size, socket_cliente);
+	while(desplazamiento < size)
+	{
+		memcpy(&tamanio, buffer + desplazamiento, sizeof(int));
+		desplazamiento+=sizeof(int);
+		char* valor = malloc(tamanio);
+		memcpy(valor, buffer+desplazamiento, tamanio);
+		desplazamiento+=tamanio;
+		list_add(valores, valor);
+	}
+	free(buffer);
+	return valores;
 }
