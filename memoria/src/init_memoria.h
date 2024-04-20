@@ -12,6 +12,8 @@
 #include <utils/shared.h>
 #include <utils/estructuras_compartidas.h>
 #include <pthread.h>
+#include <utils/logger.h>
+
 
 typedef struct 
 {
@@ -23,15 +25,14 @@ typedef struct
 } t_config_memoria;
 
 // Funcion para cargar configuraciones de Memoria:
-int cargar_configuraciones(t_config_memoria *t_config_memoria, t_log *logger_memoria);
+int cargar_configuraciones(t_config_memoria *t_config_memoria);
 
 // Funciones para manejo de clientes y conexiones del modulo:
-int crear_servidores(t_log* logger_memoria, t_config_memoria* config_memoria, int *md_generico);
+int crear_servidores(t_config_memoria* config_memoria, int *md_generico);
 
 // Funciones de operaciones basicas del modulo:
-void iniciar_modulo(t_log* logger_memoria, t_config_memoria* t_config_memoria);
-void destruir_configuracion_memoria(t_config_memoria *config_memoria);
-void cerrar_programa(t_log *logger_memoria, t_config_memoria *config_memoria, int socket_server);
+void iniciar_modulo(t_config_memoria* t_config_memoria);
+void cerrar_programa(t_config_memoria *config_memoria, int socket_server);
 void handler(int num_signal);
 
 

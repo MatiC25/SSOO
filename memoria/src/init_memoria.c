@@ -1,10 +1,10 @@
 #include "init_memoria.h"
 
-int cargar_configuraciones(t_config_memoria* config_memoria, t_log* logger_memoria) {
+int cargar_configuraciones(t_config_memoria* config_memoria) {
     t_config* config = config_create("memoria.config");
 
     if(config_memoria == NULL) {
-        log_error(logger_memoria, "No se pudo cargar la configuracion del filesystem");
+        log_error(logger, "No se pudo cargar la configuracion del filesystem");
 
         return -1;
     }
@@ -19,7 +19,7 @@ int cargar_configuraciones(t_config_memoria* config_memoria, t_log* logger_memor
     };
 
     if(!tiene_todas_las_configuraciones(config, configuraciones)) {
-        log_error(logger_memoria, "No se pudo cargar la configuracion de la memoria");
+        log_error(logger, "No se pudo cargar la configuracion de la memoria");
 
         return -1;
     }
@@ -31,31 +31,32 @@ int cargar_configuraciones(t_config_memoria* config_memoria, t_log* logger_memor
     config_memoria->tam_pagina = config_get_int_value(config, "TAM_PAGINA");
     config_memoria->retardo_respuesta = config_get_int_value(config, "RETARDO_RESPUESTA");
 
-    log_info(logger_memoria, "Configuraciones cargadas correctamente");
+    log_info(logger, "Configuraciones cargadas correctamente");
     config_destroy(config);
 
     return 1;
 }
 
-int crear_servidores(t_log* logger_memoria, t_config_memoria* config_memoria, int *md_generico) {
+int crear_servidores(t_config_memoria* config_memoria, int *md_generico) {
     char* puerto_memoria = string_itoa(config_memoria->puerto_escucha); // Convierte un int a una cadena de char
+    //Linux tarda
 
-    *md_generico = iniciar_servidor(logger_memoria, "Memoria" , "127.0.0.1", puerto_memoria);
+    *md_generico = iniciar_servidor("Memoria" , "127.0.0.1", puerto_memoria);
 
     return (*md_generico != 0) ? 1 : -1;
 }
 
-void iniciar_modulo(t_log* logger_memoria, t_config_memoria* config_memoria) {
+void iniciar_modulo(t_config_memoria* config_memoria) {
     int md_generico = 0;
 
-    if(crear_servidores(logger_memoria, config_memoria, &md_generico) != 1) {
-        log_error(logger_memoria, "No se pudo crear los servidores de escucha");
+    if(crear_servidores(config_memoria, &md_generico) != 1) {
+        log_error(logger, "No se pudo crear los servidores de escucha");
 
         return;
     }
 
     // signal(SIGINT, handler);
-    server_escuchar_con_hilos(logger_memoria, "Memoria", md_generico);
+    server_escuchar_con_hilos("Memoria", md_generico);
     // cerrar_programa(logger_memoria, config_memoria, md_generico);
 }
 
@@ -66,18 +67,9 @@ void handler(int num_signal)
     exit(EXIT_SUCCESS);
 }
 
-void cerrar_programa(t_log *logger_memoria, t_config_memoria *config_memoria, int socket_server)
+void cerrar_programa(t_config_memoria *config_memoria, int socket_server)
 {
-    log_destroy(logger_memoria);
-    destruir_configuracion_memoria(config_memoria);
+    log_destroy(logger);
+    // Falta implementar una funcion que se haga cargo de elimiar el t_config de cada modulo :)
     close(socket_server);
-}
-
-void destruir_configuracion_memoria(t_config_memoria *config_memoria) {
-    if (config_memoria == NULL) {
-        return; // No hay nada que liberar
-    }
-    free(config_memoria->path_instrucciones); // Liberar recursos internos
-
-    free(config_memoria);// Liberar la estructura principal
 }
