@@ -15,6 +15,7 @@
 #include <stddef.h>
 #include <utils/estructuras_compartidas.h>
 #include <utils/logger.h>
+#include<readline/readline.h>
 
 typedef enum {
     MENSAJE,
@@ -63,5 +64,6 @@ void agregar_a_paquete_archivos_abiertos(t_paquete* paquete, t_list* archivos_ab
 void agregar_a_paquete_string(t_paquete* paquete, char* cadena, int tamanio);
 t_pcb* rcv_contexto_ejecucion(int socket_cliente);
 t_list* recibir_paquete(int socket_cliente);
+void paquete(int conexion);
 
 #endif //PROTOCOLO_H

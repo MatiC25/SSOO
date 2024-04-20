@@ -14,9 +14,16 @@ void crear_buffer(t_paquete* paquete) {
 }
 
 void agregar_a_paquete(t_paquete* paquete, void* valor, int tamanio) {
-	paquete->buffer->stream = realloc(paquete->buffer->stream, paquete->buffer->size + tamanio);
-	memcpy(paquete->buffer->stream + paquete->buffer->size, valor, tamanio);
-	paquete->buffer->size += tamanio;
+	paquete->buffer->stream = realloc(paquete->buffer->stream, paquete->buffer->size + tamanio + sizeof(int));
+
+	memcpy(paquete->buffer->stream + paquete->buffer->size, &tamanio, sizeof(int));
+	memcpy(paquete->buffer->stream + paquete->buffer->size + sizeof(int), valor, tamanio);
+
+	paquete->buffer->size += tamanio + sizeof(int);
+	
+	// paquete->buffer->stream = realloc(paquete->buffer->stream, paquete->buffer->size + tamanio);
+	// memcpy(paquete->buffer->stream + paquete->buffer->size, valor, tamanio);
+	// paquete->buffer->size += tamanio;
 }
 
 void enviar_paquete(t_paquete* paquete, int socket_cliente) {
@@ -201,12 +208,39 @@ t_list* recibir_paquete(int socket_cliente)
 	while(desplazamiento < size)
 	{
 		memcpy(&tamanio, buffer + desplazamiento, sizeof(int));
-		desplazamiento+=sizeof(int);
+		desplazamiento += sizeof(int);
 		char* valor = malloc(tamanio);
-		memcpy(valor, buffer+desplazamiento, tamanio);
-		desplazamiento+=tamanio;
+		memcpy(valor, buffer + desplazamiento, tamanio);
+		desplazamiento += tamanio;
 		list_add(valores, valor);
 	}
 	free(buffer);
 	return valores;
+}
+
+void paquete(int conexion)
+{
+	// Ahora toca lo divertido!
+	char* leido = NULL;
+	op_code code = PAQUETE;
+	t_paquete* paquete = crear_paquete(code);
+	printf("Escribi lo que quieras que sea mandado el servidor para comunicarte con el..\n");
+	log_info(logger,"-->  Comunicaciones con el servidor  <--");
+	leido = readline("--> ");
+	log_info(logger,"--> %s",leido); //opcional 
+	// Leemos y esta vez agregamos las lineas al paquete
+	do{
+
+		agregar_a_paquete(paquete, leido, strlen(leido) + 1 );
+		
+		free(leido);
+		leido = readline("--> ");
+		log_info(logger,"--> %s",leido); //opcional 
+	}while (strcmp(leido,"")!= 0);
+
+	free(leido);
+	enviar_paquete(paquete,conexion);
+
+	// ¡No te olvides de liberar las líneas y el paquete antes de regresar!
+	eliminar_paquete(paquete);
 }

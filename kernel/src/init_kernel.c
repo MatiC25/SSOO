@@ -1,10 +1,7 @@
 #include "init_kernel.h"
 
 
-t_log* logger_kernel;
-
-
-int generar_conexiones(t_log *logger_kernel, t_config_k *config_kernel, int *md_memoria, int *md_cpu_dt, int *md_cpu_it)
+int generar_conexiones(t_config_k *config_kernel, int *md_memoria, int *md_cpu_dt, int *md_cpu_it)
 {
   char *ip_memoria = config_kernel->ip_memoria;
   char *puerto_memoria = string_itoa(config_kernel->puerto_memoria);
@@ -13,21 +10,21 @@ int generar_conexiones(t_log *logger_kernel, t_config_k *config_kernel, int *md_
   char *puerto_cpu_dispatch = string_itoa(config_kernel->puerto_cpu_ds);
   char *puerto_cpu_interrupt = string_itoa(config_kernel->puerto_cpu_it);
 
-  *md_cpu_dt = crear_conexion(logger_kernel, "CPU-DT", ip_cpu, puerto_cpu_dispatch);
-  *md_cpu_it = crear_conexion(logger_kernel, "CPU-IT", ip_cpu, puerto_cpu_interrupt);
-  *md_memoria = crear_conexion(logger_kernel, "MEMORIA", ip_memoria, puerto_memoria); // Valores leidos de archivo de configuracion!
+  *md_cpu_dt = crear_conexion("CPU-DT", ip_cpu, puerto_cpu_dispatch);
+  *md_cpu_it = crear_conexion("CPU-IT", ip_cpu, puerto_cpu_interrupt);
+  *md_memoria = crear_conexion("MEMORIA", ip_memoria, puerto_memoria); // Valores leidos de archivo de configuracion!
 
 
   return (*md_cpu_dt != 0 && *md_cpu_it != 0 && *md_memoria != 0) ? 1 : -1; //Aca pregunto por el nuevo valor!
 }
 
-int cargar_configuraciones(t_config_k *config_kernel, t_log *logger_kernel)
+int cargar_configuraciones(t_config_k *config_kernel)
 {
   t_config *config = config_create("kernel.config");
 
   if (config == NULL)
   {
-    log_info(logger_kernel, "No se pudo abrir el archivo de configuraciones!");
+    log_info(logger, "No se pudo abrir el archivo de configuraciones!");
 
     return -1;
   }
@@ -51,7 +48,7 @@ int cargar_configuraciones(t_config_k *config_kernel, t_log *logger_kernel)
 /*
   if (!tiene_todas_las_configuraciones(config, configuraciones))
   {
-    log_info(logger_kernel, "No se encontraron todas las configuraciones necesarias!");
+    log_info(logger, "No se encontraron todas las configuraciones necesarias!");
 
     return -1 ;
   }
@@ -70,7 +67,7 @@ int cargar_configuraciones(t_config_k *config_kernel, t_log *logger_kernel)
 /*
   if (!tiene_algun_algoritmo_de_planificacion(config_kernel->algoritmo_planificacion))
   {
-    log_info(logger_kernel, "El algoritmo de planificacion no es valido!");
+    log_info(logger, "El algoritmo de planificacion no es valido!");
 
     return false;
   }
@@ -82,7 +79,7 @@ int cargar_configuraciones(t_config_k *config_kernel, t_log *logger_kernel)
   crear_vector_dinamico_char(&config_kernel->recursos, config_get_array_value(config, "RECURSOS"));
   crear_vector_dinamico_int(&config_kernel->inst_recursos, config_get_array_value(config, "INSTANCIAS_RECURSOS"));
 
-  log_info(logger_kernel, "Se pudieron cargar todas las configuraciones necesarias!");
+  log_info(logger, "Se pudieron cargar todas las configuraciones necesarias!");
   
   */
    
@@ -93,37 +90,37 @@ int cargar_configuraciones(t_config_k *config_kernel, t_log *logger_kernel)
 }
 
 
-int crear_servidor(t_log* logger_kernel, t_config_k* config_kernel, int * md_EntradaySalida) {
+int crear_servidor(t_config_k* config_kernel, int * md_EntradaySalida) {
     char* puerto_entradasalida = string_itoa(config_kernel->puerto_escucha); // Convierte un int a una cadena de char
     //char* ip_memoria = NULL;  //Ip generica
 
-    *md_EntradaySalida = iniciar_servidor(logger_kernel, "I/0", NULL, puerto_entradasalida);
+    *md_EntradaySalida = iniciar_servidor("I/0", NULL, puerto_entradasalida);
 
     return (md_EntradaySalida != 0) ? 1 : -1 ; 
 }
 
 
 
-void iniciar_modulo(t_log* logger_kernel, t_config_k* config_kernel) {
+void iniciar_modulo(t_config_k* config_kernel) {
     int md_EntradaySalida = 0;
 
-    if(crear_servidor(logger_kernel, config_kernel, &md_EntradaySalida) != 1) 
+    if(crear_servidor(config_kernel, &md_EntradaySalida) != 1) 
     {
-        log_error(logger_kernel, "No se pudo crear los servidores de escucha");
+        log_error(logger, "No se pudo crear los servidores de escucha");
 
         return ;
     }
   
     pthread_t hilo_enetradaysalida;
-    t_procesar_conexion* args_ds = crear_procesar_conexion(logger_kernel, "ENTRADAYSALIDA", md_EntradaySalida);
+    t_procesar_conexion* args_ds = crear_procesar_conexion("ENTRADAYSALIDA", md_EntradaySalida);
 
     pthread_create(&hilo_enetradaysalida, NULL, (void*) server_escuchar_sin_hilos, (void*) args_ds); //Se guarda la info que tenemos antes en el struct
     pthread_join(hilo_enetradaysalida, NULL);
 }
 
-void cerrar_programa(t_log *logger_kernel, t_config_k *config_kernel, int md_memoria, int md_cpu_dt, int md_cpu_it)
+void cerrar_programa(t_config_k *config_kernel, int md_memoria, int md_cpu_dt, int md_cpu_it)
 {
-  log_destroy(logger_kernel);
+  log_destroy(logger);
   destruir_configuracion_k(config_kernel);
   close(md_memoria);
   close(md_cpu_dt);

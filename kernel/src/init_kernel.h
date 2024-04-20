@@ -11,6 +11,7 @@
 #include <pthread.h>
 #include <utils/protocolo.h>
 #include <utils/estructuras_compartidas.h>
+#include <utils/logger.h>
 
 typedef struct
 {
@@ -27,18 +28,18 @@ typedef struct
 	int grado_multip;
 } t_config_k;
 
-extern t_log* logger_kernel;
+
 
 // Funcion para cargar configuraciones de Kernel:
-int generar_conexiones(t_log *logger_kernel, t_config_k *config_kernel, int *md_memoria, int *md_cpu_dt, int *md_cpu_it);
-int cargar_configuraciones(t_config_k *config_kernel, t_log *logger_kernel);
+int generar_conexiones(t_config_k *config_kernel, int *md_memoria, int *md_cpu_dt, int *md_cpu_it);
+int cargar_configuraciones(t_config_k *config_kernel);
 
 // Funciones para manejo de clientes y conexiones del modulo:
-int crear_servidor(t_log* logger_kernel, t_config_k* config_kernel, int* md_EntradaySalida);
+int crear_servidor(t_config_k* config_kernel, int* md_EntradaySalida);
 
 // Funciones de operaciones basicas del modulo:
-void iniciar_modulo(t_log* logger_kernel, t_config_k * config_kernel);
+void iniciar_modulo(t_config_k * config_kernel);
 void destruir_configuracion_k(t_config_k *config_kernel);
-void cerrar_programa(t_log *logger_kernel, t_config_k *config_kernel, int md_memoria, int md_cpu_dt, int md_cpu_it);
+void cerrar_programa(t_config_k *config_kernel, int md_memoria, int md_cpu_dt, int md_cpu_it);
 
 #endif // INIT_KERNEL_H

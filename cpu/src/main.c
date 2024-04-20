@@ -16,9 +16,9 @@ int main(void)
 {
 
     //Creando logger
-    t_log* logger_cpu = log_create("CPUlog.log","CPU",1, LOG_LEVEL_INFO);
+    logger = log_create("CPUlog.log","CPU",1, LOG_LEVEL_INFO);
 
-    if ( logger_cpu == NULL)
+    if ( logger == NULL)
 	{
 		perror("No se puedo encontrar el archivo");
 		return EXIT_FAILURE;
@@ -28,14 +28,24 @@ int main(void)
 
     int md_memoria = 0;
 
-    if(cargar_configuraciones(config_cpu, logger_cpu) != 1 || generar_conexiones(logger_cpu, config_cpu, &md_memoria) != 1)
+    if(cargar_configuraciones(config_cpu) != 1 || generar_conexiones(config_cpu, &md_memoria) != 1)
     {
-        log_error(logger_cpu, "Error al cargar el .config");
+        log_error(logger, "Error al cargar el .config");
         return EXIT_FAILURE;
     }
 
-    iniciar_modulo(logger_cpu, config_cpu);
-    cerrar_programa(logger_cpu, config_cpu, md_memoria);
+    //Inicio de server 
+    iniciar_modulo(config_cpu);
+
+    char *valor = "hola";
+
+    //Envio de primer mensaje
+    enviar_mensaje(valor, md_memoria);
+
+    //Ecvios de paquetes
+    paquete(md_memoria);
+
+    cerrar_programa(config_cpu, md_memoria);
 
     return EXIT_SUCCESS;
 }

@@ -60,13 +60,6 @@ void iniciar_modulo(t_config_memoria* config_memoria) {
     // cerrar_programa(logger_memoria, config_memoria, md_generico);
 }
 
-void handler(int num_signal)
-{
-    // printf("%i", socket_server);
-    // close(socket_server);
-    exit(EXIT_SUCCESS);
-}
-
 void cerrar_programa(t_config_memoria *config_memoria, int socket_server)
 {
     log_destroy(logger);

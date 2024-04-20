@@ -2,7 +2,7 @@
 
 
 
-int generar_conexiones(t_log *logger, t_config_io *config_entradasalida, int *md_memoria, int *md_kernel)
+int generar_conexiones(t_config_io *config_entradasalida, int *md_memoria, int *md_kernel)
 {
   char *ip_memoria = config_entradasalida->ip_memoria;
   char *puerto_memoria = string_itoa(config_entradasalida->puerto_memoria);
@@ -10,14 +10,14 @@ int generar_conexiones(t_log *logger, t_config_io *config_entradasalida, int *md
   char *ip_kernel = config_entradasalida->ip_kernel;
   char *puerto_kernel = string_itoa(config_entradasalida->puerto_kernel);
 
-  *md_memoria = crear_conexion(logger, "Memoria", ip_memoria, puerto_memoria);
-  *md_kernel = crear_conexion(logger, "kernel", ip_kernel, puerto_kernel);
+  *md_memoria = crear_conexion("Memoria", ip_memoria, puerto_memoria);
+  *md_kernel = crear_conexion("kernel", ip_kernel, puerto_kernel);
   
   
   return (*md_memoria != 0 && *md_kernel != 0) ? 1 : -1 ; // Aca pregunto por el nuevo valor!
 }
 
-int cargar_configuraciones(t_config_io *config_entradasalida, t_log *logger)
+int cargar_configuraciones(t_config_io *config_entradasalida)
 {
   t_config *config = config_create("entradasalida.config");
 
@@ -60,7 +60,7 @@ int cargar_configuraciones(t_config_io *config_entradasalida, t_log *logger)
   return 1;
 }
 
-void cerrar_programa(t_log *logger, t_config_io *config_entradasalida, int md_memoria, int md_kernel)
+void cerrar_programa(t_config_io *config_entradasalida, int md_memoria, int md_kernel)
 {
   log_destroy(logger);
   destruir_configuracion_io(config_entradasalida);

@@ -20,9 +20,10 @@ int iniciar_servidor(const char* name, char* ip, char* puerto)
     for (struct addrinfo *p = servinfo; p != NULL; p = p->ai_next) {
         socket_servidor = socket(p->ai_family, p->ai_socktype, p->ai_protocol);
         if (socket_servidor == -1) // fallo de crear socket
-			log_error(logger,"Error en el crear server socker_server");
+			//log_error(logger,"Error en el crear server socker_server");
 			//cambiar por un return y un log error.
-            return EXIT_SUCCESS;//Ojo esta cambiado
+            continue;
+			//return EXIT_SUCCESS;//Ojo esta cambiado
 
 		
 		if(setsockopt(socket_servidor, SOL_SOCKET, SO_REUSEPORT, &(int){1}, sizeof(int)) < 0){
@@ -34,8 +35,9 @@ int iniciar_servidor(const char* name, char* ip, char* puerto)
         if (bind(socket_servidor, p->ai_addr, p->ai_addrlen) == -1) {
             // Si entra aca fallo el bind
             close(socket_servidor);
-			Log_error(logger,"Error en el crear server socker_server");
-            return EXIT_SUCCESS; //Ojo esta cambiado
+			//Log_error(logger,"Error en el crear server socker_server");
+            continue;
+			//return EXIT_SUCCESS; //Ojo esta cambiado
         }
         // Ni bien conecta uno nos vamos del for
         conecto = 1;
@@ -57,6 +59,9 @@ int iniciar_servidor(const char* name, char* ip, char* puerto)
     return socket_servidor;
 }
 
+
+
+
 int esperar_cliente(const char *name, int socket_servidor) //name -> quién se conecta
 {
 	struct sockaddr_in dir_cliente;
@@ -68,6 +73,8 @@ int esperar_cliente(const char *name, int socket_servidor) //name -> quién se c
 
 	return socket_cliente;
 }
+
+
 
 int crear_conexion(const char *server_name, char *ip, char *puerto)
 {
@@ -108,10 +115,15 @@ int crear_conexion(const char *server_name, char *ip, char *puerto)
 	return socket_cliente;
 }
 
+
+
+
 void liberar_conexion(int socket_cliente)
 {
 	close(socket_cliente);
 }
+
+
 
 void atender_conexion(char* server_name, int cliente_socket) 
 {
@@ -144,10 +156,6 @@ void atender_conexion(char* server_name, int cliente_socket)
     	return;	
 	}
 	
-void  iterator(void* vaul){
-	log_info(logger,"%s",vaul);
-}
-
 
 
 
@@ -168,7 +176,7 @@ void server_escuchar_sin_hilos(void* args)
 	}
 }
 
-void server_escuchar_con_hilos( char* server_name, int socket_server) 
+void server_escuchar_con_hilos(char* server_name, int socket_server) 
 {
     while (1)
     {
@@ -192,19 +200,10 @@ void atender_conexiones_memoria(void *args)
 	char *server_name = args_hilo->server_name;
 	int cliente_socket = args_hilo->socket_cliente;
 	
-	while (1) 
-	{
-		op_code cod_op = recibir_operacion(cliente_socket);
-
-		switch (cod_op) 
-		{
-			case MENSAJE:
-				recibir_mensaje(cliente_socket);
-				break;
-		}
-	}
-	
-	log_warning(logger, "El cliente se desconecto de %s server", server_name);
-
-	return;
+	atender_conexion(server_name, cliente_socket);
 }
+
+void iterator(char* value) {
+	log_info(logger,"%s", value);
+}
+

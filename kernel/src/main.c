@@ -18,8 +18,8 @@ void inicializar_config(void)
 int main()
 {
     //Creando logger
-    t_log* logger_kernel = log_create("kernel.log","Kernel",1, LOG_LEVEL_INFO);
-    if ( logger_kernel == NULL)
+    logger = log_create("kernel.log","Kernel",1, LOG_LEVEL_INFO);
+    if ( logger == NULL)
 	{
 		perror("No se puedo encontrar el archivo");
 		return EXIT_FAILURE;
@@ -30,24 +30,30 @@ int main()
     //Inicializamos conexiones
 
     int md_memoria = 0, md_cpu_dt = 0, md_cpu_it = 0;
-    if (cargar_configuraciones(config_kernel, logger_kernel) != 1  || generar_conexiones(logger_kernel, config_kernel, &md_memoria, &md_cpu_dt, &md_cpu_it) != 1 )
+    if (cargar_configuraciones(config_kernel) != 1  || generar_conexiones(config_kernel, &md_memoria, &md_cpu_dt, &md_cpu_it) != 1 )
 
     { // Generar conexiones, no va a mantener la conexion, sino que va a crear la conexion y la va a cerrar!
-        log_error(logger_kernel, "Cargar las configuraciones");
+        log_error(logger, "Cargar las configuraciones");
 
         return EXIT_FAILURE;
     }
 
     char *valor = "hola";
 
+    //Envio de primer mensaje
     enviar_mensaje(valor, md_cpu_dt);
     enviar_mensaje(valor, md_cpu_it);
-    //enviar_mensaje(valor,md_memoria);
-    //paquete(md_memoria);
+    enviar_mensaje(valor,md_memoria);
+    
+
+    //Ecvios de paquetes
+    paquete(md_cpu_dt);
+    paquete(md_cpu_it);
+    paquete(md_memoria);
 
     //abrimos el servidor
-    iniciar_modulo(logger_kernel,config_kernel); // Funcion en proceso de creacion!
-    cerrar_programa(logger_kernel, config_kernel, md_memoria, md_cpu_dt, md_cpu_it);
+    iniciar_modulo(config_kernel); // Funcion en proceso de creacion!
+    cerrar_programa(config_kernel, md_memoria, md_cpu_dt, md_cpu_it);
     //borrar_conexiones(md_memoria, md_cpu_dt, md_cpu_it)
     
     // NEW = crear_cola() // Hay que armar la PCB!

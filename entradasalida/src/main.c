@@ -17,21 +17,21 @@ void inicializar_config(void)
 int main()
 {
     //Creando logger
-    t_log* logger_entradasalida = log_create("entradasalida.log","I/O",1, LOG_LEVEL_INFO);
-    if ( logger_entradasalida == NULL)
+    logger = log_create("entradasalida.log","I/O",1, LOG_LEVEL_INFO);
+    if (logger == NULL)
 	{
 		perror("No se puedo encontrar el archivo");
 		return EXIT_FAILURE;
 	}
-    log_info(logger_entradasalida,"Hola soy un log");
+    log_info(logger,"Hola soy un log");
 
     inicializar_config(); // Inicializo la variable global config_entradasalida!
 
     int md_memoria = 0, md_kernel = 0;
     
-    if (cargar_configuraciones(config_entradasalida, logger_entradasalida) != 1 || generar_conexiones(logger_entradasalida, config_entradasalida, &md_memoria, &md_kernel) != 1 )
+    if (cargar_configuraciones(config_entradasalida) != 1 || generar_conexiones(config_entradasalida, &md_memoria, &md_kernel) != 1 )
     { // Generar conexiones, no va a mantener la conexion, sino que va a crear la conexion y la va a cerrar!
-        log_error(logger_entradasalida, "No se pudieron generar las conexiones");
+        log_error(logger, "No se pudieron generar las conexiones");
 
         return 1;
     }
@@ -41,7 +41,13 @@ int main()
     enviar_mensaje(valor, md_memoria);
     enviar_mensaje(valor, md_kernel);
 
-    cerrar_programa(logger_entradasalida, config_entradasalida, md_memoria, md_kernel);
+    
+    //Evios de paquetes
+    paquete(md_memoria);
+    paquete(md_kernel);
+   
+
+    cerrar_programa(config_entradasalida, md_memoria, md_kernel);
   
    return 0;
 }

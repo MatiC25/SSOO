@@ -1,5 +1,5 @@
-#ifndef UTILS_H_
-#define UTILS_H_
+#ifndef SOCKET_H_
+#define SOCKET_H_
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -31,6 +31,6 @@ void atender_conexiones_memoria(void *args);
 
 // Funciones para liberar conexiones:
 void liberar_conexion(int socket_cliente);
- void iterator(void* value);
+void iterator(char* value);
 
-#endif /* UTILS_H_ */
+#endif /* SOCKET_H_ */
