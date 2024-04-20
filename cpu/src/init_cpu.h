@@ -30,6 +30,7 @@ int generar_conexiones(t_log *logger, t_config_cpu *config_cpu, int *md_memoria)
 
 // Funciones de operaciones basicas del modulo:
 void iniciar_modulo(t_log* logger_cpu, t_config_cpu* config_cpu);
+void destruir_configuracion_cpu(t_config_cpu* config_cpu);
 void cerrar_programa(t_log* logger, t_config_cpu* config_cpu, int md_memoria);
 
 

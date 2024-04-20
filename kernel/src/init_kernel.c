@@ -124,8 +124,26 @@ void iniciar_modulo(t_log* logger_kernel, t_config_k* config_kernel) {
 void cerrar_programa(t_log *logger_kernel, t_config_k *config_kernel, int md_memoria, int md_cpu_dt, int md_cpu_it)
 {
   log_destroy(logger_kernel);
-  // config_destroy(config_kernel);
+  destruir_configuracion_k(config_kernel);
   close(md_memoria);
   close(md_cpu_dt);
   close(md_cpu_it);
+}
+
+void destruir_configuracion_k(t_config_k *config_kernel){
+  if (config_kernel == NULL) {
+        return; // No hay nada que liberar
+    }
+
+    free(config_kernel->ip_memoria);//Liberar recursos internos
+    free(config_kernel->ip_cpu);
+    free(config_kernel->algoritmo_planificacion);
+    if (config_kernel->recursos != NULL) {
+        for (int i = 0; config_kernel->recursos[i] != NULL; i++) {
+            free(config_kernel->recursos[i]);
+        }
+        free(config_kernel->recursos);
+    }
+
+    free(config_kernel); //Liberar la estructura principal
 }

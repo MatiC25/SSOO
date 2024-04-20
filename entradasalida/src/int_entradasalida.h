@@ -20,15 +20,16 @@ typedef struct
   char* path_base_dialfs;
   int block_size;
   int block_count;
-}t_config_k;
+}t_config_io;
 
 // Funcion para cargar configuraciones de I/O:
-int cargar_configuraciones(t_config_k *config_entradasalida, t_log *logger);
+int cargar_configuraciones(t_config_io *config_entradasalida, t_log *logger);
 
 // Funciones para manejo de clientes y conexiones del modulo:
-int generar_conexiones(t_log *logger, t_config_k *config_entradasalida, int *md_memoria, int *md_kernel);
+int generar_conexiones(t_log *logger, t_config_io *config_entradasalida, int *md_memoria, int *md_kernel);
 
 // Funciones de operaciones basicas del modulo:
-void cerrar_programa(t_log *logger, t_config_k *config_entradasalida, int md_memoria, int md_kernel);
+void destruir_configuracion_io(t_config_io *config_entradasalida);
+void cerrar_programa(t_log *logger, t_config_io *config_entradasalida, int md_memoria, int md_kernel);
 
 #endif // INIT_ENTRADASALIDA_H

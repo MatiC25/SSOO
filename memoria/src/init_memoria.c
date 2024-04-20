@@ -69,6 +69,15 @@ void handler(int num_signal)
 void cerrar_programa(t_log *logger_memoria, t_config_memoria *config_memoria, int socket_server)
 {
     log_destroy(logger_memoria);
-    // Falta implementar una funcion que se haga cargo de elimiar el t_config de cada modulo :)
+    destruir_configuracion_memoria(config_memoria);
     close(socket_server);
+}
+
+void destruir_configuracion_memoria(t_config_memoria *config_memoria) {
+    if (config_memoria == NULL) {
+        return; // No hay nada que liberar
+    }
+    free(config_memoria->path_instrucciones); // Liberar recursos internos
+
+    free(config_memoria);// Liberar la estructura principal
 }

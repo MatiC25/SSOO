@@ -89,6 +89,16 @@ void iniciar_modulo(t_log* logger_cpu, t_config_cpu* config_cpu) {
 void cerrar_programa(t_log* logger, t_config_cpu* config_cpu, int md_memoria) 
 {
     log_destroy(logger);
-    /// config_destroy(config_cpu);
+    destruir_configuracion_cpu(config_cpu);
     close(md_memoria);
+}
+
+void destruir_configuracion_cpu(t_config_cpu* config_cpu){
+    if (config_cpu == NULL) {
+        return; // No hay nada que liberar
+    }
+    free(config_cpu->ip_memoria); // Liberar recursos internos
+    free(config_cpu->algoritmo);
+
+    free(config_cpu);   // Liberar la estructura principal
 }

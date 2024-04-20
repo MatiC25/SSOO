@@ -3,11 +3,11 @@
 #include <pthread.h>
 #include "int_entradasalida.h"
 
-t_config_k *config_entradasalida; // La declaro como variable global, y la vez instanciar aca!
+t_config_io *config_entradasalida; // La declaro como variable global, y la vez instanciar aca!
 
 void inicializar_config(void)
 {
-    config_entradasalida = malloc(sizeof(t_config_k));
+    config_entradasalida = malloc(sizeof(t_config_io));
     config_entradasalida->tipo_interfaz = NULL;
     config_entradasalida->ip_kernel = NULL;
     config_entradasalida->ip_memoria = NULL;

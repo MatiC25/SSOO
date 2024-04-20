@@ -2,7 +2,7 @@
 
 
 
-int generar_conexiones(t_log *logger, t_config_k *config_entradasalida, int *md_memoria, int *md_kernel)
+int generar_conexiones(t_log *logger, t_config_io *config_entradasalida, int *md_memoria, int *md_kernel)
 {
   char *ip_memoria = config_entradasalida->ip_memoria;
   char *puerto_memoria = string_itoa(config_entradasalida->puerto_memoria);
@@ -17,7 +17,7 @@ int generar_conexiones(t_log *logger, t_config_k *config_entradasalida, int *md_
   return (*md_memoria != 0 && *md_kernel != 0) ? 1 : -1 ; // Aca pregunto por el nuevo valor!
 }
 
-int cargar_configuraciones(t_config_k *config_entradasalida, t_log *logger)
+int cargar_configuraciones(t_config_io *config_entradasalida, t_log *logger)
 {
   t_config *config = config_create("entradasalida.config");
 
@@ -60,10 +60,23 @@ int cargar_configuraciones(t_config_k *config_entradasalida, t_log *logger)
   return 1;
 }
 
-void cerrar_programa(t_log *logger, t_config_k *config_entradasalida, int md_memoria, int md_kernel)
+void cerrar_programa(t_log *logger, t_config_io *config_entradasalida, int md_memoria, int md_kernel)
 {
   log_destroy(logger);
-  //config_destroy(config_entradasalida);
+  destruir_configuracion_io(config_entradasalida);
   close(md_memoria);
   close(md_kernel);
+}
+
+void destruir_configuracion_io(t_config_io *config_entradasalida){
+  if (config_entradasalida == NULL) {
+        return; //no hay nada que liberar
+    }
+
+  free(config_entradasalida->tipo_interfaz);  // Liberar recursos internos
+  free(config_entradasalida->ip_kernel);
+  free(config_entradasalida->ip_memoria);
+  free(config_entradasalida->path_base_dialfs);
+
+  free(config_entradasalida); // Liberar la estructura principal
 }

@@ -38,6 +38,7 @@ int crear_servidor(t_log* logger_kernel, t_config_k* config_kernel, int* md_Entr
 
 // Funciones de operaciones basicas del modulo:
 void iniciar_modulo(t_log* logger_kernel, t_config_k * config_kernel);
+void destruir_configuracion_k(t_config_k *config_kernel);
 void cerrar_programa(t_log *logger_kernel, t_config_k *config_kernel, int md_memoria, int md_cpu_dt, int md_cpu_it);
 
 #endif // INIT_KERNEL_H
