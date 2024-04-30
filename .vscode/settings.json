@@ -1,6 +1,7 @@
 {
   "files.associations": {
     "init_kernel.h": "c",
-    "log.h": "c"
+    "log.h": "c",
+    "instruc_memoria.h": "c"
   }
 }

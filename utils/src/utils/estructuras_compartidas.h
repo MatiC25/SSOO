@@ -14,7 +14,6 @@ typedef struct {
     char* server_name;
     int socket_servidor;
 } t_procesar_server;
-
 typedef struct { // Registro de la CPU
     uint32_t AX;
     uint32_t BX;
@@ -22,7 +21,7 @@ typedef struct { // Registro de la CPU
     uint32_t DX;
 } t_registros_cpu;
 
-typedef struct { // PCB de un proceso
+typedef struct { // PCB de un proceso 
     int pid;
     int program_counter;
     t_registros_cpu* registros;
