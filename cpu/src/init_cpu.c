@@ -60,7 +60,7 @@ int generar_conexiones(t_config_cpu* config_cpu, int* md_memoria)
     *md_cpu_it = iniciar_servidor("INTERRUPT", NULL, puerto_interrupt); 
 
     return (*md_cpu_ds != 0 && *md_cpu_it != 0) ? 1 : -1;
- }
+ } 
 
 void iniciar_modulo(t_config_cpu* config_cpu) {
     int md_cpu_ds = 0;
@@ -86,6 +86,7 @@ void iniciar_modulo(t_config_cpu* config_cpu) {
     pthread_join(hilo_cpu_it, NULL);
 }
 
+
 void cerrar_programa(t_config_cpu* config_cpu, int md_memoria) 
 {
     log_destroy(logger);
@@ -102,3 +103,4 @@ void destruir_configuracion_cpu(t_config_cpu* config_cpu){
 
     free(config_cpu);   // Liberar la estructura principal
 }
+

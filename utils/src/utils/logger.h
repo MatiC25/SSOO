@@ -3,6 +3,7 @@
 
 #include <commons/log.h>
 
+
 extern t_log * logger;
 
 #endif //LOGGER_H

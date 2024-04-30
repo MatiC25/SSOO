@@ -140,6 +140,7 @@ void atender_conexion(char* server_name, int cliente_socket)
 				break;
 			case PAQUETE:
 				lista = recibir_paquete(cliente_socket);
+				//Mandar paquete a instrucciones.c
 				log_info(logger, "Me llegaron los siguientes valores:\n");
 				list_iterate(lista, iterator);
 				//ietrar lista y mostart por logger.

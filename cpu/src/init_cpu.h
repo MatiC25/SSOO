@@ -11,6 +11,17 @@
 #include <pthread.h>
 #include <utils/estructuras_compartidas.h>
 #include <utils/logger.h>
+#include <pthread.h>
+#include <utils/protocolo.h>
+
+t_registro_cpu* t_registro;
+t_pcb *pcb;
+
+typedef enum
+{
+    LRU,
+    FIFO
+} t_algoritmo;
 
 typedef struct 
 {
@@ -21,6 +32,10 @@ typedef struct
     int cant_entradas;
     char* algoritmo;
 } t_config_cpu;
+
+//semaforo
+pthread_mutex_t mutex_cpu;
+pthread_mutex_t mutex_logger;
 
 // Funcion para cargar configuraciones de CPU:
 int cargar_configuraciones(t_config_cpu *config_cpu);

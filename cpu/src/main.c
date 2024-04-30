@@ -44,7 +44,7 @@ int main(void)
 
     //Ecvios de paquetes
     paquete(md_memoria);
-
+    
     cerrar_programa(config_cpu, md_memoria);
 
     return EXIT_SUCCESS;

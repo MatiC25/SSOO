@@ -19,7 +19,7 @@ void inicializar_config(void)
 int main()
 {
     //Creando logger
-    logger =  log_create("memoria.log","Memoria",1, LOG_LEVEL_INFO);
+    logger =  log_create("memoria.log","Memoria", 1, LOG_LEVEL_INFO);
 
     if ( logger == NULL)
 	{

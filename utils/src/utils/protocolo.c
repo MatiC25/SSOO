@@ -35,11 +35,11 @@ void enviar_paquete(t_paquete* paquete, int socket_cliente) {
 	free(a_enviar);
 }
 
-void* serializar_paquete(t_paquete* paquete, int bytes) {
-	void * magic = malloc(bytes);
+void* serializar_paquete(t_paquete* paquete, int* bytes) {
+	void * magic = malloc(*bytes);
 	int desplazamiento = 0;
 
-	memcpy(magic + desplazamiento, &(paquete->codigo_operacion), sizeof(op_code));
+	memcpy(magic + desplazamiento, &(paquete->codigo_operacion), sizeof(op_code)); //Creo qeu hay que sacarlo
 	desplazamiento += sizeof(op_code);
 	memcpy(magic + desplazamiento, &(paquete->buffer->size), sizeof(uint32_t));
 	desplazamiento += sizeof(uint32_t);
@@ -113,15 +113,24 @@ void send_contexto_ejecucion(op_code operacion, int socket_cliente, t_pcb* proce
 }
 
 void agregar_a_paquete_PCB(t_paquete* paquete, t_pcb* proceso) {
-    agregar_a_paquete(paquete, &proceso->pid, sizeof(int));
-    agregar_a_paquete(paquete, &proceso->program_counter, sizeof(int));
+    agregar_a_paquete(paquete, &proceso->pid, sizeof(int)); 
+    agregar_a_paquete(paquete, &proceso->program_counter, sizeof(int)); // PARA MI SE COMENTA
 }
 
 void agregar_a_paquete_registros(t_paquete* paquete, t_registros_cpu* registros) {
-    agregar_a_paquete(paquete, &registros->AX, sizeof(uint32_t));
-    agregar_a_paquete(paquete, &registros->BX, sizeof(uint32_t));
-    agregar_a_paquete(paquete, &registros->CX, sizeof(uint32_t));
-    agregar_a_paquete(paquete, &registros->DX, sizeof(uint32_t));
+	agregar_a_paquete(paquete, &registros->PC, sizeof(uint32_t)); 
+	agregar_a_paquete(paquete, &registros->AX, sizeof(uint32_t));
+    agregar_a_paquete(paquete, &registros->BX, sizeof(uint8_t));
+    agregar_a_paquete(paquete, &registros->CX, sizeof(uint8_t));
+    agregar_a_paquete(paquete, &registros->DX, sizeof(uint8_t));
+	agregar_a_paquete(paquete, &registros->EAX, sizeof(uint32_t));
+	agregar_a_paquete(paquete, &registros->EBX, sizeof(uint32_t));
+	agregar_a_paquete(paquete, &registros->ECX, sizeof(uint32_t));
+	agregar_a_paquete(paquete, &registros->EDX, sizeof(uint32_t));
+	// agregar_a_paquete(paquete, &registros->SI, sizeof(uint32_t)); HACE FALTA LOS PUNTEROS A STRING 
+	// agregar_a_paquete(paquete, &registros->DI, sizeof(uint32_t));
+
+
 }
 
 void agregar_a_paquete_archivos_abiertos(t_paquete* paquete, t_list* archivos_abiertos) {
@@ -166,17 +175,39 @@ t_pcb* rcv_contexto_ejecucion(int socket_cliente) {
     memcpy(&proceso->program_counter, buffer + desplazamiento, sizeof(int));
     desplazamiento += sizeof(int);
 
-    memcpy(&proceso->registros->AX, buffer + desplazamiento, sizeof(uint32_t));
+    // memcpy(&proceso->registros->PC, buffer + desplazamiento, sizeof(uint32_t));
+    // desplazamiento += sizeof(uint32_t);
+
+    memcpy(&proceso->registros->AX, buffer + desplazamiento, sizeof(uint8_t));
+    desplazamiento += sizeof(uint8_t);
+
+    memcpy(&proceso->registros->BX, buffer + desplazamiento, sizeof(uint8_t));
+    desplazamiento += sizeof(uint8_t);
+
+    memcpy(&proceso->registros->CX, buffer + desplazamiento, sizeof(uint8_t));
+    desplazamiento += sizeof(uint8_t);
+
+    memcpy(&proceso->registros->DX, buffer + desplazamiento, sizeof(uint8_t));
+    desplazamiento += sizeof(uint8_t);
+
+	memcpy(&proceso->registros->EAX, buffer + desplazamiento, sizeof(uint32_t));
     desplazamiento += sizeof(uint32_t);
 
-    memcpy(&proceso->registros->BX, buffer + desplazamiento, sizeof(uint32_t));
+	memcpy(&proceso->registros->EBX, buffer + desplazamiento, sizeof(uint32_t));
     desplazamiento += sizeof(uint32_t);
 
-    memcpy(&proceso->registros->CX, buffer + desplazamiento, sizeof(uint32_t));
+	memcpy(&proceso->registros->ECX, buffer + desplazamiento, sizeof(uint32_t));
     desplazamiento += sizeof(uint32_t);
 
-    memcpy(&proceso->registros->DX, buffer + desplazamiento, sizeof(uint32_t));
+	memcpy(&proceso->registros->EDX, buffer + desplazamiento, sizeof(uint32_t));
     desplazamiento += sizeof(uint32_t);
+	
+	memcpy(&direccion_SI, buffer + desplazamiento, sizeof(uint32_t *));
+	desplazamiento += sizeof(uint32_t *);
+
+	memcpy(&direccion_DI, buffer + desplazamiento, sizeof(uint32_t *));
+	desplazamiento += sizeof(uint32_t *);
+
 
     int tamanio;
 
@@ -190,7 +221,6 @@ t_pcb* rcv_contexto_ejecucion(int socket_cliente) {
 
         list_add(proceso->archivos_abiertos, archivo);
     }
-
 
     free(buffer);
     return proceso;
