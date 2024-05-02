@@ -106,7 +106,7 @@ void send_contexto_ejecucion(op_code operacion, int socket_cliente, t_pcb* proce
     t_paquete* paquete = crear_paquete(operacion);
     agregar_a_paquete_PCB(paquete, proceso);
     agregar_a_paquete_registros(paquete, proceso->registros);
-    agregar_a_paquete_archivos_abiertos(paquete, proceso->archivos_abiertos);
+    agregar_a_paquete_lista_string(paquete, proceso->archivos_abiertos);
 
     enviar_paquete(paquete, socket_cliente);
     eliminar_paquete(paquete);
@@ -133,12 +133,11 @@ void agregar_a_paquete_registros(t_paquete* paquete, t_registros_cpu* registros)
 
 }
 
-void agregar_a_paquete_archivos_abiertos(t_paquete* paquete, t_list* archivos_abiertos) {
+void agregar_a_paquete_lista_string(t_paquete* paquete, t_list* archivos_abiertos) {
     int cantidad_archivos = list_size(archivos_abiertos);
 
     for(int i = 0; i < cantidad_archivos; i++) {
         char* archivo = list_get(archivos_abiertos, i);
-        printf("Archivo abierto: %s\n", archivo);
         agregar_a_paquete_string(paquete, archivo, strlen(archivo) + 1);
     }
 }
@@ -208,69 +207,29 @@ t_pcb* rcv_contexto_ejecucion(int socket_cliente) {
 	memcpy(&direccion_DI, buffer + desplazamiento, sizeof(uint32_t *));
 	desplazamiento += sizeof(uint32_t *);
 
-
-    int tamanio;
-
-    while(desplazamiento < size) {
-
-        memcpy(&tamanio, buffer + desplazamiento, sizeof(int));
-        desplazamiento += sizeof(int);
-        char* archivo = malloc(tamanio);
-        memcpy(archivo, buffer + desplazamiento, tamanio);
-        desplazamiento += tamanio + 1;
-
-        list_add(proceso->archivos_abiertos, archivo);
-    }
-
     free(buffer);
     return proceso;
 }
 
-t_list* recibir_paquete(int socket_cliente)
-{
+t_list *recv_list(int socket_cliente) {
 	int size;
 	int desplazamiento = 0;
-	void * buffer;
-	t_list* valores = list_create();
-	int tamanio;
+	t_list *lista = list_create();
+	void* buffer = recibir_buffer(&size, socket_cliente);
 
-	buffer = recibir_buffer(&size, socket_cliente);
-	while(desplazamiento < size)
-	{
+	while(desplazamiento < size) {
+		int tamanio;
 		memcpy(&tamanio, buffer + desplazamiento, sizeof(int));
 		desplazamiento += sizeof(int);
-		char* valor = malloc(tamanio);
-		memcpy(valor, buffer + desplazamiento, tamanio);
+
+		char* archivo = malloc(tamanio);
+		memcpy(archivo, buffer + desplazamiento, tamanio);
 		desplazamiento += tamanio;
-		list_add(valores, valor);
+
+		list_add(lista, archivo);
 	}
+
 	free(buffer);
-	return valores;
-}
 
-void paquete(int conexion)
-{
-	// Ahora toca lo divertido!
-	char* leido = NULL;
-	op_code code = PAQUETE;
-	t_paquete* paquete = crear_paquete(code);
-	printf("Escribi lo que quieras que sea mandado el servidor para comunicarte con el..\n");
-	log_info(logger,"-->  Comunicaciones con el servidor  <--");
-	leido = readline("--> ");
-	log_info(logger,"--> %s",leido); //opcional 
-	// Leemos y esta vez agregamos las lineas al paquete
-	do{
-
-		agregar_a_paquete(paquete, leido, strlen(leido) + 1 );
-		
-		free(leido);
-		leido = readline("--> ");
-		log_info(logger,"--> %s",leido); //opcional 
-	}while (strcmp(leido,"")!= 0);
-
-	free(leido);
-	enviar_paquete(paquete,conexion);
-
-	// ¡No te olvides de liberar las líneas y el paquete antes de regresar!
-	eliminar_paquete(paquete);
+	return lista;
 }

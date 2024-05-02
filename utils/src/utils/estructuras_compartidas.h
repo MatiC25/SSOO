@@ -17,14 +17,13 @@ typedef struct {
     int socket_servidor;
 } t_procesar_server;
 
-
 typedef struct {
     uint32_t PC;
     uint8_t AX, BX, CX, DX;
     uint32_t EAX, EBX, ECX, EDX;
     uint32_t *SI; // Cambiado a puntero
     uint32_t *DI; // Cambiado a puntero
-}   t_registro_cpu;
+} t_registro_cpu;
 
 
 typedef struct { // PCB de un proceso

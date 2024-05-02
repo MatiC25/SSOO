@@ -51,7 +51,6 @@ typedef enum { //podemos juntar todos los procesos
     IO_FS_TRUNCATE,
     IO_FD_WRITE,
     IO_FS_READ
-    
 } op_code;
 
 typedef struct
@@ -102,10 +101,9 @@ int recibir_operacion(int socket_cliente);
 void send_contexto_ejecucion(op_code operacion, int socket_cliente, t_pcb* proceso);
 void agregar_a_paquete_PCB(t_paquete* paquete, t_pcb* proceso);
 void agregar_a_paquete_registros(t_paquete* paquete, t_registros_cpu* registros);
-void agregar_a_paquete_archivos_abiertos(t_paquete* paquete, t_list* archivos_abiertos);
+void agregar_a_paquete_lista_string(t_paquete* paquete, t_list* archivos_abiertos);
 void agregar_a_paquete_string(t_paquete* paquete, char* cadena, int tamanio);
 t_pcb* rcv_contexto_ejecucion(int socket_cliente);
-t_list* recibir_paquete(int socket_cliente);
-void paquete(int conexion);
+t_list *recv_list(int socket_cliente);
 
 #endif //PROTOCOLO_H
