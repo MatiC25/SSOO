@@ -16,14 +16,14 @@ t_config_cpu* inicializar_config(char *path_config_cpu) {
 }
 
 void cargar_configuraciones(char* path_config_cpu) {
-    t_config* config = config_create(path_config_cpu);
+    t_config* config_cpu = config_create(path_config_cpu);
 
     if(config_cpu == NULL) {
         log_error(logger, "No se pudo cargar la configuracion del filesystem");
 
         return -1;
     }
-
+    
     char* configuraciones[] = {
         "IP_MEMORIA",
         "PUERTO_MEMORIA",

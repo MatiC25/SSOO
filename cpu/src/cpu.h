@@ -8,3 +8,8 @@
 #include "cpu-config.h"
 #include "cpu-estructuras.h"
 #include "cpu-conexiones.h"
+#include "cpu-ciclo-instrucciones.h"
+
+
+
+#endif

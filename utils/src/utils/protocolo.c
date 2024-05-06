@@ -102,6 +102,7 @@ void recibir_mensaje(int socket_cliente)
 	free(buffer);
 }
 
+
 void send_contexto_ejecucion(op_code operacion, int socket_cliente, t_pcb* proceso) {
     t_paquete* paquete = crear_paquete(operacion);
     agregar_a_paquete_PCB(paquete, proceso);

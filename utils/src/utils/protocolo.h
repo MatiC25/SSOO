@@ -22,50 +22,15 @@ typedef enum { //podemos juntar todos los procesos
     PAQUETE,
     //Ex TP fede
     //-------
-    INICIAR_PROCESO,
-    EJECUTAR_PROCESO,
+    // INICIAR_PROCESO,
+    // EJECUTAR_PROCESO,
     INTERRUPT,
-    RECIBIR_PROCESO,
-    DEVOLVER_PROCESO,
+    // RECIBIR_PROCESO,
+    // DEVOLVER_PROCESO,
+    EJECUTAR_INSTRUCCIONES,
+    SOLICITAR_INSTRUCCION
 // ----------------
-//GENERALES 
-    WAIT,
-    SINGAL,
-    EXIT,
-
-// CPU
-    SET,
-    MOVE_IN,
-    MOV_OUT,
-    SUM,
-    SUB,
-    JNZ,
-    RESIZE,
-    COPY_STRING,
-    IO_GEN_SLEEP,
-    IO_STDIN_READ,
-    IO_STDOUT_WRITE,
-    IO_FS_CREATE,
-    IO_FS_DELETE,
-    IO_TRUNCATE,
-    IO_FS_TRUNCATE,
-    IO_FD_WRITE,
-    IO_FS_READ
 } op_code;
-
-typedef struct
-{
-    t_registro_cpu registro;
-    t_registro_cpu registroDatos;
-    t_registro_cpu registroDireccion;
-    t_registro_cpu registroOrigen;
-    t_registro_cpu* registroPuntero;
-    t_registro_cpu registroTamanio;
-    op_code instruccion;
-    char* valor;
-    char* nombreArchivo;
-
-}t_instruccion;
 
 typedef struct
 {

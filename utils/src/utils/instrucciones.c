@@ -16,7 +16,7 @@ t_instruccion* recv_instruccion(int socket_cliente) {
     return instruccion;
 }
 
-t_instruccion *inicializar_instruccion() {
+t_instruccion *inicializar_instruccion(void) {
     t_instruccion *instruccion = malloc(sizeof(t_instruccion));
     instruccion->parametros = list_create();
     return instruccion;
@@ -33,15 +33,42 @@ void solicitar_instruccion(int socket_server, int PID, int program_counter) {
 t_tipo_instruccion obtener_tipo_instruccion(char *instruccion) {
     if(strcmp(instruccion, "SET") == 0) {
         return SET;
-    } else if(strcmp(instruccion, "GET") == 0) {
-        return GET;
+    } else if(strcmp(instruccion, " MOVE_IN") == 0) {
+        return MOVE_IN;
+    } else if(strcmp(instruccion, "MOV_OUT") == 0) {
+        return MOV_OUT;
     } else if(strcmp(instruccion, "SUM") == 0) {
         return SUM;
     } else if(strcmp(instruccion, "SUB") == 0) {
         return SUB;
     } else if(strcmp(instruccion, "JNZ") == 0) {
         return JNZ;
-    } else if(strcmp(instruccion, "IO_GEN_SLEEP") == 0) {
+    } else if(strcmp(instruccion, "RESIZE") == 0) {
+        return RESIZE;
+    }else if(strcmp(instruccion, "COPY_STRING") == 0) {
+        return COPY_STRING;
+    }else if(strcmp(instruccion, "IO_GEN_SLEEP") == 0) {
         return IO_GEN_SLEEP;
+    }else if(strcmp(instruccion, "IO_STDIN_READ") == 0) {
+        return IO_STDIN_READ;
+    }else if(strcmp(instruccion, "IO_STDOUT_WRITE") == 0) {
+        return IO_STDOUT_WRITE;
+    }else if(strcmp(instruccion, "IO_FS_CREATE") == 0) {
+        return IO_FS_CREATE;
+    }else if(strcmp(instruccion, "IO_FS_DELETE") == 0) {
+        return IO_FS_DELETE;
+    }else if(strcmp(instruccion, " IO_TRUNCATE") == 0) {
+        return  IO_TRUNCATE;
+    }else if(strcmp(instruccion, "IO_FS_TRUNCATE") == 0) {
+        return IO_FS_TRUNCATE;
+    }else if(strcmp(instruccion, "IO_FD_WRITE") == 0) {
+        return IO_FD_WRITE;
+    }else if(strcmp(instruccion, "IO_GEN_SLEEP") == 0) {
+        return IO_GEN_SLEEP;
+    }else if(strcmp(instruccion, "IO_FS_READ") == 0) {
+        return IO_FS_READ;
+    }else{
+        return NULL;
     }
+
 }

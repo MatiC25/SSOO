@@ -13,10 +13,9 @@
 #include <utils/logger.h>
 #include <pthread.h>
 #include <utils/protocolo.h>
+#include "init_cpu.h"
 
 t_registro_cpu* t_registro;
-t_pcb* pcb_cpu;
-
 typedef enum
 {
     LRU,
@@ -30,9 +29,9 @@ typedef enum
 pthread_mutex_t mutex_cpu;
 pthread_mutex_t mutex_logger;
 
-void despach(t_instruccion* t_instrucciones);
-void funcion_SET_cpu(char* registro, char* valor);
-void funcion_SUM_cpu(t_registro_cpu* t_registroDireccion, t_registro_cpu* t_registroOrigen);
+void despach(t_instruccion* t_instrucciones,);
+void funcion_SET_cpu(t_registro_cpu* registro, char* valor);
+uint32_t funcion_SUM_cpu(t_registro_cpu* t_registroDireccion, t_registro_cpu* t_registroOrigen);
 void funcion_SUB_cpu(t_registro_cpu* t_registroDireccion, t_registro_cpu* t_registroOrigen);
 void funcion_JNZ_cpu(t_registro_cpu* t_registro,t_instruccion* t_instrucciones);
 //void funcion_IO_GEN_SLEEP_cpu(/*INSTRUCCION*/,/*UNIDAD DE TRABAJO*/);
@@ -52,9 +51,9 @@ void function_IO_FS_READ_cpu(/*INTERFAZ*/, t_registro_cpu* nombreArchivo,t_regis
 
 
 void fetchInstrucciones(t_registro_cpu *registro_cpu);
-
+//char* registros_string(t_instruccion* instrucciones);
 
 t_instruccion *leerProximaInstruccion(t_registro_cpu *registro, t_list *listaInstrucciones);
-
-
+//void ciclo_de_instruccion();
+//t_pcb_cpu* pedir_pcb_a_kernel();
 #endif

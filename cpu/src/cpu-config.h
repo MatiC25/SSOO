@@ -9,7 +9,7 @@
 #include "cpu-estructuras.h"
 
 // Funcion para inicializar la configuracion de CPU:
-t_config_cpu* inicializar_config(void);
+t_config_cpu* inicializar_config(char *path_config_cpu);
 
 // Funcion para cargar configuraciones de CPU:
 void cargar_configuraciones(char* path_config_cpu);

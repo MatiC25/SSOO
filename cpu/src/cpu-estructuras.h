@@ -2,6 +2,7 @@
 #define CPU_ESTRUCTURAS_H
 
 #include <utils/estructuras_compartidas.h>
+#include <utils/instrucciones.h>
 
 typedef struct {
     char *IP_MEMORIA;
@@ -17,10 +18,11 @@ typedef struct {
 typedef struct {
     int PID;
     int program_counter;
-    // t_instruccion *instruccion;
+    t_instruccion *instruccion;
     t_registro_cpu *registro;
 } t_pcb_cpu;
 
 extern t_config_cpu *config_cpu;
+extern t_pcb_cpu* t_pcb;
 
 #endif

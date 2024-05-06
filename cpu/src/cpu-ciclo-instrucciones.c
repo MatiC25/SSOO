@@ -1,86 +1,174 @@
+#include "cpu-ciclo-instrucciones.h"
+//BRANCH DE FEDE juntado con branch leo nico
 
 int seguir_ejecutando;
 
 void iniciar_ciclo_de_ejecucion(int socket_server) {
-   int socket_cliente = esperar_cliente("INTERRUPT", socket_server);
+   int socket_cliente = esperar_cliente("DISPACHT", socket_server);
 
     while(1) {
         op_code codigo_operacion = recibir_operacion(socket_cliente);
 
         switch(codigo_operacion) {
-            // case HANDSHAKE:
+            case MENSAJE:
+				recibir_mensaje(socket_cliente);
+				break;
             case EJECUTAR_INSTRUCCIONES:
-                ejecutar_ciclo_instrucciones();
+                ejecutar_ciclo_instrucciones(socket_cliente, socket_server);
                 break;
        }
     }
 }
 
-void ejecutar_ciclo_instrucciones(int socket_cliente) {
+void ejecutar_ciclo_instrucciones(int socket_cliente, int socket_server) {
     t_instruccion *instruccion;
     seguir_ejecutando = 0;
-    t_pcb_cpu *pcb = recibir_pcb(socket_cliente);
-
+    t_pcb = recibir_pcb_a_kernel(socket_cliente); //Del kernel
+    
     while(!seguir_ejecutando) {
-        fecth(pcb);
-        ejecutar_instruccion(pcb);
+        fecth(socket_server);
+        ejecutar_instruccion(socket_cliente);
     }
 }
 
-void fecth(pcb) {
-    int PID = pcb->PID;
-    int program_counter = pcb->program_counter;
+// t_pcb* recibir_pcb_a_kernel(int socket_cliente){
+//      codear como me llega la PCB del kernel
+//        return pcb_cpu;
+// }
 
-    solicitar_instruccion(PID, program_counter);
+
+void fecth(int socket_server){
+    int PID = t_pcb->pid;
+    int program_counter = t_pcb->program_counter++
+    solicitar_instruccion(socket_server,PID, program_counter);
 }
 
-void ejecutar_instruccion(t_pcb_cpu *pcb) {
-    t_instruccion *instruccion = recv_instruccion();
-    t_tipo_instruccion tipo_instruccion = decode(instruccion);
+t_registro_cpu* obtener_registro (char *registro) {
+    if(strcmp(registro, "AX") == 0) {
+        return &(t_pcb->registros->AX);
+    } else if(strcmp(registro, "BX") == 0) {
+        return &(t_pcb->registros->BX);
+    } else if(strcmp(registro, "CX") == 0) {
+        return &(t_pcb->registros->CX);
+    } else if(strcmp(registro, "DX") == 0) {
+        return &(t_pcb->registros->DX);
+    } else if(strcmp(registro, "PC") == 0) {
+        return &(t_pcb->registros->PC);
+    } else if(strcmp(registro, "EAX") == 0) {
+        return &(t_pcb->registros->EAX);
+    } else if(strcmp(registro, "EBX") == 0) {
+        return &(t_pcb->registros->EBX);
+    }else if(strcmp(registro, "ECX") == 0) {
+        return &(t_pcb->registros->ECX);
+    }else if(strcmp(registro, "EDX") == 0) {
+        return &(t_pcb->registros->EDX);
+    }else if(strcmp(registro, "SI") == 0) {
+        return &(t_pcb->registros->SI);
+    }else if(strcmp(registro, "DI") == 0) {
+        return &(t_pcb->registros->DI);
+    }else {
+        return NULL;
+    }
+}
 
-    switch(tipo_instruccion) {
+
+void ejecutar_instruccion(int socket_cliente) {
+    t_instruccion *instruccion = recv_instruccion(socket_cliente);
+    t_tipo_instruccion tipo_instruccion = list_get(instruccion->parametros ,0); //Decode
+
+        switch (tipo_instruccion)
+        {
         case SET:
-            ejecutar_set(instruccion);
-            break;
-        case GET:
-            ejecutar_get(instruccion);
+            ejecutar_set(list_get(instruccion->parametros ,1), list_get(instruccion->parametros ,2));
             break;
         case SUM:
-            ejecutar_sum(instruccion);
+            ejecutar_sum(list_get(instruccion->parametros ,1), list_get(instruccion->parametros ,2));
             break;
         case SUB:
-            ejecutar_sub(instruccion);
-            break;
+            ejecutar_sub(list_get(instruccion->parametros ,1), list_get(instruccion->parametros ,2));
+            break;           
         case JNZ:
-            ejecutar_jnz(instruccion);
+            ejecutar_JNZ(list_get(instruccion->parametros,1), lista_get(instruccion->parametros,2));
             break;
-        case IO_GEN_SLEEP:
-            ejecutar_io_gen_sleep(instruccion);
-            break;
+        // case IO_GEN_SLEEP:
+        //     ejecutar_IO_GEN_SLEEP(/*INTERFAZ*/,/*UNIDAD DE TRABAJO*/); //sleep
+        //     break;
+        // case MOVE_IN:
+        //    ejecutar_MOV_IN(t_instrucciones->registroDireccion, t_instrucciones->registroDatos);
+        //     break;
+        // case RESIZE:
+        //     ejecutar_MOV_OUT(tamanio);
+        //     break;
+        // case COPY_STRING:
+        //     ejecutar_COPY_STRING(tamanio);
+        //     break;
+        // case WAIT:
+        //     ejecutar_WAIT(recurso);
+        //     break;
+        // case SINGAL:
+        //     ejecutar_SINGAL(recurso);
+        //     break;
+        // case IO_STDIN_READ:
+        //     ejecutar_IO_STDIN_READ(/*INTERFAZ*/, t_instrucciones->registroDireccion,t_instrucciones->registroTamanio);
+        //     break;
+        // case IO_STDOUT_WRITE:
+        //     ejecutar_IO_STDOUT_WRITE(/*INTERFAZ*/,t_instrucciones->registroDireccion, t_instrucciones->registroTamanio);
+        //     break;
+        // case IO_FS_CREATE:
+        //     ejecutar_IO_FS_CREATE(/*INTERFAZ*/, t_instrucciones->nombreArchivo);
+        //     break;
+        // case IO_FS_DELETE:
+        //     ejecutar_IO_FS_DELETE(/*INTERFAZ*/, t_instrucciones->nombreArchivo);
+        //     break;
+        // case IO_FS_TRUNCATE:
+        //     ejecutar_IO_FS_TRUNCATE(/*INTERFAZ*/, t_instrucciones->nombreArchivo);
+        //     break;
+        // case IO_FD_WRITE:
+        //     ejecutar_IO_FD_WRITE(/*INTERFAZ*/, t_instrucciones->nombreArchivo,t_instrucciones->registroDireccion,t_instrucciones->registroTamanio,t_instrucciones->registroPuntero);
+        //     break;       
+        //  case IO_FS_READ:
+        //     ejecutar_IO_FS_READ(/*INTERFAZ*/, t_instrucciones->nombreArchivo,t_instrucciones->registroDireccion,t_instrucciones->registroTamanio,t_instrucciones->registroPuntero);
+        //     break;          
+        }
+}
+
+void ejecutar_set(char* registro, char valor){
+    t_registro_cpu* reg = obtener_registro(registro);
+    if(reg != NULL){
+        *reg = atoi(valor);
+    }
+}
+
+void ejecutar_sum(char* registro_origen_char, char* registro_desitino_char) {
+    t_registro_cpu* registro_origen = obtener_registro(t_pcb, registro_origen_char);
+    t_registro_cpu* registro_destino = obtener_registro(t_pcb, registro_desitino_char);
+
+    if (registro_origen != NULL && registro_destino != NULL)
+    {
+        *registro_destino += *registro_origen;
     }
 }
 
 
-void ejecutar_sum(t_instruccion *instruccion, t_pcb_cpu *pcb) {
-    tipo_registro* registro_origen = obtener_registro(pcb, instruccion->parametros[0]);
-    tipo_registro* registro_destino = obtener_registro(pcb, instruccion->parametros[1]);
+void ejecutar_sub(char* registro_origen_char, char* registro_desitino_char){
+    t_registro_cpu* registro_origen = obtener_registro(t_pcb, registro_origen_char);
+    t_registro_cpu* registro_destino = obtener_registro(t_pcb, registro_desitino_char);
 
-    int valor = registro_origen->valor + registro_destino->valor;
-    ejecutarset(instruccion->parametros[1], valor); 
-}
-
-t_registro* obtener_registro(t_pcb_cpu *pcb, char *registro) {
-    if(strcmp(registro, "A") == 0) {
-        return pcb->registro_A;
-    } else if(strcmp(registro, "B") == 0) {
-        return pcb->registro_B;
-    } else if(strcmp(registro, "C") == 0) {
-        return pcb->registro_C;
-    } else if(strcmp(registro, "D") == 0) {
-        return pcb->registro_D;
-    } else if(strcmp(registro, "E") == 0) {
-        return pcb->registro_E;
-    } else if(strcmp(registro, "M") == 0) {
-        return pcb->registro_M;
+       if (registro_origen != NULL && registro_destino != NULL)
+    {
+        *registro_destino -= *registro_origen;
     }
 }
+
+void ejecutar_JNZ(char* registro, char valor){
+    t_registro_cpu* reg = obtener_registro(t_pcb,registro);
+    if (*reg == 0)
+    {
+        t_pcb->program_counter += atoi(valor);
+    }
+}
+
+// void ejecutar_IO_GEN_SLEEP(){
+
+//     sleep();
+// }

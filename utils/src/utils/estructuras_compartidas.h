@@ -5,7 +5,6 @@
 #include <stdint.h>
 #include <utils/logger.h>
 
-
 typedef struct {
     char* server_name;
     int socket_cliente;
@@ -36,5 +35,7 @@ typedef struct { // PCB de un proceso
 
 // Funciones para creacion de estructuras compartidas:
 t_procesar_conexion* crear_procesar_conexion(char *server_name, int socket_cliente);
+
+
 
 #endif //ESTRUCTURAS_SHARED_H_
