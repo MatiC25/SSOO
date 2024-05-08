@@ -29,7 +29,7 @@ void ejecutar_ciclo_instrucciones(int socket_cliente, int socket_server) {
         fecth(socket_server);
         ejecutar_instruccion(socket_cliente);
     }
-}
+}   
 
 // t_pcb* recibir_pcb_a_kernel(int socket_cliente){
 //      codear como me llega la PCB del kernel
@@ -41,11 +41,12 @@ void fecth(int socket_server){
     int PID = t_pcb->pid;
     int program_counter = t_pcb->program_counter++
     solicitar_instruccion(socket_server,PID, program_counter);
+    log_info(logger,"Fetch Instruccion: PID: %d - FETCH -Programn Counter: %d",PID,program_counter);
 }
 
 t_registro_cpu* obtener_registro (char *registro) {
     if(strcmp(registro, "AX") == 0) {
-        return &(t_pcb->registros->AX);
+        return &(t_pcb->registros->AX)
     } else if(strcmp(registro, "BX") == 0) {
         return &(t_pcb->registros->BX);
     } else if(strcmp(registro, "CX") == 0) {
@@ -80,51 +81,67 @@ void ejecutar_instruccion(int socket_cliente) {
         {
         case SET:
             ejecutar_set(list_get(instruccion->parametros ,1), list_get(instruccion->parametros ,2));
+            log_info(logger,"Instruccion Ejecutada: PID: %d - Ejecutando: %s -Parametro1 Parametro2",tipo_instruccion); //cambiar cuando lo hagamos henerico
             break;
         case SUM:
             ejecutar_sum(list_get(instruccion->parametros ,1), list_get(instruccion->parametros ,2));
+            log_info(logger,"Instruccion Ejecutada: PID: %d - Ejecutando: %s -Parametro1 Parametro2",tipo_instruccion); //cambiar cuando lo hagamos henerico
             break;
         case SUB:
             ejecutar_sub(list_get(instruccion->parametros ,1), list_get(instruccion->parametros ,2));
+            log_info(logger,"Instruccion Ejecutada: PID: %d - Ejecutando: %s -Parametro1 Parametro2",tipo_instruccion); //cambiar cuando lo hagamos henerico
             break;           
         case JNZ:
             ejecutar_JNZ(list_get(instruccion->parametros,1), lista_get(instruccion->parametros,2));
+            log_info(logger,"Instruccion Ejecutada: PID: %d - Ejecutando: %s -Parametro1 Parametro2",tipo_instruccion); //cambiar cuando lo hagamos henerico
             break;
         // case IO_GEN_SLEEP:
         //     ejecutar_IO_GEN_SLEEP(/*INTERFAZ*/,/*UNIDAD DE TRABAJO*/); //sleep
+        //    log_info(logger,"Instruccion Ejecutada: PID: %d - Ejecutando: %s -Parametro1 Parametro2",tipo_instruccion); //cambiar cuando lo hagamos henerico
         //     break;
         // case MOVE_IN:
         //    ejecutar_MOV_IN(t_instrucciones->registroDireccion, t_instrucciones->registroDatos);
+        //    log_info(logger,"Instruccion Ejecutada: PID: %d - Ejecutando: %s -Parametro1 Parametro2",tipo_instruccion); //cambiar cuando lo hagamos henerico
         //     break;
         // case RESIZE:
         //     ejecutar_MOV_OUT(tamanio);
+        //    log_info(logger,"Instruccion Ejecutada: PID: %d - Ejecutando: %s -Parametro1 Parametro2",tipo_instruccion); //cambiar cuando lo hagamos henerico
         //     break;
         // case COPY_STRING:
         //     ejecutar_COPY_STRING(tamanio);
+        //    log_info(logger,"Instruccion Ejecutada: PID: %d - Ejecutando: %s -Parametro1 Parametro2",tipo_instruccion); //cambiar cuando lo hagamos henerico
         //     break;
         // case WAIT:
         //     ejecutar_WAIT(recurso);
+        //    log_info(logger,"Instruccion Ejecutada: PID: %d - Ejecutando: %s -Parametro1 Parametro2",tipo_instruccion); //cambiar cuando lo hagamos henerico
         //     break;
         // case SINGAL:
         //     ejecutar_SINGAL(recurso);
+        //    log_info(logger,"Instruccion Ejecutada: PID: %d - Ejecutando: %s -Parametro1 Parametro2",tipo_instruccion); //cambiar cuando lo hagamos henerico
         //     break;
         // case IO_STDIN_READ:
         //     ejecutar_IO_STDIN_READ(/*INTERFAZ*/, t_instrucciones->registroDireccion,t_instrucciones->registroTamanio);
+        //    log_info(logger,"Instruccion Ejecutada: PID: %d - Ejecutando: %s -Parametro1 Parametro2",tipo_instruccion); //cambiar cuando lo hagamos henerico
         //     break;
         // case IO_STDOUT_WRITE:
         //     ejecutar_IO_STDOUT_WRITE(/*INTERFAZ*/,t_instrucciones->registroDireccion, t_instrucciones->registroTamanio);
+        //    log_info(logger,"Instruccion Ejecutada: PID: %d - Ejecutando: %s -Parametro1 Parametro2",tipo_instruccion); //cambiar cuando lo hagamos henerico
         //     break;
         // case IO_FS_CREATE:
         //     ejecutar_IO_FS_CREATE(/*INTERFAZ*/, t_instrucciones->nombreArchivo);
+        //    log_info(logger,"Instruccion Ejecutada: PID: %d - Ejecutando: %s -Parametro1 Parametro2",tipo_instruccion); //cambiar cuando lo hagamos henerico
         //     break;
         // case IO_FS_DELETE:
         //     ejecutar_IO_FS_DELETE(/*INTERFAZ*/, t_instrucciones->nombreArchivo);
+        //    log_info(logger,"Instruccion Ejecutada: PID: %d - Ejecutando: %s -Parametro1 Parametro2",tipo_instruccion); //cambiar cuando lo hagamos henerico
         //     break;
         // case IO_FS_TRUNCATE:
         //     ejecutar_IO_FS_TRUNCATE(/*INTERFAZ*/, t_instrucciones->nombreArchivo);
+        //    log_info(logger,"Instruccion Ejecutada: PID: %d - Ejecutando: %s -Parametro1 Parametro2",tipo_instruccion); //cambiar cuando lo hagamos henerico
         //     break;
         // case IO_FD_WRITE:
         //     ejecutar_IO_FD_WRITE(/*INTERFAZ*/, t_instrucciones->nombreArchivo,t_instrucciones->registroDireccion,t_instrucciones->registroTamanio,t_instrucciones->registroPuntero);
+        //    log_info(logger,"Instruccion Ejecutada: PID: %d - Ejecutando: %s -Parametro1 Parametro2",tipo_instruccion); //cambiar cuando lo hagamos henerico
         //     break;       
         //  case IO_FS_READ:
         //     ejecutar_IO_FS_READ(/*INTERFAZ*/, t_instrucciones->nombreArchivo,t_instrucciones->registroDireccion,t_instrucciones->registroTamanio,t_instrucciones->registroPuntero);
@@ -169,6 +186,5 @@ void ejecutar_JNZ(char* registro, char valor){
 }
 
 // void ejecutar_IO_GEN_SLEEP(){
-
 //     sleep();
 // }
