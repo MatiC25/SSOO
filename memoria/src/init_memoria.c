@@ -1,6 +1,9 @@
 #include "init_memoria.h"
 
-int cargar_configuraciones(t_config_memoria* config_memoria) {
+//SEPARAR EN 2 
+//un archivo config y otro conexiones 
+
+int cargar_configuraciones(t_config_memoria* config_memoria) { //(char *path_config_memoria
     t_config* config = config_create("memoria.config");
 
     if(config_memoria == NULL) {
