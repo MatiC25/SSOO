@@ -3,6 +3,8 @@
 
 #include <commons/collections/list.h>
 #include <utils/protocolo.h>
+#include <stdlib.h>
+#include <string.h>
 
 typedef enum {
 //Generales    
@@ -30,11 +32,25 @@ typedef enum {
     IO_FS_READ
 } t_tipo_instruccion;
 
-typedef struct {
-    t_tipo_instruccion tipo;
-    int cantParametros;
-    t_list* parametros;
+// typedef struct {
+//     t_tipo_instruccion tipo;
+//     int cantParametros;
+//     t_list* parametros;
+// } t_instruccion;
+
+typedef struct {  
+    char opcode;
+    char parametro1;
+    char parametro2;
+    char parametro3;
+    char parametro4;
+    int long_opcode;
+    int long_par1;
+    int long_par2;
+    int long_par3;
+    int long_par4;
 } t_instruccion;
+
 
 void send_instruccion(int socket_cliente, char *instruccion, t_list *parametros);
 t_instruccion* recv_instruccion(int socket_cliente);

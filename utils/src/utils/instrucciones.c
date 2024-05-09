@@ -8,17 +8,41 @@ void send_instruccion(int socket_cliente, char *instruccion, t_list *parametros)
     eliminar_paquete(paquete);
 }
 
-t_instruccion* recv_instruccion(int socket_cliente) {
-    t_instruccion* instruccion = inicializar_instruccion();
-    instruccion->tipo = recibir_operacion(socket_cliente);
-    instruccion->parametros = recv_list(socket_cliente);
+// t_instruccion* recv_instruccion(int socket_cliente) {
+//     t_instruccion* instruccion = inicializar_instruccion();
+//     instruccion->tipo = recibir_operacion(socket_cliente);
+//     instruccion->parametros = recv_list(socket_cliente);
+//     return instruccion;
+// }
 
-    return instruccion;
+t_instruccion* recv_instruccion(int socket_cliente){
+    t_instruccion* instruccion = inicializar_instruccion();
+    
+    if (recv(socket_cliente,&instruccion->opcode,instruccion->long_opcode,MSG_WAITALL)<= 0 ){
+        free(instruccion);
+        return NULL;
+    }
+    if (recv(socket_cliente,&instruccion->parametro1,instruccion->long_par1,MSG_WAITALL)<= 0 ){
+        free(instruccion);
+        return NULL;
+    }
+    if (recv(socket_cliente,&instruccion->parametro2,instruccion->long_par2,MSG_WAITALL)<= 0 ){
+        free(instruccion);
+        return NULL;
+    }
+    if (recv(socket_cliente,&instruccion->parametro3,instruccion->long_par3,MSG_WAITALL)<= 0 ){
+        free(instruccion);
+        return NULL;
+    }
+    if (recv(socket_cliente,&instruccion->parametro4,instruccion->long_par4,MSG_WAITALL)<= 0 ){
+        free(instruccion);
+        return NULL;
+    }
 }
 
 t_instruccion *inicializar_instruccion(void) {
     t_instruccion *instruccion = malloc(sizeof(t_instruccion));
-    instruccion->parametros = list_create();
+//    instruccion->parametros = list_create();
     return instruccion;
 }
 

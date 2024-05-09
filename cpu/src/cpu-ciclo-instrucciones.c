@@ -4,7 +4,7 @@
 int seguir_ejecutando;
 
 void iniciar_ciclo_de_ejecucion(int socket_server) {
-   int socket_cliente = esperar_cliente("DISPACHT", socket_server);
+   int socket_cliente = esperar_cliente("MEMORIA", socket_server);
 
     while(1) {
         op_code codigo_operacion = recibir_operacion(socket_cliente);
@@ -75,25 +75,25 @@ t_registro_cpu* obtener_registro (char *registro) {
 
 void ejecutar_instruccion(int socket_cliente) {
     t_instruccion *instruccion = recv_instruccion(socket_cliente);
-    t_tipo_instruccion tipo_instruccion = list_get(instruccion->parametros ,0); //Decode
-
+    //t_tipo_instruccion tipo_instruccion = list_get(instruccion->parametros ,0); //Decode
+      t_tipo_instruccion tipo_instruccion = instruccion->opcode; //decode
         switch (tipo_instruccion)
         {
         case SET:
-            ejecutar_set(list_get(instruccion->parametros ,1), list_get(instruccion->parametros ,2));
-            log_info(logger,"Instruccion Ejecutada: PID: %d - Ejecutando: %s -Parametro1 Parametro2",tipo_instruccion); //cambiar cuando lo hagamos henerico
+            ejecutar_set(instruccion->parametro1,instruccion->parametro2);
+            log_info(logger,"Instruccion Ejecutada: PID: %d - Ejecutando: %s -%s %s",instruccion->long_opcode,instruccion->parametro1,instruccion->parametro2);
             break;
         case SUM:
-            ejecutar_sum(list_get(instruccion->parametros ,1), list_get(instruccion->parametros ,2));
-            log_info(logger,"Instruccion Ejecutada: PID: %d - Ejecutando: %s -Parametro1 Parametro2",tipo_instruccion); //cambiar cuando lo hagamos henerico
+            ejecutar_sum(instruccion->parametro1,instruccion->parametro2);
+            log_info(logger,"Instruccion Ejecutada: PID: %d - Ejecutando: %s -%s %s",instruccion->long_opcode,instruccion->parametro1,instruccion->parametro2);
             break;
         case SUB:
-            ejecutar_sub(list_get(instruccion->parametros ,1), list_get(instruccion->parametros ,2));
-            log_info(logger,"Instruccion Ejecutada: PID: %d - Ejecutando: %s -Parametro1 Parametro2",tipo_instruccion); //cambiar cuando lo hagamos henerico
+            ejecutar_sub(instruccion->parametro1,instruccion->parametro2);
+            log_info(logger,"Instruccion Ejecutada: PID: %d - Ejecutando: %s -%s %s",instruccion->long_opcode,instruccion->parametro1,instruccion->parametro2);
             break;           
         case JNZ:
-            ejecutar_JNZ(list_get(instruccion->parametros,1), lista_get(instruccion->parametros,2));
-            log_info(logger,"Instruccion Ejecutada: PID: %d - Ejecutando: %s -Parametro1 Parametro2",tipo_instruccion); //cambiar cuando lo hagamos henerico
+            ejecutar_JNZ(instruccion->parametro1,instruccion->parametro2);
+            log_info(logger,"Instruccion Ejecutada: PID: %d - Ejecutando: %s -%s %s",instruccion->long_opcode,instruccion->parametro1,instruccion->parametro2);
             break;
         // case IO_GEN_SLEEP:
         //     ejecutar_IO_GEN_SLEEP(/*INTERFAZ*/,/*UNIDAD DE TRABAJO*/); //sleep
