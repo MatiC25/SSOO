@@ -7,7 +7,7 @@
 typedef enum {
 //Generales    
     WAIT,
-    SINGAL,
+    SIGNAL,
     EXIT,
 
 // CPU
