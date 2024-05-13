@@ -4,7 +4,7 @@
 int seguir_ejecutando;
 
 void iniciar_ciclo_de_ejecucion(int socket_server) {
-   int socket_cliente = esperar_cliente("DISPACHT", socket_server);
+   int socket_cliente = esperar_cliente("DISPACHT", socket_server); //Esto no es server??
 
     while(1) {
         op_code codigo_operacion = recibir_operacion(socket_cliente);
@@ -13,7 +13,8 @@ void iniciar_ciclo_de_ejecucion(int socket_server) {
             case MENSAJE:
 				recibir_mensaje(socket_cliente);
 				break;
-            case EJECUTAR_INSTRUCCIONES:
+            //case RECIBIR_PROCESO: No deveria estar esto para que me llegue la pcb
+            case EJECUTAR_INSTRUCCIONES: //como me llegan operaciones de memoria ??
                 ejecutar_ciclo_instrucciones(socket_cliente, socket_server);
                 break;
        }
@@ -32,7 +33,9 @@ void ejecutar_ciclo_instrucciones(int socket_cliente, int socket_server) {
 }   
 
 // t_pcb* recibir_pcb_a_kernel(int socket_cliente){
-//      codear como me llega la PCB del kernel
+//     t_pcb* pcb_kernel = inicializar_instruccion();
+//     if() = recibir_operacion(socket_cliente);
+    
 //        return pcb_cpu;
 // }
 

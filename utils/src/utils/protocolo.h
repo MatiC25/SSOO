@@ -25,8 +25,8 @@ typedef enum { //podemos juntar todos los procesos
     // INICIAR_PROCESO,
     // EJECUTAR_PROCESO,
     INTERRUPT,
-    // RECIBIR_PROCESO,
-    // DEVOLVER_PROCESO,
+    RECIBIR_PROCESO,
+    DEVOLVER_PROCESO,
     EJECUTAR_INSTRUCCIONES,
     SOLICITAR_INSTRUCCION
 // ----------------
