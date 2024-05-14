@@ -13,8 +13,7 @@ void iniciar_ciclo_de_ejecucion(int socket_server) {
             case MENSAJE:
 				recibir_mensaje(socket_cliente);
 				break;
-            //case RECIBIR_PROCESO: No deveria estar esto para que me llegue la pcb
-            case EJECUTAR_INSTRUCCIONES: //como me llegan operaciones de memoria ??
+            case RECIBIR_PROCESO: 
                 ejecutar_ciclo_instrucciones(socket_cliente, socket_server);
                 break;
        }
@@ -24,7 +23,7 @@ void iniciar_ciclo_de_ejecucion(int socket_server) {
 void ejecutar_ciclo_instrucciones(int socket_cliente, int socket_server) {
     t_instruccion *instruccion;
     seguir_ejecutando = 0;
-    t_pcb = recibir_pcb_a_kernel(socket_cliente); //Del kernel
+    t_pcb* pcb = recibir_pcb_a_kernel(socket_cliente); //Del kernel
     
     while(!seguir_ejecutando) {
         fecth(socket_server);

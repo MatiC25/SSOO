@@ -38,7 +38,6 @@ typedef struct {
     status_cod estado;
     t_registro_cpu* registro;
     int quantum;
-    //char** archivos;
 } t_pcb;
 
 

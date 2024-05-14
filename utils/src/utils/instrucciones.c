@@ -10,7 +10,7 @@ void send_instruccion(int socket_cliente, char *instruccion, t_list *parametros)
 
 t_instruccion* recv_instruccion(int socket_cliente) {
     t_instruccion* instruccion = inicializar_instruccion();
-    instruccion->tipo = recibir_operacion(socket_cliente);
+    instruccion->tipo = recibir_operacion(socket_cliente); //memoria
     instruccion->parametros = recv_list(socket_cliente);
 
     return instruccion;
