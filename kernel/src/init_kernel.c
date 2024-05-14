@@ -75,13 +75,13 @@ int cargar_configuraciones(t_config_k *config_kernel)
 
 //Crear conexiones no se puede todavia
   config_kernel->quantum = config_get_int_value(config, "QUANTUM");
-/*
+
   crear_vector_dinamico_char(&config_kernel->recursos, config_get_array_value(config, "RECURSOS"));
   crear_vector_dinamico_int(&config_kernel->inst_recursos, config_get_array_value(config, "INSTANCIAS_RECURSOS"));
 
   log_info(logger, "Se pudieron cargar todas las configuraciones necesarias!");
   
-  */
+
    
   config_destroy(config);
   

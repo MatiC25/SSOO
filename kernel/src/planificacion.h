@@ -8,6 +8,10 @@
 #include <pthread.h>
 
 pthread_mutex_t mutex_limite;
+pthread_mutex_t sem_lista;
+//FIFO creo que no tiene 
+//RR
+pthread_mutex_t quantum;
 
 
 t_pcb* creacion_proceso(char** archivo_de_proceso, int quantum);

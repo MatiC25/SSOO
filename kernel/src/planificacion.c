@@ -4,8 +4,9 @@ t_list* cola_new = list_create();
 t_list* cola_ready = list_create();
 
 
+
 //PSEUDOCODE
-t_pcb* creacion_proceso(char** archivo_de_proceso, int quantum) {
+t_pcb* creacion_proceso(char** archivo_de_proceso) {
     
     informar_a_memoria(archivo_de_proceso, socket_servidor); //Notificacion de creacion de nuevo proceso
 
@@ -21,7 +22,7 @@ t_pcb* creacion_proceso(char** archivo_de_proceso, int quantum) {
     pcb -> registro = NULL; //M
     pcb -> estado = NEW; 
     pcb -> program_counter = 0;
-    pcb -> quantum = quantum; //2000
+    pcb -> quantum = 0 //MAXIMO 2000
     
     agregar_a_cola_estado_new(pcb);
 
@@ -47,6 +48,7 @@ void mover_procesos_a_ready(int grado_multip) {
         t_pcb* proceso = list_remove(cola_new, 0); // Eliminar el primer elemento de cola_new
         proceso->estado = READY; 
         list_add(cola_ready, proceso); // Agregar el proceso a cola_ready
+        //Semaforo contador --se agrego un proceso-- para los algoritmos (FIFO, RR, VRR)
         procesos_movidos++; // Incrementar el contador de procesos movidos
     }
 
@@ -56,11 +58,11 @@ void mover_procesos_a_ready(int grado_multip) {
 void elegir_algoritmo() {
     log_info(logger, "Elegi un algoritmo FIFO, RR, VRR");
     t_config_k config_kernel;
-    if(strcmp(config_kernel -> algoritmo_planificacion, "FIFO") == 0){
+    if( strcmp( config_kernel -> algoritmo_planificacion, "FIFO") == 0){
         planificacion_fifo();
-    } else if(strcmp(config_kernel -> algoritmo_planificacion, "RR") == 0){
+    } else if( strcmp( config_kernel -> algoritmo_planificacion, "RR") == 0){
         planificacion_RR();
-    } else if (strcmp(config_kernel -> algoritmo_planificacion, "VRR") == 0){
+    } else if ( strcmp( config_kernel -> algoritmo_planificacion, "VRR") == 0){
         planificacion_VRR();
     } else{
         log_error(logger,"¡¡¡Ese algoritmo no existe!!!");
@@ -73,20 +75,58 @@ void mover_procesos_a_exit(){ //EXIT
 }
 
 void planificacion_fifo() {
-for (int i = 0;!list_is_empty(cola_new); i++) {
-    t_pcb* pcbReady = list_remove(cola_ready,0); //Noc como hacer el for si es qeu es mas de un proceso no puedo cambiar el estado
-    pcbReady->estado = EXEC;
+
+pthread_t hilo_FIFO
+pthread_create(&hilo_FIFO,NULL,FIFO,NULL);
+pthread_join(hilo_FIFO,NULL); 
 }
 
-  
-    ejecuta1r_proceso(pcbReady);
-        
-    
+void* FIFO (void){
+     
+     while (true){
+        //Puede a ver un semaforo contador ??? para bloqueartlo y no ejecutar este if todo el tiempo
+        if (!list_is_empty(cola_ready)){
+        pthread_mutex_lock(&sem_lista);
+        t_pcb* proceso_actual = list_remove(cola_ready,0);
+        pthread_mutex_unlock(&sem_lista);
+        proceso_actual->estado = EXEC;
+        enviar_proceso_a_cpu(proceso_actual);
+        }
+    }    
+
 }
 
-void planificacion_RR() { //NOC si esta bien creo que 
-    
+void planificacion_RR() { 
+pthread_t hilo_RR
+pthread_create(&hilo_RR,NULL,RR,NULL);
+pthread_join(hilo_RR,NULL);    
+}
 
+void* RR(void){
+    t_config_k* config;
+    int quantum_max = config->quantum;
+
+    while (true){
+        //Puede a ver un semaforo contador ??? para bloqueartlo y no ejecutar este if todo el tiempo
+        if (!list_is_empty(cola_ready)){
+        pthread_mutex_lock(&sem_lista);
+        t_pcb* proceso_actual = list_remove(cola_ready,0);
+        pthread_mutex_unlock(&sem_lista);
+            if(proceso_actual->quantum < quantum_max){
+                proceso_actual->estado = EXEC;
+                enviar_proceso_a_cpu(proceso_actual);
+                pthread_mutex_lock(&quantum);
+                proceso_actual->quantum ++;
+                pthread_mutex_unlock(&quantum);
+            }else{
+                proceso_actual->quantum = 0;
+                pthread_mutex_lock(&sem_lista);
+                list_remove(cola_ready,0);
+                list_add(cola_ready,proceso_actual);
+                pthread_mutex_unlock(&sem_lista);
+            }
+        }   
+    } 
 }
 
 void planificacion_VRR() {
