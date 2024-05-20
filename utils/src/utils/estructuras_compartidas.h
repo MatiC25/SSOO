@@ -28,6 +28,8 @@ typedef struct { // PCB de un proceso
     char** archivos_abiertos; 
 }t_pcb;
 
+
+
 // Funciones para creacion de estructuras compartidas:
 t_procesar_conexion* crear_procesar_conexion(char *server_name, int socket_cliente);
 

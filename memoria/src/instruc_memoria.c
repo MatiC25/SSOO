@@ -7,7 +7,7 @@ void leer_archivoPseudo(int socket_kernel){
     char* archivo_path;
     int pid;
 
-    recv_archi_pid(socket_kernel, &archivo_path, &pid); //FALTAAAAAAAAAAAAAAAAAAAAAAAAAAA
+    recv_archi_pid(socket_kernel, &archivo_path, &pid); 
 
     char* path = crear_path_instrucciones(&path_proceso, archivo_path);
 
@@ -149,20 +149,17 @@ void enviar_instruccion_a_cpu(int socket_cpu, int retardo_de_respuesta){
 
     int program_counter;
     int pid;
-
   
-    recibir_program_counter(socket_cpu, &pid, &program_counter);//lo hice gede asi no nos olvidamos
+    recibir_program_counter(socket_cpu, &pid, &program_counter);
   
-
     t_list* lista_de_instrucciones = dictionary_get(lista_instrucciones_porPID, string_itoa(pid));
 
     if(lista_de_instrucciones == NULL){
         log_error(logger, "no se hayo la lista de instrucciones en el psedocodigo");
         return -1;
     }
-
     //consigo la instruccion actual. como el PC indica la siguiente instruccion a ejecutar, le resto 1
-    t_instruccion *instrucciones = list_get(lista_de_instrucciones, program_counter-1);
+    t_instruccion *instrucciones = list_get(lista_de_instrucciones, program_counter - 1);
 
     //creo el paquete con la instruccion y serializo
     t_paquete *paquete_de_instrucciones = crear_paquete(EJECUTAR_INSTRUCCIONES);
@@ -175,31 +172,8 @@ void enviar_instruccion_a_cpu(int socket_cpu, int retardo_de_respuesta){
     //agrego el retardo pedido por la consigna
     retardo_pedido(retardo_de_respuesta);
 
-    enviar_paquete(paquete_de_instrucciones,socket_cpu);
+    enviar_paquete(paquete_de_instrucciones, socket_cpu);
     eliminar_paquete(paquete_de_instrucciones);
 }
 
 
-recibir_program_counter(int socket_cpu,int *pid,int *program_counter){
-
-    int tamaño;
-    int desplazamiento = 0;
-    void *buffer;
-
-    buffer = recibir_buffer(&tamaño, socket_cpu); //Si llega a fallar funcion recibir_paquete
-    while(desplazamiento < tamaño){
-        memcpy(program_counter, buffer + desplazamiento, sizeof(int));//memcpy copia los datos del buffer al program counter
-        desplazamiento += sizeof(int);//el desplazamiento se incrementa en el tamaño de un entero para 
-                                      //moverse al siguiente conjunto de datos en el buffer.
-
-        memcpy(pid, buffer+desplazamiento, sizeof(int));//copiar los datos del bufer las pid
-        desplazamiento += sizeof(int);
-    }
-    free(buffer);
-}
-
-
-void retardo_pedido(int tiempo_de_espera){
-    usleep(tiempo_de_espera*1000) //*1000 es para pasarlo a milisegundos ya que usleep usa microsegundos
-    //cambiar por el cofig
-}
