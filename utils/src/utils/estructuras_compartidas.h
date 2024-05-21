@@ -4,6 +4,7 @@
 #include <commons/log.h>
 #include <stdint.h>
 #include <utils/logger.h>
+#include <stdlib.h>
 
 typedef struct {
     char* server_name;
@@ -20,8 +21,8 @@ typedef struct {
     uint32_t PC;
     uint8_t AX, BX, CX, DX;
     uint32_t EAX, EBX, ECX, EDX;
-    uint32_t *SI; // Cambiado a puntero
-    uint32_t *DI; // Cambiado a puntero
+    uint32_t SI; // Cambiado a puntero
+    uint32_t DI; // Cambiado a puntero
 } t_registro_cpu;
 
 
@@ -30,7 +31,6 @@ typedef struct { // PCB de un proceso
     int program_counter; 
     int quantum; //Para el VRR
     t_registro_cpu* registros;
-    char** archivos_abiertos; // DUDA SI SACAR O NO
 }t_pcb;
 
 // Funciones para creacion de estructuras compartidas:

@@ -16,41 +16,51 @@ void send_instruccion(int socket_cliente, char *instruccion, t_list *parametros)
 // }
 
 t_instruccion* recv_instruccion(int socket_cliente){
-    t_instruccion* instruccion = inicializar_instruccion();
-    
-    if (recv(socket_cliente,&instruccion->opcode,instruccion->long_opcode,MSG_WAITALL)<= 0 ){
-        free(instruccion);
-        return NULL;
-    }
-    if (recv(socket_cliente,&instruccion->parametro1,instruccion->long_par1,MSG_WAITALL)<= 0 ){
-        free(instruccion);
-        return NULL;
-    }
-    if (recv(socket_cliente,&instruccion->parametro2,instruccion->long_par2,MSG_WAITALL)<= 0 ){
-        free(instruccion);
-        return NULL;
-    }
-    if (recv(socket_cliente,&instruccion->parametro3,instruccion->long_par3,MSG_WAITALL)<= 0 ){
-        free(instruccion);
-        return NULL;
-    }
-    if (recv(socket_cliente,&instruccion->parametro4,instruccion->long_par4,MSG_WAITALL)<= 0 ){
-        free(instruccion);
-        return NULL;
-    }
-}
-
-t_instruccion *inicializar_instruccion(void) {
+       int tamanio;
     t_instruccion *instruccion = malloc(sizeof(t_instruccion));
-//    instruccion->parametros = list_create();
+    recv(socket_cliente,&tamanio,sizeof(int),MSG_WAITALL);
+
+    void* buffer = recibir_buffer(&tamanio,socket_cliente);
+
+    memcpy(&instruccion, buffer, sizeof(t_instruccion));
+    
+    
+    free(buffer);
+
+ 
+   
+   
+    // t_instruccion *instruccion = malloc(sizeof(t_instruccion));
+    
+    // if (recv(socket_cliente,&instruccion->opcode,instruccion->long_opcode,MSG_WAITALL)<= 0 ){
+    //     free(instruccion);
+    //     return NULL;
+    // }
+    // if (recv(socket_cliente,&instruccion->parametro1,instruccion->long_par1,MSG_WAITALL)<= 0 ){
+    //     free(instruccion);
+    //     return NULL;
+    // }
+    // if (recv(socket_cliente,&instruccion->parametro2,instruccion->long_par2,MSG_WAITALL)<= 0 ){
+    //     free(instruccion);
+    //     return NULL;
+    // }
+    // if (recv(socket_cliente,&instruccion->parametro3,instruccion->long_par3,MSG_WAITALL)<= 0 ){
+    //     free(instruccion);
+    //     return NULL;
+    // }
+    // if (recv(socket_cliente,&instruccion->parametro4,instruccion->long_par4,MSG_WAITALL)<= 0 ){
+    //     free(instruccion);
+    //     return NULL;
+    // }
     return instruccion;
 }
 
+
 void solicitar_instruccion(int socket_server, int PID, int program_counter) {
     t_paquete *paquete = crear_paquete(SOLICITAR_INSTRUCCION);
-    agregar_a_paquete(paquete, PID, sizeof(int));
-    agregar_a_paquete(paquete, program_counter, sizeof(int));
-    enviar_paquete(socket_server, paquete);
+    agregar_a_paquete(paquete, &PID, sizeof(int));
+    agregar_a_paquete(paquete, &program_counter, sizeof(int));
+    enviar_paquete(paquete, socket_server);
     eliminar_paquete(paquete);
 }
 
@@ -81,8 +91,8 @@ t_tipo_instruccion obtener_tipo_instruccion(char *instruccion) {
         return IO_FS_CREATE;
     }else if(strcmp(instruccion, "IO_FS_DELETE") == 0) {
         return IO_FS_DELETE;
-    }else if(strcmp(instruccion, " IO_TRUNCATE") == 0) {
-        return  IO_TRUNCATE;
+    }else if(strcmp(instruccion, "IO_FS_TRUNCATE") == 0) {
+        return IO_FS_TRUNCATE;
     }else if(strcmp(instruccion, "IO_FS_TRUNCATE") == 0) {
         return IO_FS_TRUNCATE;
     }else if(strcmp(instruccion, "IO_FD_WRITE") == 0) {
@@ -91,8 +101,6 @@ t_tipo_instruccion obtener_tipo_instruccion(char *instruccion) {
         return IO_GEN_SLEEP;
     }else if(strcmp(instruccion, "IO_FS_READ") == 0) {
         return IO_FS_READ;
-    }else{
-        return NULL;
     }
-
+    return 0;
 }

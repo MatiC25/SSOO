@@ -37,7 +37,7 @@ int tiene_algun_algoritmo_de_planificacion(char* palabra) // Funcion: devuelve t
             return 1;
         else
         {
-            if(es_esta_palabra(palabra, "PRIORIDADES")) 1
+            if(es_esta_palabra(palabra, "PRIORIDADES")) 1;
                 return 1;
         }
     }

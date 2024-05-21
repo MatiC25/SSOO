@@ -11,6 +11,7 @@
 #include <utils/logger.h>
 #include <utils/instrucciones.h>
 #include "cpu.h"
+#include "cpu-estructuras.h"
 
 typedef enum
 {
@@ -21,20 +22,20 @@ typedef enum
 
 
 //semaforo
-pthread_mutex_t mutex_cpu;
-pthread_mutex_t mutex_logger
+// pthread_mutex_t mutex_cpu;
+// pthread_mutex_t mutex_logger;
 
 
 void iniciar_ciclo_de_ejecucion(int socket_server);
 void ejecutar_ciclo_instrucciones(int socket_cliente, int socket_server);
-t_pcb* recibir_pcb_a_kernel(int socket_cliente);
+void recibir_pcb_a_kernel(int socket_cliente);
 void fecth(int socket_server);
 void ejecutar_instruccion(int socket_cliente);
-void ejecutar_set(char* registro, int valor);
+void ejecutar_set(char* registro, char valor);
 void ejecutar_sum(char* registro_origen_char, char* registro_desitino_char);
-t_registro_cpu* obtener_registro (char *registro);
+void* obtener_registro (char *registro);
 void ejecutar_sub(char* registro_origen_char, char* registro_desitino_char);
-void ejecutar_JNZ(char* registro, int valor);
+void ejecutar_JNZ(char* registro, char valor);
 //void ejecutar_IO_GEN_SLEEP();
 
 

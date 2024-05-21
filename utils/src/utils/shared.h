@@ -8,6 +8,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <ctype.h>
 
 // Funciones para el manejo de archivos de configuracion
 int tiene_todas_las_configuraciones(t_config* config, char* configs[]);
@@ -26,6 +27,7 @@ int es_esta_palabra(char* palabra, char* palabraNecesaria);
 
 // Funciones para el manejo de memoria
 void liberar_espacios_de_memoria(void** vector);
+
 
 
 #endif // SHARED_H

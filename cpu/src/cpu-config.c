@@ -1,6 +1,6 @@
 #include "cpu-config.h"
 
-t_config_cpu* inicializar_config(char *path_config_cpu) {
+t_config_cpu* inicializar_config(void) {
     t_config_cpu *config_cpu = malloc(sizeof(t_config_cpu));
 
     config_cpu -> IP_MEMORIA = NULL;
@@ -15,13 +15,13 @@ t_config_cpu* inicializar_config(char *path_config_cpu) {
     return config_cpu;
 }
 
-void cargar_configuraciones(char* path_config_cpu) {
-    t_config* config_cpu = config_create(path_config_cpu);
+void cargar_configuraciones(t_config_cpu* config_cpu) {
+    t_config* config = config_create("cpu.config");
 
     if(config_cpu == NULL) {
         log_error(logger, "No se pudo cargar la configuracion del filesystem");
 
-        return -1;
+        exit(-1);
     }
     
     char* configuraciones[] = {
@@ -40,11 +40,10 @@ void cargar_configuraciones(char* path_config_cpu) {
         exit(-1);
     }
     
-    copiar_valor(&config_cpu->ip_memoria, config_get_string_value(config, "IP_MEMORIA"));
-
-    config_cpu->puerto_memoria = config_get_int_value(config, "PUERTO_MEMORIA");
-    config_cpu->puerto_escucha_dispatch = config_get_int_value(config, "PUERTO_ESCUCHA_DISPATCH");
-    config_cpu->puerto_escucha_interrupt = config_get_int_value(config, "PUERTO_ESCUCHA_INTERRUPT");
+    copiar_valor(&config_cpu->IP_MEMORIA, config_get_string_value(config, "IP_MEMORIA")); 
+    config_cpu->PUERTO_MEMORIA = config_get_int_value(config, "PUERTO_MEMORIA");
+    config_cpu->PUERTO_ESCUCHA_DISPATCH = config_get_int_value(config, "PUERTO_ESCUCHA_DISPATCH");
+    config_cpu->PUERTO_ESCUCHA_INTERRUPT = config_get_int_value(config, "PUERTO_ESCUCHA_INTERRUPT");
 
     log_info(logger, "Configuraciones cargadas correctamente");
     config_destroy(config);

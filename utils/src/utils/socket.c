@@ -139,7 +139,7 @@ void atender_conexion(char* server_name, int cliente_socket)
 				recibir_mensaje(cliente_socket);
 				break;
 			case PAQUETE:
-				lista = recibir_paquete(cliente_socket);
+				lista = recv_list(cliente_socket);
 				//Mandar paquete a instrucciones.c
 				log_info(logger, "Me llegaron los siguientes valores:\n");
 				list_iterate(lista, iterator);
@@ -157,8 +157,6 @@ void atender_conexion(char* server_name, int cliente_socket)
     	return;	
 	}
 	
-
-
 
 
 void server_escuchar_sin_hilos(void* args) 

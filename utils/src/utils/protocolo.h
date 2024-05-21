@@ -20,15 +20,10 @@
 typedef enum { //podemos juntar todos los procesos 
     MENSAJE,
     PAQUETE,
-    //Ex TP fede
-    //-------
-    // INICIAR_PROCESO,
-    // EJECUTAR_PROCESO,
-    INTERRUPT,
-    // RECIBIR_PROCESO,
-    // DEVOLVER_PROCESO,
-    EJECUTAR_INSTRUCCIONES,
-    SOLICITAR_INSTRUCCION
+    //INTERRUPT,
+    RECIBIR_PROCESO,
+   // EJECUTAR_INSTRUCCIONES
+   SOLICITAR_INSTRUCCION
 // ----------------
 } op_code;
 
@@ -65,7 +60,7 @@ int recibir_operacion(int socket_cliente);
 // Operaciones de CPU:
 void send_contexto_ejecucion(op_code operacion, int socket_cliente, t_pcb* proceso);
 void agregar_a_paquete_PCB(t_paquete* paquete, t_pcb* proceso);
-void agregar_a_paquete_registros(t_paquete* paquete, t_registros_cpu* registros);
+void agregar_a_paquete_registros(t_paquete* paquete, t_registro_cpu* registros);
 void agregar_a_paquete_lista_string(t_paquete* paquete, t_list* archivos_abiertos);
 void agregar_a_paquete_string(t_paquete* paquete, char* cadena, int tamanio);
 t_pcb* rcv_contexto_ejecucion(int socket_cliente);

@@ -10,18 +10,17 @@
 #include <utils/socket.h>
 #include <utils/logger.h>
 
+#include "cpu.h"
 #include "cpu-estructuras.h"
+#include "cpu-ciclo-instrucciones.h"
 
 
-//semaforo
-pthread_mutex_t mutex_cpu;
-pthread_mutex_t mutex_logger;
 
 // Funciones para manejo de clientes y conexiones del modulo:
-int crear_servidores(int* md_cpu_ds, int* md_cpu_it);
-int generar_conexion_a_memoria(void);
-int generar_servidor_cpu_dispatch(void);
-int generar_servidor_cpu_interrupt(void);
+void crear_servidores_cpu(int* md_cpu_ds, int* md_cpu_it);
+void* generar_conexion_a_memoria(void* arg);
+int generar_servidor_cpu_dispatch();
+int generar_servidor_cpu_interrupt();
 
 
 

@@ -6,6 +6,7 @@
 #include <stdlib.h>
 #include <string.h>
 
+
 typedef enum {
 //Generales    
     WAIT,
@@ -26,7 +27,6 @@ typedef enum {
     IO_STDOUT_WRITE,
     IO_FS_CREATE,
     IO_FS_DELETE,
-    IO_TRUNCATE,
     IO_FS_TRUNCATE,
     IO_FD_WRITE,
     IO_FS_READ
@@ -54,7 +54,8 @@ typedef struct {
 
 void send_instruccion(int socket_cliente, char *instruccion, t_list *parametros);
 t_instruccion* recv_instruccion(int socket_cliente);
-t_instruccion *inicializar_instruccion(void);
 void solicitar_instruccion(int socket_server, int PID, int program_counter);
 t_tipo_instruccion obtener_tipo_instruccion(char *instruccion);
 t_tipo_instruccion obtener_tipo_instruccion(char *instruccion);
+
+#endif // INSTRUCCIONES_H

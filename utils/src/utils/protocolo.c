@@ -28,7 +28,7 @@ void agregar_a_paquete(t_paquete* paquete, void* valor, int tamanio) {
 
 void enviar_paquete(t_paquete* paquete, int socket_cliente) {
 	int bytes = paquete->buffer->size + sizeof(op_code) + sizeof(uint32_t);
-	void* a_enviar = serializar_paquete(paquete, bytes);
+	void* a_enviar = serializar_paquete(paquete, &bytes);
 
 	send(socket_cliente, a_enviar, bytes, 0);
 
@@ -87,7 +87,7 @@ void enviar_mensaje(char* mensaje, int socket_cliente)
 	memcpy(paquete->buffer->stream, mensaje, paquete->buffer->size);
 
 	int bytes = paquete->buffer->size + 2 * sizeof(int);
-	void* a_enviar = serializar_paquete(paquete, bytes);
+	void* a_enviar = serializar_paquete(paquete, &bytes);
 	int bytes_enviados = send(socket_cliente, a_enviar, bytes, 0);
 
 	free(a_enviar);
@@ -107,7 +107,6 @@ void send_contexto_ejecucion(op_code operacion, int socket_cliente, t_pcb* proce
     t_paquete* paquete = crear_paquete(operacion);
     agregar_a_paquete_PCB(paquete, proceso);
     agregar_a_paquete_registros(paquete, proceso->registros);
-    agregar_a_paquete_lista_string(paquete, proceso->archivos_abiertos);
 
     enviar_paquete(paquete, socket_cliente);
     eliminar_paquete(paquete);
@@ -118,7 +117,7 @@ void agregar_a_paquete_PCB(t_paquete* paquete, t_pcb* proceso) {
     agregar_a_paquete(paquete, &proceso->program_counter, sizeof(int)); // PARA MI SE COMENTA
 }
 
-void agregar_a_paquete_registros(t_paquete* paquete, t_registros_cpu* registros) {
+void agregar_a_paquete_registros(t_paquete* paquete, t_registro_cpu* registros) {
 	agregar_a_paquete(paquete, &registros->PC, sizeof(uint32_t)); 
 	agregar_a_paquete(paquete, &registros->AX, sizeof(uint32_t));
     agregar_a_paquete(paquete, &registros->BX, sizeof(uint8_t));
@@ -161,8 +160,8 @@ void agregar_a_paquete_string(t_paquete* paquete, char* cadena, int tamanio) {
 
 t_pcb* rcv_contexto_ejecucion(int socket_cliente) {
     t_pcb* proceso = malloc(sizeof(t_pcb));
-    proceso->registros = malloc(sizeof(t_registros_cpu));
-    proceso->archivos_abiertos = list_create();
+    proceso->registros = malloc(sizeof(t_registro_cpu));
+    //proceso->archivos_abiertos = list_create();
 
     // PCB -> PID, PC, Registros, Archivos abiertos
     int size;
@@ -202,10 +201,10 @@ t_pcb* rcv_contexto_ejecucion(int socket_cliente) {
 	memcpy(&proceso->registros->EDX, buffer + desplazamiento, sizeof(uint32_t));
     desplazamiento += sizeof(uint32_t);
 	
-	memcpy(&direccion_SI, buffer + desplazamiento, sizeof(uint32_t *));
+	memcpy(&proceso->registros->SI, buffer + desplazamiento, sizeof(uint32_t));
 	desplazamiento += sizeof(uint32_t *);
 
-	memcpy(&direccion_DI, buffer + desplazamiento, sizeof(uint32_t *));
+	memcpy(&proceso->registros->DI, buffer + desplazamiento, sizeof(uint32_t));
 	desplazamiento += sizeof(uint32_t *);
 
     free(buffer);

@@ -22,7 +22,6 @@ typedef struct {
     t_registro_cpu *registro;
 } t_pcb_cpu;
 
-extern t_config_cpu *config_cpu;
-extern t_pcb_cpu* t_pcb;
+
 
 #endif
