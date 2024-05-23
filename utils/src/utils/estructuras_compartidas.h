@@ -28,7 +28,7 @@ typedef enum {
     NEW,
     READY,
     EXEC,
-    WAIT,
+    BLOCK,
     EXIT
 } status_cod;
 
@@ -38,6 +38,7 @@ typedef struct {
     status_cod estado;
     t_registro_cpu* registro;
     int quantum;
+    int quantumrestante;
 } t_pcb;
 
 
