@@ -115,8 +115,22 @@ int crear_conexion(const char *server_name, char *ip, char *puerto)
 	return socket_cliente;
 }
 
+void generar_handshake(int socket, char *cliente, char *ip, char *puerto) {
+    size_t bytes;
 
+    int32_t handshake = 1;
+    int32_t result;
 
+    bytes = send(fd_conexion, &handshake, sizeof(int32_t), 0);
+    bytes = recv(fd_conexion, &result, sizeof(int32_t), MSG_WAITALL);
+
+    if(result == 0) 
+        log_info(logger, "Handshake exitoso con %s", nombre_interfaz);
+    else {
+        log_error(logger, "Error en el handshake con %s", nombre_interfaz);
+        exit(EXIT_FAILURE);
+    }
+}
 
 void liberar_conexion(int socket_cliente)
 {

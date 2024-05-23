@@ -14,6 +14,7 @@ int main(void) {
 		perror("No se puedo encontrar el archivo");
 		return EXIT_FAILURE;
 	}
+    
     inicializar_config(); // Inicializo la variable global config_kernel! -> No se si es la mejor forma de hacerlo!
     generar_conexion_a_memoria();
     crear_servidores(&md_cpu_ds, &md_cpu_it);

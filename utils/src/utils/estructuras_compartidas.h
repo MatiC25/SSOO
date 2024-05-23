@@ -5,6 +5,13 @@
 #include <stdint.h>
 #include <utils/logger.h>
 
+typedef enum {
+    GENERICA,
+    STDIN,
+    STDOUT,
+    DIALFS
+} tipo_interfaz;
+
 typedef struct {
     char* server_name;
     int socket_cliente;
@@ -39,7 +46,6 @@ typedef struct {
     t_registro_cpu* registro;
     int quantum;
 } t_pcb;
-
 
 // Funciones para creacion de estructuras compartidas:
 t_procesar_conexion* crear_procesar_conexion(char *server_name, int socket_cliente);

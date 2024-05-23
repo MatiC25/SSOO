@@ -1,5 +1,12 @@
 #include "shared.h"
 
+void validar_configuraciones(t_config *config, char *configuraciones[]) {
+    if (!tiene_todas_las_configuraciones(config, configuraciones)) {
+        log_error(logger, "Faltan configuraciones en el archivo de configuración");
+        exit(EXIT_FAILURE);
+    }
+}
+
 int tiene_todas_las_configuraciones(t_config* config, char* configs[]) {  
     for(size_t i = 0; configs[i] !=  NULL; i++) {
         if(!config_has_property(config, configs[i]))
