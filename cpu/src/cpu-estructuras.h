@@ -22,6 +22,11 @@ typedef struct {
     t_registro_cpu *registro;
 } t_pcb_cpu;
 
-
+// typedef struct {
+//     int tamano_pagina; 
+//     int num_pagina; //Puede ser floor 
+//     int desplazamiento;//puede ser floor
+//     int 
+// }t_mmu_cpu;
 
 #endif

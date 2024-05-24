@@ -1,6 +1,7 @@
 #include "cpu-ciclo-instrucciones.h"
 //BRANCH DE FEDE juntado con branch leo nico
 t_pcb_cpu* pcb;
+//t_mmu_cpu* mmu;
 int seguir_ejecutando;
 
 void iniciar_ciclo_de_ejecucion(int socket_server) {
@@ -108,6 +109,16 @@ void operar_registros(void* registro_destino, void* registro_origen, char* regis
     
 }
 
+
+// int num_pagina(int direccion_logica, int tamano_pagina){
+
+//     return floor(direccion_logica / tamano_pagina);
+// }
+
+// int desplazamiento(int direccion_logica, int numero_pagina, int tamano_pagina){
+
+//     return (direccion_logica - numero_pagina * tamano_pagina);
+// }
 
 
 
