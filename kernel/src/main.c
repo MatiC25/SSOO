@@ -1,74 +1,22 @@
-#include <stdlib.h>
-#include <stdio.h>
-#include <pthread.h>
-#include "init_kernel.h"
+#include "kernel.h"
 
-t_config_k *config_kernel; // La declaro como variable global, y la vez instanciar aca!
+t_config_kernel *config_kernel; // La declaro como variable global, y la vez instanciar aca!
 
-void inicializar_config(void)
-{
-    config_kernel = malloc(sizeof(t_config_k));
-    config_kernel->ip_memoria = NULL;
-    config_kernel->ip_cpu = NULL;
-    config_kernel->algoritmo_planificacion = NULL;
-    config_kernel->inst_recursos = NULL;
-    config_kernel->recursos = NULL;
-}
-
-int main()
-{
-    //Creando logger
-    logger = log_create("kernel.log","Kernel",1, LOG_LEVEL_INFO);
-    if ( logger == NULL)
-	{
-		perror("No se puedo encontrar el archivo");
-		return EXIT_FAILURE;
-	}
-
-   inicializar_config(); // Inicializo la variable global config_kernel! -> No se si es la mejor forma de hacerlo!
-   
-    //Inicializamos conexiones
-
-    int md_memoria = 0, md_cpu_dt = 0, md_cpu_it = 0;
-    if (cargar_configuraciones(config_kernel) != 1  || generar_conexiones(config_kernel, &md_memoria, &md_cpu_dt, &md_cpu_it) != 1 )
-
-    { // Generar conexiones, no va a mantener la conexion, sino que va a crear la conexion y la va a cerrar!
-        log_error(logger, "Cargar las configuraciones");
-
-        return EXIT_FAILURE;
-    }
-
-    char *valor = "hola";
-
-    //Envio de primer mensaje
-    enviar_mensaje(valor, md_cpu_dt);
-    enviar_mensaje(valor, md_cpu_it);
-    enviar_mensaje(valor,md_memoria);
+int main(int argc, char *argv[]) {
+    char *config_path = argv[1];
     
+    // Inicializamos logger y cargamos configuracion:
+    logger = log_create("kernel.log", "KERNEL", 1, LOG_LEVEL_TRACE);
+    config_kernel = cargar_config_kernel(config_path);
 
-    //Ecvios de paquetes
-    paquete(md_cpu_dt);
-    paquete(md_cpu_it);
-    paquete(md_memoria);
+    // Generar conexiones con memoria y cpu:
+    generar_conexiones_con();
 
-    //abrimos el servidor
-    iniciar_modulo(config_kernel); // Funcion en proceso de creacion!
-    cerrar_programa(config_kernel, md_memoria, md_cpu_dt, md_cpu_it);
-    //borrar_conexiones(md_memoria, md_cpu_dt, md_cpu_it)
-    
-    // NEW = crear_cola() // Hay que armar la PCB!
-    // READY = crear_cola()
-    // EXEC = crear_cola()
-    // BLOCK = crear_cola()
-    // EXIT = crear_cola()
-    
+    // Levantamos servidor:
+    int socket_servidor = crear_servidor_kernel();
+
+    // Inicializamos modulo:
+    inicializar_modulo(socket_servidor); 
 
     return 0;
 }
-
-
-    
-    
-
-
-

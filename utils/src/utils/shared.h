@@ -27,5 +27,7 @@ int es_esta_palabra(char* palabra, char* palabraNecesaria);
 // Funciones para el manejo de memoria
 void liberar_espacios_de_memoria(void** vector);
 
+// Funciones para el manejo de logs
+void info_config(t_config *config);
 
 #endif // SHARED_H

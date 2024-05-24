@@ -71,4 +71,7 @@ void agregar_a_paquete_string(t_paquete* paquete, char* cadena, int tamanio);
 t_pcb* rcv_contexto_ejecucion(int socket_cliente);
 t_list *recv_list(int socket_cliente);
 
+// Funciones de saludo inicial:
+void generar_handshake(int socket, char *server_name, char *ip, char *puerto);
+
 #endif //PROTOCOLO_H

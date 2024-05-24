@@ -1,5 +1,5 @@
-#define KERNEL_ESTRUCTURAS_H
 #ifndef KERNEL_ESTRUCTURAS_H
+#define KERNEL_ESTRUCTURAS_H
 
 #include <commons/list.h>
 #include <commons/queue.h>
@@ -22,7 +22,7 @@ typedef struct {
 } t_config_kernel;
 
 typedef struct {
-    int SOCKET_KERNEL;
+    int SOCKET;
     int connected; // Sirve para verificar si una I/O esta conectada
     t_queue *process_blocked; // Vamos a tener una cola de pid´s
 } interface_io;

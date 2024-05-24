@@ -7,6 +7,11 @@ void validar_configuraciones(t_config *config, char *configuraciones[]) {
     }
 }
 
+void info_config(t_config *config) {
+    log_info(logger, "Configuraciones cargadas correctamente");
+    config_destroy(config);
+}
+
 int tiene_todas_las_configuraciones(t_config* config, char* configs[]) {  
     for(size_t i = 0; configs[i] !=  NULL; i++) {
         if(!config_has_property(config, configs[i]))
