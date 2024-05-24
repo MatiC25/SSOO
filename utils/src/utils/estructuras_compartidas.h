@@ -6,6 +6,13 @@
 #include <utils/logger.h>
 #include <stdlib.h>
 
+typedef enum {
+    GENERICA,
+    STDIN,
+    STDOUT,
+    DIALFS
+} tipo_interfaz;
+
 typedef struct {
     char* server_name;
     int socket_cliente;
@@ -25,13 +32,22 @@ typedef struct {
     uint32_t DI; // Cambiado a puntero
 } t_registro_cpu;
 
+typedef enum {
+    NEW,
+    READY,
+    EXEC,
+    BLOCK,
+    EXIT
+} status_cod;
 
-typedef struct { // PCB de un proceso
+typedef struct {
     int pid;
     int program_counter; 
+
     int quantum; //Para el VRR
     t_registro_cpu* registros;
 }t_pcb;
+
 
 // Funciones para creacion de estructuras compartidas:
 t_procesar_conexion* crear_procesar_conexion(char *server_name, int socket_cliente);

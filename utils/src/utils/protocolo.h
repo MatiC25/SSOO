@@ -24,6 +24,7 @@ typedef enum { //podemos juntar todos los procesos
     RECIBIR_PROCESO,
    // EJECUTAR_INSTRUCCIONES
    SOLICITAR_INSTRUCCION
+
 // ----------------
 } op_code;
 
@@ -65,5 +66,8 @@ void agregar_a_paquete_lista_string(t_paquete* paquete, t_list* archivos_abierto
 void agregar_a_paquete_string(t_paquete* paquete, char* cadena, int tamanio);
 t_pcb* rcv_contexto_ejecucion(int socket_cliente);
 t_list *recv_list(int socket_cliente);
+
+// Funciones de saludo inicial:
+void generar_handshake(int socket, char *server_name, char *ip, char *puerto);
 
 #endif //PROTOCOLO_H

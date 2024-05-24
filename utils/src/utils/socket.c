@@ -60,8 +60,6 @@ int iniciar_servidor(const char* name, char* ip, char* puerto)
 }
 
 
-
-
 int esperar_cliente(const char *name, int socket_servidor) //name -> quién se conecta
 {
 	struct sockaddr_in dir_cliente;
@@ -116,14 +114,10 @@ int crear_conexion(const char *server_name, char *ip, char *puerto)
 }
 
 
-
-
 void liberar_conexion(int socket_cliente)
 {
 	close(socket_cliente);
 }
-
-
 
 void atender_conexion(char* server_name, int cliente_socket) 
 {

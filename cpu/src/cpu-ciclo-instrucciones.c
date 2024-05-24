@@ -7,7 +7,6 @@ int seguir_ejecutando;
 void iniciar_ciclo_de_ejecucion(int socket_server) {
 
    int socket_cliente = esperar_cliente("CPU", socket_server);
-
     while(1) {
         op_code codigo_operacion = recibir_operacion(socket_cliente);
 
@@ -34,8 +33,10 @@ void ejecutar_ciclo_instrucciones(int socket_cliente, int socket_server) {
         ejecutar_instruccion(socket_cliente);
 }   
 
+
  void recibir_pcb_a_kernel(int socket_cliente){
     int tamanio;
+
 
     recv(socket_cliente,&tamanio,sizeof(int),MSG_WAITALL);
 

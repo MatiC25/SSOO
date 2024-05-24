@@ -233,3 +233,23 @@ t_list *recv_list(int socket_cliente) {
 
 	return lista;
 }
+
+void generar_handshake(int socket, char *server_name, char *ip, char *puerto) {
+    size_t bytes;
+
+    int32_t handshake = 1;
+    int32_t result;
+
+	op_code cod_op = HANDSHAKE; 
+	send(socket, &cod_op, sizeof(op_code), 0);
+
+    bytes = send(socket, &handshake, sizeof(int32_t), 0);
+    bytes = recv(socket, &result, sizeof(int32_t), MSG_WAITALL);
+
+    if(result == 0) 
+        log_info(logger, "Handshake exitoso con %s", server_name);
+    else {
+        log_error(logger, "Error en el handshake con %s", server_name);
+        exit(EXIT_FAILURE);
+    }
+}

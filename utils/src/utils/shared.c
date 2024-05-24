@@ -1,5 +1,17 @@
 #include "shared.h"
 
+void validar_configuraciones(t_config *config, char *configuraciones[]) {
+    if (!tiene_todas_las_configuraciones(config, configuraciones)) {
+        log_error(logger, "Faltan configuraciones en el archivo de configuración");
+        exit(EXIT_FAILURE);
+    }
+}
+
+void info_config(t_config *config) {
+    log_info(logger, "Configuraciones cargadas correctamente");
+    config_destroy(config);
+}
+
 int tiene_todas_las_configuraciones(t_config* config, char* configs[]) {  
     for(size_t i = 0; configs[i] !=  NULL; i++) {
         if(!config_has_property(config, configs[i]))
@@ -37,7 +49,9 @@ int tiene_algun_algoritmo_de_planificacion(char* palabra) // Funcion: devuelve t
             return 1;
         else
         {
+
             if(es_esta_palabra(palabra, "PRIORIDADES")) 1;
+
                 return 1;
         }
     }
