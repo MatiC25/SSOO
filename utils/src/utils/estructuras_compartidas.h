@@ -24,6 +24,7 @@ typedef struct {
     int socket_servidor;
 } t_procesar_server;
 
+
 typedef struct {
     uint32_t PC;
     uint8_t AX, BX, CX, DX;
@@ -40,10 +41,11 @@ typedef enum {
     EXIT
 } status_cod;
 
-typedef struct {
+
+typedef struct { // PCB de un proceso 
+
     int pid;
     int program_counter; 
-
     int quantum; //Para el VRR
     t_registro_cpu* registros;
 }t_pcb;

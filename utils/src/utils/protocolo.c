@@ -211,6 +211,7 @@ t_pcb* rcv_contexto_ejecucion(int socket_cliente) {
     return proceso;
 }
 
+
 t_list *recv_list(int socket_cliente) {
 	int size;
 	int desplazamiento = 0;
@@ -224,6 +225,24 @@ t_list *recv_list(int socket_cliente) {
 
 		char* archivo = malloc(tamanio);
 		memcpy(archivo, buffer + desplazamiento, tamanio);
+
+t_list* recibir_paquete(int socket_cliente)
+{
+	int tamanio;
+	int size;
+	int desplazamiento = 0;
+	void * buffer;
+	
+	buffer = recibir_buffer(&size, socket_cliente);
+	while(desplazamiento < size)
+	{
+		memcpy(&tamanio, buffer + desplazamiento, sizeof(int));
+		desplazamiento += sizeof(int);
+
+		t_list* valores = list_create();
+		char* valor = malloc(tamanio);
+		memcpy(valor, buffer + desplazamiento, tamanio);
+
 		desplazamiento += tamanio;
 
 		list_add(lista, archivo);
@@ -243,6 +262,7 @@ void generar_handshake(int socket, char *server_name, char *ip, char *puerto) {
 	op_code cod_op = HANDSHAKE; 
 	send(socket, &cod_op, sizeof(op_code), 0);
 
+
     bytes = send(socket, &handshake, sizeof(int32_t), 0);
     bytes = recv(socket, &result, sizeof(int32_t), MSG_WAITALL);
 
@@ -252,4 +272,78 @@ void generar_handshake(int socket, char *server_name, char *ip, char *puerto) {
         log_error(logger, "Error en el handshake con %s", server_name);
         exit(EXIT_FAILURE);
     }
+
+	// ¡No te olvides de liberar las líneas y el paquete antes de regresar!
+	eliminar_paquete(paquete);
+}
+
+//Creamos una funcion que envie el archivo pseudo y el pid del proceso desde kernel a memoria para que pueda ser utilizado en la lectura de pseudocodigo
+
+void send_archi_pid(int socket_cliente, char *path, int pid) {
+    int tamanio = strlen(path) + 1; //Calculamos el largo de archivo_path
+    int size = sizeof(int) + tamanio + sizeof(int);  //Arbitrariamente elegimos el largo del paquete a enviar ya que sabemos lo que mandamos
+    void *buffer = malloc(size); //Reservamos memoria para el buffer
+    int desplazamiento = 0; //Init del desplazamiento que será utilizado para leer dato a dato
+
+    memcpy(buffer + desplazamiento, &tamanio, sizeof(int)); //Copiamos el dato, ente caso del tamaño de un int
+    desplazamiento += sizeof(int); //Desplzamos el puntero para que avance al siguiente bloque de datos, sin pisar el dato anterior
+
+    memcpy(buffer + desplazamiento, path, tamanio); 
+    desplazamiento += tamanio; 
+
+    memcpy(buffer + desplazamiento, &pid, sizeof(int));
+
+    enviar_buffer(buffer, size, socket_cliente); //Enviamos el buffer con el tamaño del paquete a enviar que será recibido luego
+    free(buffer); // Liberamos el buffer xq no somos petes
+
+//Creamos una funcion que reciba el archivo pseudo y el pid del proceso que será utilizado para la lectura de pseudocodigo de instrucciones en memoria 
+
+void recv_archi_pid(int socket_cliente, char **path, int* pid){ // Se usan punteros xq necesitamos modificar las variables que se pasan por parametro
+	int size;
+	int desplazamiento = 0;
+	void *buffer;
+	int tamanio;
+
+	buffer = recibir_buffer(&size, socket_cliente); //Recibimos el buffer que antes enviamos
+	while (desplazamiento < size) // Leemos el buffer hasta que lleguemos al final
+	{
+		memcpy(&tamanio, buffer + desplazamiento, sizeof(int)); //Averiguamos que tan largo es el string (path)
+		desplazamiento += sizeof(int);
+		path = malloc(tamanio); // Una vez que sabemos el largo, podemos reservar el espacio de memoraia del mismo 
+								
+		memcpy(*path, buffer + desplazamiento, tamanio); // Copiamos todo el path de una en la variable "*path"
+		desplazamiento += tamanio;
+
+		memcpy(pid, buffer + desplazamiento, sizeof(int));
+		desplazamiento += sizeof(int);
+
+	}
+	free(buffer);
+}
+
+//Funcion para recibir el PC y el PID de un proceso
+recibir_program_counter(int socket_cpu,int *pid,int *program_counter){
+
+    int tamaño;
+    int desplazamiento = 0;
+    void *buffer;
+
+    buffer = recibir_buffer(&tamaño, socket_cpu); //Si llega a fallar funcion recibir_paquete
+    while(desplazamiento < tamaño){
+
+        memcpy(program_counter, buffer + desplazamiento, sizeof(int));//memcpy copia los datos del buffer al program counter
+        desplazamiento += sizeof(int);//el desplazamiento se incrementa en el tamaño de un entero para moverse al siguiente conjunto de datos en el buffer.
+                                      															
+        memcpy(pid, buffer+desplazamiento, sizeof(int));//copiar los datos del bufer las pid
+        desplazamiento += sizeof(int);
+    }
+    free(buffer);
+}
+
+//Retardo pedido
+
+void retardo_pedido(int tiempo_de_espera){
+    usleep(tiempo_de_espera*1000) //*1000 es para pasarlo a milisegundos ya que usleep usa microsegundos
+    //cambiar por el cofig
+
 }
