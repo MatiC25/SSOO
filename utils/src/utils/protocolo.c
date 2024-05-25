@@ -90,6 +90,10 @@ void enviar_mensaje(char* mensaje, int socket_cliente)
 	void* a_enviar = serializar_paquete(paquete, &bytes);
 	int bytes_enviados = send(socket_cliente, a_enviar, bytes, 0);
 
+	if (bytes_enviados == -1){
+		log_error (logger, "Error al enviar mensaje");
+	}
+
 	free(a_enviar);
 	eliminar_paquete(paquete);
 }
@@ -127,8 +131,8 @@ void agregar_a_paquete_registros(t_paquete* paquete, t_registro_cpu* registros) 
 	agregar_a_paquete(paquete, &registros->EBX, sizeof(uint32_t));
 	agregar_a_paquete(paquete, &registros->ECX, sizeof(uint32_t));
 	agregar_a_paquete(paquete, &registros->EDX, sizeof(uint32_t));
-	// agregar_a_paquete(paquete, &registros->SI, sizeof(uint32_t)); HACE FALTA LOS PUNTEROS A STRING 
-	// agregar_a_paquete(paquete, &registros->DI, sizeof(uint32_t));
+	agregar_a_paquete(paquete, &registros->SI, sizeof(uint32_t)); 
+	agregar_a_paquete(paquete, &registros->DI, sizeof(uint32_t));
 
 
 }
@@ -213,18 +217,30 @@ t_pcb* rcv_contexto_ejecucion(int socket_cliente) {
 
 
 t_list *recv_list(int socket_cliente) {
+	int tamanio;
 	int size;
 	int desplazamiento = 0;
-	t_list *lista = list_create();
-	void* buffer = recibir_buffer(&size, socket_cliente);
-
-	while(desplazamiento < size) {
-		int tamanio;
+	void * buffer;
+	t_list* lista = list_create();
+	buffer = recibir_buffer(&size, socket_cliente);
+	while(desplazamiento < size)
+	{
 		memcpy(&tamanio, buffer + desplazamiento, sizeof(int));
 		desplazamiento += sizeof(int);
 
-		char* archivo = malloc(tamanio);
-		memcpy(archivo, buffer + desplazamiento, tamanio);
+		
+		char* valor = malloc(tamanio);
+		memcpy(valor, buffer + desplazamiento, tamanio);
+
+		desplazamiento += tamanio;
+
+		list_add(lista, valor);
+	}
+
+	free(buffer);
+
+	return lista;
+}
 
 t_list* recibir_paquete(int socket_cliente)
 {
@@ -232,20 +248,21 @@ t_list* recibir_paquete(int socket_cliente)
 	int size;
 	int desplazamiento = 0;
 	void * buffer;
-	
+	t_list* lista = list_create();
+
 	buffer = recibir_buffer(&size, socket_cliente);
 	while(desplazamiento < size)
 	{
 		memcpy(&tamanio, buffer + desplazamiento, sizeof(int));
 		desplazamiento += sizeof(int);
 
-		t_list* valores = list_create();
+		
 		char* valor = malloc(tamanio);
 		memcpy(valor, buffer + desplazamiento, tamanio);
 
 		desplazamiento += tamanio;
 
-		list_add(lista, archivo);
+		list_add(lista, valor);
 	}
 
 	free(buffer);
@@ -254,8 +271,6 @@ t_list* recibir_paquete(int socket_cliente)
 }
 
 void generar_handshake(int socket, char *server_name, char *ip, char *puerto) {
-    size_t bytes;
-
     int32_t handshake = 1;
     int32_t result;
 
@@ -263,8 +278,8 @@ void generar_handshake(int socket, char *server_name, char *ip, char *puerto) {
 	send(socket, &cod_op, sizeof(op_code), 0);
 
 
-    bytes = send(socket, &handshake, sizeof(int32_t), 0);
-    bytes = recv(socket, &result, sizeof(int32_t), MSG_WAITALL);
+    send(socket, &handshake, sizeof(int32_t), 0);
+	recv(socket, &result, sizeof(int32_t), MSG_WAITALL);
 
     if(result == 0) 
         log_info(logger, "Handshake exitoso con %s", server_name);
@@ -273,8 +288,6 @@ void generar_handshake(int socket, char *server_name, char *ip, char *puerto) {
         exit(EXIT_FAILURE);
     }
 
-	// ¡No te olvides de liberar las líneas y el paquete antes de regresar!
-	eliminar_paquete(paquete);
 }
 
 //Creamos una funcion que envie el archivo pseudo y el pid del proceso desde kernel a memoria para que pueda ser utilizado en la lectura de pseudocodigo
@@ -295,8 +308,19 @@ void send_archi_pid(int socket_cliente, char *path, int pid) {
 
     enviar_buffer(buffer, size, socket_cliente); //Enviamos el buffer con el tamaño del paquete a enviar que será recibido luego
     free(buffer); // Liberamos el buffer xq no somos petes
-
+}
 //Creamos una funcion que reciba el archivo pseudo y el pid del proceso que será utilizado para la lectura de pseudocodigo de instrucciones en memoria 
+void enviar_buffer(void* buffer, size_t tamanio, int socket){
+	size_t bytes_enviados;
+
+	bytes_enviados = send(socket, buffer,tamanio,0);
+	if(bytes_enviados){
+		log_error(logger, "Error al enviar los datos");
+		return;
+	}
+	
+}
+
 
 void recv_archi_pid(int socket_cliente, char **path, int* pid){ // Se usan punteros xq necesitamos modificar las variables que se pasan por parametro
 	int size;
@@ -322,7 +346,7 @@ void recv_archi_pid(int socket_cliente, char **path, int* pid){ // Se usan punte
 }
 
 //Funcion para recibir el PC y el PID de un proceso
-recibir_program_counter(int socket_cpu,int *pid,int *program_counter){
+void recibir_program_counter(int socket_cpu,int *pid,int *program_counter){
 
     int tamaño;
     int desplazamiento = 0;
@@ -341,9 +365,7 @@ recibir_program_counter(int socket_cpu,int *pid,int *program_counter){
 }
 
 //Retardo pedido
-
 void retardo_pedido(int tiempo_de_espera){
-    usleep(tiempo_de_espera*1000) //*1000 es para pasarlo a milisegundos ya que usleep usa microsegundos
+    usleep(tiempo_de_espera * 1000); //*1000 es para pasarlo a milisegundos ya que usleep usa microsegundos
     //cambiar por el cofig
-
 }

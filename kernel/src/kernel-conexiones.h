@@ -1,7 +1,7 @@
 #ifndef KERNEL_CONEXIONES_H
 #define KERNEL_CONEXIONES_H
 
-#include <utils/logs.h>
+#include <utils/logger.h>
 #include <utils/shared.h>
 #include <utils/socket.h>
 

@@ -126,7 +126,7 @@ void operar_registros(void* registro_destino, void* registro_origen, char* regis
 void ejecutar_instruccion(int socket_cliente) {
     t_instruccion *instruccion = recv_instruccion(socket_cliente);
     //t_tipo_instruccion tipo_instruccion = list_get(instruccion->parametros ,0); //Decode
-      t_tipo_instruccion tipo_instruccion = instruccion->opcode; //decode
+      t_tipo_instruccion tipo_instruccion = obtener_tipo_instruccion(&instruccion->opcode); //decode
         switch (tipo_instruccion)
         {
         case EXIT:

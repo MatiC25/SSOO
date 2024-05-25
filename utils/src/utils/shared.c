@@ -50,7 +50,7 @@ int tiene_algun_algoritmo_de_planificacion(char* palabra) // Funcion: devuelve t
         else
         {
 
-            if(es_esta_palabra(palabra, "PRIORIDADES")) 1;
+            if(es_esta_palabra(palabra, "PRIORIDADES"));
 
                 return 1;
         }

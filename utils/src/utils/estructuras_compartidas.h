@@ -37,8 +37,7 @@ typedef enum {
     NEW,
     READY,
     EXEC,
-    BLOCK,
-    EXIT
+    BLOCK
 } status_cod;
 
 

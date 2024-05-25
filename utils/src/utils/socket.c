@@ -146,7 +146,7 @@ void atender_conexion(char* server_name, int cliente_socket)
 				 	log_warning(logger,"Operacion desconocida. No quieras meter la pata");
 			 	break;
 		}
-		}
+	}
 	
     	return;	
 	}

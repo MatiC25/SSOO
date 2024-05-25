@@ -2,8 +2,8 @@
 #define KERNEL_CONFIG_H
 
 #include <commons/config.h>
-#include <utils/logs.h>
 #include <utils/shared.h>
+#include <utils/logger.h>
 
 #include "kernel-estructuras.h"
 

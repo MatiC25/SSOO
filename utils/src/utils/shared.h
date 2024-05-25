@@ -9,6 +9,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <ctype.h>
+#include <utils/logger.h>
 
 // Funciones para el manejo de archivos de configuracion
 int tiene_todas_las_configuraciones(t_config* config, char* configs[]);
