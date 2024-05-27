@@ -153,7 +153,7 @@ void atender_conexion(char* server_name, int cliente_socket)
 	
 
 
-void server_escuchar_sin_hilos(void* args) 
+void* server_escuchar_sin_hilos(void* args) 
 {
     t_procesar_server* args_hilo = (t_procesar_server*) args;
     char* server_name = args_hilo->server_name;
@@ -167,6 +167,9 @@ void server_escuchar_sin_hilos(void* args)
             atender_conexion(server_name, socket_cliente);
     	}
 	}
+	free(args_hilo);
+	return NULL;
+	
 }
 
 void server_escuchar_con_hilos(char* server_name, int socket_server) 

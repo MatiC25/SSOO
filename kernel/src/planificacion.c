@@ -1,23 +1,24 @@
 #include "planificacion.h"
-
-t_list* cola_new = list_create();
-t_list* cola_ready = list_create();
-t_list* cola_block = list_create();
+pthread_mutex_t mutex_estado_block;
+pthread_mutex_t mutex_estado_ready;
+pthread_mutex_t mutex_estado_new;
+sem_t limite_grado_multiprogramacion;
+sem_t habilitar_corto_plazo;
+sem_t hay_en_estado_ready;
 
 //PSEUDOCODE
-t_pcb* creacion_proceso(t_pcb* proceso_nuevo) {
-    t_config_k* config;
-    informar_a_memoria(archivo_de_proceso, socket_servidor); //Notificacion de creacion de nuevo proceso
+void creacion_proceso(t_pcb* proceso_nuevo) {
+    t_config_kernel* config;
+   // informar_a_memoria(archivo_de_proceso, config->SOCKET_MEMORIA); //Notificacion de creacion de nuevo proceso
     t_pcb* pcb = malloc(sizeof(t_pcb)); 
     if(pcb == NULL) {
         log_error(logger, "Error al asignar memoria a la creacion de PCB");
-        return EXIT_FAILURE;
+        return ;
         }
 
     // Inicializamos
-    t_pcb* pcb = NULL;
     pcb -> pid = generar_pid_unico();
-    pcb -> registro = NULL; //M
+    pcb->registros = NULL; //M
     pcb -> estado = NEW; 
     pcb -> program_counter = proceso_nuevo -> program_counter;
     log_info(logger, "Se crea el proceso <%i> en NEW", pcb->pid);
@@ -31,7 +32,7 @@ int generar_pid_unico() {
 }
 
 
-void informar_a_memoria(char** archivo_de_proceso, int socket_servidor){
+void informar_a_memoria(char** archivo_de_proceso, int* socket_servidor){
     char* mensaje = "Cree un nuevo procesos";
     enviar_mensaje(mensaje, socket_servidor);
 }
@@ -42,22 +43,32 @@ void agregar_a_cola_estado_new(t_pcb* proceso) { //NEW
     list_add(cola_new, proceso);
     pthread_mutex_unlock(&mutex_estado_new);
     
-    sem_post(&hay_en_estado_ready);
+    sem_post(&habilitar_corto_plazo);
 }
 
  
 void agregar_a_cola_ready() {
     while(1) {
-        sem_wait(&hay_en_estado_ready); //Se bloquea al segundo ciclo
+        sem_wait(&habilitar_corto_plazo);
+        sem_wait(&hay_en_estado_ready);
         sem_wait(&limite_grado_multiprogramacion);
+        t_pcb* proceso = list_remove(cola_new,0);
+        pthread_mutex_unlock(&mutex_estado_new);
+        pthread_mutex_lock(&mutex_estado_ready);
+        list_add(cola_ready,proceso);
+        pthread_mutex_unlock(&mutex_estado_ready);
+        sem_post(&hay_en_estado_ready);
+        sem_post(&habilitar_corto_plazo);
+        
+        // sem_wait(&hay_en_estado_ready); //Se bloquea al segundo ciclo
+        // sem_wait(&limite_grado_multiprogramacion);
   
-        t_pcb* pcb = obtener_siguiente_a_ready();
-        list_add(cola_ready, pcb);
+        // t_pcb* pcb = obtener_siguiente_a_ready();
+        // list_add(cola_ready, pcb);
 
-        sem_post(&habilitar_corto_plazo); 
+        // sem_post(&habilitar_corto_plazo); 
     }
 }
-
 
 t_pcb* obtener_siguiente_a_ready() {
     pthread_mutex_lock(&mutex_estado_new);
@@ -71,14 +82,14 @@ t_pcb* obtener_siguiente_a_ready() {
 void elegir_algoritmo_corto_plazo(char* algoritmo) {
 
     while(true) {
-        if(strcmp(config_kernel -> algoritmo_planificacion, "FIFO") == 0){
-            planificacion_fifo();
-        } else if (strcmp(config_kernel -> algoritmo_planificacion, "RR")){
-            planificacion_RR();
-        } else if (strcmp(config_kernel -> algoritmo_planificacion, "VRR")){
+        if(strcmp(config_kernel->ALGORITMO_PLANIFICACION, "FIFO") == 0){
+            hilo_planificador_cortoplazo_fifo;
+        } else if (strcmp(config_kernel->ALGORITMO_PLANIFICACION, "RR")){
+            hilo_planificador_cortoplazo_RoundRobin();
+        } else if (strcmp(config_kernel->ALGORITMO_PLANIFICACION, "VRR")){
 
         } else {
-            log_error (logger,"El algoritmo no coincide con los alg")
+            log_error (logger,"El algoritmo no coincide con los alg");
         }
     }
     sleep(1); //Para descansar la CPU y que no se vaya al palo la cpu, que tenga una pausita (INCHEQUEABLE, pero algo hay que hacer)
@@ -87,7 +98,7 @@ void elegir_algoritmo_corto_plazo(char* algoritmo) {
 
 void hilo_planificador_cortoplazo_fifo() {
     pthread_t hilo_fifo;
-    pthread_create(&hilo_fifo, NULL, planificador_cortoplazo_fifo(), NULL);
+    pthread_create(&hilo_fifo, NULL, planificador_cortoplazo_fifo, NULL);
     pthread_detach(hilo_fifo); // Detach para evitar necesidad de join, hace q los hilos sean independientes y libera los recursos una vez terminada la ejecucion del mismo
 }
 
@@ -103,7 +114,7 @@ void* planificador_cortoplazo_fifo(void* arg) {
             t_pcb* proceso_actual = list_remove(cola_ready, 0);
             pthread_mutex_unlock(&mutex_estado_ready); // Desbloqueamos
             proceso_actual->estado = EXEC;
-            enviar_a_ejecutar_a_cpu(proceso_actual);
+            enviar_proceso_a_cpu(proceso_actual);
         } else {
             pthread_mutex_unlock(&mutex_estado_ready); // Si la cola_ready está vacía, desbloqueamos el acceso a la cola
             sem_wait(&habilitar_corto_plazo); // Usamos sem_wait para bloquear la espera activa y esperar nueva señal del planificador de largo plazo
@@ -115,15 +126,15 @@ void* planificador_cortoplazo_fifo(void* arg) {
 
 void hilo_planificador_cortoplazo_RoundRobin() { 
     pthread_t hilo_Round_Robbin;
-    pthread_create(&hilo_Round_Robbin,NULL,planificador_corto_plazo_RoundRobbin(),NULL);   
+    pthread_create(&hilo_Round_Robbin,NULL,planificador_corto_plazo_RoundRobin,NULL);   
     pthread_detach(hilo_Round_Robbin); // Detach para evitar necesidad de join, hace q los hilos sean independientes y libera los recursos una vez terminada la ejecucion del mismo
 }
 
 
 void* planificador_corto_plazo_RoundRobin(void) {
 
-    t_config_k* config;
-    int quantum_max = config->quantum;
+    t_config_kernel* config;
+    int quantum_max = config->QUANTUM;
 
     sem_wait(&habilitar_corto_plazo);
     while (true) {
@@ -144,9 +155,9 @@ void* planificador_corto_plazo_RoundRobin(void) {
                 mover_procesos_de_ready_a_bloqueado(proceso_actual);
             } else { //Si se desaloja por fin de quantum va a ready
                 pthread_mutex_lock(&mutex_estado_ready);
-                proceso->estado = READY;
+                proceso_actual->estado = READY;
                 list_add(cola_ready, proceso_actual);
-                pthread_mutex_unlock(&mutex_estado_ready)
+                pthread_mutex_unlock(&mutex_estado_ready);
             }
         } else {
             pthread_mutex_unlock(&mutex_estado_ready);
@@ -173,6 +184,7 @@ void mover_procesos_de_bloqueado_a_ready(t_pcb* proceso) {
 
 
 void enviar_proceso_a_cpu(t_pcb* pcbproceso) {
+    t_config_kernel* config;
     t_paquete* paquete_cpu = crear_paquete(RECIBIR_PROCESO); // Tipo de paquete que indica envío a CPU
 
     // Agregar información del PCB al paquete
@@ -182,21 +194,22 @@ void enviar_proceso_a_cpu(t_pcb* pcbproceso) {
     //NO SE SI HACE FALTA ENVIARLE EL QUANTUM, SUPONGO QUE NO
 
     // Enviar el paquete a la CPU
-    enviar_paquete(paquete_cpu, socketcpu); // socketcpu es el socket conectado a la CPU
+    enviar_paquete(paquete_cpu, config->SOCKET_DISPATCH); // socketcpu es el socket conectado a la CPU
 
     // Liberar recursos del paquete
     eliminar_paquete(paquete_cpu);
 }
 
 
-void liberar_pcb(t_pcb* estructura) {
-    t_* algo = estructura -> algo;
-    if( != NULL) {
-        destroy_();
-        estructura = NULL;
+void liberar_pcb(t_pcb* proceso) {
+    proceso->estado = EXITT;
+    
+    if( proceso != NULL) {
+       if (proceso->registros != NULL){
+        free(proceso->registros);
+       }
     }
-
-    free(estructura);
+    free(proceso);
 }
 
 
@@ -210,29 +223,6 @@ void inicializacion_semaforos() {
 
 }
 
-
-// void interrupcion_bloqueante(){
-//     mover_procesos_a_ready_a_bloqueado()
-
-// }
-
-
-
-// //Funciones Bloquiantes
-// void ejecutar_wait(){
-//     pthread_mutex_unlock(&cola_blockeado);
-
-// }
-
-// void ejecutar_singal(){
-//     pthread_mutex_unlock(&cola_blockeado);
-
-// }
-// void bloque_io(){
-//     pthread_mutex_unlock(&cola_blockeado);
-
-// }
-// void 
 
 // void planificacion_VRR() {
 //     t_config_k* config;

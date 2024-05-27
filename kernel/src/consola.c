@@ -64,9 +64,9 @@ int ejecutar_comando(char* linea) {
 
     palabra = linea + i;
 
-    (*(comando->funcion) (palabra));
+    ((comando->funcion) (palabra));
 
-    return;
+    return 1;
 }
 
 COMMAND* encontrar_comando(char* nombre) {
@@ -115,4 +115,5 @@ void* iniciar_proceso(void* args) {
     char *argumento = (char*) args;
     printf("Iniciando proceso...\n");
     printf("Argumento: %s\n", argumento);
+    return;
 }

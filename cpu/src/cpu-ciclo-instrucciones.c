@@ -172,7 +172,7 @@ void ejecutar_instruccion(int socket_cliente) {
             //ejecutar_WAIT(recurso);
            log_info(logger,"Instruccion Ejecutada: PID: %d - Ejecutando: %c -%c %c",pcb->PID,instruccion->opcode,instruccion->parametro1,instruccion->parametro2);
             break;
-        case SINGAL:
+        case SIGNAL:
             //ejecutar_SINGAL(recurso);
            log_info(logger,"Instruccion Ejecutada: PID: %d - Ejecutando: %c -%c %c",pcb->PID,instruccion->opcode,instruccion->parametro1,instruccion->parametro2);
             break;

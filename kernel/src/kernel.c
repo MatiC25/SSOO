@@ -16,7 +16,7 @@ int main(int argc, char *argv[]) {
     int socket_servidor = crear_servidor_kernel();
 
     // Inicializamos modulo:
-    inicializar_modulo(socket_servidor); 
+    iniciar_modulo_kernel(socket_servidor); 
 
     return 0;
 }

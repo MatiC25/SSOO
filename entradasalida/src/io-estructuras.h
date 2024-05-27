@@ -2,13 +2,6 @@
 #define IO_ESTRUCTURAS_H
 
 #include <utils/estructuras_compartidas.h>
-
-typedef struct {
-    char *nombre;
-    tipo_interfaz tipo;
-    t_config_io *config;
-} t_interfaz;
-
 typedef struct {
     int TIEMPO_UNIDAD_UNIDAD;
     char *IP_KERNEL;
@@ -21,4 +14,9 @@ typedef struct {
     int RETRASO_COMPACTACION;
 } t_config_io;
 
+typedef struct {
+    char *nombre;
+    tipo_interfaz tipo;
+    t_config_io *config;
+} t_interfaz;
 #endif

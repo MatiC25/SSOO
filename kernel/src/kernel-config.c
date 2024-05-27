@@ -9,13 +9,17 @@ t_config_kernel* inicializar_config_kernel() {
 	config_kernel->IP_MEMORIA = NULL;
 	config_kernel->PUERTO_MEMORIA = 0;
 	config_kernel->IP_CPU = NULL;
-	config_kernel->PUERTO_CPU_DS = 0;
-	config_kernel->PUERTO_CPU_IT = 0;
+	config_kernel->SOCKET_DISPATCH = 0;
+	config_kernel->SOCKET_INTERRUPT = 0;
 	config_kernel->ALGORITMO_PLANIFICACION = NULL;
 	config_kernel->QUANTUM = 0;
 	config_kernel->RECURSOS = NULL;
 	config_kernel->INST_RECURSOS = NULL;
 	config_kernel->GRADO_MULTIP = 0;
+	config_kernel->PUERTO_CPU_DS = 0;
+	config_kernel->PUERTO_CPU_IT = 0;
+	config_kernel->PUERTO_KERNEL = 0;
+	config_kernel->IP_KERNEL = 0;
 
 	return config_kernel;
 }
@@ -30,7 +34,7 @@ t_config_kernel *cargar_config_kernel(char *path_config) {
 // Funciones para cargar configuraciones:
 
 void cargar_configuraciones(t_config_kernel* config_kernel, char *path_config) {
-	t_config *config = config_create(path_config);
+	t_config *config = config_create("kernel.config"); //path_config
 
 	if (config == NULL) {
 		log_info(logger, "No se pudo abrir el archivo de configuraciones!");
@@ -53,7 +57,9 @@ void cargar_configuraciones(t_config_kernel* config_kernel, char *path_config) {
 		NULL
 	};
 
-	validar_configuraciones(config, configuraciones);
+	if(!tiene_todas_las_configuraciones(config, configuraciones)){
+		log_error(logger,"NO se pudieron cargar todas las configuraciones");
+	}
 
 	cargar_valores_de_memoria(config, config_kernel);
 	cargar_valores_de_cpu(config, config_kernel);
@@ -61,7 +67,7 @@ void cargar_configuraciones(t_config_kernel* config_kernel, char *path_config) {
 	cargar_valores_de_recursos(config, config_kernel);
 	cargar_valores_de_grado_multiprogramacion(config, config_kernel);
 
-	info_config(config_kernel);
+	info_config(config);
 }
 
 // Funciones para cargar valores:
@@ -93,15 +99,15 @@ void cargar_valores_de_grado_multiprogramacion(t_config *config, t_config_kernel
 
 // Funciones para extraer valores:
 
-void get_socket_memoria() {
+int get_socket_memoria() {
 	return config_kernel->SOCKET_MEMORIA;
 }
 
-void get_socket_dispatch() {
+int get_socket_dispatch() {
 	return config_kernel->SOCKET_DISPATCH;
 }
 
-void get_socket_interrupt() {
+int get_socket_interrupt() {
 	return config_kernel->SOCKET_INTERRUPT;
 }
 

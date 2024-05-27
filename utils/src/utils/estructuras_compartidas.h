@@ -37,7 +37,8 @@ typedef enum {
     NEW,
     READY,
     EXEC,
-    BLOCK
+    BLOCK,
+    EXITT,
 } status_cod;
 
 
@@ -47,6 +48,7 @@ typedef struct { // PCB de un proceso
     int program_counter; 
     int quantum; //Para el VRR
     t_registro_cpu* registros;
+    int estado;
 }t_pcb;
 
 

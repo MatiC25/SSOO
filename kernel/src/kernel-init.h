@@ -5,21 +5,20 @@
 #include <commons/collections/queue.h>
 #include <utils/logger.h>
 #include <kernel.h>
-#include "kernel-estructuras.h"
+#include <stdint.h>
+#include <pthread.h>
 #include <utils/socket.h>
+#include "kernel-estructuras.h"
+#include "kernel-interfaces.h"
+#include "planificacion.h"
 
-typedef enum { //podemos juntar todos los procesos 
-
-//Agregar operacions
-// ----------------
-} in_code;
 
 void iniciar_modulo_kernel(int socket_servidor);
 void aceptar_interfaces(int socket_servidor);
 void iniciar_planificacion(); 
-void manejar_peticion_con_memoria(); 
+void manejar_peticion_con_memoria();
 void manejar_peticion_con_cpu();
-void* aceptar_conexiones(void* arg);
+void inicializar_lista();
 
 
 
