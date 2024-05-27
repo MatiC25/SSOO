@@ -67,15 +67,15 @@ void generate_handshake_response(int socket){
 }
 
 void manejar_peticion_io(t_pcb* proceso, int codigo_operacion){
-    interface_io interfaz;
+    interface_io* interfaz;
 
-    if (!interfaz.connected){
+    if (!interfaz->connected){
         proceso->estado = EXITT;
         free(proceso);
     }
-    //Sepueden agregar semaforos
-    queue_push(interfaz.process_blocked, proceso);
-    //Sepueden agregar semaforos
+    sem_wait(&interfaz->semaforo_blocked);
+    queue_push(interfaz->process_blocked, proceso);
+    sem_post(&interfaz->semaforo_blocked);
 }
 
 
