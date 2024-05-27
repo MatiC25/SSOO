@@ -1,5 +1,24 @@
 #include "instruc_memoria.h"
 
+char* crear_path_instrucciones(char* path_proceso, char* archivo_path){
+
+    char *path = string_new();
+    string_append(&path, path_proceso);
+    string_append(&path, "/");
+    string_append(&path, archivo_path);
+
+    if(string_contains(path ,"./")){
+        char *buffer = malloc(100*sizeof(char)); //ver si es menos de 100 "preguntar sabado" buscar forma generica
+        getcwd(buffer, 100);
+        string_append(&buffer, "/");
+        path = string_replace(path, "./", buffer);
+    }
+    else if(string_contains(path, "~/")){
+		path = string_replace(path, "~/", "/home/utnso/");
+	}
+
+    return path;
+}
 // Obtenemos las instrucciones de los archivos de pseudocódigo
 
 void leer_archivoPseudo(int socket_kernel){
@@ -7,9 +26,9 @@ void leer_archivoPseudo(int socket_kernel){
     char* archivo_path;
     int pid;
 
-    recv_archi_pid(socket_kernel, &archivo_path, &pid); 
+    recv_archi_pid(socket_kernel, &archivo_path, &pid); //FALTAAAAAAAAAAAAAAAAAAAAAAAAAAA
 
-    char* path = crear_path_instrucciones(&path_proceso, archivo_path);
+    char* path = crear_path_instrucciones(path_proceso, archivo_path);
 
     //Abrimos archivo_path para leer broOOOOoooOoder
     FILE *archivo = fopen(path, "r");
@@ -52,16 +71,16 @@ void leer_archivoPseudo(int socket_kernel){
 
         t_instruccion *ptr_inst = malloc(sizeof(t_instruccion));
 
-        ptr_inst -> parametro1 = NULL;
-        ptr_inst -> parametro2 = NULL;
-        ptr_inst -> parametro3 = NULL;
-        ptr_inst -> parametro4 = NULL;
-        ptr_inst -> parametro5 = NULL;
-   
+
+        ptr_inst->parametro1  =  NULL;
+        ptr_inst->parametro2  =  NULL;
+        ptr_inst->parametro3  =  NULL;
+        ptr_inst->parametro4  =  NULL;
+        ptr_inst->parametro5  =  NULL;
 
         char *token = strtok(cadena," "); //obtenesmo el opcode(esta separado por un espacio)
         ptr_inst -> opcode = token;
-        ptr_inst -> long_opcode = strlen(ptr_ints -> opcode) + 1;
+        ptr_inst -> long_opcode = strlen(ptr_inst -> opcode) + 1;
 
         //obtengo los parametros(tambien estan separados por un espacSio)
         token = strtok(NULL," ");
@@ -87,36 +106,36 @@ void leer_archivoPseudo(int socket_kernel){
             }
         }
         if(ptr_inst -> parametro1 != NULL){
-            ptr_inst -> long_par1 = strlen(ptr_ints -> parametro1)+1
+            ptr_inst -> long_par1 = strlen(ptr_inst -> parametro1)+1;
         } else {
-            ptr_inst -> long_par1 = 0
+            ptr_inst -> long_par1 = 0;
         }
         if(ptr_inst -> parametro2 != NULL){
-            ptr_inst -> long_par2 = strlen(ptr_ints -> parametro2)+1
+            ptr_inst -> long_par2 = strlen(ptr_inst -> parametro2)+1;
         } else {
-            ptr_inst -> long_par2 = 0
+            ptr_inst -> long_par2 = 0;
         }
         if(ptr_inst -> parametro3 != NULL){
-            ptr_inst -> long_par3 = strlen(ptr_ints -> parametro3)+1
+            ptr_inst -> long_par3 = strlen(ptr_inst -> parametro3)+1;
         } else {
-            ptr_inst -> long_par3 = 0
+            ptr_inst -> long_par3 = 0;
         }
         if(ptr_inst -> parametro4 != NULL){
-            ptr_inst -> long_par4 = strlen(ptr_ints -> parametro4)+1
+            ptr_inst -> long_par4 = strlen(ptr_inst -> parametro4)+1;
         } else {
-            ptr_inst -> long_par4 = 0
+            ptr_inst -> long_par4 = 0;
         }
         if(ptr_inst -> parametro5 != NULL){
-            ptr_inst -> long_par5 = strlen(ptr_ints -> parametro5)+1
+            ptr_inst -> long_par5 = strlen(ptr_inst -> parametro5)+1;
         } else {
-            ptr_inst -> long_par5 = 0
+            ptr_inst -> long_par5 = 0;
         }
 
         list_add(lista_de_instrucciones,ptr_inst);
 
     }
     //añadimos a un diccionario para usarlo mas tarde para enviar la instruccion a cpu
-    distionary_put(lista_instrucciones_porPID, string_itoa(pid), lista_de_instrucciones);
+    dictionary_put(lista_instrucciones_porPID, string_itoa(pid), lista_de_instrucciones);
 
     //enviar_mensaje("instruccion guardada",socket_kernel);//esta comentado pq no sabemos si hace falta
     
@@ -124,51 +143,31 @@ void leer_archivoPseudo(int socket_kernel){
     fclose(archivo);
 }
 
-
-char* crear_path_instrucciones(char* path_proceso, char* archivo_path){
-
-    char *path = string_new();
-    string_append(&path, path_proceso);
-    string_append(&path, "/");
-    string_append(&path, archivo_path);
-
-    if(string_contains(path ,"./")){
-        char *buffer = malloc(100*sizeof(char)); //ver si es menos de 100 "preguntar sabado" buscar forma generica
-        getcwd(buffer, 100);
-        string_append(&buffer, "/");
-        path = string_replace(&path, "./", buffer);
-    }
-    else if(string_contains(path, "~/")){
-		path = string_replace(path, "~/", "/home/utnso/");
-	}
-
-    return path;
-}
-
 void enviar_instruccion_a_cpu(int socket_cpu, int retardo_de_respuesta){
 
-    int program_counter;
     int pid;
+    int program_counter;
+
+    recibir_program_counter(socket_cpu, &pid, &program_counter);//lo hice gede asi no nos olvidamos
   
-    recibir_program_counter(socket_cpu, &pid, &program_counter);
-  
+
     t_list* lista_de_instrucciones = dictionary_get(lista_instrucciones_porPID, string_itoa(pid));
 
     if(lista_de_instrucciones == NULL){
         log_error(logger, "no se hayo la lista de instrucciones en el psedocodigo");
-        return -1;
     }
+
     //consigo la instruccion actual. como el PC indica la siguiente instruccion a ejecutar, le resto 1
-    t_instruccion *instrucciones = list_get(lista_de_instrucciones, program_counter - 1);
+    t_instruccion *instrucciones = list_get(lista_de_instrucciones, program_counter-1);
 
     //creo el paquete con la instruccion y serializo
-    t_paquete *paquete_de_instrucciones = crear_paquete(EJECUTAR_INSTRUCCIONES);
-    agregar_a_paquete(paquete_instrucciones, instrucciones -> opcode, instrucciones -> long_opcode);
-    agregar_a_paquete(paquete_instrucciones, instrucciones -> parametro1, instrucciones -> long_par1);
-    agregar_a_paquete(paquete_instrucciones, instrucciones -> parametro2, instrucciones -> long_par2);
-    agregar_a_paquete(paquete_instrucciones, instrucciones -> parametro3, instrucciones -> long_par3);
-    agregar_a_paquete(paquete_instrucciones, instrucciones -> parametro4, instrucciones -> long_par4);
-    agregar_a_paquete(paquete_instrucciones, instrucciones -> parametro5, instrucciones -> long_par5);
+    t_paquete *paquete_de_instrucciones = crear_paquete(RECIBIR_PROCESO);
+    agregar_a_paquete(paquete_de_instrucciones, instrucciones -> opcode, instrucciones -> long_opcode);
+    agregar_a_paquete(paquete_de_instrucciones, instrucciones -> parametro1, instrucciones -> long_par1);
+    agregar_a_paquete(paquete_de_instrucciones, instrucciones -> parametro2, instrucciones -> long_par2);
+    agregar_a_paquete(paquete_de_instrucciones, instrucciones -> parametro3, instrucciones -> long_par3);
+    agregar_a_paquete(paquete_de_instrucciones, instrucciones -> parametro4, instrucciones -> long_par4);
+    agregar_a_paquete(paquete_de_instrucciones, instrucciones -> parametro5, instrucciones -> long_par5);
     //agrego el retardo pedido por la consigna
     retardo_pedido(retardo_de_respuesta);
 

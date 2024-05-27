@@ -72,6 +72,7 @@ t_pcb* rcv_contexto_ejecucion(int socket_cliente);
 t_list *recv_list(int socket_cliente);
 void enviar_buffer(void* buffer, size_t tamanio, int socket);
 void recibir_program_counter(int socket_cpu,int *pid,int *program_counter);
+void recv_archi_pid(int socket_cliente, char **path, int* pid);
 // Funciones de saludo inicial:
 void generar_handshake(int socket, char *server_name, char *ip, char *puerto);
 

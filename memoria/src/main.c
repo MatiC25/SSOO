@@ -9,11 +9,11 @@ t_config_memoria* config_memoria;
 void inicializar_config(void)
 {
     config_memoria = malloc(sizeof(t_config_memoria));
-    config_memoria->puerto_escucha = NULL;
-    config_memoria->tam_memoria = NULL;
-    config_memoria->tam_pagina = NULL;
-    config_memoria->path_instrucciones = NULL;
-    config_memoria->retardo_respuesta = NULL;
+    config_memoria->puerto_escucha = 0;
+    config_memoria->tam_memoria = 0;
+    config_memoria->tam_pagina = 0;
+    config_memoria->path_instrucciones = 0;
+    config_memoria->retardo_respuesta = 0;
 }
 
 int main()

@@ -346,7 +346,7 @@ void recv_archi_pid(int socket_cliente, char **path, int* pid){ // Se usan punte
 }
 
 //Funcion para recibir el PC y el PID de un proceso
-void recibir_program_counter(int socket_cpu,int *pid,int *program_counter){
+void recibir_program_counter(int socket_cpu, int *pid, int *program_counter){
 
     int tamaño;
     int desplazamiento = 0;

@@ -1,5 +1,6 @@
 #include "init_memoria.h"
 
+char *path_proceso;
 //SEPARAR EN 2 
 //un archivo config y otro conexiones 
 
