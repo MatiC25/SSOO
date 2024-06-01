@@ -133,8 +133,6 @@ void agregar_a_paquete_registros(t_paquete* paquete, t_registro_cpu* registros) 
 	agregar_a_paquete(paquete, &registros->EDX, sizeof(uint32_t));
 	agregar_a_paquete(paquete, &registros->SI, sizeof(uint32_t)); 
 	agregar_a_paquete(paquete, &registros->DI, sizeof(uint32_t));
-
-
 }
 
 void agregar_a_paquete_lista_string(t_paquete* paquete, t_list* archivos_abiertos) {
@@ -163,14 +161,30 @@ void agregar_a_paquete_string(t_paquete* paquete, char* cadena, int tamanio) {
 
 
 t_pcb* rcv_contexto_ejecucion(int socket_cliente) {
+    
     t_pcb* proceso = malloc(sizeof(t_pcb));
-    proceso->registros = malloc(sizeof(t_registro_cpu));
-    //proceso->archivos_abiertos = list_create();
+    if (proceso == NULL) {
+        log_error(logger, "Error al asignar memoria para el proceso");
+        return NULL;
+    }
 
-    // PCB -> PID, PC, Registros, Archivos abiertos
+    proceso->registros = malloc(sizeof(t_registro_cpu));
+    if (proceso->registros == NULL) {
+        log_error(logger, "Error al asignar memoria para los registros del proceso");
+        free(proceso);
+        return NULL;
+    }
+
     int size;
     int desplazamiento = 0;
+    
     void* buffer = recibir_buffer(&size, socket_cliente);
+    if (buffer == NULL) {
+        log_error(logger, "Error al recibir el buffer del socket");
+        free(proceso->registros);
+        free(proceso);
+        return NULL;
+    }
 
     memcpy(&proceso->pid, buffer + desplazamiento, sizeof(int));
     desplazamiento += sizeof(int);
@@ -178,8 +192,8 @@ t_pcb* rcv_contexto_ejecucion(int socket_cliente) {
     memcpy(&proceso->program_counter, buffer + desplazamiento, sizeof(int));
     desplazamiento += sizeof(int);
 
-    // memcpy(&proceso->registros->PC, buffer + desplazamiento, sizeof(uint32_t));
-    // desplazamiento += sizeof(uint32_t);
+    memcpy(&proceso->registros->PC, buffer + desplazamiento, sizeof(uint32_t));
+    desplazamiento += sizeof(uint32_t);
 
     memcpy(&proceso->registros->AX, buffer + desplazamiento, sizeof(uint8_t));
     desplazamiento += sizeof(uint8_t);
@@ -193,23 +207,23 @@ t_pcb* rcv_contexto_ejecucion(int socket_cliente) {
     memcpy(&proceso->registros->DX, buffer + desplazamiento, sizeof(uint8_t));
     desplazamiento += sizeof(uint8_t);
 
-	memcpy(&proceso->registros->EAX, buffer + desplazamiento, sizeof(uint32_t));
+    memcpy(&proceso->registros->EAX, buffer + desplazamiento, sizeof(uint32_t));
     desplazamiento += sizeof(uint32_t);
 
-	memcpy(&proceso->registros->EBX, buffer + desplazamiento, sizeof(uint32_t));
+    memcpy(&proceso->registros->EBX, buffer + desplazamiento, sizeof(uint32_t));
     desplazamiento += sizeof(uint32_t);
 
-	memcpy(&proceso->registros->ECX, buffer + desplazamiento, sizeof(uint32_t));
+    memcpy(&proceso->registros->ECX, buffer + desplazamiento, sizeof(uint32_t));
     desplazamiento += sizeof(uint32_t);
 
-	memcpy(&proceso->registros->EDX, buffer + desplazamiento, sizeof(uint32_t));
+    memcpy(&proceso->registros->EDX, buffer + desplazamiento, sizeof(uint32_t));
     desplazamiento += sizeof(uint32_t);
-	
-	memcpy(&proceso->registros->SI, buffer + desplazamiento, sizeof(uint32_t));
-	desplazamiento += sizeof(uint32_t *);
 
-	memcpy(&proceso->registros->DI, buffer + desplazamiento, sizeof(uint32_t));
-	desplazamiento += sizeof(uint32_t *);
+    memcpy(&proceso->registros->SI, buffer + desplazamiento, sizeof(uint32_t));
+    desplazamiento += sizeof(uint32_t);
+
+    memcpy(&proceso->registros->DI, buffer + desplazamiento, sizeof(uint32_t));
+    desplazamiento += sizeof(uint32_t);
 
     free(buffer);
     return proceso;
@@ -309,6 +323,7 @@ void send_archi_pid(int socket_cliente, char *path, int pid) {
     enviar_buffer(buffer, size, socket_cliente); //Enviamos el buffer con el tamaño del paquete a enviar que será recibido luego
     free(buffer); // Liberamos el buffer xq no somos petes
 }
+
 //Creamos una funcion que reciba el archivo pseudo y el pid del proceso que será utilizado para la lectura de pseudocodigo de instrucciones en memoria 
 void enviar_buffer(void* buffer, size_t tamanio, int socket){
 	size_t bytes_enviados;

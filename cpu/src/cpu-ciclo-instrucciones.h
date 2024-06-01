@@ -20,15 +20,8 @@ typedef enum
 
 } t_algoritmo;
 
-
-//semaforo
-// pthread_mutex_t mutex_cpu;
-// pthread_mutex_t mutex_logger;
-
-
 void iniciar_ciclo_de_ejecucion(int socket_server);
 void ejecutar_ciclo_instrucciones(int socket_cliente, int socket_server);
-void recibir_pcb_a_kernel(int socket_cliente);
 void fecth(int socket_server);
 void ejecutar_instruccion(int socket_cliente);
 void ejecutar_set(char* registro, char valor);
@@ -36,6 +29,7 @@ void ejecutar_sum(char* registro_origen_char, char* registro_desitino_char);
 void* obtener_registro (char *registro);
 void ejecutar_sub(char* registro_origen_char, char* registro_desitino_char);
 void ejecutar_JNZ(char* registro, char valor);
+void enviar_pcb_a_kernel(t_paquete* paquete_a_kernel);
 //void ejecutar_IO_GEN_SLEEP();
 
 

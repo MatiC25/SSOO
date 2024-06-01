@@ -1,5 +1,7 @@
 #include "cpu-conexiones.h"
 
+atomic_int interrupt_flag = ATOMIC_VAR_INIT(0);
+
 // GENERAMOS CONEXIONES DE CLIENTE A SERVER MEMORIA
 void* generar_conexion_a_memoria(void* arg) {
     int md_memoria = 0;
@@ -37,14 +39,14 @@ int generar_servidor_cpu_dispatch() {
 int generar_servidor_cpu_interrupt() {
     pthread_t hilo_interrupt;
     char* puerto_interrupt = string_itoa(config_cpu->PUERTO_ESCUCHA_INTERRUPT);
-    int md_cpu_it = iniciar_servidor("INTERRUPT", NULL, puerto_interrupt); 
+    int md_cpu_it = iniciar_servidor("INTERRUPT",NULL,puerto_interrupt);
     free(puerto_interrupt);
 
     t_procesar_server* args = malloc(sizeof(t_procesar_server));
     args->server_name = "INTERRUPT";
     args->socket_servidor = md_cpu_it;
 
-    pthread_create(&hilo_interrupt, NULL, server_escuchar_sin_hilos, (void*)args);
+    pthread_create(&hilo_interrupt, NULL, server_interrupt, (void*)args);
     pthread_detach(hilo_interrupt); // Usar pthread_detach para no esperar al hilo
 
     return md_cpu_it;
@@ -60,4 +62,32 @@ void crear_servidores_cpu(int *md_cpu_ds,int *md_cpu_it) {
         log_error(logger, "No se pudo crear los servidores de escucha");
     }
      
+}
+
+void* server_interrupt(void* args) 
+{
+    t_procesar_server* args_hilo = (t_procesar_server*) args;
+    char* server_name = args_hilo->server_name;
+    int socket_server = args_hilo->socket_servidor;
+
+     while (1)
+    {
+        int socket_cliente = esperar_cliente("INTERRUPT", socket_server);
+        
+        if(socket_cliente != -1){
+        while (1)
+    {
+		op_code cod_op = recibir_operacion(socket_cliente);
+
+		switch (cod_op) 
+		{
+			case FINQUANTUM:
+				atomic_store(&interrupt_flag,1);
+			break;
+	    }
+    }
+	free(args_hilo);
+	return NULL;
+    	}
+	}
 }

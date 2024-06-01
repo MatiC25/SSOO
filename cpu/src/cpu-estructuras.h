@@ -15,12 +15,7 @@ typedef struct {
     int SOCKET_DISPATCH;
 } t_config_cpu;
 
-typedef struct {
-    int PID;
-    int program_counter;
-    t_instruccion *instruccion;
-    t_registro_cpu *registro;
-} t_pcb_cpu;
+
 
 // typedef struct {
 //     int tamano_pagina; 

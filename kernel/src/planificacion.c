@@ -249,73 +249,6 @@ void* quantum_handler(void* arg) {
 }
 
 
-t_pcb* rcv_contexto_ejecucion(int socket_cliente) {
-    
-    t_pcb* proceso = malloc(sizeof(t_pcb));
-    if (proceso == NULL) {
-        log_error(logger, "Error al asignar memoria para el proceso");
-        return NULL;
-    }
-
-    proceso->registros = malloc(sizeof(t_registro_cpu));
-    if (proceso->registros == NULL) {
-        log_error(logger, "Error al asignar memoria para los registros del proceso");
-        free(proceso);
-        return NULL;
-    }
-
-    int size;
-    int desplazamiento = 0;
-    void* buffer = recibir_buffer(&size, socket_cliente);
-    if (buffer == NULL) {
-        log_error(logger, "Error al recibir el buffer del socket");
-        free(proceso->registros);
-        free(proceso);
-        return NULL;
-    }
-
-    memcpy(&proceso->pid, buffer + desplazamiento, sizeof(int));
-    desplazamiento += sizeof(int);
-
-    memcpy(&proceso->program_counter, buffer + desplazamiento, sizeof(int));
-    desplazamiento += sizeof(int);
-
-    memcpy(&proceso->registros->PC, buffer + desplazamiento, sizeof(uint32_t));
-    desplazamiento += sizeof(uint32_t);
-
-    memcpy(&proceso->registros->AX, buffer + desplazamiento, sizeof(uint8_t));
-    desplazamiento += sizeof(uint8_t);
-
-    memcpy(&proceso->registros->BX, buffer + desplazamiento, sizeof(uint8_t));
-    desplazamiento += sizeof(uint8_t);
-
-    memcpy(&proceso->registros->CX, buffer + desplazamiento, sizeof(uint8_t));
-    desplazamiento += sizeof(uint8_t);
-
-    memcpy(&proceso->registros->DX, buffer + desplazamiento, sizeof(uint8_t));
-    desplazamiento += sizeof(uint8_t);
-
-    memcpy(&proceso->registros->EAX, buffer + desplazamiento, sizeof(uint32_t));
-    desplazamiento += sizeof(uint32_t);
-
-    memcpy(&proceso->registros->EBX, buffer + desplazamiento, sizeof(uint32_t));
-    desplazamiento += sizeof(uint32_t);
-
-    memcpy(&proceso->registros->ECX, buffer + desplazamiento, sizeof(uint32_t));
-    desplazamiento += sizeof(uint32_t);
-
-    memcpy(&proceso->registros->EDX, buffer + desplazamiento, sizeof(uint32_t));
-    desplazamiento += sizeof(uint32_t);
-
-    memcpy(&proceso->registros->SI, buffer + desplazamiento, sizeof(uint32_t));
-    desplazamiento += sizeof(uint32_t);
-
-    memcpy(&proceso->registros->DI, buffer + desplazamiento, sizeof(uint32_t));
-    desplazamiento += sizeof(uint32_t);
-
-    free(buffer);
-    return proceso;
-}
 
 void enviar_proceso_a_cpu(t_pcb* pcbproceso) {
     t_paquete* paquete_cpu = crear_paquete(RECIBIR_PROCESO); // Tipo de paquete que indica envío a CPU
@@ -369,7 +302,7 @@ void prevent_from_memory_leaks() {
 
 // void planificacion_VRR() {
 //   
-/
+
     
 
 //     sem_wait(&habilitar_corto_plazo);

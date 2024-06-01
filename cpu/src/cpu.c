@@ -4,6 +4,7 @@
 t_config_cpu *config_cpu; // La declaro como variable global, y la vez instanciar aca!
 int hay_que_seguir = 1;
 
+
 int main(void) {
 //Creando logger
     int md_cpu_ds = 0;
