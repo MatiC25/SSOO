@@ -9,10 +9,9 @@ void iniciar_modulo_kernel(int socket_servidor) {
 }
 
 void inicializar_lista(){
-cola_new = list_create();
-cola_ready = list_create();
-cola_block = list_create();
-
+    cola_new = list_create();
+    cola_ready = list_create();
+    cola_block = list_create();
 }
 
 

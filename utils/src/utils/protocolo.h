@@ -22,13 +22,13 @@ typedef enum { //podemos juntar todos los procesos
     PAQUETE,
     //INTERRUPT,
     RECIBIR_PROCESO,
-   // EJECUTAR_INSTRUCCIONES
-   SOLICITAR_INSTRUCCION,
-   HANDSHAKE,
-   OPERACION_IO,
-   CREAR_INTERFAZ,
-   FINQUANTUM
-   
+    // EJECUTAR_INSTRUCCIONES
+    SOLICITAR_INSTRUCCION,
+    HANDSHAKE,
+    OPERACION_IO,
+    CREAR_INTERFAZ,
+    FINQUANTUM,
+    FIN_EJECUCION,
 // ----------------
 } op_code;
 

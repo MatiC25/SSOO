@@ -34,5 +34,6 @@ extern t_config_kernel* config_kernel;
 extern t_list* cola_new;
 extern t_list* cola_ready; 
 extern t_list* cola_block;
+extern t_list* cola_prima_VRR;
 
 #endif

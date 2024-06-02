@@ -18,7 +18,7 @@ void send_instruccion(int socket_cliente, char *instruccion, t_list *parametros)
 
 
 t_instruccion* recv_instruccion(int socket_cliente){
-       int tamanio;
+    int tamanio;
     t_instruccion *instruccion = malloc(sizeof(t_instruccion));
     recv(socket_cliente,&tamanio,sizeof(int),MSG_WAITALL);
 
@@ -56,6 +56,7 @@ t_instruccion* recv_instruccion(int socket_cliente){
     // }
     return instruccion;
 }
+
 
 
 void solicitar_instruccion(int socket_server, int PID, int program_counter) {

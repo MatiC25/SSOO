@@ -9,52 +9,40 @@ void interfaz_conectar(t_interfaz *interfaz) {
 }
 
 void interfaz_recibir_peticiones() {
+    if(interfaz -> tipo == GENERICA)
+        ejecutar_operacion_generica();
+}
+
+void ejecutar_operacion_generica() {
     while(1) {
-        int operacion_a_realizar = recibir_operacion_de_kernel();
-        validar_operacion(operacion_a_realizar);
-    }
-}
+        int tiempo_espera = recibir_tiempo();
+        int tiempo_unidad = get_tiempo_unidad();
 
-void validar_operacion() {
-    tipo_operacion operacion = operacion_a_realizar();
-    if(acepta_operacion_interfaz(operacion)) {
+        // Realizamos la operacion:
+        sleep(tiempo_espera * tiempo_unidad);
+
+        // Enviamos la respuesta:
         enviar_respuesta_a_kernel(1);
-        return;
     }
-    
-    ejecutar_operacion(operacion);
 }
 
-tipo_operacion operacion_a_realizar() {
-    tipo_operacion operacion;
-    recv(socket_kernel, &operacion, sizeof(tipo_operacion), 0);
+// Funciones recibir mensajes de kernel:
 
-    return operacion;
+int recibir_tiempo() {
+    int tiempo_espera;
+    int socket_kernel = get_socket_kernel();
+
+    recv(socket_kernel, &tiempo_espera, sizeof(int), 0);
+
+    return tiempo_espera;
 }
 
-int acepta_operacion_interfaz(tipo_operacion operacion) {
-    int size_operaciones_validas = list_size(interfaz -> operaciones_validas);
-    for(int i = 0; i < size_operaciones_validas; i++)
-        if(operacion == list_get(interfaz -> operaciones_validas, i))
-            return 0;
-    
-    return 1;
-}
 
-void ejecutar_operacion(tipo_operacion operacion) {
-    recibir 
-
-
-    enviar_respuesta_a_kernel(0); // Esto señal que la operacion fue terminada
-}
+// Funciones enviar mensajes a kernel:
 
 void enviar_respuesta_a_kernel(int respuesta) {
+    int socket_kernel = get_socket_kernel();
     send(socket_kernel, &respuesta, sizeof(int), 0);
-}
 
-// Funciones de operaciones: 
-
-void operacion_sleep(int tiempo) {
-    int tiempo = recibir_tiempo();
-    sleep(tiempo);
+    return;
 }

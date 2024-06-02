@@ -49,24 +49,24 @@ typedef struct { // PCB de un proceso
     int estado;
 }t_pcb;
 
-typedef enum {
-    IO,
-    FIN_QUANTUM,
-    WAIT,
-    SIGNAL,
-    FIN_EJECUCION,
-} tipo_desalojo;
+// typedef enum {
+//     IO,
+//     FIN_QUANTUM,
+//     WAIT,
+//     SIGNAL,
+//     FIN_EJECUCION,
+// } tipo_desalojo;
 
-typedef enum {
-    IO_GEN_SLEEP,
-    IO_STDIN_READ,
-    IO_STDOUT_WRITE,
-    IO_FS_CREATE,
-    IO_FS_DELETE,
-    IO_FS_TRUNCATE,
-    IO_FS_WRITE,
-    IO_FS_READ
-} tipo_operacion;
+// typedef enum {
+//     IO_GEN_SLEEP,
+//     IO_STDIN_READ,
+//     IO_STDOUT_WRITE,
+//     IO_FS_CREATE,
+//     IO_FS_DELETE,
+//     IO_FS_TRUNCATE,
+//     IO_FS_WRITE,
+//     IO_FS_READ
+// } tipo_operacion;
 
 
 // Funciones para creacion de estructuras compartidas:

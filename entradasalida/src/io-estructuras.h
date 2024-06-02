@@ -17,9 +17,11 @@ typedef struct {
 } t_config_io;
 
 typedef struct {
+    int socket_with_kernel;
     char *nombre;
     tipo_interfaz tipo;
     t_config_io *config;
-    t_list *operaciones;
 } t_interfaz;
-#endif
+
+
+#endif //IO_ESTRUCTURAS_H

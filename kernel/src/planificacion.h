@@ -12,12 +12,15 @@
 extern pthread_mutex_t mutex_estado_block;
 extern pthread_mutex_t mutex_estado_ready;
 extern pthread_mutex_t mutex_estado_new;
+extern pthread_mutex_t mutex_estado_exec;
+extern pthread_mutex_t mutex_cola_priori_vrr;
 extern sem_t limite_grado_multiprogramacion;
 extern sem_t habilitar_corto_plazo;
 extern sem_t hay_en_estado_ready;
+extern sem_t hay_en_estado_new;
+extern sem_t hay_en_estado_new;
 
-
-void creacion_proceso(t_pcb* proceso_nuevo);
+void creacion_proceso();
 void agregar_a_cola_estado_new(t_pcb* proceso);
 void agregar_a_cola_ready();
 int generar_pid_unico();

@@ -15,6 +15,11 @@ typedef struct {
     int SOCKET_DISPATCH;
 } t_config_cpu;
 
+typedef struct { 
+    int pid;
+    int program_counter; 
+    t_registro_cpu* registros;
+}t_pcb_cpu;
 
 
 // typedef struct {
@@ -23,5 +28,7 @@ typedef struct {
 //     int desplazamiento;//puede ser floor
 //     int 
 // }t_mmu_cpu;
+
+
 
 #endif
