@@ -19,4 +19,7 @@ void set_interfaz_name(char* name);
 // Devuelve el nombre de la interfaz:
 char* get_interfaz_name();
 
+//Devuelve el tiempo de una interfaz
+int get_tiempo_unidad();
+
 #endif // IO_UTILS_H

@@ -3,6 +3,7 @@
 
 #include <utils/estructuras_compartidas.h>
 #include <commons/collections/list.h>
+#include "io.h"
 
 typedef struct {
     int TIEMPO_UNIDAD_UNIDAD;
@@ -24,5 +25,8 @@ typedef struct {
     t_config_io *config;
 } t_interfaz;
 
+
+extern t_interfaz *interfaz;
+extern t_config_io* config_io;
 
 #endif //IO_ESTRUCTURAS_H

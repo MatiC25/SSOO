@@ -1,7 +1,7 @@
 #include "io-config.h"
 
-t_config_io *inicializar_config_io() {
-    t_config_io *config_io = malloc(sizeof(t_config_io));
+void inicializar_config_io() {
+    t_config_io* config_io = malloc(sizeof(t_config_io));
     config_io->TIEMPO_UNIDAD_UNIDAD = 0;
     config_io->IP_KERNEL = NULL;
     config_io->PUERTO_KERNEL = NULL;
@@ -12,7 +12,7 @@ t_config_io *inicializar_config_io() {
     config_io->BLOCK_COUNT = 0;
     config_io->RETRASO_COMPACTACION = 0;
 
-    return config_io;
+    
 }
 
 void configurar_valores_kernel(t_config_io *config_io, t_config *config) {

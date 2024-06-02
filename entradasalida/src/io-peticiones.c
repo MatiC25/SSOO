@@ -1,15 +1,7 @@
-#include "io.h"
-
-void interfaz_conectar(t_interfaz *interfaz) {
-    t_paquete *paquete = crear_paquete(CREAR_INTERFAZ);
-
-    agregar_a_paquete(paquete, &interfaz->tipo, sizeof(tipo_interfaz));
-    agregar_a_paquete_string(paquete, interfaz->nombre, strlen(interfaz->nombre));
-    enviar_paquete(paquete, interfaz->socket_with_kernel);
-}
+#include "io-peticiones.h"
 
 void interfaz_recibir_peticiones() {
-    if(interfaz -> tipo == GENERICA)
+    if(interfaz->tipo == GENERICA)
         ejecutar_operacion_generica();
 }
 

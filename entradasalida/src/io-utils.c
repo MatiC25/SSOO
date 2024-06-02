@@ -30,5 +30,9 @@ char* get_interfaz_name() {
     return interfaz->nombre;
 }
 
+int get_tiempo_unidad(){
+    return config_io->TIEMPO_UNIDAD_UNIDAD;
+}
+
 
 
