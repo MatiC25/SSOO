@@ -2,6 +2,8 @@
 #define IO_ESTRUCTURAS_H
 
 #include <utils/estructuras_compartidas.h>
+#include <commons/collections/list.h>
+
 typedef struct {
     int TIEMPO_UNIDAD_UNIDAD;
     char *IP_KERNEL;
@@ -18,5 +20,6 @@ typedef struct {
     char *nombre;
     tipo_interfaz tipo;
     t_config_io *config;
+    t_list *operaciones;
 } t_interfaz;
 #endif

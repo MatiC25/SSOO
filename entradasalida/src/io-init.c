@@ -11,6 +11,10 @@ t_interfaz *inicializar_interfaz(char *name_interfaz, char *config_path) {
     interfaz->nombre = name_interfaz;
     interfaz->config = cargar_configuraciones(config_path, interfaz);
 
+    // Con el tipo de interfaz, cargamos las operaciones
+    tipo_interfaz tipo = interfaz->tipo;
+    interfaz->operaciones = cargar_configuraciones_operaciones(tipo);
+
     return interfaz;
 }
 
@@ -112,6 +116,39 @@ void cargar_configuraciones_dialfs(t_config *config, t_config_io *config_io) {
 void get_tipo_interfaz_with_config(t_config *config, t_interfaz *interfaz) {
     char *tipo = config_get_string_value(config, "TIPO");
     interfaz->tipo = get_tipo_interfaz(tipo);
+}
+
+t_list *cargar_configuraciones_operaciones(tipo_interfaz tipo) {
+    tipo_operacion operaciones[] = {
+        IO_GEN_SLEEP,
+        IO_STDIN_READ,
+        IO_STDOUT_WRITE,
+        IO_FS_CREATE,
+        IO_FS_DELETE,
+        IO_FS_TRUNCATE,
+        IO_FS_WRITE,
+        IO_FS_READ
+    };
+
+    // Creamos la lista de operaciones:
+    t_list *lista_operaciones = list_create();
+    agregar_operaciones(lista_operaciones, operaciones, tipo);
+
+    return lista_operaciones;
+}
+
+void agregar_operaciones(t_list *lista_operaciones, tipo_operacion *operaciones, tipo_interfaz tipo) {
+    if(tipo == GENERICA) {
+        list_add(lista_operaciones, operaciones[0]);
+    } else if(tipo == STDIN) {
+        list_add(lista_operaciones, operaciones[1]);
+    } else if(tipo == STDOUT) {
+        list_add(lista_operaciones, operaciones[2]);
+    } else if(tipo == DIALFS) {
+        for(int i = 3; i < 7; i++) {
+            list_add(lista_operaciones, operaciones[i]);
+        }
+    }
 }
 
 tipo_interfaz get_tipo_interfaz(char *tipo) {

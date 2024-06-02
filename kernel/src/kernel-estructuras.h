@@ -29,7 +29,6 @@ typedef struct {
 } t_config_kernel;
 
 
-
 extern t_config_kernel* config_kernel;
 
 extern t_list* cola_new;
