@@ -4,6 +4,7 @@
 // Incluye las bibliotecas necesarias:
 #include <commons/config.h>
 #include <utils/shared.h>
+#include <utils/estructuras_compartidas.h>
 
 // Incluye las estructuras necesarias:
 #include "io-estructuras.h"

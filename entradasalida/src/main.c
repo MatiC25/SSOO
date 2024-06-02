@@ -3,8 +3,8 @@
 t_interfaz *interfaz;
 
 int main(int argc, char *argv[]) {
-    char *name_interfaz = argv[1];
-    char *config_path = argv[2];
+    char *name_interfaz = argv[0];
+    char *config_path = argv[1];
 
     interfaz = inicializar_interfaz(name_interfaz, config_path);
     interfaz_generar_conexiones(interfaz);

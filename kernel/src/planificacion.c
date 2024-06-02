@@ -179,6 +179,7 @@ void mover_procesos_de_bloqueado_a_ready(t_pcb* proceso) {
     pthread_mutex_lock(&mutex_estado_ready);
     proceso->estado = READY;
     list_add(cola_ready, proceso);
+    // No si tenemos que sacarlo de la cola de bloqueados!
     pthread_mutex_unlock(&mutex_estado_ready);
 }
 
