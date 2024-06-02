@@ -4,8 +4,8 @@ void interfaz_conectar(t_interfaz *interfaz) {
     t_paquete *paquete = crear_paquete(CREAR_INTERFAZ);
 
     agregar_a_paquete(paquete, &interfaz->tipo, sizeof(tipo_interfaz));
-    agregar_a_paquete_string(paquete, interfaz->nombre);
-    enviar_paquete(paquete, interfaz->config->socket_kernel);
+    agregar_a_paquete_string(paquete, interfaz->nombre, strlen(interfaz->nombre));
+    enviar_paquete(paquete, interfaz->socket_with_kernel);
 }
 
 void interfaz_recibir_peticiones() {
@@ -26,6 +26,15 @@ void ejecutar_operacion_generica() {
     }
 }
 
+// Funciones enviar mensajes a kernel:
+
+void enviar_respuesta_a_kernel(int respuesta) {
+    int socket_kernel = get_socket_kernel();
+    send(socket_kernel, &respuesta, sizeof(int), 0);
+
+    return;
+}
+
 // Funciones recibir mensajes de kernel:
 
 int recibir_tiempo() {
@@ -37,12 +46,4 @@ int recibir_tiempo() {
     return tiempo_espera;
 }
 
-
-// Funciones enviar mensajes a kernel:
-
-void enviar_respuesta_a_kernel(int respuesta) {
-    int socket_kernel = get_socket_kernel();
-    send(socket_kernel, &respuesta, sizeof(int), 0);
-
-    return;
-}
+// Funciones de metodos de interfaz:

@@ -18,6 +18,7 @@ typedef struct {
 
 typedef struct {
     int socket_with_kernel;
+    int socket_with_memoria;
     char *nombre;
     tipo_interfaz tipo;
     t_config_io *config;

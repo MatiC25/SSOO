@@ -1,6 +1,7 @@
 #include "kernel-interfaces.h"
 
 
+
 // Funciones de manejo de interfaz desde el lado del kernel:
 
 void handle_new_interface(void* arg) {
@@ -46,10 +47,10 @@ void create_consumer_thread(char *interface_name) {
 }
 
 void consumers_pcbs_blockeds(void *args) {
-    sem_wait(&sem_diccionario);
+    sem_wait(&semaforo_interfaces);
     char *interface_name = (char *) args;
     interface_io *interface = get_interface_from_dict(interface_name);
-    sem_post(&sem_diccionario);
+    sem_post(&semaforo_interfaces);
 
     while(1) {
         // Esperamos que la interfaz no este bloqueada:
@@ -58,7 +59,7 @@ void consumers_pcbs_blockeds(void *args) {
 
         // Sacamos el primer proceso de la cola de bloqueados:
         t_pcb *pcb = queue_pop(interface->process_blocked);
-        t_list *args = get_args(pcb); // Obtenemos los argumentos del proceso
+        //t_list *args = get_args(pcb); // Obtenemos los argumentos del proceso
 
         // Obtenemos el socket de la interfaz:
         int socket_with_interface = get_socket_interface(interface);
@@ -68,6 +69,12 @@ void consumers_pcbs_blockeds(void *args) {
         if(interface->tipo == GENERICA)
             send_message_to_generic_interface(socket_with_interface, args, response);
         
+        if(response == 1)
+            mover_procesos_de_bloqueado_a_ready(pcb);
+        else
+            // No sé que vamos hacer en este caso!
+
+        sem_post(&interface->semaforo_used);
     }
 }
 
@@ -78,7 +85,7 @@ interface_io *initialize_interface() {
     interface->SOCKET = -1;
     interface->process_blocked = queue_create();
     sem_init(&interface->semaforo_used, 0, 1);
-    sem_init(&interface->size_bloocked, 0, 0);
+    sem_init(&interface->size_blocked, 0, 0);
 
     return interface;
 }
@@ -98,9 +105,9 @@ void create_interface(int socket) {
     set_socket_interface(interface, socket);
 
     // Agregamos interfaz al dccionario:
-    sem_wait(&semaforo_diccionario);
+    sem_wait(&semaforo_interfaces);
     add_interface_to_dict(interface, interface_name);
-    sem_post(&semaforo_diccionario);
+    sem_post(&semaforo_interfaces);
 
     create_consumer_thread(&interface_name);
 }
@@ -109,14 +116,14 @@ void create_interface(int socket) {
 
 t_list *cargar_configuraciones_operaciones(tipo_interfaz tipo) {
     tipo_operacion operaciones[] = {
-        IO_GEN_SLEEP,
-        IO_STDIN_READ,
-        IO_STDOUT_WRITE,
-        IO_FS_CREATE,
-        IO_FS_DELETE,
-        IO_FS_TRUNCATE,
-        IO_FS_WRITE,
-        IO_FS_READ
+        IO_GEN_SLEEP_INT,
+        IO_STDIN_READ_INT,
+        IO_STDOUT_WRITE_INT,
+        IO_FS_CREATE_INT,
+        IO_FS_DELETE_INT,
+        IO_FS_TRUNCATE_INT,
+        IO_FS_WRITE_INT,
+        IO_FS_READ_INT
     };
 
     // Creamos la lista de operaciones:
@@ -126,19 +133,19 @@ t_list *cargar_configuraciones_operaciones(tipo_interfaz tipo) {
     return lista_operaciones;
 }
 
-void agregar_operaciones(t_list *lista_operaciones, tipo_operacion *operaciones, tipo_interfaz tipo) {
-    if(tipo == GENERICA) {
-        list_add(lista_operaciones, operaciones[0]);
-    } else if(tipo == STDIN) {
-        list_add(lista_operaciones, operaciones[1]);
-    } else if(tipo == STDOUT) {
-        list_add(lista_operaciones, operaciones[2]);
-    } else if(tipo == DIALFS) {
-        for(int i = 3; i < 7; i++) {
-            list_add(lista_operaciones, operaciones[i]);
-        }
-    }
-}
+// void agregar_operaciones(t_list *lista_operaciones, tipo_operacion operaciones[], tipo_interfaz tipo) {
+//     if(tipo == GENERICA) {
+//         list_add(lista_operaciones, operaciones[0]);
+//     } else if(tipo == STDIN) {
+//         list_add(lista_operaciones, operaciones[1]);
+//     } else if(tipo == STDOUT) {
+//         list_add(lista_operaciones, operaciones[2]);
+//     } else if(tipo == DIALFS) {
+//         for(int i = 3; i < 7; i++) {
+//             list_add(lista_operaciones, operaciones[i]);
+//         }
+//     }
+// }
 
 // Metodos de interfaz:
 
@@ -173,7 +180,7 @@ consulta_existencia_interfaz(interface_io *interface) {
 }
 
 int consulta_interfaz_para_aceptacion_de_operacion(interface_io *interface) {
-    tipo_operacion operacion = operacion_a_realizar();
+    tipo_operacion operacion = operacion_a_realizar(config_kernel->SOCKET_DISPATCH);
     if(acepta_operacion_interfaz(interface, operacion)) 
         return 1; // Operacion valida
     else 
@@ -217,4 +224,10 @@ tipo_interfaz recibir_tipo_interfaz(int socket) {
     recv(socket, &tipo, sizeof(tipo_interfaz), 0);
 
     return tipo;
+}
+
+// Funciones de auxiliares:
+void get_args(t_pcb *pcb) {
+    
+    return dictionary_get;
 }

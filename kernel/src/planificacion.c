@@ -37,7 +37,7 @@ void creacion_proceso() {
         return;
     }
 
-    // Inicializamos
+    // Inicializamos;
     pcb->pid = generar_pid_unico();
     pcb->registros = malloc(sizeof(t_registro_cpu));
     if (pcb->registros == NULL) {
@@ -194,10 +194,6 @@ void* planificador_cortoplazo_fifo(void* arg) {
         proceso_actual->estado = EXEC;
         log_info(logger, "PID: %i - Estado Anterior: READY - Estado Actual: EXEC", proceso_actual->pid);
         enviar_proceso_a_cpu(proceso_actual);
-
-        t_pcb* contexto = rcv_contexto_ejecucion(config_kernel->SOCKET_DISPATCH);
-
-        // Procesar el motivo de desalojo
     }
     return NULL;
 }
@@ -251,7 +247,7 @@ void* planificador_corto_plazo_RoundRobin(void* arg) {
     return NULL;
 }
 
-// Esto lo que estuvimos hablando:
+
 void* quantum_handler(void* arg) {
     t_pcb* proceso = (t_pcb*)arg;
     log_info(logger, "En ejecución %d milisegundos...", config_kernel->QUANTUM);
@@ -263,6 +259,60 @@ void* quantum_handler(void* arg) {
     return NULL;
 }
 
+
+// void planificacion_cortoplazo_VRR() {
+
+//     while(1) {
+//         sem_wait(&habilitar_corto_plazo);
+//         sem_wait(&hay_en_estado_ready);
+
+//         t_pcb* proceso_actual = NULL;
+
+//         pthread_mutex_lock(&mutex_cola_priori_vrr);
+//         pthread_mutex_lock(&mutex_estado_ready);
+//         if(!list_is_empty(cola_prima_VRR)) {
+//             proceso_actual = list_remove(cola_prima_VRR, 0);
+//             pthread_mutex_lock(&mutex_cola_priori_vrr);
+//         }
+//         else {
+//             proceso_actual = list_remove(cola_ready, 0);   
+//             pthread_mutex_lock(&mutex_estado_ready);     
+//         }
+
+//         if(!proceso_actual) {
+
+//             proceso_actual->estado = EXEC;
+//             log_info(logger, "PID: %i - Estado Anterior: READY - Estado Actual: EXEC", proceso_actual->pid);
+//             enviar_proceso_a_cpu(proceso_actual);
+
+//             pthread_t hilo_quantum_vrr;
+//             if(pthread_create(&hilo_quantum_vrr, NULL, quantum_vrr_handler, (void*) proceso_actual) != 0) {
+//                 log_error(logger, "Error al crear el hilo del quantum para el proceso %d", proceso_actual->pid);
+//                 finalizar_proceso(proceso_actual, "Error al crear hilo del quantum");
+//             }
+
+//             // t_pcb* contexto_recibido = rcv_contexto_ejecucion(config_kernel->SOCKET_DISPATCH);
+//             // if(!contexto_recibido) {
+//             //     log_error(logger, "Error al recibir el contexto de ejecución para el proceso %d", proceso_actual->pid);
+//             //     pthread_cancel(hilo_quantum_vrr);
+//             //     pthread_join(hilo_quantum_vrr, NULL);
+//             //     finalizar_proceso(proceso_actual, "Error al recibir contexto de ejecución");
+//             // }
+
+//             // pthread_cancel(hilo_quantum_vrr);
+//             // log_info(logger, "PID: %i - Desalojado por fin de Quantum", proceso_actual->pid);
+//             // pthread_join(hilo_quantum_vrr, NULL);  // Esperar a que el hilo del quantum termine y liberar sus recursos
+
+//         }
+//     }     
+// }
+
+
+void* quantum_vrr_handler(void* arg) {
+    t_pcb* proceso = (t_pcb*)arg;
+    t_temporal* tiempo_ejecucion = temporal_create();
+    
+}
 
 
 void enviar_proceso_a_cpu(t_pcb* pcbproceso) {
@@ -310,32 +360,6 @@ void prevent_from_memory_leaks() {
 }
 
 
-void planificacion_VRR() {
-
-    while(1) {
-        sem_wait(&habilitar_corto_plazo);
-        sem_wait(&hay_en_estado_ready);
-
-        t_pcb* proceso_actual = NULL;
-
-        pthread_mutex_lock(&mutex_cola_priori_vrr);
-        pthread_mutex_lock(&mutex_estado_ready);
-        if(!list_is_empty(cola_prima_VRR)) {
-            proceso_actual = list_remove(cola_prima_VRR, 0);
-            pthread_mutex_lock(&mutex_cola_priori_vrr);
-        }
-        else {
-            proceso_actual = list_remove(cola_ready, 0);   
-            pthread_mutex_lock(&mutex_estado_ready);     
-        }
-
-        proceso_actual->estado = EXEC;
-        enviar_proceso_a_cpu(proceso_actual);
-        
-        
-        
-    }     
-}
 
 // Kernel:
 

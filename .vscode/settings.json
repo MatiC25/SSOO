@@ -5,6 +5,8 @@
     "instruc_memoria.h": "c",
     "estructuras_compartidas.h": "c",
     "pthread.h": "c",
-    "instrucciones.h": "c"
+    "instrucciones.h": "c",
+    "list.h": "c",
+    "queue.h": "c"
   }
 }
