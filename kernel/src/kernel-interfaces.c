@@ -62,12 +62,9 @@ void consumers_pcbs_blockeds(void *args) {
             response = send_message_to_interface(interface->SOCKET);
 
             if(response == 1) { // Si la IO termino de ejecutar la operacion
-                sem_wait(&semaforo_blocked_ready);
                 cambiar_block_a_ready(proceso);
-                sem_post(&semaforo_blocked_ready);
             } else {
                 queue_push(interface->process_blocked,proceso);
-                sem_post(&interface -> semaforo_blocked); // Si no termino, volvemos a encolar el PCB
             }
         }
     }
