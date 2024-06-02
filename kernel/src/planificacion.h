@@ -7,6 +7,7 @@
 #include <pthread.h>
 #include <unistd.h>
 #include <stdbool.h>
+#include <commons/temporal.h>
 #include "kernel-init.h"
 
 extern pthread_mutex_t mutex_estado_block;
@@ -25,15 +26,17 @@ void agregar_a_cola_estado_new(t_pcb* proceso);
 void agregar_a_cola_ready();
 int generar_pid_unico();
 void inicializacion_semaforos();
-void elegir_algoritmo_corto_plazo(char* algoritmo);
+void elegir_algoritmo_corto_plazo();
 void hilo_planificador_cortoplazo_fifo();
 void* planificador_cortoplazo_fifo(void* arg);
 void hilo_planificador_cortoplazo_RoundRobin();
-void* planificador_corto_plazo_RoundRobin(void);
+void* planificador_corto_plazo_RoundRobin(void*);
 void enviar_proceso_a_cpu(t_pcb* pcbproceso);
 void liberar_pcb(t_pcb* estructura);
 void mover_procesos_de_ready_a_bloqueado(t_pcb* proceso);
 void mover_procesos_de_bloqueado_a_ready(t_pcb* proceso);
+t_pcb* obtener_siguiente_a_ready();
+void* quantum_handler(void* arg);
 
 // void creacion_proceso(t_pcb* proceso_nuevo);
 // void agregar_a_cola_estado_new(t_pcb* proceso);

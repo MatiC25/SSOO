@@ -57,16 +57,16 @@ typedef struct { // PCB de un proceso
 //     FIN_EJECUCION,
 // } tipo_desalojo;
 
-// typedef enum {
-//     IO_GEN_SLEEP,
-//     IO_STDIN_READ,
-//     IO_STDOUT_WRITE,
-//     IO_FS_CREATE,
-//     IO_FS_DELETE,
-//     IO_FS_TRUNCATE,
-//     IO_FS_WRITE,
-//     IO_FS_READ
-// } tipo_operacion;
+typedef enum {
+    IO_GEN_SLEEP_INT,
+    IO_STDIN_READ_INT,
+    IO_STDOUT_WRITE_INT,
+    IO_FS_CREATE_INT,
+    IO_FS_DELETE_INT,
+    IO_FS_TRUNCATE_INT,
+    IO_FS_WRITE_INT,
+    IO_FS_READ_INT
+} tipo_operacion;
 
 
 // Funciones para creacion de estructuras compartidas:

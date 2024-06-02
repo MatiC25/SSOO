@@ -8,7 +8,6 @@ t_interfaz *inicializar_interfaz(char *name_interfaz, char *config_path) {
         exit(EXIT_FAILURE);
     }
 
-    interfaz->nombre = name_interfaz;
     interfaz->config = cargar_configuraciones(config_path, interfaz);
     
     return interfaz;
@@ -99,7 +98,7 @@ void cargar_configuraciones_dialfs(t_config *config, t_config_io *config_io) {
         "PATH_BASE_DIALFS",
         "BLOCK_SIZE",
         "BLOCK_COUNT",
-        NULL,
+        NULL
     };
 
     validar_configuraciones(config, configuraciones);

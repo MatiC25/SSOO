@@ -3,7 +3,7 @@
 void iniciar_modulo_kernel(int socket_servidor) {
     inicializar_lista();
     aceptar_interfaces(socket_servidor);
-    manejar_peticion_con_memoria();
+    // manejar_peticion_con_memoria();
     manejar_peticion_con_cpu();
     iniciar_planificacion();
 }
@@ -29,7 +29,7 @@ void iniciar_planificacion() {
 
     //Planificación a corto plazo y largo plazo:
     pthread_create(&planificacion_corto_plazo_thread, NULL, elegir_algoritmo_corto_plazo, NULL);
-    pthread_create(&planificacion_largo_plazo_thread, NULL, agregar_a_cola_ready, NULL); 
+    // pthread_create(&planificacion_largo_plazo_thread, NULL, , NULL); 
     
     //Esperamos a que terminen los hilos de planificación:
     pthread_join(planificacion_corto_plazo_thread, NULL);

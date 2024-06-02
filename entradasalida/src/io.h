@@ -6,6 +6,7 @@
 #include "io-config.h"
 #include "io-estructuras.h"
 #include "io-init.h"
+#include <utils/protocolo.h>
 
 extern t_interfaz *interfaz;
 
