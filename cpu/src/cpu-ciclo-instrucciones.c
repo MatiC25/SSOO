@@ -204,7 +204,7 @@ void enviar_pcb_a_kernel(t_paquete* paquete_a_kernel){
 
 void ejecutar_instruccion(int socket_cliente) {
     t_instruccion *instruccion = recv_instruccion(socket_cliente);
-      t_tipo_instruccion tipo_instruccion = obtener_tipo_instruccion(&instruccion->opcode); //decode
+      t_tipo_instruccion tipo_instruccion = obtener_tipo_instruccion(instruccion->opcode); //decode
         switch (tipo_instruccion)
         {
         case EXIT:
@@ -213,76 +213,76 @@ void ejecutar_instruccion(int socket_cliente) {
             return; 
             break;
         case SET:
-            ejecutar_set(&instruccion->parametro1,instruccion->parametro2);
-            log_info(logger,"Instruccion Ejecutada: PID: %d - Ejecutando: %c -%c %c", pcb->pid,instruccion->opcode,instruccion->parametro1,instruccion->parametro2);
+            ejecutar_set(instruccion->parametro1,instruccion->parametro2);
+            log_info(logger,"Instruccion Ejecutada: PID: %d- Ejecutando: %s -%s %s", pcb->pid,instruccion->opcode,instruccion->parametro1,instruccion->parametro2);
             break;
         case SUM:
-            ejecutar_sum(&instruccion->parametro1,&instruccion->parametro2);
-            log_info(logger,"Instruccion Ejecutada: PID: %d - Ejecutando: %c -%c %c", pcb->pid,instruccion->opcode,instruccion->parametro1,instruccion->parametro2);
+            ejecutar_sum(instruccion->parametro1,instruccion->parametro2);
+            log_info(logger,"Instruccion Ejecutada: PID: %d- Ejecutando: %s -%s %s", pcb->pid,instruccion->opcode,instruccion->parametro1,instruccion->parametro2);
             break;
         case SUB:
-            ejecutar_sub(&instruccion->parametro1,&instruccion->parametro2);
-            log_info(logger,"Instruccion Ejecutada: PID: %d - Ejecutando: %c -%c %c", pcb->pid,instruccion->opcode,instruccion->parametro1,instruccion->parametro2);
+            ejecutar_sub(instruccion->parametro1,instruccion->parametro2);
+            log_info(logger,"Instruccion Ejecutada: PID: %d- Ejecutando: %s -%s %s", pcb->pid,instruccion->opcode,instruccion->parametro1,instruccion->parametro2);
             break;           
         case JNZ:
-            ejecutar_JNZ(&instruccion->parametro1,instruccion->parametro2);
-            log_info(logger,"Instruccion Ejecutada: PID: %d - Ejecutando: %c -%c %c", pcb->pid,instruccion->opcode,instruccion->parametro1,instruccion->parametro2);
+            ejecutar_JNZ(instruccion->parametro1,instruccion->parametro2);
+            log_info(logger,"Instruccion Ejecutada: PID: %d- Ejecutando: %s -%s %s", pcb->pid,instruccion->opcode,instruccion->parametro1,instruccion->parametro2);
             break;
         case IO_GEN_SLEEP:
-           ejecutar_IO_GEN_SLEEP(&instruccion->parametro1,&instruccion->parametro2);
+           ejecutar_IO_GEN_SLEEP(instruccion->parametro1,instruccion->parametro2);
            //Tipo desalojo IO
-            log_info(logger,"Instruccion Ejecutada: PID: %d - Ejecutando: %c -%c %c", pcb->pid,instruccion->opcode,instruccion->parametro1,instruccion->parametro2);
+            log_info(logger,"Instruccion Ejecutada: PID: %d- Ejecutando: %s -%s %s", pcb->pid,instruccion->opcode,instruccion->parametro1,instruccion->parametro2);
             break;
         case MOVE_IN:
            //ejecutar_MOV_IN(t_instrucciones->registroDireccion, t_instrucciones->registroDatos);
-            log_info(logger,"Instruccion Ejecutada: PID: %d - Ejecutando: %c -%c %c", pcb->pid,instruccion->opcode,instruccion->parametro1,instruccion->parametro2);
+            log_info(logger,"Instruccion Ejecutada: PID: %d- Ejecutando: %s -%s %s", pcb->pid,instruccion->opcode,instruccion->parametro1,instruccion->parametro2);
             break;
         case MOV_OUT:
            //ejecutar_MOV_OUT(t_instrucciones->registroDireccion, t_instrucciones->registroDatos);
-            log_info(logger,"Instruccion Ejecutada: PID: %d - Ejecutando: %c -%c %c", pcb->pid,instruccion->opcode,instruccion->parametro1,instruccion->parametro2);
+           log_info(logger,"Instruccion Ejecutada: PID: %d- Ejecutando: %s -%s %s", pcb->pid,instruccion->opcode,instruccion->parametro1,instruccion->parametro2);
             break;
         case RESIZE:
             //ejecutar_MOV_OUT(tamanio);
-            log_info(logger,"Instruccion Ejecutada: PID: %d - Ejecutando: %c -%c %c", pcb->pid,instruccion->opcode,instruccion->parametro1,instruccion->parametro2);
+            log_info(logger,"Instruccion Ejecutada: PID: %d- Ejecutando: %s -%s %s", pcb->pid,instruccion->opcode,instruccion->parametro1,instruccion->parametro2);
             break;
         case COPY_STRING:
            // ejecutar_COPY_STRING(tamanio);
-            log_info(logger,"Instruccion Ejecutada: PID: %d - Ejecutando: %c -%c %c", pcb->pid,instruccion->opcode,instruccion->parametro1,instruccion->parametro2);
+            log_info(logger,"Instruccion Ejecutada: PID: %d- Ejecutando: %s -%s %s", pcb->pid,instruccion->opcode,instruccion->parametro1,instruccion->parametro2);
             break;
         case WAIT:
             //ejecutar_WAIT(recurso);
-            log_info(logger,"Instruccion Ejecutada: PID: %d - Ejecutando: %c -%c %c", pcb->pid,instruccion->opcode,instruccion->parametro1,instruccion->parametro2);
+            log_info(logger,"Instruccion Ejecutada: PID: %d- Ejecutando: %s -%s %s", pcb->pid,instruccion->opcode,instruccion->parametro1,instruccion->parametro2);
             break;
         case SIGNAL:
             //ejecutar_SINGAL(recurso);
-            log_info(logger,"Instruccion Ejecutada: PID: %d - Ejecutando: %c -%c %c", pcb->pid,instruccion->opcode,instruccion->parametro1,instruccion->parametro2);
+            log_info(logger,"Instruccion Ejecutada: PID: %d- Ejecutando: %s -%s %s", pcb->pid,instruccion->opcode,instruccion->parametro1,instruccion->parametro2);
             break;
         case IO_STDIN_READ:
             //ejecutar_IO_STDIN_READ(/*INTERFAZ*/, t_instrucciones->registroDireccion,t_instrucciones->registroTamanio);
-            log_info(logger,"Instruccion Ejecutada: PID: %d - Ejecutando: %c -%c %c", pcb->pid,instruccion->opcode,instruccion->parametro1,instruccion->parametro2);
+            log_info(logger,"Instruccion Ejecutada: PID: %d- Ejecutando: %s -%s %s", pcb->pid,instruccion->opcode,instruccion->parametro1,instruccion->parametro2);
         case IO_STDOUT_WRITE:
             //ejecutar_IO_STDOUT_WRITE(/*INTERFAZ*/,t_instrucciones->registroDireccion, t_instrucciones->registroTamanio);
-            log_info(logger,"Instruccion Ejecutada: PID: %d - Ejecutando: %c -%c %c", pcb->pid,instruccion->opcode,instruccion->parametro1,instruccion->parametro2);
+            log_info(logger,"Instruccion Ejecutada: PID: %d- Ejecutando: %s -%s %s", pcb->pid,instruccion->opcode,instruccion->parametro1,instruccion->parametro2);
             break;
         case IO_FS_CREATE:
             //ejecutar_IO_FS_CREATE(/*INTERFAZ*/, t_instrucciones->nombreArchivo);
-            log_info(logger,"Instruccion Ejecutada: PID: %d - Ejecutando: %c -%c %c", pcb->pid,instruccion->opcode,instruccion->parametro1,instruccion->parametro2);
+            log_info(logger,"Instruccion Ejecutada: PID: %d- Ejecutando: %s -%s %s", pcb->pid,instruccion->opcode,instruccion->parametro1,instruccion->parametro2);
             break;
         case IO_FS_DELETE:
             //ejecutar_IO_FS_DELETE(/*INTERFAZ*/, t_instrucciones->nombreArchivo);
-            log_info(logger,"Instruccion Ejecutada: PID: %d - Ejecutando: %c -%c %c", pcb->pid,instruccion->opcode,instruccion->parametro1,instruccion->parametro2);
+            log_info(logger,"Instruccion Ejecutada: PID: %d- Ejecutando: %s -%s %s", pcb->pid,instruccion->opcode,instruccion->parametro1,instruccion->parametro2);
             break;
         case IO_FS_TRUNCATE:
             //ejecutar_IO_FS_TRUNCATE(/*INTERFAZ*/, t_instrucciones->nombreArchivo);
-            log_info(logger,"Instruccion Ejecutada: PID: %d - Ejecutando: %c -%c %c", pcb->pid,instruccion->opcode,instruccion->parametro1,instruccion->parametro2);
+            log_info(logger,"Instruccion Ejecutada: PID: %d- Ejecutando: %s -%s %s", pcb->pid,instruccion->opcode,instruccion->parametro1,instruccion->parametro2);
             break;
         case IO_FD_WRITE:
             //ejecutar_IO_FD_WRITE(/*INTERFAZ*/, t_instrucciones->nombreArchivo,t_instrucciones->registroDireccion,t_instrucciones->registroTamanio,t_instrucciones->registroPuntero);
-            log_info(logger,"Instruccion Ejecutada: PID: %d - Ejecutando: %c -%c %c", pcb->pid,instruccion->opcode,instruccion->parametro1,instruccion->parametro2);
+            log_info(logger,"Instruccion Ejecutada: PID: %d- Ejecutando: %s -%s %s", pcb->pid,instruccion->opcode,instruccion->parametro1,instruccion->parametro2);
             break;       
          case IO_FS_READ:
             //ejecutar_IO_FS_READ(/*INTERFAZ*/, t_instrucciones->nombreArchivo,t_instrucciones->registroDireccion,t_instrucciones->registroTamanio,t_instrucciones->registroPuntero);
-            log_info(logger,"Instruccion Ejecutada: PID: %d - Ejecutando: %c -%c %c", pcb->pid,instruccion->opcode,instruccion->parametro1,instruccion->parametro2);
+            log_info(logger,"Instruccion Ejecutada: PID: %d- Ejecutando: %s -%s %s", pcb->pid,instruccion->opcode,instruccion->parametro1,instruccion->parametro2);
             break;          
         }
 }

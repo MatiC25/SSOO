@@ -31,13 +31,13 @@ int generar_servidor_cpu_dispatch() {
     char* puerto_dispatch = string_itoa(config_cpu->PUERTO_ESCUCHA_DISPATCH); // Convierte un int a una cadena de char
     int md_cpu_ds = iniciar_servidor("DISPATCH", NULL, puerto_dispatch); // Guarda ID del socket
     free(puerto_dispatch);
-    while (1)
-    {
-        int socket_cliente = esperar_cliente("DISPATCH", socket_server);
+    while (1){
+        int socket_cliente = esperar_cliente("DISPATCH", md_cpu_ds);
         
     if(socket_cliente != -1){
     config_cpu->SOCKET_KERNEL = socket_cliente;
     iniciar_ciclo_de_ejecucion(md_cpu_ds,socket_cliente);
+    }
     }
     return md_cpu_ds;
 }
@@ -70,12 +70,10 @@ void crear_servidores_cpu(int *md_cpu_ds,int *md_cpu_it) {
      
 }
 
-void* server_interrupt(void* args) 
-{
-    t_procesar_server* args_hilo = (t_procesar_server*) args;
-    char* server_name = args_hilo->server_name;
-    int socket_server = args_hilo->socket_servidor;
-
+void* server_interrupt(void* args) {
+    t_procesar_server* arg = (t_procesar_server*) args;
+    char* server_name = arg -> server_name;
+    int socket_server = arg -> socket_servidor;
      while (1)
     {
         int socket_cliente = esperar_cliente("INTERRUPT", socket_server);
@@ -93,8 +91,9 @@ void* server_interrupt(void* args)
 			break;
 	    }
     }
-	free(args_hilo);
-	return NULL;
+	
     	}
 	}
+    
+	return NULL;
 }

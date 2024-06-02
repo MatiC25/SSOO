@@ -1,5 +1,11 @@
 #include "kernel-init.h"
 
+t_list* cola_new = NULL;
+t_list* cola_ready = NULL;
+t_list* cola_block = NULL;
+t_list* cola_prima_VRR = NULL;
+
+
 void iniciar_modulo_kernel(int socket_servidor) {
     inicializar_lista();
     aceptar_interfaces(socket_servidor);
@@ -12,6 +18,7 @@ void inicializar_lista(){
     cola_new = list_create();
     cola_ready = list_create();
     cola_block = list_create();
+    cola_prima_VRR = list_create();
 }
 
 

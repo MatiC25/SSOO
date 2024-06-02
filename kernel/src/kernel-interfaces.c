@@ -1,6 +1,7 @@
 #include "kernel-interfaces.h"
-
-
+t_dictionary *interfaces = NULL;
+t_dictionary *args_consumers = NULL;
+sem_t semaforo_interfaces;
 
 // Funciones de manejo de interfaz desde el lado del kernel:
 
@@ -90,8 +91,14 @@ interface_io *initialize_interface() {
     return interface;
 }
 
+char* reciv_mensj(int socket_cliente){
+	int size;
+	char *buffer = recibir_buffer(&size, socket_cliente);
+	return buffer;
+}
+
 void create_interface(int socket) {
-    char *interface_name = recibir_mesj(socket);
+    char *interface_name = reciv_mensj(socket);
     interface_io *interface = initialize_interface();
 
     // Seteamos nombre de la interfaz:
@@ -133,19 +140,20 @@ t_list *cargar_configuraciones_operaciones(tipo_interfaz tipo) {
     return lista_operaciones;
 }
 
-// void agregar_operaciones(t_list *lista_operaciones, tipo_operacion operaciones[], tipo_interfaz tipo) {
-//     if(tipo == GENERICA) {
-//         list_add(lista_operaciones, operaciones[0]);
-//     } else if(tipo == STDIN) {
-//         list_add(lista_operaciones, operaciones[1]);
-//     } else if(tipo == STDOUT) {
-//         list_add(lista_operaciones, operaciones[2]);
-//     } else if(tipo == DIALFS) {
-//         for(int i = 3; i < 7; i++) {
-//             list_add(lista_operaciones, operaciones[i]);
-//         }
-//     }
-// }
+void agregar_operaciones(t_list *lista_operaciones, tipo_operacion operaciones[], tipo_interfaz tipo) {
+    if(tipo == GENERICA) {
+        list_add(lista_operaciones, IO_STDIN_READ_INT);
+    // } else if(tipo == STDIN) {
+    //     list_add(lista_operaciones, IO_STDOUT_WRITE_INT);
+    // } else if(tipo == STDOUT) {
+    //     list_add(lista_operaciones, IO_FS_CREATE_INT);
+    // } else if(tipo == DIALFS) {
+    //     for(int i = 3; i < 7; i++) {
+    //         list_add(lista_operaciones, operaciones[i]);
+    //     }
+    }
+}
+
 
 // Metodos de interfaz:
 

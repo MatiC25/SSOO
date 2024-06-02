@@ -20,9 +20,9 @@ typedef struct {
 } interface_io;
 
 // Variables globales:
-t_dictionary *interfaces;
-t_dictionary *args_consumers;
-sem_t semaforo_interfaces;
+extern t_dictionary *interfaces;
+extern t_dictionary *args_consumers;
+extern sem_t semaforo_interfaces;
 
 // Funciones de manejo de interfaz desde el lado del kernel:
 void handle_new_interface(void* arg);
@@ -56,6 +56,6 @@ int acepta_operacion_interfaz(interface_io *interface, tipo_operacion operacion)
 // Funciones para recibir mensajes de la interfaz:
 tipo_operacion operacion_a_realizar(int socket);
 tipo_interfaz recibir_tipo_interfaz(int socket);
-
+char* reciv_mensj(int socket_cliente);
 
 #endif // KERNEL_INTERFACES_H

@@ -1,5 +1,17 @@
 #include "planificacion.h"
 
+pthread_mutex_t mutex_estado_block;
+pthread_mutex_t mutex_estado_ready;
+pthread_mutex_t mutex_estado_new;
+pthread_mutex_t mutex_estado_exec;
+pthread_mutex_t mutex_cola_priori_vrr;
+sem_t limite_grado_multiprogramacion;
+sem_t habilitar_corto_plazo;
+sem_t hay_en_estado_ready;
+sem_t hay_en_estado_new;
+sem_t hay_en_estado_new;
+
+
 void inicializacion_semaforos() {
     pthread_mutex_init(&mutex_estado_ready, NULL);
     pthread_mutex_init(&mutex_estado_new, NULL);
