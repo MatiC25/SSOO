@@ -22,8 +22,9 @@ typedef enum { //podemos juntar todos los procesos
     PAQUETE,
     //INTERRUPT,
     RECIBIR_PROCESO,
+    PSEUDOCODIGO,
     // EJECUTAR_INSTRUCCIONES
-    SOLICITAR_INSTRUCCION,
+    INSTRUCCION,
     HANDSHAKE,
     OPERACION_IO,
     CREAR_INTERFAZ,

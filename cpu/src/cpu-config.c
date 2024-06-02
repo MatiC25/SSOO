@@ -11,6 +11,7 @@ t_config_cpu* inicializar_config(void) {
     config_cpu -> ALGORITMO_TLB = NULL;
     config_cpu -> SOCKET_MEMORIA = -1;
     config_cpu -> SOCKET_DISPATCH = -1;
+    config_cpu -> SOCKET_KERNEL = -1;
 
     return config_cpu;
 }

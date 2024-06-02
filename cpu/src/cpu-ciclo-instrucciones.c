@@ -4,9 +4,8 @@ t_pcb_cpu* pcb;
 //t_mmu_cpu* mmu;
 int seguir_ejecutando;
 
-void iniciar_ciclo_de_ejecucion(int socket_server) {
-
-   int socket_cliente = esperar_cliente("DISPATCH", socket_server);
+void iniciar_ciclo_de_ejecucion(int socket_server ,int socket_cliente) {
+    
     while(1) {
         op_code codigo_operacion = recibir_operacion(socket_cliente);
 
@@ -19,7 +18,7 @@ void iniciar_ciclo_de_ejecucion(int socket_server) {
                 break;
             case PAQUETE:
                 break;
-            case SOLICITAR_INSTRUCCION:
+            case INSTRUCCION:
                 break;
        }
     }
@@ -185,7 +184,7 @@ void enviar_pcb_a_kernel(t_paquete* paquete_a_kernel){
     agregar_a_paquete(paquete_a_kernel, &pcb->registros->DI, sizeof(uint32_t));
 
     // Enviar el paquete a la CPU
-    enviar_paquete(paquete_a_kernel,config_cpu->SOCKET_DISPATCH);
+    enviar_paquete(paquete_a_kernel,config_cpu->SOCKET_KERNEL);
 
     // Liberar recursos del paquete
     eliminar_paquete(paquete_a_kernel);

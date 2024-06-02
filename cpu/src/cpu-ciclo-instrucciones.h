@@ -22,7 +22,7 @@ typedef enum
 
 
 t_pcb_cpu* rcv_contexto_ejecucion_cpu(int socket_cliente);
-void iniciar_ciclo_de_ejecucion(int socket_server);
+void iniciar_ciclo_de_ejecucion(int socket_server ,int socket_cliente);
 void ejecutar_ciclo_instrucciones(int socket_cliente, int socket_server);
 void fecth(int socket_server);
 void ejecutar_instruccion(int socket_cliente);

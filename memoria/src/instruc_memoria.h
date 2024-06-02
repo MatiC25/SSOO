@@ -14,31 +14,18 @@
 #include <utils/protocolo.h>
 #include <pthread.h>
 #include <utils/logger.h>
-typedef struct {  
-    
-    char* opcode;
-    char* parametro1;
-    char* parametro2;
-    char* parametro3;
-    char* parametro4;
-    char* parametro5;
-    int long_opcode;
-    int long_par1;
-    int long_par2;
-    int long_par3;
-    int long_par4;
-    int long_par5;
-} t_instruccion;
+#include <utils/instrucciones.h>
 
-t_dictionary* lista_instrucciones_porPID;
+
+extern t_dictionary* instrucciones_PorProcesos;
+extern t_dictionary* lista_instrucciones_porPID;
 
 extern char* path_proceso;
-extern t_dictionary* instrucciones_PorProcesos;
-
 
 void leer_archivoPseudo(int socket_kernel);
 char* crear_path_instrucciones(char* path_proceso, char* archivo_path);
 void enviar_instruccion_a_cpu(int socket_cpu, int retardo_de_respuesta);
+
 
 
 

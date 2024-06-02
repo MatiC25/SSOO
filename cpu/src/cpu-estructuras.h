@@ -13,6 +13,7 @@ typedef struct {
     char *ALGORITMO_TLB;
     int SOCKET_MEMORIA;
     int SOCKET_DISPATCH;
+    int SOCKET_KERNEL;
 } t_config_cpu;
 
 typedef struct { 

@@ -1,4 +1,7 @@
 #include "instruc_memoria.h"
+char *path_proceso;
+t_dictionary* instrucciones_PorProcesos = NULL;
+t_dictionary* lista_instrucciones_porPID = NULL;
 
 char* crear_path_instrucciones(char* path_proceso, char* archivo_path){
 
@@ -26,7 +29,7 @@ void leer_archivoPseudo(int socket_kernel){
     char* archivo_path;
     int pid;
 
-    recv_archi_pid(socket_kernel, &archivo_path, &pid); //FALTAAAAAAAAAAAAAAAAAAAAAAAAAAA
+    recv_archi_pid(socket_kernel, &archivo_path, &pid);
 
     char* path = crear_path_instrucciones(path_proceso, archivo_path);
 
@@ -136,8 +139,6 @@ void leer_archivoPseudo(int socket_kernel){
     }
     //añadimos a un diccionario para usarlo mas tarde para enviar la instruccion a cpu
     dictionary_put(lista_instrucciones_porPID, string_itoa(pid), lista_de_instrucciones);
-
-    //enviar_mensaje("instruccion guardada",socket_kernel);//esta comentado pq no sabemos si hace falta
     
     free(path);
     fclose(archivo);
@@ -161,7 +162,7 @@ void enviar_instruccion_a_cpu(int socket_cpu, int retardo_de_respuesta){
     t_instruccion *instrucciones = list_get(lista_de_instrucciones, program_counter-1);
 
     //creo el paquete con la instruccion y serializo
-    t_paquete *paquete_de_instrucciones = crear_paquete(RECIBIR_PROCESO);
+    t_paquete *paquete_de_instrucciones = crear_paquete(INSTRUCCION);
     agregar_a_paquete(paquete_de_instrucciones, instrucciones -> opcode, instrucciones -> long_opcode);
     agregar_a_paquete(paquete_de_instrucciones, instrucciones -> parametro1, instrucciones -> long_par1);
     agregar_a_paquete(paquete_de_instrucciones, instrucciones -> parametro2, instrucciones -> long_par2);

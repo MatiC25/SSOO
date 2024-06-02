@@ -19,8 +19,13 @@ int generar_pid_unico() {
 }
 
 
-void informar_a_memoria(char** archivo_de_proceso, int pid){
-    enviar_mensaje(archivo_de_proceso, get_socket_memoria());
+void informar_a_memoria(char* archivo_de_proceso, int pid){
+    t_paquete* paquete = crear_paquete(PSEUDOCODIGO);
+
+    agregar_a_paquete_string(paquete, archivo_de_proceso, strlen(archivo_de_proceso) + 1);
+    agregar_a_paquete(paquete, pid, sizeof(pid));
+
+    enviar_paquete(paquete, config_kernel->SOCKET_MEMORIA);
 }
 
 

@@ -31,8 +31,14 @@ int generar_servidor_cpu_dispatch() {
     char* puerto_dispatch = string_itoa(config_cpu->PUERTO_ESCUCHA_DISPATCH); // Convierte un int a una cadena de char
     int md_cpu_ds = iniciar_servidor("DISPATCH", NULL, puerto_dispatch); // Guarda ID del socket
     free(puerto_dispatch);
-    iniciar_ciclo_de_ejecucion(md_cpu_ds);
-
+    while (1)
+    {
+        int socket_cliente = esperar_cliente("DISPATCH", socket_server);
+        
+    if(socket_cliente != -1){
+    config_cpu->SOCKET_KERNEL = socket_cliente;
+    iniciar_ciclo_de_ejecucion(md_cpu_ds,socket_cliente);
+    }
     return md_cpu_ds;
 }
 
@@ -74,8 +80,9 @@ void* server_interrupt(void* args)
     {
         int socket_cliente = esperar_cliente("INTERRUPT", socket_server);
         
-        if(socket_cliente != -1){
-        while (1)
+    if(socket_cliente != -1){
+   
+    while (1)
     {
 		op_code cod_op = recibir_operacion(socket_cliente);
 
