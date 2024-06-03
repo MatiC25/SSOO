@@ -15,9 +15,8 @@
 #include <pthread.h>
 #include <utils/logger.h>
 #include "instruc_memoria.h"
-#include "init_memoria.h"
+#include "inicializar_memoria.h"
 
 
-void inicializar_config(t_config_memoria* config_memoria);
 
 #endif // MAIN_H

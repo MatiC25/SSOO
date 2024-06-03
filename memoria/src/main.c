@@ -1,16 +1,10 @@
 #include "main.h"
 
+void* espacio_usuario;
+t_dictionary * diccionario_paginas_porPID;
+t_list *tabla_marcos;
 
-void inicializar_config(t_config_memoria* config_memoria){
-    config_memoria = malloc(sizeof(t_config_memoria));
-
-    config_memoria->puerto_escucha = 0;
-    config_memoria->tam_memoria = 0;
-    config_memoria->tam_pagina = 0;
-    config_memoria->path_instrucciones = 0;
-    config_memoria->retardo_respuesta = 0;
-}
-
+    
 int main()
 {
     t_config_memoria* config_memoria;
@@ -23,7 +17,12 @@ int main()
 		return EXIT_FAILURE;
 	}
 
-    inicializar_config(config_memoria); // Inicializo la variable global config_memoria! -> No se si es la mejor forma de hacerlo!
+    config_memoria = malloc(sizeof(t_config_memoria));
+    config_memoria->puerto_escucha = 0;
+    config_memoria->tam_memoria = 0;
+    config_memoria->tam_pagina = 0;
+    config_memoria->path_instrucciones = 0;
+    config_memoria->retardo_respuesta = 0;
    
     //Inicializamos conexiones
     if (cargar_configuraciones_memoria(config_memoria) != 1)
@@ -35,6 +34,21 @@ int main()
     
     //abrimos el servidor
     iniciar_modulo(config_memoria);
+    
+    //Creamos el diccionario de paginas por PID 
+    diccionario_paginas_porPID = dictionary_create();
+
+    //Creamos la tabla de marcos
+    int cant_marcos = tam_memoria / tam_pagina;
+
+    bool bitmap[cant_marcos]=NULL
+
+    //tabla_marcos = list_create();
+
+
+    //Inicializamos los marcos
+    inicializar_marcos(cant_marcos);
+
 
     return 0;
 }

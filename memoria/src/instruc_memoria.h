@@ -16,8 +16,6 @@
 #include <utils/logger.h>
 #include <utils/instrucciones.h>
 
-
-extern t_dictionary* instrucciones_PorProcesos;
 extern t_dictionary* lista_instrucciones_porPID;
 
 extern char* path_proceso;

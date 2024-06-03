@@ -175,5 +175,3 @@ void enviar_instruccion_a_cpu(int socket_cpu, int retardo_de_respuesta){
     enviar_paquete(paquete_de_instrucciones, socket_cpu);
     eliminar_paquete(paquete_de_instrucciones);
 }
-
-

@@ -1,4 +1,4 @@
-#include "init_memoria.h"
+#include "inicializar_memoria.h"
 
 t_config_memoria* config_memoria; // Variable global
 //SEPARAR EN 2 
@@ -93,14 +93,39 @@ void* escuchar_peticiones(void* args){
         
         switch (cod_op)
         {
+        case HANDSHAKE:
+            saludo(socket_cliente);
+            break;
         case PSEUDOCODIGO:
             leer_archivoPseudo(socket_cliente);
             break;
         case INSTRUCCION: 
             enviar_instruccion_a_cpu(socket_cliente, config_memoria->retardo_respuesta);
             break;
-        
+        case INICIAR_PROCESO: 
+            crear_proceso(socket_cliente);
+            break;
+        case FINALIZAR_PROCESO:
+            terminar_proceso(socket_cliente);
+            break;
+        case ACCEDER_TABLA_PAGINAS: 
+            obtener_marco(socket_cliente);
+            break;
+        case AMPLIACION_MEMORIA:
+            ampliar_memoria(socket_cliente, config_memoria->retardo_respuesta);
+            break;
+        case REDUCIR_MEMORIA:
+            reducir_memoria(socket_cliente, config_memoria->retardo_respuesta);
+            break;
+        case ACCESO_A_LECTURA:
+            acceso_lectura(socket_cliente);
+            break;
+        case ACCESO_A_ESCRITURA:
+            acceso_escrituratura(socket_cliente);
+            break;
+        default:
+            log_error(logger, "Operacion desconocida");
+            break;
         }
     }
 }
-

@@ -1,5 +1,5 @@
-#ifndef INIT_MEMORIA_H
-#define INIT_MEMORIA_H
+#ifndef INICIALIZAR_MEMORIA_H
+#define INICIALIZAR_MEMORIA_H
 
 #include <stdio.h>
 #include <stdbool.h>
@@ -39,4 +39,4 @@ void iniciar_modulo(t_config_memoria* t_config_memoria);
 void cerrar_programa(t_config_memoria *config_memoria, int socket_server);
 void* escuchar_peticiones(void* args);
 
-#endif // INIT_MEMORIA_H
+#endif // INICIALIZAR_MEMORIA_H
