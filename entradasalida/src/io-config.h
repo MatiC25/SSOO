@@ -2,17 +2,19 @@
 #define IO_CONFIG_H
 
 // Incluye las bibliotecas necesarias:
-#include <commons/config.h>
-#include <utils/shared.h>
 #include <utils/estructuras_compartidas.h>
-
-// Incluye las estructuras necesarias:
-#include "io-estructuras.h"
+#include <utils/logger.h>
+#include <utils/shared.h>
+#include <commons/config.h>
 #include "io.h"
+// Incluye las estructuras necesarias:
+#include "io-config.h"
+#include "io-estructuras.h"
 #include "io-init.h"
 
+
 // Funciones para inicializar:
-void inicializar_config_io();
+t_config_io* inicializar_config_io();
 
 // Funciones para configurar:
 void configurar_valores_kernel(t_config_io* config_io, t_config* config);

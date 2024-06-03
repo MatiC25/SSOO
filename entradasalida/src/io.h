@@ -13,6 +13,8 @@
 
 
 
-void interfaz_conectar();
+void interfaz_conectar(t_interfaz * interfaz);
+
+//extern t_config_io* config_io;
 
 #endif // IO_H

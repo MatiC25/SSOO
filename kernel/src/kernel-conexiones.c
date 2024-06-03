@@ -22,8 +22,8 @@ void generar_conexiones_con_cpu(void) {
     }
 
     // Handshake:
-    generar_handshake(md_dispatch_cpu, "DISPATCHER", ip_cpu, puerto_dispatch);
-    generar_handshake(md_interrupt_cpu, "INTERRUPT", ip_cpu, puerto_interrupt);
+    //generar_handshake(md_dispatch_cpu, "DISPATCHER", ip_cpu, puerto_dispatch);
+    //generar_handshake(md_interrupt_cpu, "INTERRUPT", ip_cpu, puerto_interrupt);
 
     // Seteo de sockets:
     set_socket_dispatch(md_dispatch_cpu);
@@ -38,11 +38,11 @@ void generar_conexion_con_memoria(void) {
 
     md_memoria = crear_conexion("MEMORIA", ip_memoria, puerto_memoria);
 
-    if(md_memoria == -1 || md_memoria == 0) 
+    if(md_memoria == -1)
         exit(-1);
 
     // Handshake:
-    generar_handshake(md_memoria, "MEMORIA", ip_memoria, puerto_memoria);
+    //generar_handshake(md_memoria, "MEMORIA", ip_memoria, puerto_memoria);
 
     // Seteo de socket:
     set_socket_memoria(md_memoria);

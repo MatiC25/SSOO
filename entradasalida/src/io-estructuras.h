@@ -2,8 +2,10 @@
 #define IO_ESTRUCTURAS_H
 
 #include <utils/estructuras_compartidas.h>
-#include <commons/collections/list.h>
+#include <utils/logger.h>
 #include "io.h"
+// Incluye las estructuras necesarias:
+#include "io-config.h"
 
 typedef struct {
     int TIEMPO_UNIDAD_UNIDAD;
@@ -26,7 +28,7 @@ typedef struct {
 } t_interfaz;
 
 
-extern t_interfaz *interfaz;
-extern t_config_io* config_io;
+//extern t_interfaz *interfaz;
+
 
 #endif //IO_ESTRUCTURAS_H

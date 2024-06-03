@@ -1,20 +1,18 @@
 #include "io-init.h"
 
 
-void inicializar_interfaz(char *name_interfaz, char *config_path) {
-    t_interfaz *interfaz = malloc(sizeof(t_interfaz));
+void inicializar_interfaz(char *name_interfaz, char *config_path, t_interfaz * interfaz, t_config_io* config_io) {
+    interfaz = malloc(sizeof(t_interfaz));
 
     if (interfaz == NULL) {
         log_error(logger, "Error al asignar memoria para la interfaz");
         exit(EXIT_FAILURE);
     }
-    cargar_configuraciones(config_path);
-    //interfaz->config = 
-    
+    cargar_configuraciones(config_path ,interfaz, config_io);
     
 }
 
-void cargar_configuraciones(char *config_path) {
+void cargar_configuraciones(char *config_path, t_interfaz* interfaz, t_config_io* config_io) {
     t_config *config = config_create(config_path);
 
     if (config == NULL) {
@@ -22,9 +20,7 @@ void cargar_configuraciones(char *config_path) {
         exit(EXIT_FAILURE);
     }
 
-    get_tipo_interfaz_with_config(config);
-
-    inicializar_config_io();
+    get_tipo_interfaz_with_config(config, interfaz);
 
     if (config_io == NULL) {
         log_error(logger, "Error al asignar memoria para config_io");
@@ -34,14 +30,14 @@ void cargar_configuraciones(char *config_path) {
 
     switch (interfaz->tipo) {
         case GENERICA:
-            cargar_configuraciones_generica(config);
+            cargar_configuraciones_generica(config, config_io);
             break;
         case STDIN:
         case STDOUT:
-            cargar_configuraciones_std(interfaz->tipo, config);
+            cargar_configuraciones_std(interfaz->tipo, config,config_io);
             break;
         case DIALFS:
-            cargar_configuraciones_dialfs(config);
+            cargar_configuraciones_dialfs(config,config_io);
             break;
         default:
             log_error(logger, "Tipo de interfaz desconocido");
@@ -55,7 +51,7 @@ void cargar_configuraciones(char *config_path) {
     
 }
 
-void cargar_configuraciones_generica(t_config *config) {
+void cargar_configuraciones_generica(t_config *config, t_config_io* config_io) {
     char *configuraciones[] = {
         "TIEMPO_UNIDAD_UNIDAD",
         "IP_KERNEL",
@@ -63,12 +59,12 @@ void cargar_configuraciones_generica(t_config *config) {
         NULL
     };
 
-    validar_configuraciones(config, configuraciones);
+    //validar_configuraciones(config, configuraciones);
     configurar_valores_kernel(config_io, config);
     configurar_tiempo_unidad(config_io, config);
 }
 
-void cargar_configuraciones_std(tipo_interfaz tipo, t_config *config) {
+void cargar_configuraciones_std(tipo_interfaz tipo, t_config *config, t_config_io* config_io) {
     char *configuraciones[] = {
         "IP_KERNEL",
         "PUERTO_KERNEL",
@@ -77,7 +73,7 @@ void cargar_configuraciones_std(tipo_interfaz tipo, t_config *config) {
         NULL
     };
 
-    validar_configuraciones(config, configuraciones);
+    //validar_configuraciones(config, configuraciones);
     configurar_valores_kernel(config_io, config);
     configurar_valores_memoria(config_io, config);
 
@@ -89,7 +85,7 @@ void cargar_configuraciones_std(tipo_interfaz tipo, t_config *config) {
     configurar_tiempo_unidad(config_io, config);
 }
 
-void cargar_configuraciones_dialfs(t_config *config) {
+void cargar_configuraciones_dialfs(t_config *config, t_config_io* config_io) {
     char *configuraciones[] = {
         "TIEMPO_UNIDAD_TRABAJO",
         "IP_KERNEL",
@@ -102,14 +98,14 @@ void cargar_configuraciones_dialfs(t_config *config) {
         NULL
     };
 
-    validar_configuraciones(config, configuraciones);
+    //validar_configuraciones(config, configuraciones);
     configurar_tiempo_unidad(config_io, config);
     configurar_valores_kernel(config_io, config);
     configurar_valores_memoria(config_io, config);
     configurar_valores_dialfs(config_io, config);
 }
-void get_tipo_interfaz_with_config(t_config *config) {
-    char *tipo = config_get_string_value(config, "TIPO");
+void get_tipo_interfaz_with_config(t_config *config , t_interfaz* interfaz) {
+    char *tipo = config_get_string_value(config, "TIPO_INTERFAZ");
     interfaz->tipo = get_tipo_interfaz(tipo);
 }
 

@@ -1,19 +1,26 @@
 #include "main.h"
 
 
-void inicializar_config(t_config_memoria* config_memoria){
-    config_memoria = malloc(sizeof(t_config_memoria));
+// void inicializar_config(t_config_memoria* config_memoria){
+//     config_memoria = malloc(sizeof(t_config_memoria));
 
-    config_memoria->puerto_escucha = 0;
-    config_memoria->tam_memoria = 0;
-    config_memoria->tam_pagina = 0;
-    config_memoria->path_instrucciones = 0;
-    config_memoria->retardo_respuesta = 0;
-}
+//     config_memoria->puerto_escucha = 0;
+//     config_memoria->tam_memoria = 0;
+//     config_memoria->tam_pagina = 0;
+//     config_memoria->path_instrucciones = NULL;
+//     config_memoria->retardo_respuesta = 0;
+// }
 
 int main()
 {
-    t_config_memoria* config_memoria;
+    t_config_memoria* config_memoria = malloc(sizeof(t_config_memoria));
+    
+    config_memoria->puerto_escucha = 0;
+    config_memoria->tam_memoria = 0;
+    config_memoria->tam_pagina = 0;
+    config_memoria->path_instrucciones = NULL;
+    config_memoria->retardo_respuesta = 0;
+
     //Creando logger
     logger =  log_create("memoria.log","Memoria", 1, LOG_LEVEL_INFO);
 
@@ -23,7 +30,7 @@ int main()
 		return EXIT_FAILURE;
 	}
 
-    inicializar_config(config_memoria); // Inicializo la variable global config_memoria! -> No se si es la mejor forma de hacerlo!
+    //inicializar_config(config_memoria); // Inicializo la variable global config_memoria! -> No se si es la mejor forma de hacerlo!
    
     //Inicializamos conexiones
     if (cargar_configuraciones_memoria(config_memoria) != 1)

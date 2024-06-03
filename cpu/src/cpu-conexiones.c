@@ -10,19 +10,18 @@ void* generar_conexion_a_memoria(void* arg) {
 
     if (ip_memoria == NULL){
         log_error(logger, "IP_MEMORIA es NULL");
-        free(puerto_memoria); // Liberar memoria asignada por string_itoa
+        //free(puerto_memoria); // Liberar memoria asignada por string_itoa
         return NULL;
     }
-    
 
     md_memoria = crear_conexion("MEMORIA", ip_memoria, puerto_memoria); // No harcodearlo! Sino leerlo de kernel.config
-    free(puerto_memoria);
 
     if(md_memoria == -1) {
         log_error(logger, "No se pudo conectar a la memoria");
         return NULL;
     }
-    
+  
+    //log_info(logger, %s, md_memoria);
     config_cpu->SOCKET_MEMORIA = md_memoria;
     return NULL;
 }

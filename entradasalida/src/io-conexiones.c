@@ -1,15 +1,15 @@
 #include "io-conexiones.h"
 
-void interfaz_generar_conexiones_con() {
+void interfaz_generar_conexiones_con(t_interfaz* interfaz) {
     generar_conexiones_con_kernel(interfaz);
 
     if(interfaz->tipo != GENERICA)
-        generar_conexiones_con_memoria(interfaz);   
+    generar_conexiones_con_memoria(interfaz);   
 }
 
-void generar_conexiones_con_kernel() {
+void generar_conexiones_con_kernel(t_interfaz* interfaz) {
     int socket_kernel;
-
+    
     char *nombre_interfaz = interfaz->nombre;
     char *ip_kernel = interfaz->config->IP_KERNEL;
     char *puerto_kernel = interfaz->config->PUERTO_KERNEL;
@@ -19,7 +19,7 @@ void generar_conexiones_con_kernel() {
     interfaz->socket_with_kernel = socket_kernel;
 }
 
-void generar_conexiones_con_memoria() {
+void generar_conexiones_con_memoria(t_interfaz* interfaz) {
     int socket_memoria;
 
     char *nombre_interfaz = interfaz->nombre;

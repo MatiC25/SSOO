@@ -20,7 +20,8 @@
 			"type_traits": "c",
 			"utility": "c",
 			"buffer": "c",
-			"typeinfo": "c"
+			"typeinfo": "c",
+			"cstdlib": "c"
 		},
 		"C_Cpp.errorSquiggles": "disabled",
 	},
