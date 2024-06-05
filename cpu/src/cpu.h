@@ -10,6 +10,6 @@
 #include "cpu-conexiones.h"
 #include "cpu-ciclo-instrucciones.h"
 
-extern t_pcb* pcb;
+//extern t_pcb* pcb;
 extern t_config_cpu* config_cpu;
 #endif

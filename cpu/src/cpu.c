@@ -11,7 +11,7 @@ int main(void) {
     int md_cpu_it = 0;
     logger = log_create("CPUlog.log", "CPU", 1, LOG_LEVEL_INFO);
 
-    if (logger == NULL) {
+    if (!logger) {
 		perror("No se puedo encontrar el archivo");
 		return EXIT_FAILURE;
 	}

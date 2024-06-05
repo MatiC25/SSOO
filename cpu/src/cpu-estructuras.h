@@ -13,15 +13,32 @@ typedef struct {
     char *ALGORITMO_TLB;
     int SOCKET_MEMORIA;
     int SOCKET_DISPATCH;
+    int SOCKET_KERNEL;
+    int TAMANIO_MARCO;
 } t_config_cpu;
 
+typedef struct { 
+    int pid;
+    int program_counter; 
+    t_registro_cpu* registros;
+    t_list* tabla_cpu;
+}t_pcb_cpu;
 
+typedef struct {
+    int pid;
+    int nropagina;
+    int marco;
+    int contador; //Para el LRU 
+} t_tabla_de_paginas_cpu;
 
-// typedef struct {
-//     int tamano_pagina; 
-//     int num_pagina; //Puede ser floor 
-//     int desplazamiento;//puede ser floor
-//     int 
-// }t_mmu_cpu;
+typedef struct {
+    int num_pagina; 
+    int ofset;
+    int direccionFIsica;
+    int contador; //Para el saber cual es el ultirmo proceso
+}t_mmu_cpu;
+
+extern t_pcb_cpu* pcb;
+//extern t_mmu_cpu* mmu;
 
 #endif

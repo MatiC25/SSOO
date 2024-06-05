@@ -16,9 +16,19 @@ void send_instruccion(int socket_cliente, char *instruccion, t_list *parametros)
 //     return instruccion;
 // }
 
+int recv_pagina(int socket_cliente){
+    int tamanio;
+    int marco;
+    recv(socket_cliente,tamanio,sizeof(int),MSG_WAITALL);
+    void* buffer = recibir_buffer(&tamanio, socket_cliente);
+    memcpy(&marco,buffer,sizeof(int));
+    free(buffer);
+    return marco;
+}
+
 
 t_instruccion* recv_instruccion(int socket_cliente){
-       int tamanio;
+    int tamanio;
     t_instruccion *instruccion = malloc(sizeof(t_instruccion));
     recv(socket_cliente,&tamanio,sizeof(int),MSG_WAITALL);
 
@@ -59,7 +69,7 @@ t_instruccion* recv_instruccion(int socket_cliente){
 
 
 void solicitar_instruccion(int socket_server, int PID, int program_counter) {
-    t_paquete *paquete = crear_paquete(SOLICITAR_INSTRUCCION);
+    t_paquete *paquete = crear_paquete(INSTRUCCION);
     agregar_a_paquete(paquete, &PID, sizeof(int));
     agregar_a_paquete(paquete, &program_counter, sizeof(int));
     enviar_paquete(paquete, socket_server);

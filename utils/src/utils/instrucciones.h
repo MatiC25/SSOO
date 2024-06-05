@@ -39,19 +39,21 @@ typedef enum {
 // } t_instruccion;
 
 typedef struct {  
-    char opcode;
-    char parametro1;
-    char parametro2;
-    char parametro3;
-    char parametro4;
+    char* opcode;
+    char* parametro1;
+    char* parametro2;
+    char* parametro3;
+    char* parametro4;
+    char* parametro5;
     int long_opcode;
     int long_par1;
     int long_par2;
     int long_par3;
     int long_par4;
+    int long_par5;
 } t_instruccion;
 
-
+int recv_pagina(int socket_cliente);
 void send_instruccion(int socket_cliente, char *instruccion, t_list *parametros);
 t_instruccion* recv_instruccion(int socket_cliente);
 void solicitar_instruccion(int socket_server, int PID, int program_counter);
