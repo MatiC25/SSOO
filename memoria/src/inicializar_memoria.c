@@ -111,11 +111,8 @@ void* escuchar_peticiones(void* args){
         case ACCEDER_TABLA_PAGINAS: 
             obtener_marco(socket_cliente);
             break;
-        case AMPLIACION_MEMORIA:
-            ampliar_memoria(socket_cliente, config_memoria->retardo_respuesta);
-            break;
-        case REDUCIR_MEMORIA:
-            reducir_memoria(socket_cliente, config_memoria->retardo_respuesta);
+        case MODIFICAR_TAMAÑO_MEMORIA:
+            modificar_tamaño_memoria(socket_cliente, config_memoria->retardo_respuesta);
             break;
         case ACCESO_A_LECTURA:
             acceso_lectura(socket_cliente);

@@ -18,5 +18,6 @@
 #include "inicializar_memoria.h"
 
 
+extern bool bitmap[cant_marcos];
 
 #endif // MAIN_H

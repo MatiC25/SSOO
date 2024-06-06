@@ -38,13 +38,12 @@ int main()
     //Creamos el diccionario de paginas por PID 
     diccionario_paginas_porPID = dictionary_create();
 
-    //Creamos la tabla de marcos
-    int cant_marcos = tam_memoria / tam_pagina;
 
-    bool bitmap[cant_marcos]=NULL
+    void* espacio_de_usuario = malloc(config_memoria->tam_memoria);
 
-    //tabla_marcos = list_create();
+    int cant_marcos = config_memoria->tam_memoria / config_memoria->tam_pagina;
 
+    t_bitarray* bitmap = bitarray_create_with_mode(user_space,cant_marcos/8,LSB_FIRST);
 
     //Inicializamos los marcos
     inicializar_marcos(cant_marcos);

@@ -30,8 +30,17 @@ typedef enum { //podemos juntar todos los procesos
     CREAR_INTERFAZ,
     FINQUANTUM,
     FIN_EJECUCION,
+    INICIAR_PROCESO,
+    FINALIZAR_PROCESO,
+    ACCEDER_TABLA_PAGINAS,
+    MODIFICAR_TAMAÑO_MEMORIA,
+    ACCESO_A_LECTURA,
+    ACCESO_A_ESCRITURA,
+    OUT_OF_MEMORY,
 // ----------------
-} op_code;
+}
+
+
 
 typedef struct
 {

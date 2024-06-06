@@ -14,13 +14,13 @@
 #include <utils/protocolo.h>
 #include <pthread.h>
 #include <utils/logger.h>
+#include <memoria/main.h>
 
 
 void crear_proceso(socket_cliente);
 void terminar_proceso(socket_cliente);
 void obtener_marco(socket_cliente);
-void ampliar_memoria(socket_cliente, config_memoria->retardo_respuesta);
-void reducir_memoria(socket_cliente, config_memoria->retardo_respuesta);
+void modificar_tamaño_memoria(socket_cliente, config_memoria->retardo_respuesta);
 void acceso_lectura(socket_cliente);
 void acceso_escrituratura(socket_cliente);
 
