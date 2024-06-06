@@ -9,6 +9,7 @@
 #include <stdbool.h>
 #include <commons/temporal.h>
 #include "kernel-init.h"
+#include <protocolo.h>
 
 extern pthread_mutex_t mutex_estado_block;
 extern pthread_mutex_t mutex_estado_ready;
@@ -20,10 +21,13 @@ extern sem_t habilitar_corto_plazo;
 extern sem_t hay_en_estado_ready;
 extern sem_t hay_en_estado_new;
 extern sem_t hay_en_estado_new;
+extern sem_t pcb_ya_recibido;
+extern sem_t nuevo_pcb_a_ejecutar;
 
+void informar_a_memoria_creacion_proceso(char* archivo_de_proceso, int pid);
+void informar_a_memoria_liberacion_proceso(int);
 void creacion_proceso();
 void agregar_a_cola_estado_new(t_pcb* proceso);
-void agregar_a_cola_ready();
 int generar_pid_unico();
 void inicializacion_semaforos();
 void elegir_algoritmo_corto_plazo();

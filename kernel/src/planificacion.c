@@ -10,6 +10,7 @@ void inicializacion_semaforos() {
     sem_init(&hay_en_estado_ready, 0, 0);
     sem_init(&hay_en_estado_new, 0, 0);
     sem_init(&limite_grado_multiprogramacion, 0, 10);
+    sem_init(&pcb_ya_recibido, 0, 0);
 }
 
 
@@ -19,8 +20,13 @@ int generar_pid_unico() {
 }
 
 
-void informar_a_memoria(char** archivo_de_proceso, int pid){
-    enviar_mensaje(archivo_de_proceso, get_socket_memoria());
+void informar_a_memoria_creacion_proceso(char* archivo_de_proceso, int pid){
+    t_paquete* paquete = crear_paquete(PSEUDOCODIGO);
+
+    agregar_a_paquete_string(paquete, archivo_de_proceso, strlen(archivo_de_proceso) + 1);
+    agregar_a_paquete(paquete, pid, sizeof(pid));
+
+    enviar_paquete(paquete, config_kernel->SOCKET_MEMORIA);
 }
 
 
@@ -28,38 +34,25 @@ void creacion_proceso() {
     t_pcb* pcb = malloc(sizeof(t_pcb)); 
     
     if (pcb == NULL) {
-        log_error(logger, "Error al asignar memoria a la creacion de PCB");
+        log_error(logger, "Error al asignar memoria a la creación de PCB");
         return;
     }
 
-    // Inicializamos;
     pcb->pid = generar_pid_unico();
-    pcb->registros = malloc(sizeof(t_registro_cpu));
+    pcb->registros = calloc(1, sizeof(t_registro_cpu));  // Usar calloc para inicializar los registros a 0
     if (pcb->registros == NULL) {
         log_error(logger, "Error al asignar memoria a los registros del proceso");
         free(pcb);
         return;
     }
 
-    pcb->registros->AX = 0;
-    pcb->registros->BX = 0;
-    pcb->registros->CX = 0;
-    pcb->registros->DI = 0;
-    pcb->registros->DX = 0;
-    pcb->registros->EAX = 0;
-    pcb->registros->EBX = 0;
-    pcb->registros->ECX = 0;
-    pcb->registros->EDX = 0;
-    pcb->registros->PC = 0;
-    pcb->registros->SI = 0;
-
     pcb->estado = NEW;
     pcb->program_counter = 0;
     
     log_info(logger, "Se crea el proceso %i en NEW", pcb->pid);
     agregar_a_cola_estado_new(pcb);
-    informar_a_memoria("/path/.../operaciones", pcb->pid); // Notificación de creación de nuevo proceso
-}
+    informar_a_memoria_creacion_proceso("/path/.../operaciones", pcb->pid);
+} 
 
 
 void agregar_a_cola_estado_new(t_pcb* proceso) { //NEW
@@ -71,7 +64,7 @@ void agregar_a_cola_estado_new(t_pcb* proceso) { //NEW
 }
 
 
-void agregar_a_cola_ready() {
+void* agregar_a_cola_ready() {
     while (1) {
         sem_wait(&hay_en_estado_new);
         sem_wait(&limite_grado_multiprogramacion);
@@ -86,6 +79,7 @@ void agregar_a_cola_ready() {
         sem_post(&habilitar_corto_plazo);
         sem_post(&hay_en_estado_ready);
     }
+    return NULL;
 }
 
 
@@ -120,16 +114,30 @@ t_pcb* obtener_siguiente_a_ready() {
     pthread_mutex_lock(&mutex_estado_new);
     t_pcb* pcb = list_remove(cola_new, 0);
     pcb->estado = READY;
+    log_info(logger, "PID: %i - Estado Anterior: NEW - Estado Actual: READY", pcb->pid);
     pthread_mutex_unlock(&mutex_estado_new);
     return pcb;
 }
 
 
+void informar_a_memoria_liberacion_proceso(int pid) {
+    t_paquete* paquete = crear_paquete(FINALIZAR_PROCESO);
+    agregar_a_paquete(paquete, pid, sizeof(int));
+    enviar_paquete(paquete, config_kernel->SOCKET_MEMORIA);
+    eliminar_paquete(paquete); 
+    //NO SE SI DEBERIA ESPERAR A QUE MEMORIA ME DE EL OK PARA BORRAR EL PROCESO
+}
+
+
 void finalizar_proceso(t_pcb* proceso, const char* motivo){
     log_info(logger, "Proceso %i finalizado. Motivo: %s", proceso->pid, motivo);
+
+    informar_a_memoria_liberacion_proceso(proceso -> pid);
+
     liberar_proceso(proceso);
     sem_post(&limite_grado_multiprogramacion);
 }
+
 
 void liberar_proceso(t_pcb* proceso) {
     free(proceso -> registros);
@@ -149,18 +157,11 @@ void elegir_algoritmo_corto_plazo() {
 }
 
 
-// void hilo_planificador_largoplazo() {
-//     pthread_t hilo_p_largo;
-//     pthread_create(&hilo_p_largo, NULL, hilo_planificador_largoplazo, NULL);
-//     pthread_detach(hilo_p_largo); // Detach para evitar necesidad de join, hace q los hilos sean independientes y libera los recursos una vez terminada la ejecucion del mismo
-// }
-
-
-// void* planificacion_largoplazo() {
-//     agregar_a_cola_ready();
-//     finalizar_proceso();
-//     return NULL;
-// }
+void hilo_planificador_largoplazo() {
+    pthread_t hilo_p_largo;
+    pthread_create(&hilo_p_largo, NULL, agregar_a_cola_ready, NULL);
+    pthread_detach(hilo_p_largo); // Detach para evitar necesidad de join, hace q los hilos sean independientes y libera los recursos una vez terminada la ejecucion del mismo
+}
 
 
 void hilo_planificador_cortoplazo_fifo() {
@@ -179,6 +180,7 @@ void hilo_planificador_cortoplazo_RoundRobin() {
 
 void* planificador_cortoplazo_fifo(void* arg) {
     while (1) {
+        sem_wait(&nuevo_pcb_a_ejecutar); // Una vez se gestiona el desalojo (exit, io, wait o signal)
         sem_wait(&habilitar_corto_plazo);
         sem_wait(&hay_en_estado_ready);
 
@@ -189,6 +191,7 @@ void* planificador_cortoplazo_fifo(void* arg) {
         proceso_actual->estado = EXEC;
         log_info(logger, "PID: %i - Estado Anterior: READY - Estado Actual: EXEC", proceso_actual->pid);
         enviar_proceso_a_cpu(proceso_actual);
+
     }
     return NULL;
 }
@@ -196,9 +199,9 @@ void* planificador_cortoplazo_fifo(void* arg) {
 
 void* planificador_corto_plazo_RoundRobin(void* arg) {
     while (1) {
+        sem_wait(&nuevo_pcb_a_ejecutar);
         sem_wait(&habilitar_corto_plazo);
         sem_wait(&hay_en_estado_ready);  // Espera hasta que haya procesos en READY
-
         pthread_mutex_lock(&mutex_estado_ready);
         t_pcb* proceso_actual = list_remove(cola_ready, 0);  // Extraer el primer proceso en READY
         pthread_mutex_unlock(&mutex_estado_ready);
@@ -215,26 +218,10 @@ void* planificador_corto_plazo_RoundRobin(void* arg) {
                 finalizar_proceso(proceso_actual, "Error al crear hilo del quantum");
             }
 
-            // Recibir el contexto de ejecución, bloqueante. Cuando llega, rompe el timer
-            t_pcb* contexto = rcv_contexto_ejecucion(config_kernel->SOCKET_DISPATCH);
-            if (!contexto) {
-                log_error(logger, "Error al recibir el contexto de ejecución para el proceso %d", proceso_actual->pid);
-                pthread_cancel(hilo_quantum);
-                pthread_join(hilo_quantum, NULL);
-                finalizar_proceso(proceso_actual, "Error al recibir contexto de ejecución");
-            }
-
-            // Si el proceso regresa antes de que el quantum termine, cancelamos el hilo del quantum
+            sem_wait(&pcb_ya_recibido); // Una vez se recibe el pcb, se habiltia a romper los hilos
             pthread_cancel(hilo_quantum);
-            log_info(logger, "PID: %i - Desalojado por fin de Quantum", proceso_actual->pid);
             pthread_join(hilo_quantum, NULL);  // Esperar a que el hilo del quantum termine y liberar sus recursos
 
-            // Reinsertar el proceso en la cola de READY
-            pthread_mutex_lock(&mutex_estado_ready);
-            list_add(cola_ready, contexto);
-            pthread_mutex_unlock(&mutex_estado_ready);
-
-            sem_post(&hay_en_estado_ready);  // Indicar que hay un proceso en READY nuevamente
         } else {
             sem_post(&habilitar_corto_plazo);  // Rehabilitar el planificador si no se encontró un proceso
         }
@@ -358,3 +345,13 @@ void prevent_from_memory_leaks() {
 
 // Kernel:
 
+
+
+            // // Recibir el contexto de ejecución, bloqueante. Cuando llega, rompe el timer
+            // t_pcb* contexto = rcv_contexto_ejecucion(config_kernel->SOCKET_DISPATCH);
+            // if (!contexto) {
+            //     log_error(logger, "Error al recibir el contexto de ejecución para el proceso %d", proceso_actual->pid);
+            //     pthread_cancel(hilo_quantum);
+            //     pthread_join(hilo_quantum, NULL);
+            //     finalizar_proceso(proceso_actual, "Error al recibir contexto de ejecución");
+            // }

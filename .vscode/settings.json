@@ -7,6 +7,8 @@
     "pthread.h": "c",
     "instrucciones.h": "c",
     "list.h": "c",
-    "queue.h": "c"
+    "queue.h": "c",
+    "kernel-peticiones-dispatch.h": "c",
+    "planificacion.h": "c"
   }
 }
