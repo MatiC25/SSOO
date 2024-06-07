@@ -31,7 +31,9 @@ typedef enum { //podemos juntar todos los procesos
    HANDSHAKEPAGINA,
    ACCEDER_TABLA_PAGINAS,
    ACCESO_A_LECTURA,
-   ACCESO_A_ESCRITURA
+   ACCESO_A_ESCRITURA,
+   OUT_OF_MEMORY,
+   AMPLIACION_MEMORIA
    
 // ----------------
 } op_code;

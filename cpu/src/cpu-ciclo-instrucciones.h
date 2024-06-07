@@ -14,27 +14,18 @@
 #include <utils/instrucciones.h>
 #include "cpu.h"
 #include "cpu-estructuras.h"
+#include "comunicaciones.h"
+#include "mmu.h"
+
 
 typedef enum{
     LRU,
     FIFO
 } t_algoritmo;
 
-int recv_escribir_memoria();
-void send_escribi_memoria(int direccionFIsica, int tamanio,int valor);
-void seguir_ciclo(int socket_cliente, int socket_server);
-void enviar_a_leer_memoria(int direccionFIsica, int tamanio);
-int recv_leer_memoria();
+void seguir_ciclo();
 int espacio_de_registro(char* registro);
-t_tabla_de_paginas_cpu* recv_tablas();
-void solicitar_tablas_a_memoria(int numero_pagina);
-void actualizar_lru_por_tlb(t_list* tlb, int numero_pagina);
-void actualizar_lru_por_fifo(t_list* tlb, int numero_pagina);
-t_tabla_de_paginas_cpu* buscarEnTLB(t_list* tablasCpu, int num_pagina);
-t_mmu_cpu* traducirDireccion(int direccionLogica);
-void solicitar_tablas_a_memoria(int numero_pagina);
 void tengoAlgunaInterrupcion();
-t_pcb_cpu* rcv_contexto_ejecucion_cpu(int socket_cliente);
 void iniciar_ciclo_de_ejecucion(int socket_server ,int socket_cliente);
 void ejecutar_ciclo_instrucciones(int socket_cliente, int socket_server);
 void fecth(int socket_server);
@@ -49,5 +40,9 @@ void enviar_pcb_a_kernel(t_paquete* paquete_a_kernel);
 void ejecutar_IO_GEN_SLEEP(char* interfazAUsar, char* tiempoDeTrabajo);
 void ejecutar_MOV_IN(char* RegistroDatos, char* RegistroDireccion);
 void ejecutar_MOV_OUT(char* RegistroDatos, char* RegistroDireccion);
+void ejecutar_RESIZE(char* tamanio);
+void ejecutar_COPY_STRING(char* tamanio);
+void ejecutar_WAIT(char* recurso);
+void ejecutar_SINGAL(char* recurso);
 
 #endif
