@@ -20,7 +20,9 @@
 			"type_traits": "c",
 			"utility": "c",
 			"buffer": "c",
-			"typeinfo": "c"
+			"typeinfo": "c",
+			"limits": "c",
+			"*.tcc": "c"
 		},
 		"C_Cpp.errorSquiggles": "disabled",
 	},

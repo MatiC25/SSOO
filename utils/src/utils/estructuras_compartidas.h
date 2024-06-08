@@ -44,17 +44,22 @@ typedef enum {
 typedef struct { // PCB de un proceso 
     int pid;
     int program_counter; 
-    int quantum; 
+    int64_t quantum; 
     t_registro_cpu* registros;
     int estado;
 }t_pcb;
 
 typedef enum {
-    IO,
+    INSTRUCCION_IO,
     FIN_QUANTUM,
     WAIT,
     SIGNAL,
-    FIN_EJECUCION,
+    FIN_DE_PROCESO,
+    OUT_OF_MEMORY,
+    IO_INVALIDA,
+    RECURSO_INVALIDO,
+    INTERRUPTED_BY_USER,
+    SUCCESS
 } tipo_desalojo;
 
 typedef enum {

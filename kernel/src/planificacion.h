@@ -21,8 +21,8 @@ extern sem_t habilitar_corto_plazo;
 extern sem_t hay_en_estado_ready;
 extern sem_t hay_en_estado_new;
 extern sem_t hay_en_estado_new;
-extern sem_t pcb_ya_recibido;
-extern sem_t nuevo_pcb_a_ejecutar;
+extern sem_t cortar_sleep;
+extern sem_t desalojo_proceso;
 
 void informar_a_memoria_creacion_proceso(char* archivo_de_proceso, int pid);
 void informar_a_memoria_liberacion_proceso(int);
