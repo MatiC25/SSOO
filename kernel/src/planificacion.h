@@ -16,6 +16,7 @@ extern pthread_mutex_t mutex_estado_ready;
 extern pthread_mutex_t mutex_estado_new;
 extern pthread_mutex_t mutex_estado_exec;
 extern pthread_mutex_t mutex_cola_priori_vrr;
+extern pthread_mutex_t mutex_proceso_exec;
 extern sem_t limite_grado_multiprogramacion;
 extern sem_t habilitar_corto_plazo;
 extern sem_t hay_en_estado_ready;
@@ -24,6 +25,9 @@ extern sem_t hay_en_estado_new;
 extern sem_t cortar_sleep;
 extern sem_t desalojo_proceso;
 
+extern t_pcb* proceso_en_exec;
+
+void mover_procesos_a_bloqueado(t_pcb* proceso);
 void informar_a_memoria_creacion_proceso(char* archivo_de_proceso, int pid);
 void informar_a_memoria_liberacion_proceso(int);
 void creacion_proceso();

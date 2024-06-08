@@ -16,8 +16,8 @@ typedef struct {
     char *IP_CPU;
     char *ALGORITMO_PLANIFICACION;
     int QUANTUM;
-    char **RECURSOS;
-    int *INST_RECURSOS;
+    char **RECURSOS; // Lista de recursos
+    int *INST_RECURSOS; // Lista de cantidad de recursos
     int GRADO_MULTIP;
     int SOCKET_DISPATCH;
     int SOCKET_INTERRUPT;

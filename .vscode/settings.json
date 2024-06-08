@@ -9,6 +9,8 @@
     "list.h": "c",
     "queue.h": "c",
     "kernel-peticiones-dispatch.h": "c",
-    "planificacion.h": "c"
+    "planificacion.h": "c",
+    "dictionary.h": "c",
+    "logger.h": "c"
   }
 }

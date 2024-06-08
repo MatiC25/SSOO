@@ -6,14 +6,15 @@
 #include <utils/protocolo.h>
 #include "kernel-config.h"
 #include "planificacion.h"
-typedef struct {
-    tipo_desalojo desalojo;
-    void* (*funcion)(void*); // Firma de las funciones!
-} COMMAND;
 
-extern COMMAND diccionario_peticiones[];
-
-// Funciones que ejecutan las peticiones:
-void* peticion_IO(t_pcb *pcb);
+void hilo_motivo_de_desalojo();
+void* escuchar_peticiones_dispatch();
+const char* transformar_motivos_a_exit(tipo_desalojo *motivo_inicial);
+void peticion_fin_quantum();
+void peticion_exit(const char* tipo_de_exit);
+void peticion_wait();
+void peticion_signal();
+void peticion_IO();
+t_pcb* recibir_contexto_y_recurso();
 
 #endif // KERNEL_PETICIONES_DISPATCH_H

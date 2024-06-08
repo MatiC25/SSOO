@@ -40,7 +40,6 @@ void cargar_configuraciones(t_config_kernel* config_kernel, char *path_config) {
 		log_info(logger, "No se pudo abrir el archivo de configuraciones!");
 
 		exit(-1);
-	}
 
 	char *configuraciones[] = {
 		"PUERTO_ESCUCHA",
@@ -69,6 +68,7 @@ void cargar_configuraciones(t_config_kernel* config_kernel, char *path_config) {
 
 	info_config(config);
 }
+}
 
 // Funciones para cargar valores:
 
@@ -89,8 +89,23 @@ void cargar_valores_de_planificacion(t_config *config, t_config_kernel *config_k
 }
 
 void cargar_valores_de_recursos(t_config *config, t_config_kernel *config_kernel) {
-	crear_vector_dinamico_char(&config_kernel->RECURSOS, config_get_array_value(config, "RECURSOS"));
-	crear_vector_dinamico_int(&config_kernel->INST_RECURSOS, config_get_array_value(config, "INSTANCIAS_RECURSOS"));
+    char **recursos = config_get_array_value(config, "RECURSOS");
+    char **instancias_str = config_get_array_value(config, "INSTANCIAS_RECURSOS");
+
+    config_kernel->RECURSOS = list_create();
+    config_kernel->INST_RECURSOS = list_create();
+
+    for (int i = 0; recursos[i] != NULL && instancias_str[i] != NULL; i++) {
+        list_add(config_kernel->RECURSOS, strdup(recursos[i])); // Añadir el nombre del recurso
+
+        int instancias = atoi(instancias_str[i]); // Convertir la cadena a entero
+        int *instancia = malloc(sizeof(int));
+        *instancia = instancias;
+        list_add(config_kernel->INST_RECURSOS, instancia); // Añadir el número de instancias
+    }
+
+    liberar_array(recursos);
+    liberar_array(instancias_str);
 }
 
 void cargar_valores_de_grado_multiprogramacion(t_config *config, t_config_kernel *config_kernel) {
