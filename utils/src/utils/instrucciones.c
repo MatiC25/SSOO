@@ -29,41 +29,67 @@ int recv_pagina(int socket_cliente){
 
 t_instruccion* recv_instruccion(int socket_cliente){
     int tamanio;
-    t_instruccion *instruccion = malloc(sizeof(t_instruccion));
-    recv(socket_cliente,&tamanio,sizeof(int),MSG_WAITALL);
-
-    void* buffer = recibir_buffer(&tamanio,socket_cliente);
-
-    memcpy(&instruccion, buffer, sizeof(t_instruccion));
-    
-    
-    free(buffer);
-
- 
-   
-   
     // t_instruccion *instruccion = malloc(sizeof(t_instruccion));
+    // recv(socket_cliente,&tamanio,sizeof(int),MSG_WAITALL);
+
+    // void* buffer = recibir_buffer(&tamanio,socket_cliente);
+
+    // memcpy(&instruccion, buffer, sizeof(t_instruccion));
     
-    // if (recv(socket_cliente,&instruccion->opcode,instruccion->long_opcode,MSG_WAITALL)<= 0 ){
-    //     free(instruccion);
-    //     return NULL;
-    // }
-    // if (recv(socket_cliente,&instruccion->parametro1,instruccion->long_par1,MSG_WAITALL)<= 0 ){
-    //     free(instruccion);
-    //     return NULL;
-    // }
-    // if (recv(socket_cliente,&instruccion->parametro2,instruccion->long_par2,MSG_WAITALL)<= 0 ){
-    //     free(instruccion);
-    //     return NULL;
-    // }
-    // if (recv(socket_cliente,&instruccion->parametro3,instruccion->long_par3,MSG_WAITALL)<= 0 ){
-    //     free(instruccion);
-    //     return NULL;
-    // }
-    // if (recv(socket_cliente,&instruccion->parametro4,instruccion->long_par4,MSG_WAITALL)<= 0 ){
-    //     free(instruccion);
-    //     return NULL;
-    // }
+    
+    // free(buffer);
+
+ t_instruccion* instruccion = malloc(sizeof(t_instruccion));
+if (instruccion == NULL){
+    log_error(logger,"Error al asignar memoria");
+}
+
+int size;
+int desplazamiento = 0;
+void* buffer = recibir_buffer(&size, socket_cliente);
+if (buffer == NULL) {
+        log_error(logger, "Error al recibir el buffer del socket");
+        free(instruccion);
+}
+//No se si esta bien poner size_t
+    memcpy(&(instruccion->long_opcode), buffer+desplazamiento,sizeof(size_t)); 
+    desplazamiento += sizeof(size_t);
+    instruccion->opcode = malloc(instruccion->long_opcode);
+    memcpy(instruccion->opcode,buffer+desplazamiento, instruccion->long_opcode);
+    desplazamiento += instruccion->long_opcode;
+
+    memcpy(&(instruccion->long_par1), buffer+desplazamiento,sizeof(size_t)); 
+    desplazamiento += sizeof(size_t);
+    instruccion->parametro1 = malloc(instruccion->long_par1);
+    memcpy(instruccion->parametro1,buffer+desplazamiento, instruccion->long_par1);
+    desplazamiento += instruccion->long_par1;
+
+    memcpy(&(instruccion->long_par2), buffer+desplazamiento,sizeof(size_t)); 
+    desplazamiento += sizeof(size_t);
+    instruccion->parametro2 = malloc(instruccion->long_par2);
+    memcpy(instruccion->parametro2,buffer+desplazamiento, instruccion->long_par2);
+    desplazamiento += instruccion->long_par2;
+
+    memcpy(&(instruccion->long_par3), buffer+desplazamiento,sizeof(size_t)); 
+    desplazamiento += sizeof(size_t);
+    instruccion->parametro3 = malloc(instruccion->long_par3);
+    memcpy(instruccion->parametro3,buffer+desplazamiento, instruccion->long_par3);
+    desplazamiento += instruccion->long_par3;
+
+    memcpy(&(instruccion->long_par4), buffer+desplazamiento,sizeof(size_t)); 
+    desplazamiento += sizeof(size_t);
+    instruccion->parametro4 = malloc(instruccion->long_par4);
+    memcpy(instruccion->parametro4,buffer+desplazamiento, instruccion->long_par4);
+    desplazamiento += instruccion->long_par4;
+
+    memcpy(&(instruccion->long_par5), buffer+desplazamiento,sizeof(size_t)); 
+    desplazamiento += sizeof(size_t);
+    instruccion->parametro5 = malloc(instruccion->long_par5);
+    memcpy(instruccion->parametro5,buffer+desplazamiento, instruccion->long_par5);
+    desplazamiento += instruccion->long_par5;
+
+
+
     return instruccion;
 }
 
@@ -108,7 +134,7 @@ t_tipo_instruccion obtener_tipo_instruccion(char *instruccion) {
     }else if(strcmp(instruccion, "IO_FS_TRUNCATE") == 0) {
         return IO_FS_TRUNCATE;
     }else if(strcmp(instruccion, "IO_FD_WRITE") == 0) {
-        return IO_FD_WRITE;
+        return IO_FS_WRITE;
     }else if(strcmp(instruccion, "IO_GEN_SLEEP") == 0) {
         return IO_GEN_SLEEP;
     }else if(strcmp(instruccion, "IO_FS_READ") == 0) {

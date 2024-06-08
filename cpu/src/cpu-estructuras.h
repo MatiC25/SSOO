@@ -14,7 +14,7 @@ typedef struct {
     int SOCKET_MEMORIA;
     int SOCKET_DISPATCH;
     int SOCKET_KERNEL;
-    int TAMANIO_MARCO;
+    int TAMANIO_PAGINA;
 } t_config_cpu;
 
 typedef struct { 
@@ -32,10 +32,10 @@ typedef struct {
 } t_tabla_de_paginas_cpu;
 
 typedef struct {
-    int num_pagina; 
+    t_list* num_pagina; 
     int ofset;
-    int direccionFIsica;
-    int contador; //Para el saber cual es el ultirmo proceso
+    t_list* direccionFIsica;
+    t_list* tamanio;
 }t_mmu_cpu;
 
 extern t_pcb_cpu* pcb;

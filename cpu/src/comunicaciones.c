@@ -1,5 +1,38 @@
 #include "comunicaciones.h"
 
+char* comunicaciones_con_memoria_lectura(t_mmu_cpu* mmu){
+    char* valor;
+    while (list_is_empty(mmu->direccionFIsica)){
+        int direccionFIsicaa = (int)(intptr_t)list_remove(mmu->direccionFIsica,0);
+        int tamanio = (int)(intptr_t)list_remove(mmu->tamanio, 0);
+        enviar_a_leer_memoria(pcb->pid,direccionFIsicaa, tamanio); 
+        valor = recv_leer_memoria(tamanio); 
+    }
+    return valor;
+}
+
+int comunicaciones_con_memoria_escritura(t_mmu_cpu* mmu, char* valor){
+    int verificador;
+    int desplazamiento = 0;
+    int valor_lenght = strlen(valor);
+    while (list_is_empty(mmu->direccionFIsica)){
+        int direccionFIsicaa = (int)(intptr_t)list_remove(mmu->direccionFIsica,0);
+        int tamanio = (int)(intptr_t)list_remove(mmu->tamanio, 0);
+        if (desplazamiento < valor_lenght){
+            send_escribi_memoria(pcb->pid,direccionFIsicaa, tamanio, valor + desplazamiento);
+            desplazamiento +=  tamanio;
+        }
+        verificador = recv_escribir_memoria();
+        if (verificador != 1){
+            log_error(logger,"Error en memoria  direccion fisica :%d", direccionFIsicaa);
+            return -1;
+        }
+    }
+    return verificador;
+}
+
+
+
 t_pcb_cpu* rcv_contexto_ejecucion_cpu(int socket_cliente) {
     
     t_pcb_cpu* proceso = (t_pcb_cpu*)malloc(sizeof(t_pcb_cpu));
@@ -107,23 +140,23 @@ void enviar_a_leer_memoria(int pid,int direccionFIsica, int tamanio){
     eliminar_paquete(solicitud_lectura);
 }
 
-int recv_leer_memoria(){
-    int valor,size;
+char* recv_leer_memoria(int tamanio){
+    int size;
+    char* valor;
     void* buffer = recibir_buffer(&size, config_cpu->SOCKET_MEMORIA);
     if (buffer == NULL) {
         log_error(logger, "Error al recibir el buffer del socket");
         exit(-1);
     }
-    memcpy(&valor, buffer, sizeof(int));
+    memcpy(&valor, buffer, tamanio);
     return valor;
 }   
 
-void send_escribi_memoria(int pid,int direccionFIsica, int tamanio,int valor){
+void send_escribi_memoria(int pid,int direccionFIsica, int tamanio,char* valor){
     t_paquete* solicitud_escritura = crear_paquete(ACCESO_A_ESCRITURA);
     agregar_a_paquete(solicitud_escritura, &pid ,sizeof(int));
     agregar_a_paquete(solicitud_escritura, &direccionFIsica,sizeof(int));
-    agregar_a_paquete(solicitud_escritura, &tamanio,sizeof(int));
-    agregar_a_paquete(solicitud_escritura, &valor,sizeof(int));
+    agregar_a_paquete(solicitud_escritura, &valor, tamanio);
     enviar_paquete(solicitud_escritura, config_cpu->SOCKET_MEMORIA);
     eliminar_paquete(solicitud_escritura);
 }
@@ -167,11 +200,11 @@ t_tabla_de_paginas_cpu* recv_tablas(){
         free(tabla);
         return NULL;
     }
-    memcpy(&tabla->pid, buffer + desplazamiento, sizeof(int));
-    desplazamiento += sizeof(int);
+    // memcpy(&tabla->pid, buffer + desplazamiento, sizeof(int));
+    // desplazamiento += sizeof(int);
 
-    memcpy(&tabla->nropagina, buffer + desplazamiento, sizeof(int));
-    desplazamiento += sizeof(int);
+    // memcpy(&tabla->nropagina, buffer + desplazamiento, sizeof(int));
+    // desplazamiento += sizeof(int);
 
     memcpy(&tabla->marco, buffer + desplazamiento, sizeof(int));
     desplazamiento += sizeof(int);
@@ -219,3 +252,14 @@ char* recv_escribir_memoria_string(int tamanio){
     memcpy(&valor, buffer, tamanio);
     return valor;
 }   
+
+void solicitar_a_kernel_std(char* interfaz ,int tamanio, t_list* direcciones_fisicas,t_paquete* solicitar_std){
+    agregar_a_paquete(solicitar_std,&interfaz,strlen(interfaz) * sizeof(char));
+    agregar_a_paquete(solicitar_std,&tamanio, sizeof(int));
+    while (list_is_empty(direcciones_fisicas)){
+        int* direccion_fisica = (int*)list_remove(direcciones_fisicas, 0);
+        agregar_a_paquete(solicitar_std, direccion_fisica, sizeof(int));
+        free(direccion_fisica);
+    }
+    enviar_pcb_a_kernel(solicitar_std);   
+}

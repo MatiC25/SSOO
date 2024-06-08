@@ -41,7 +41,7 @@ void generar_handshake_para_pagina(int socket, char *server_name, char *ip, char
 
     if(!result){ 
         log_info(logger, "Handshake exitoso con %s", server_name);
-        config_cpu->TAMANIO_MARCO = recv_pagina(config_cpu->SOCKET_MEMORIA);
+        config_cpu->TAMANIO_PAGINA = recv_pagina(config_cpu->SOCKET_MEMORIA);
     }else {
         log_error(logger, "Error en el handshake con %s", server_name);
         exit(EXIT_FAILURE);

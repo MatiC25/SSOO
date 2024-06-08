@@ -153,7 +153,6 @@ void ejecutar_instruccion(int socket_cliente) {
             break;
         case IO_GEN_SLEEP:
            ejecutar_IO_GEN_SLEEP(instruccion->parametro1,instruccion->parametro2);
-           //Tipo desalojo IO
             log_info(logger,"Instruccion Ejecutada: PID: %d- Ejecutando: %s -%s %s", pcb->pid,instruccion->opcode,instruccion->parametro1,instruccion->parametro2);
             break;
         case MOVE_IN:
@@ -181,31 +180,31 @@ void ejecutar_instruccion(int socket_cliente) {
             log_info(logger,"Instruccion Ejecutada: PID: %d- Ejecutando: %s -%s", pcb->pid,instruccion->opcode,instruccion->parametro1);
             break;
         case IO_STDIN_READ:
-            //ejecutar_IO_STDIN_READ(/*INTERFAZ*/, t_instrucciones->registroDireccion,t_instrucciones->registroTamanio);
-            log_info(logger,"Instruccion Ejecutada: PID: %d- Ejecutando: %s -%s %s", pcb->pid,instruccion->opcode,instruccion->parametro1,instruccion->parametro2);
+            ejecutar_IO_STDIN_READ(instruccion->parametro1, instruccion->parametro2,instruccion->parametro3);
+            log_info(logger,"Instruccion Ejecutada: PID: %d- Ejecutando: %s -%s %s %s", pcb->pid,instruccion->opcode,instruccion->parametro1,instruccion->parametro2, instruccion->parametro3);
         case IO_STDOUT_WRITE:
-            //ejecutar_IO_STDOUT_WRITE(/*INTERFAZ*/,t_instrucciones->registroDireccion, t_instrucciones->registroTamanio);
-            log_info(logger,"Instruccion Ejecutada: PID: %d- Ejecutando: %s -%s %s", pcb->pid,instruccion->opcode,instruccion->parametro1,instruccion->parametro2);
+            ejecutar_IO_STDOUT_WRITE(instruccion->parametro1, instruccion->parametro2,instruccion->parametro3);
+            log_info(logger,"Instruccion Ejecutada: PID: %d- Ejecutando: %s -%s %s %s", pcb->pid,instruccion->opcode,instruccion->parametro1,instruccion->parametro2, instruccion->parametro3);
             break;
         case IO_FS_CREATE:
-            //ejecutar_IO_FS_CREATE(/*INTERFAZ*/, t_instrucciones->nombreArchivo);
+            ejecutar_IO_FS_CREATE(instruccion->parametro1,instruccion->parametro2);
             log_info(logger,"Instruccion Ejecutada: PID: %d- Ejecutando: %s -%s %s", pcb->pid,instruccion->opcode,instruccion->parametro1,instruccion->parametro2);
             break;
         case IO_FS_DELETE:
-            //ejecutar_IO_FS_DELETE(/*INTERFAZ*/, t_instrucciones->nombreArchivo);
+            ejecutar_IO_FS_DELETE(instruccion->parametro1,instruccion->parametro2);
             log_info(logger,"Instruccion Ejecutada: PID: %d- Ejecutando: %s -%s %s", pcb->pid,instruccion->opcode,instruccion->parametro1,instruccion->parametro2);
             break;
         case IO_FS_TRUNCATE:
-            //ejecutar_IO_FS_TRUNCATE(/*INTERFAZ*/, t_instrucciones->nombreArchivo);
-            log_info(logger,"Instruccion Ejecutada: PID: %d- Ejecutando: %s -%s %s", pcb->pid,instruccion->opcode,instruccion->parametro1,instruccion->parametro2);
+            ejecutar_IO_FS_TRUNCATE(instruccion->parametro1, instruccion->parametro2,instruccion->parametro3);
+            log_info(logger,"Instruccion Ejecutada: PID: %d- Ejecutando: %s -%s %s %s", pcb->pid,instruccion->opcode,instruccion->parametro1,instruccion->parametro2, instruccion->parametro3);
             break;
-        case IO_FD_WRITE:
-            //ejecutar_IO_FD_WRITE(/*INTERFAZ*/, t_instrucciones->nombreArchivo,t_instrucciones->registroDireccion,t_instrucciones->registroTamanio,t_instrucciones->registroPuntero);
-            log_info(logger,"Instruccion Ejecutada: PID: %d- Ejecutando: %s -%s %s", pcb->pid,instruccion->opcode,instruccion->parametro1,instruccion->parametro2);
+        case IO_FS_WRITE:
+            ejecutar_IO_FD_WRITE(instruccion->parametro1,instruccion->parametro2,instruccion->parametro3,instruccion->parametro4,instruccion->parametro5);
+            log_info(logger,"Instruccion Ejecutada: PID: %d- Ejecutando: %s -%s %s %s %s %s", pcb->pid,instruccion->opcode,instruccion->parametro1,instruccion->parametro2,instruccion->parametro3,instruccion->parametro4,instruccion->parametro5);
             break;       
          case IO_FS_READ:
-            //ejecutar_IO_FS_READ(/*INTERFAZ*/, t_instrucciones->nombreArchivo,t_instrucciones->registroDireccion,t_instrucciones->registroTamanio,t_instrucciones->registroPuntero);
-            log_info(logger,"Instruccion Ejecutada: PID: %d- Ejecutando: %s -%s %s", pcb->pid,instruccion->opcode,instruccion->parametro1,instruccion->parametro2);
+            ejecutar_IO_FS_READ(instruccion->parametro1,instruccion->parametro2,instruccion->parametro3,instruccion->parametro4,instruccion->parametro5);
+            log_info(logger,"Instruccion Ejecutada: PID: %d- Ejecutando: %s -%s %s %s %s %s", pcb->pid,instruccion->opcode,instruccion->parametro1,instruccion->parametro2,instruccion->parametro3,instruccion->parametro4,instruccion->parametro5);
             break;
         default:
         log_error(logger, "Operacion desconocida");          
@@ -263,26 +262,26 @@ void ejecutar_JNZ(char* registro, char* valor){
 
 void ejecutar_IO_GEN_SLEEP(char* interfazAUsar, char* tiempoDeTrabajo){
     t_paquete* paquete_a_kernel = crear_paquete(OPERACION_IO);
-    agregar_a_paquete(paquete_a_kernel, &interfazAUsar, sizeof(char*));
-    agregar_a_paquete(paquete_a_kernel, &tiempoDeTrabajo, sizeof(char*));
+    agregar_a_paquete(paquete_a_kernel, &interfazAUsar, strlen(interfazAUsar) * sizeof(char));
+    agregar_a_paquete(paquete_a_kernel, &tiempoDeTrabajo, strlen(tiempoDeTrabajo) * sizeof(char));
 
     enviar_pcb_a_kernel(paquete_a_kernel);
     // Enviar_Dato_Por_Dispacht
 }
+
 
 void ejecutar_MOV_IN(char* registro_Datos, char* registro_Direccion){
     void* reg_Direccion = obtener_registro(registro_Direccion);
     void* reg_Datos   = obtener_registro(registro_Datos);
     uint32_t direcLogi = *(uint32_t*)reg_Direccion;
     int direccionLogica = (int)direcLogi;
-    t_mmu_cpu* mmu_mov_in = traducirDireccion(direccionLogica);
     int tamanio_registro = espacio_de_registro(registro_Datos);
+    t_mmu_cpu* mmu_mov_in = traducirDireccion(direccionLogica, tamanio_registro);
+    
+char* valor = comunicaciones_con_memoria_lectura(mmu_mov_in);
 
-    //Noc como hacer la verificacion ver despues 
-    enviar_a_leer_memoria(pcb->pid,mmu_mov_in->direccionFIsica, tamanio_registro); //Memoria me dijo que no hace falta el PID 
-    int valor = recv_leer_memoria();
-
-    operar_con_registros(reg_Datos,NULL,registro_Datos,"set",valor);
+    operar_con_registros(reg_Datos,NULL,registro_Datos,"set",atoi(valor));
+    free(valor);
     free(mmu_mov_in);
     void tengoAlgunaInterrupcion();
 }
@@ -292,28 +291,18 @@ void ejecutar_MOV_OUT(char* Registro_Datos, char* Registro_Direccion){
     void* reg_Datos = obtener_registro(Registro_Datos);
     uint32_t direcLogi = *(uint32_t*)reg_Direc;
     int direccionLogica = (int)direcLogi;
-    uint32_t valorr = *(uint32_t*)reg_Datos;
-    int valor = (int)valorr;
-    t_mmu_cpu* mmu_mov_in = traducirDireccion(direccionLogica);
-    int tamanio_registro = espacio_de_registro(Registro_Datos);
-
-    // t_paquete* solicitud_escritura = crear_paquete(ACCESO_A_ESCRITURA);
-    // while (tamanio_registro > config_cpu->TAMANIO_MARCO){
-    //     agregar_a_paquete(solicitud_escritura,&valor, config_cpu->TAMANIO_MARCO);
-    //     tamanio_registro --;
-    // }
-    // if (tamanio_registro != 0){
-    //     agregar_a_paquete(solicitud_escritura,&valor, tamanio_registro);
-    // }
+    char* valorr = (char*)reg_Datos;
     
-    send_escribi_memoria(pcb->pid,mmu_mov_in->direccionFIsica, tamanio_registro, valor); //Memoria me dijo que no hace falta el PID 
+    int tamanio_registro = espacio_de_registro(Registro_Datos);
+    t_mmu_cpu* mmu_mov_out = traducirDireccion(direccionLogica, tamanio_registro);
+    
     //Noc como hacer la verificacion ver despues 
-    if(recv_escribir_memoria() == 1){
+    if(comunicaciones_con_memoria_escritura(mmu_mov_out, valorr) == 1){
         log_info(logger,"Se puedo escribir correctamente");
     }else{
         log_error(logger,"No se pudo escribir en memoria");
     }
-    free(mmu_mov_in);
+    free(mmu_mov_out);
     tengoAlgunaInterrupcion();
 }
 
@@ -328,6 +317,7 @@ void ejecutar_RESIZE (char* tam){
         log_info(logger,"NO!! se pudo agrandar correctamente");
         t_paquete* paquete_a_kernel = crear_paquete(OUT_OF_MEMORY);
         enviar_pcb_a_kernel(paquete_a_kernel);
+        free(paquete_a_kernel);
     }
 }
 
@@ -339,39 +329,136 @@ void ejecutar_COPY_STRING(char* tam){
     uint32_t regSI = *(uint32_t*) registroSI;
     int registerSI = (int)regSI;
     uint32_t regDI = *(uint32_t*) registroDI;
-    t_mmu_cpu* mmu_copiar_string_SI = traducirDireccion(registerSI);
+    t_mmu_cpu* mmu_copiar_string_SI = traducirDireccion(registerSI, tamanio);
 
-    enviar_a_leer_memoria(pcb->pid,mmu_copiar_string_SI->direccionFIsica,tamanio);
-    char* valor = recv_escribir_memoria_string(tamanio);
+    char* valor = comunicaciones_con_memoria_lectura(mmu_copiar_string_SI);
     free(mmu_copiar_string_SI); 
 
     int registreDI = (int)regDI;
-    t_mmu_cpu* mmu_copiar_string_DI = traducirDireccion(registreDI);
+    t_mmu_cpu* mmu_copiar_string_DI = traducirDireccion(registreDI, tamanio);
 
-    send_escribi_memoria_string(pcb->pid,mmu_copiar_string_DI->direccionFIsica,tamanio, valor);
-        if(recv_escribir_memoria() == 1){
+        if(comunicaciones_con_memoria_escritura(mmu_copiar_string_DI, valor) == 1){
         log_info(logger,"Se puedo escribir correctamente");
     }else{
         log_error(logger,"No se pudo escribir en memoria");
     }
+    free(valor);
     free(mmu_copiar_string_DI);
     tengoAlgunaInterrupcion();
 }
 
 void ejecutar_WAIT(char* recurso){
     t_paquete* paquete_a_kernel = crear_paquete(WAIT);
-    agregar_a_paquete(paquete_a_kernel, &recurso, sizeof(char*));
+    agregar_a_paquete(paquete_a_kernel, &recurso, strlen(recurso) * sizeof(char));
     enviar_pcb_a_kernel(paquete_a_kernel);
+    eliminar_paquete(paquete_a_kernel);
 }
 
 void ejecutar_SINGAL(char* recurso){
     t_paquete* paquete_a_kernel = crear_paquete(SIGNAL);
-    agregar_a_paquete(paquete_a_kernel, &recurso, sizeof(char*));
+    agregar_a_paquete(paquete_a_kernel, &recurso, strlen(recurso) * sizeof(char));
     enviar_pcb_a_kernel(paquete_a_kernel);
+    eliminar_paquete(paquete_a_kernel);
 }
 
 
+void ejecutar_IO_STDIN_READ(char* interfaz, char* registro_direccion, char* registro_tamanio){
+    void* registroDireccion = obtener_registro(registro_direccion);
+    void* registroTamanio  = obtener_registro(registro_tamanio);
+    uint32_t regDireccion = *(uint32_t*) registroDireccion;
+    int reg_Direc = (int)regDireccion;
+    uint32_t regTamanio   = *(uint32_t*) registroTamanio; 
+    int reg_Tamanio = (int) regTamanio;
+    t_mmu_cpu * mmu_io_stdin_read = traducirDireccion(reg_Direc,reg_Tamanio);
+    t_paquete* paquete_std = crear_paquete(STDIN);
+    solicitar_a_kernel_std(interfaz,reg_Tamanio, mmu_io_stdin_read->direccionFIsica,paquete_std);  
+    free(mmu_io_stdin_read);
+}
+
+void ejecutar_IO_STDOUT_WRITE(char* interfaz, char* registro_direccion, char* registro_tamanio){
+    void* registroDireccion = obtener_registro(registro_direccion);
+    void* registroTamanio  = obtener_registro(registro_tamanio);
+    uint32_t regDireccion = *(uint32_t*) registroDireccion;
+    int reg_Direc = (int)regDireccion;
+    uint32_t regTamanio   = *(uint32_t*) registroTamanio; 
+    int reg_Tamanio = (int) regTamanio;
+    t_mmu_cpu * mmu_io_stdout_write = traducirDireccion(reg_Direc,reg_Tamanio);
+    t_paquete* paquete_std = crear_paquete(STDOUT);
+    solicitar_a_kernel_std(interfaz, reg_Tamanio,mmu_io_stdout_write->direccionFIsica,paquete_std);
+    free(mmu_io_stdout_write);
+}
 
 
+void ejecutar_IO_FS_CREATE(char* interfaz, char* nombre_archibo){
+    t_paquete* paquete_IO = crear_paquete(IO_FS_CREATE);
+    agregar_a_paquete(paquete_IO, &interfaz, strlen(interfaz) * sizeof(char));
+    agregar_a_paquete(paquete_IO, &nombre_archibo, strlen(nombre_archibo) * sizeof(char));
+    enviar_pcb_a_kernel(paquete_IO);
+}
+
+void ejecutar_IO_FS_DELETE(char* interfaz, char* nombre_archibo){
+    t_paquete* paquete_IO = crear_paquete(IO_FS_DELETE);
+    agregar_a_paquete(paquete_IO, &interfaz, strlen(interfaz) * sizeof(char));
+    agregar_a_paquete(paquete_IO, &nombre_archibo, strlen(nombre_archibo) * sizeof(char));
+    enviar_pcb_a_kernel(paquete_IO);
+}
+
+void ejecutar_IO_FS_TRUNCATE(char* interfaz, char* nombre_archivo, char* registro_tamanio){
+    void* registroTamanio  = obtener_registro(registro_tamanio);
+    uint32_t regTamanio   = *(uint32_t*) registroTamanio; 
+    int reg_Tamanio = (int) regTamanio;
+    t_paquete* paquete_IO = crear_paquete(IO_FS_TRUNCATE);
+    agregar_a_paquete(paquete_IO, &interfaz, strlen(interfaz) * sizeof(char));
+    agregar_a_paquete(paquete_IO, &nombre_archivo, strlen(nombre_archivo) * sizeof(char));
+    agregar_a_paquete(paquete_IO, &reg_Tamanio, sizeof(int));
+    enviar_pcb_a_kernel(paquete_IO);
+}
+
+void ejecutar_IO_FD_WRITE(char* interfaz, char* nombre_archivo, char* registro_direccion, char* registro_tamanio, char* registro_puntero_archivo){
+    void* registroDireccion = obtener_registro(registro_direccion);
+    uint32_t regDireccion = *(uint32_t*) registroDireccion;
+    int reg_Direc = (int)regDireccion;
+    void* registroTamanio  = obtener_registro(registro_tamanio);
+    uint32_t regTamanio   = *(uint32_t*) registroTamanio; 
+    int reg_Tamanio = (int) regTamanio;
+    void* registroArchivo  = obtener_registro(registro_puntero_archivo);
+    uint32_t regArchivo = *(uint32_t*) registroArchivo;
+    int reg_Archi = (int)regArchivo;
+    t_mmu_cpu * mmu_io_fs_write = traducirDireccion(reg_Direc,reg_Tamanio);
+    char* valor = comunicaciones_con_memoria_lectura(mmu_io_fs_write);
+    t_paquete* paquete_IO = crear_paquete(IO_FS_WRITE);
+    agregar_a_paquete(paquete_IO, &interfaz, strlen(interfaz) * sizeof(char));
+    agregar_a_paquete(paquete_IO, &nombre_archivo, strlen(nombre_archivo) * sizeof(char));
+    agregar_a_paquete(paquete_IO, &valor, strlen(valor) * sizeof(char));
+    agregar_a_paquete(paquete_IO, &reg_Tamanio, sizeof(int)); //Noc si hace falta
+    agregar_a_paquete(paquete_IO, &reg_Archi, sizeof(int)); //Porsicion en archivo 
+    enviar_pcb_a_kernel(paquete_IO);
+    free(mmu_io_fs_write);
+}
 
 
+void ejecutar_IO_FS_READ(char* interfaz, char* nombre_archivo, char* registro_direccion, char* registro_tamanio, char* registro_puntero_archivo){
+    void* registroDireccion = obtener_registro(registro_direccion);
+    uint32_t regDireccion = *(uint32_t*) registroDireccion;
+    int reg_Direc = (int)regDireccion;
+    void* registroTamanio  = obtener_registro(registro_tamanio);
+    uint32_t regTamanio   = *(uint32_t*) registroTamanio; 
+    int reg_Tamanio = (int) regTamanio;
+    void* registroArchivo  = obtener_registro(registro_puntero_archivo);
+    uint32_t regArchivo = *(uint32_t*) registroArchivo;
+    int reg_Archi = (int)regArchivo;
+    t_mmu_cpu * mmu_io_fs_read = traducirDireccion(reg_Direc,reg_Tamanio);
+    t_paquete* paquete_IO = crear_paquete(IO_FS_READ);
+    agregar_a_paquete(paquete_IO, &interfaz, strlen(interfaz) * sizeof(char));
+    agregar_a_paquete(paquete_IO, &nombre_archivo, strlen(nombre_archivo) * sizeof(char));
+    agregar_a_paquete(paquete_IO, &reg_Tamanio, sizeof(int));
+    agregar_a_paquete(paquete_IO, &reg_Archi, sizeof(int)); //Porsicion en archivo 
+       while (list_is_empty(mmu_io_fs_read->direccionFIsica)){
+        int* direccion_fisica = (int*)list_remove(mmu_io_fs_read->direccionFIsica, 0);
+        agregar_a_paquete(paquete_IO, direccion_fisica, sizeof(int));
+        free(direccion_fisica);
+    }
+    enviar_pcb_a_kernel(paquete_IO);
+    free(mmu_io_fs_read);
+
+}

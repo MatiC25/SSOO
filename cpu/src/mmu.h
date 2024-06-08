@@ -15,10 +15,10 @@
 #include "cpu.h"
 #include "cpu-estructuras.h"
 
-t_mmu_cpu* traducirDireccion(int direccionLogica);
+t_mmu_cpu* traducirDireccion(int direccionLogica , int tamanio);
 t_tabla_de_paginas_cpu* buscarEnTLB(t_list* tablasCpu, int num_pagina);
-void actualizar_lru_por_fifo(t_list* tlb, int numero_pagina);
-void actualizar_lru_por_tlb(t_list* tlb, int numero_pagina);
+void actualizar_TLB_por_fifo(t_list* tlb, int numero_pagina);
+void actualizar_Tlb_por_lru(t_list* tlb, int numero_pagina);
     
 
 #endif

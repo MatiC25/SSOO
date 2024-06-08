@@ -33,7 +33,7 @@ typedef enum { //podemos juntar todos los procesos
    ACCESO_A_LECTURA,
    ACCESO_A_ESCRITURA,
    OUT_OF_MEMORY,
-   AMPLIACION_MEMORIA
+   AMPLIACION_MEMORIA,
    
 // ----------------
 } op_code;

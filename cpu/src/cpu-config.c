@@ -12,7 +12,7 @@ t_config_cpu* inicializar_config(void) {
     config_cpu -> SOCKET_MEMORIA = -1;
     config_cpu -> SOCKET_DISPATCH = -1;
     config_cpu -> SOCKET_KERNEL = -1;
-    config_cpu -> TAMANIO_MARCO = -1;
+    config_cpu -> TAMANIO_PAGINA = -1;
 
     return config_cpu;
 }
