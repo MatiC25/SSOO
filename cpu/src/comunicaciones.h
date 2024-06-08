@@ -17,7 +17,7 @@
 
 void send_agrandar_memoria (int pid , int tamanio);
 int recv_agrandar_memoria();
-t_pcb_cpu* rcv_contexto_ejecucion_cpu(int socket_cliente);
+void enviar_pcb_a_kernel(t_paquete* paquete_a_kernel);
 void enviar_pcb_a_kernel(t_paquete* paquete_a_kernel);
 void enviar_a_leer_memoria(int pid,int direccionFIsica, int tamanio);
 char* recv_leer_memoria(int tamanio);

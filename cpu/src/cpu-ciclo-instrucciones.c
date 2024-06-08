@@ -26,7 +26,7 @@ void iniciar_ciclo_de_ejecucion(int socket_server ,int socket_cliente) {
 
 void ejecutar_ciclo_instrucciones(int socket_cliente, int socket_server) {
     
-    rcv_contexto_ejecucion_cpu(socket_cliente);
+    rcv_contexto_ejecucion(socket_cliente);
     seguir_ciclo(socket_cliente, socket_server);
 }   
 
@@ -349,15 +349,17 @@ void ejecutar_COPY_STRING(char* tam){
 
 void ejecutar_WAIT(char* recurso){
     t_paquete* paquete_a_kernel = crear_paquete(WAIT);
-    agregar_a_paquete(paquete_a_kernel, &recurso, strlen(recurso) * sizeof(char));
     enviar_pcb_a_kernel(paquete_a_kernel);
+    agregar_a_paquete(paquete_a_kernel, &recurso, strlen(recurso) * sizeof(char));
+    enviar_paquete(paquete_a_kernel, config_cpu->SOCKET_KERNEL);
     eliminar_paquete(paquete_a_kernel);
 }
 
 void ejecutar_SINGAL(char* recurso){
     t_paquete* paquete_a_kernel = crear_paquete(SIGNAL);
-    agregar_a_paquete(paquete_a_kernel, &recurso, strlen(recurso) * sizeof(char));
     enviar_pcb_a_kernel(paquete_a_kernel);
+    agregar_a_paquete(paquete_a_kernel, &recurso, strlen(recurso) * sizeof(char));
+    enviar_paquete(paquete_a_kernel, config_cpu->SOCKET_KERNEL);
     eliminar_paquete(paquete_a_kernel);
 }
 
@@ -372,6 +374,8 @@ void ejecutar_IO_STDIN_READ(char* interfaz, char* registro_direccion, char* regi
     t_mmu_cpu * mmu_io_stdin_read = traducirDireccion(reg_Direc,reg_Tamanio);
     t_paquete* paquete_std = crear_paquete(STDIN);
     solicitar_a_kernel_std(interfaz,reg_Tamanio, mmu_io_stdin_read->direccionFIsica,paquete_std);  
+    enviar_paquete(paquete_std, config_cpu->SOCKET_KERNEL);
+    eliminar_paquete(paquete_std);
     free(mmu_io_stdin_read);
 }
 
@@ -385,22 +389,29 @@ void ejecutar_IO_STDOUT_WRITE(char* interfaz, char* registro_direccion, char* re
     t_mmu_cpu * mmu_io_stdout_write = traducirDireccion(reg_Direc,reg_Tamanio);
     t_paquete* paquete_std = crear_paquete(STDOUT);
     solicitar_a_kernel_std(interfaz, reg_Tamanio,mmu_io_stdout_write->direccionFIsica,paquete_std);
+    enviar_paquete(paquete_std, config_cpu->SOCKET_KERNEL);
+    eliminar_paquete(paquete_std);
     free(mmu_io_stdout_write);
+    
 }
 
 
 void ejecutar_IO_FS_CREATE(char* interfaz, char* nombre_archibo){
     t_paquete* paquete_IO = crear_paquete(IO_FS_CREATE);
+    enviar_pcb_a_kernel(paquete_IO);
     agregar_a_paquete(paquete_IO, &interfaz, strlen(interfaz) * sizeof(char));
     agregar_a_paquete(paquete_IO, &nombre_archibo, strlen(nombre_archibo) * sizeof(char));
-    enviar_pcb_a_kernel(paquete_IO);
+    enviar_paquete(paquete_IO, config_cpu->SOCKET_KERNEL);
+    eliminar_paquete(paquete_IO); 
 }
 
 void ejecutar_IO_FS_DELETE(char* interfaz, char* nombre_archibo){
     t_paquete* paquete_IO = crear_paquete(IO_FS_DELETE);
+    enviar_pcb_a_kernel(paquete_IO);
     agregar_a_paquete(paquete_IO, &interfaz, strlen(interfaz) * sizeof(char));
     agregar_a_paquete(paquete_IO, &nombre_archibo, strlen(nombre_archibo) * sizeof(char));
-    enviar_pcb_a_kernel(paquete_IO);
+    enviar_paquete(paquete_IO, config_cpu->SOCKET_KERNEL);
+    eliminar_paquete(paquete_IO); 
 }
 
 void ejecutar_IO_FS_TRUNCATE(char* interfaz, char* nombre_archivo, char* registro_tamanio){
@@ -408,10 +419,12 @@ void ejecutar_IO_FS_TRUNCATE(char* interfaz, char* nombre_archivo, char* registr
     uint32_t regTamanio   = *(uint32_t*) registroTamanio; 
     int reg_Tamanio = (int) regTamanio;
     t_paquete* paquete_IO = crear_paquete(IO_FS_TRUNCATE);
+    enviar_pcb_a_kernel(paquete_IO);
     agregar_a_paquete(paquete_IO, &interfaz, strlen(interfaz) * sizeof(char));
     agregar_a_paquete(paquete_IO, &nombre_archivo, strlen(nombre_archivo) * sizeof(char));
     agregar_a_paquete(paquete_IO, &reg_Tamanio, sizeof(int));
-    enviar_pcb_a_kernel(paquete_IO);
+    enviar_paquete(paquete_IO, config_cpu->SOCKET_KERNEL);
+    eliminar_paquete(paquete_IO);
 }
 
 void ejecutar_IO_FD_WRITE(char* interfaz, char* nombre_archivo, char* registro_direccion, char* registro_tamanio, char* registro_puntero_archivo){
@@ -427,12 +440,14 @@ void ejecutar_IO_FD_WRITE(char* interfaz, char* nombre_archivo, char* registro_d
     t_mmu_cpu * mmu_io_fs_write = traducirDireccion(reg_Direc,reg_Tamanio);
     char* valor = comunicaciones_con_memoria_lectura(mmu_io_fs_write);
     t_paquete* paquete_IO = crear_paquete(IO_FS_WRITE);
+    enviar_pcb_a_kernel(paquete_IO);
     agregar_a_paquete(paquete_IO, &interfaz, strlen(interfaz) * sizeof(char));
     agregar_a_paquete(paquete_IO, &nombre_archivo, strlen(nombre_archivo) * sizeof(char));
     agregar_a_paquete(paquete_IO, &valor, strlen(valor) * sizeof(char));
     agregar_a_paquete(paquete_IO, &reg_Tamanio, sizeof(int)); //Noc si hace falta
     agregar_a_paquete(paquete_IO, &reg_Archi, sizeof(int)); //Porsicion en archivo 
-    enviar_pcb_a_kernel(paquete_IO);
+    enviar_paquete(paquete_IO, config_cpu->SOCKET_KERNEL);
+    eliminar_paquete(paquete_IO);
     free(mmu_io_fs_write);
 }
 
@@ -449,6 +464,7 @@ void ejecutar_IO_FS_READ(char* interfaz, char* nombre_archivo, char* registro_di
     int reg_Archi = (int)regArchivo;
     t_mmu_cpu * mmu_io_fs_read = traducirDireccion(reg_Direc,reg_Tamanio);
     t_paquete* paquete_IO = crear_paquete(IO_FS_READ);
+    enviar_pcb_a_kernel(paquete_IO);
     agregar_a_paquete(paquete_IO, &interfaz, strlen(interfaz) * sizeof(char));
     agregar_a_paquete(paquete_IO, &nombre_archivo, strlen(nombre_archivo) * sizeof(char));
     agregar_a_paquete(paquete_IO, &reg_Tamanio, sizeof(int));
@@ -458,7 +474,8 @@ void ejecutar_IO_FS_READ(char* interfaz, char* nombre_archivo, char* registro_di
         agregar_a_paquete(paquete_IO, direccion_fisica, sizeof(int));
         free(direccion_fisica);
     }
-    enviar_pcb_a_kernel(paquete_IO);
+    enviar_paquete(paquete_IO, config_cpu->SOCKET_KERNEL);
+    eliminar_paquete(paquete_IO);
     free(mmu_io_fs_read);
 
 }

@@ -123,11 +123,6 @@ void enviar_pcb_a_kernel(t_paquete* paquete_a_kernel){
     agregar_a_paquete(paquete_a_kernel, &pcb->registros->SI, sizeof(uint32_t));
     agregar_a_paquete(paquete_a_kernel, &pcb->registros->DI, sizeof(uint32_t));
 
-    // Enviar el paquete a la KERNEL
-    enviar_paquete(paquete_a_kernel,config_cpu->SOCKET_KERNEL);
-
-    // Liberar recursos del paquete
-    eliminar_paquete(paquete_a_kernel);
 }
 
 
@@ -254,6 +249,7 @@ char* recv_escribir_memoria_string(int tamanio){
 }   
 
 void solicitar_a_kernel_std(char* interfaz ,int tamanio, t_list* direcciones_fisicas,t_paquete* solicitar_std){
+    enviar_pcb_a_kernel(solicitar_std);   
     agregar_a_paquete(solicitar_std,&interfaz,strlen(interfaz) * sizeof(char));
     agregar_a_paquete(solicitar_std,&tamanio, sizeof(int));
     while (list_is_empty(direcciones_fisicas)){
@@ -261,5 +257,4 @@ void solicitar_a_kernel_std(char* interfaz ,int tamanio, t_list* direcciones_fis
         agregar_a_paquete(solicitar_std, direccion_fisica, sizeof(int));
         free(direccion_fisica);
     }
-    enviar_pcb_a_kernel(solicitar_std);   
 }
