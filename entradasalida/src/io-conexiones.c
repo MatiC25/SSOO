@@ -4,17 +4,16 @@ void interfaz_generar_conexiones_con(t_interfaz* interfaz) {
     generar_conexiones_con_kernel(interfaz);
 
     if(interfaz->tipo != GENERICA)
-    generar_conexiones_con_memoria(interfaz);   
+        generar_conexiones_con_memoria(interfaz);   
 }
 
 void generar_conexiones_con_kernel(t_interfaz* interfaz) {
     int socket_kernel;
-    
-    char *nombre_interfaz = interfaz->nombre;
+
     char *ip_kernel = interfaz->config->IP_KERNEL;
     char *puerto_kernel = interfaz->config->PUERTO_KERNEL;
 
-    generar_conexion(socket_kernel, nombre_interfaz, ip_kernel, puerto_kernel);
+    generar_conexion(&socket_kernel, "KERNEL", ip_kernel, puerto_kernel);
 
     interfaz->socket_with_kernel = socket_kernel;
 }
@@ -26,17 +25,25 @@ void generar_conexiones_con_memoria(t_interfaz* interfaz) {
     char *ip_memoria = interfaz->config->IP_MEMORIA;
     char *puerto_memoria = interfaz->config->PUERTO_MEMORIA;
 
-    generar_conexion(socket_memoria, nombre_interfaz, ip_memoria, puerto_memoria);
+    generar_conexion(&socket_memoria, nombre_interfaz, ip_memoria, puerto_memoria);
 
     interfaz->socket_with_memoria = socket_memoria;
 }
 
 void generar_conexion(int *socket, char *nombre_interfaz, char *ip, char *puerto) {
-    socket = crear_conexion(nombre_interfaz, ip, puerto);
+    *socket = crear_conexion(nombre_interfaz, ip, puerto);
 
-    if(socket == 0 || socket == -1)
+    if(*socket == 0 || *socket == -1)
         exit(EXIT_FAILURE);
 
-    generar_handshake(socket, nombre_interfaz, ip, puerto);
+    // generar_handshake(*socket, nombre_interfaz, ip, puerto);
 }
 
+void interfaz_conectar(t_interfaz * interfaz) {
+    t_paquete *paquete = crear_paquete(CREAR_INTERFAZ);
+    int socket_cliente = get_socket_kernel(interfaz);
+
+    agregar_a_paquete(paquete, &interfaz->tipo, sizeof(tipo_interfaz));
+    agregar_a_paquete_string(paquete, interfaz->nombre, strlen(interfaz->nombre) + 1);
+    enviar_paquete(paquete, socket_cliente);
+}

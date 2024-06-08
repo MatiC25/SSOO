@@ -12,6 +12,7 @@
 #include <utils/logger.h>
 
 // Funciones para el manejo de archivos de configuracion
+void validar_configuraciones(t_config *config, char *configuraciones[]);
 int tiene_todas_las_configuraciones(t_config* config, char* configs[]);
 int tiene_algun_algoritmo_de_planificacion(char* palabra);
 int tiene_algun_algoritmo_de_reemplazo(char* palabra);
@@ -31,6 +32,7 @@ void liberar_espacios_de_memoria(void** vector);
 
 // Funciones para el manejo de logs
 void info_config(t_config *config);
+
 
 
 #endif // SHARED_H

@@ -6,7 +6,7 @@
 #include <utils/logger.h>
 #include <utils/shared.h>
 #include <commons/config.h>
-#include "io.h"
+
 // Incluye las estructuras necesarias:
 #include "io-config.h"
 #include "io-estructuras.h"

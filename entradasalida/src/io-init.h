@@ -6,17 +6,15 @@
 #include <utils/logger.h>
 #include <commons/config.h>
 #include <utils/shared.h>
-#include "io.h"
+
 // Incluye las estructuras necesarias:
 #include "io-config.h"
 #include "io-estructuras.h"
 
-
-
 // Funciones para inicializar:
-void inicializar_interfaz(char *name_interfaz, char *config_path,t_interfaz* interfaz, t_config_io* config_io);
-//t_config_io *cargar_configuraciones(char *config_path);
-void cargar_configuraciones(char *config_path, t_interfaz* interfaz, t_config_io* config_io);
+t_interfaz *inicializar_interfaz(char *name_interfaz, char *config_path);
+t_config_io *cargar_configuraciones(char *config_path, t_interfaz *interfaz);
+
 // Funciones para cargar configuraciones correspondientes a cada tipo de interfaz:
 void cargar_configuraciones_generica(t_config *config, t_config_io* config_io);
 void cargar_configuraciones_std(tipo_interfaz tipo, t_config *config, t_config_io* config_io);

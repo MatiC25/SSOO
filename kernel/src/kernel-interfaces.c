@@ -91,32 +91,33 @@ interface_io *initialize_interface() {
     return interface;
 }
 
-char* reciv_mensj(int socket_cliente){
-	int size;
-	char *buffer = recibir_buffer(&size, socket_cliente);
-	return buffer;
-}
-
 void create_interface(int socket) {
-    char *interface_name = reciv_mensj(socket);
+    char *interface_name;
+    tipo_interfaz tipo;
+
+    // Inicializamos interfaz:
     interface_io *interface = initialize_interface();
+
+    // Recibimos los bytes de la interfaz:
+    recibir_interfaz(interface_name, &tipo, socket);
 
     // Seteamos nombre de la interfaz:
     set_name_interface(interface, interface_name);
 
     // Seteamos las operaciones validas:
-    tipo_interfaz tipo = recibir_tipo_interfaz(socket);
     set_valid_operations(interface, tipo);
 
     // Seteamos socket de la interfaz:
     set_socket_interface(interface, socket);
+
+    printf("%s",interface_name);
 
     // Agregamos interfaz al dccionario:
     sem_wait(&semaforo_interfaces);
     add_interface_to_dict(interface, interface_name);
     sem_post(&semaforo_interfaces);
 
-    create_consumer_thread(&interface_name);
+    create_consumer_thread(interface_name);
 }
 
 // Funciones de operaciones basicas de interfaz:
@@ -234,8 +235,19 @@ tipo_interfaz recibir_tipo_interfaz(int socket) {
     return tipo;
 }
 
-// Funciones de auxiliares:
-void get_args(t_pcb *pcb) {
-    
-    return dictionary_get;
+void recibir_interfaz(char *interface_name, tipo_interfaz *tipo, int socket) {
+    int size = 0;
+    int desplazamiento = 0;
+    int tamanio;
+    void *buffer = recibir_buffer(&size, socket);
+
+    memcpy(&tipo, buffer + desplazamiento, sizeof(tipo_interfaz));
+    desplazamiento += sizeof(tipo_interfaz);
+
+    memcpy(&tamanio, buffer + desplazamiento, sizeof(int));
+    desplazamiento += sizeof(int);
+    interface_name = malloc(tamanio);
+    memcpy(interface_name, buffer + desplazamiento, tamanio);
 }
+
+// Funciones de auxiliares:

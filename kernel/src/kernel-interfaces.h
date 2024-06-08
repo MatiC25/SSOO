@@ -1,14 +1,18 @@
 #ifndef KERNEL_INTERFACES_H
 #define KERNEL_INTERFACES_H
 
+
 #include <pthread.h>
 #include <semaphore.h>
-#include <commons/collections/queue.h>
 #include <commons/collections/list.h>
-#include <utils/estructuras_compartidas.h>
+#include <commons/collections/queue.h>
 #include <commons/collections/dictionary.h>
+#include <utils/estructuras_compartidas.h>
 #include <utils/protocolo.h>
+
+
 #include "kernel-estructuras.h"
+
 typedef struct {
     char *name;
     int SOCKET;
@@ -56,6 +60,6 @@ int acepta_operacion_interfaz(interface_io *interface, tipo_operacion operacion)
 // Funciones para recibir mensajes de la interfaz:
 tipo_operacion operacion_a_realizar(int socket);
 tipo_interfaz recibir_tipo_interfaz(int socket);
-char* reciv_mensj(int socket_cliente);
+void recibir_interfaz(char *interface_name, tipo_interfaz *tipo, int socket);
 
 #endif // KERNEL_INTERFACES_H
