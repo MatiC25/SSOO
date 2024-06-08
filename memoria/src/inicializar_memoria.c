@@ -1,5 +1,6 @@
 #include "inicializar_memoria.h"
 
+
 t_config_memoria* config_memoria; // Variable global
 //SEPARAR EN 2 
 //un archivo config y otro conexiones 
@@ -81,4 +82,3 @@ void cerrar_programa(t_config_memoria *config_memoria, int socket_server){
     config_destroy(config_memoria);
     close(socket_server);
 }
-

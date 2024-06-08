@@ -43,8 +43,6 @@ int main()
     void* espacio_de_usuario = malloc (config_memoria->TAM_MEMORIA); // reservamos memoria para el espacio de usuarip
     void* memoria_usuario_bitmap = malloc (cantidad_marcos/8);// reservamos memoria para el bitmap
     bitmap = bitarray_create_with_mode (memoria_usuario_bitmap , cantidad_marcos/8, LSB_FIRST);
-    //Inicializamos los marcos
-    inicializar_marcos(cant_marcos);
 
     return 0;
 }
