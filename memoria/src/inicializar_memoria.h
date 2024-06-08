@@ -15,6 +15,7 @@
 #include <utils/logger.h>
 #include <utils/protocolo.h>
 #include "instruc_memoria.h"
+#include "peticiones_memoria.h"
 
 typedef struct 
 {

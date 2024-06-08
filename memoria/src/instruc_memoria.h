@@ -16,9 +16,7 @@
 #include <utils/logger.h>
 #include <utils/instrucciones.h>
 
-extern t_dictionary* lista_instrucciones_porPID;
 
-extern char* path_proceso;
 
 void leer_archivoPseudo(int socket_kernel);
 char* crear_path_instrucciones(char* path_proceso, char* archivo_path);

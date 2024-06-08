@@ -2,6 +2,58 @@
 
 //Estructuras
 
+void* escuchar_peticiones(void* args){
+    t_procesar_server* args_hilo = (t_procesar_server*) args;
+    char* server_name = args_hilo->server_name;
+    int socket_cliente = args_hilo->socket_servidor;
+
+    while (1)
+    {
+        op_code cod_op = recibir_operacion(socket_cliente);
+        
+        switch (cod_op)
+        {
+        case HANDSHAKE:
+            saludo(socket_cliente);
+            break;
+        case PSEUDOCODIGO:
+            leer_archivoPseudo(socket_cliente);
+            break;
+        case INSTRUCCION: 
+            enviar_instruccion_a_cpu(socket_cliente, config_memoria->retardo_respuesta);
+            break;
+        case INICIAR_PROCESO: 
+            crear_proceso(socket_cliente);
+            break;
+        case FINALIZAR_PROCESO:
+            terminar_proceso(socket_cliente);
+            break;
+        case ACCEDER_TABLA_PAGINAS: 
+            obtener_marco(socket_cliente);
+            break;
+        case MODIFICAR_TAMAÑO_MEMORIA:
+            modificar_tamaño_memoria(socket_cliente, config_memoria->retardo_respuesta);
+            break;
+        case ACCESO_A_LECTURA:
+            acceso_lectura(socket_cliente);
+            break;
+        case ACCESO_A_ESCRITURA:
+            acceso_escrituratura(socket_cliente);
+            break;
+        default:
+            log_error(logger, "Operacion desconocida");
+            break;
+        }
+    }
+}
+
+
+
+
+
+
+
+
 //Funciones
 //Creacion / destruccion de Tabla de Paginas: "PID:" <PID> "- Tamanio:" <CANTIDAD_PAGINAS>
 void crear_proceso(socket_cliente){
@@ -48,32 +100,25 @@ void obtener_marco(socket_cliente);{
     t_tabla_pagina* entrada = list_get(tabla_de_paginas, pagina);  //Obtenemos la pagina requerida
  
     if(entrada->bit_validez == 1){ //fijarnos despues si vamos a usar bools o ints
-        // si la pagin a esta en los marcos, se la enviamos a cpu
+        // si la pagina existe, se la enviamos a cpu
         t_paquete* marco_paquete = crear_paquete();
         agregar_a_paquete(marco_paquete, entrada->marco, sizedof(int))
         enviar_paquete(marco_paquete, socket_cliente);
-    } //caso contrario hay que agregarla y enviar el mensaje
-    else{
-        int posicion_libre = obtener_marco_libre(bitmap, cant_marcos);
-        if (posicion_libre != -1){ //rebisamos si hay espacio para agregar la pagina
-            agregar_marco(pid, pagina, posicion_libre); //agregamos la pagina al marco
-            t_paquete* marco_paquete = crear_paquete();
-            agregar_a_paquete(marco_paquete, entrada->marco, sizedof(int))
-            enviar_paquete(marco_paquete, socket_cliente);
-        }
-        else{     //de no haberlo, se devolvemos OUT_OF_MEMORY a cpu y termianmos la instruccion
-            t_paquete* paquete = crear_paquete(OUT_OF_MEMORY);
-            agregar_a_paquete(error_paquete, "No hay marcos libres", sizedof("No hay marcos libres"));
-            enviar_paquete(error_paquete, socket_cliente);
-        }
+        log_info(logger, "PID: %c - Pagina: %d PAGINA> - %d <MARCO ,>" , pid, entrada->nro_pagina, entrada->marco);
+    } 
+    else{ //caso contrario enviamos el mensaje 
+        t_paquete* marco_paquete = crear_paquete();
+        agregar_a_paquete(marco_paquete, (-1) , sizedof(int))
+        enviar_paquete(marco_paquete, socket_cliente);
+        log_error(logger,"La pagina pedida no existe");
     }
     free(buffer);
 }
 
-int obtener_marco_libre(bool *bitmap[cant_marcos]){
-    for(int i = 0; i < cant_marcos; i++){
-        if(bitmap[i] == false){
-            bitmap[i] == true;
+int obtener_marco_libre(){
+    for(int i = 0; i < bitarray_get_max_bit(bitmap*); i++){
+        if(bitarray_test_bit(bitmap, i)  == false){
+            == true;
             return i;
         }
     }
@@ -124,3 +169,16 @@ void acceso_escritura(socket_cliente);{
             -> se devuelve error al que lo pida
             
 -> Se sigue con la ejecución de la instrucción
+
+  
+        int posicion_libre = obtener_marco_libre(bitmap, cant_marcos);
+        if (posicion_libre != -1){ //rebisamos si hay espacio para agregar la pagina
+            agregar_marco(pid, pagina, posicion_libre); //agregamos la pagina al marco
+            t_paquete* marco_paquete = crear_paquete();
+            agregar_a_paquete(marco_paquete, entrada->marco, sizedof(int))
+            enviar_paquete(marco_paquete, socket_cliente);
+        }
+        else{     //de no haberlo, se devolvemos OUT_OF_MEMORY a cpu y termianmos la instruccion
+            t_paquete* paquete = crear_paquete(OUT_OF_MEMORY);
+            agregar_a_paquete(error_paquete, "No hay marcos libres", sizeof("No hay marcos libres"));
+            enviar_paquete(error_paquete, socket_cliente);

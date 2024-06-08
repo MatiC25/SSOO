@@ -14,7 +14,7 @@
 #include <utils/protocolo.h>
 #include <pthread.h>
 #include <utils/logger.h>
-#include <memoria/main.h>
+#include "main.h"
 
 
 void crear_proceso(socket_cliente);

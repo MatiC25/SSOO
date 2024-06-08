@@ -38,16 +38,13 @@ int main()
     //Creamos el diccionario de paginas por PID 
     diccionario_paginas_porPID = dictionary_create();
 
-
-    void* espacio_de_usuario = malloc(config_memoria->tam_memoria);
-
-    int cant_marcos = config_memoria->tam_memoria / config_memoria->tam_pagina;
-
-    t_bitarray* bitmap = bitarray_create_with_mode(user_space,cant_marcos/8,LSB_FIRST);
-
+    // memoria de usuario y bitmap
+    int cantidad_marcos = config_memoria->TAM_MEMORIA / config_memoria->TAM_PAGINA; //calculamos la cantidad de marcos
+    void* espacio_de_usuario = malloc (config_memoria->TAM_MEMORIA); // reservamos memoria para el espacio de usuarip
+    void* memoria_usuario_bitmap = malloc (cantidad_marcos/8);// reservamos memoria para el bitmap
+    bitmap = bitarray_create_with_mode (memoria_usuario_bitmap , cantidad_marcos/8, LSB_FIRST);
     //Inicializamos los marcos
     inicializar_marcos(cant_marcos);
-
 
     return 0;
 }

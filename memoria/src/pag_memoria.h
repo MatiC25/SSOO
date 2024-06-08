@@ -18,13 +18,10 @@
 
 //Estructuras para paginacion simple
 
-typedef struct 
-{
+typedef struct {
     int nro_pagina;
     int marco;
     int bit_validez;
-    // bool presencia;
-    // bool modificado;
 } t_tabla_de_paginas;
 
 #endif // PAG_MEMORIA_H
