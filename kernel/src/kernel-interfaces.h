@@ -60,6 +60,6 @@ int acepta_operacion_interfaz(interface_io *interface, tipo_operacion operacion)
 // Funciones para recibir mensajes de la interfaz:
 tipo_operacion operacion_a_realizar(int socket);
 tipo_interfaz recibir_tipo_interfaz(int socket);
-void recibir_interfaz(char *interface_name, tipo_interfaz *tipo, int socket);
+void recibir_interfaz(char **interface_name, tipo_interfaz *tipo, int socket) ;
 
 #endif // KERNEL_INTERFACES_H

@@ -235,19 +235,18 @@ tipo_interfaz recibir_tipo_interfaz(int socket) {
     return tipo;
 }
 
-void recibir_interfaz(char *interface_name, tipo_interfaz *tipo, int socket) {
+void recibir_interfaz(char **interface_name, tipo_interfaz *tipo, int socket) {
     int size = 0;
     int desplazamiento = 0;
     int tamanio;
     void *buffer = recibir_buffer(&size, socket);
 
-    memcpy(&tipo, buffer + desplazamiento, sizeof(tipo_interfaz));
+    memcpy(tipo, buffer + desplazamiento, sizeof(tipo_interfaz));
     desplazamiento += sizeof(tipo_interfaz);
 
     memcpy(&tamanio, buffer + desplazamiento, sizeof(int));
     desplazamiento += sizeof(int);
-    interface_name = malloc(tamanio);
-    memcpy(interface_name, buffer + desplazamiento, tamanio);
+    *interface_name = malloc(tamanio);
+    memcpy(*interface_name, buffer + desplazamiento, tamanio);
 }
-
 // Funciones de auxiliares:
