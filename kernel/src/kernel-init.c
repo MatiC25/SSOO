@@ -24,8 +24,9 @@ void inicializar_lista(){
 
 void aceptar_interfaces(int socket_servidor) {
     pthread_t aceptar_interfaces_thread;
+    t_procesar_conexion *agrs = crear_procesar_conexion("KERNEL", socket_servidor);
 
-    pthread_create(&aceptar_interfaces_thread, NULL, handle_new_interface,(void *)socket_servidor);
+    pthread_create(&aceptar_interfaces_thread, NULL, (void *) handle_new_interface, (void *) agrs);
     pthread_join(aceptar_interfaces_thread, NULL);    
 }
 

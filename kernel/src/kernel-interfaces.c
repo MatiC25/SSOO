@@ -1,4 +1,5 @@
 #include "kernel-interfaces.h"
+
 t_dictionary *interfaces = NULL;
 t_dictionary *args_consumers = NULL;
 sem_t semaforo_interfaces;
@@ -6,19 +7,27 @@ sem_t semaforo_interfaces;
 // Funciones de manejo de interfaz desde el lado del kernel:
 
 void handle_new_interface(void* arg) {
-    int socket_servidor = (intptr_t) arg;
+    t_procesar_conexion *args = (t_procesar_server *) arg;
+    char *server_name = args->server_name;
+    int socket_server = args->socket_servidor;
 
-    while(1) {
-        pthread_t accept_interfaces_thread;
-        int socket_cliente = esperar_cliente("Interfaces", socket_servidor);
+    while (1) {
+        int socket_cliente = esperar_cliente(server_name, socket_server);
 
-        pthread_create(&accept_interfaces_thread, NULL, (void*)manage_interface, (void *)(intptr_t) socket_cliente); // Cambiado de "administrar_interfaz"
-        pthread_detach(accept_interfaces_thread);
+        if(socket_cliente != -1) {     
+			pthread_t hilo;
+			t_procesar_conexion *args_hilo = crear_procesar_conexion("IO", socket_cliente);
+      
+            pthread_create(&hilo, NULL, (void*) manage_interface, (void *) args_hilo);
+            pthread_detach(hilo);
+        }
     }
 }
 
-void manage_interface(void *socket_cliente) { 
-    int socket = (int) socket_cliente;
+void manage_interface(void* arg) { 
+    t_procesar_conexion *args = (t_procesar_conexion *) args;
+    int socket = args->socket_cliente;
+    char *server_name = args->server_name;
     int seguir = 1;
 
     while(seguir) {
