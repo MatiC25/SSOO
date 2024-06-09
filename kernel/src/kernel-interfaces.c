@@ -120,6 +120,7 @@ void create_interface(int socket) {
     set_socket_interface(interface, socket);
 
     printf("%s",interface_name);
+    printf("%i", tipo);
 
     // Agregamos interfaz al dccionario:
     sem_wait(&semaforo_interfaces);
@@ -249,7 +250,8 @@ void recibir_interfaz(char **interface_name, tipo_interfaz *tipo, int socket) {
     int desplazamiento = 0;
     int tamanio;
     void *buffer = recibir_buffer(&size, socket);
-
+    printf("tipo: %s, tam: %i, primeros: %c", tipo_interfaz_to_string(*buffer), *(buffer + sizeof(int)), *(buffer + sizeof(int)*2));
+    
     memcpy(tipo, buffer + desplazamiento, sizeof(tipo_interfaz));
     desplazamiento += sizeof(tipo_interfaz);
 

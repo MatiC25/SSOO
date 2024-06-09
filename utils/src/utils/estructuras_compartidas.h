@@ -71,7 +71,6 @@ typedef enum {
 
 // Funciones para creacion de estructuras compartidas:
 t_procesar_conexion* crear_procesar_conexion(char *server_name, int socket_cliente);
-
-
+char *tipo_interfaz_to_string(tipo_interfaz tipo);
 
 #endif //ESTRUCTURAS_SHARED_H_
