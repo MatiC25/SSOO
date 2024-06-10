@@ -175,3 +175,62 @@ void enviar_instruccion_a_cpu(int socket_cpu, int retardo_de_respuesta){
     enviar_paquete(paquete_de_instrucciones, socket_cpu);
     eliminar_paquete(paquete_de_instrucciones);
 }
+
+
+
+
+mmu->num_pagina = floor(direccionLogica / config_cpu->TAMANIO_PAGINA);
+agregar_cola(mmu->numero_pagina)
+    mmu->offset = direccionLogica - mmu->num_pagina * config_cpu->TAMANIO_PAG
+
+
+
+if()
+while(tam_pag < tam_dato){ //cuando el tamaño supera)
+    -> tam_dato - (tam - offset)
+    -> nueva_dl = direclogica + tam_dato // aca llegas al unicio de la sig pagina
+    -> numero_pagina = floor(nueva_dl/tam_pag)
+    -> agregar_cola(numero_pagina)
+}
+
+agregar_cola
+p3 p2 p1
+    pop(p1)
+    buscar_tlb()
+        if(true)
+        push(cola_marcos, p1)
+        pop(cola_paginas, p1)
+        if(false){
+            obtener_marco_memoria()
+            push(p1)
+            pop(cola_paginas, p1)
+        } 
+
+cola_marco
+mp3 mp2 mp1
+
+
+
+
+
+direc_fisica(tamaño, l)
+
+    
+
+sitemas
+operativos 
+2c
+
+operativos
+
+
+
+
+
+buscar_tlb()
+  ->pop(p1)
+  ->...
+  if(p1 ==)
+    -> push(p1->marco, cola_marco)
+
+

@@ -142,7 +142,7 @@ int resize_proceso(socket_cliente) {
     if (!tabla_de_paginas) {
         log_error(logger, "Error: No se encontró la tabla de páginas para el PID %d\n", pid);
         return -1;
-    }
+    } // CHEQUEAR ESTO
 
     // Calcular el número de páginas necesarias
     int num_paginas = ceil((double)tamanio_bytes / 4); // La funcion ceil redondea hacia arriba
@@ -182,8 +182,6 @@ int resize_proceso(socket_cliente) {
     return 1; // ta todo joya
 }
 
-
-
 //Acceso a Tabla de Paginas: "PID:" <PID> "- Pagina:" <PAGINA> "- Marco:" <MARCO>
 void obtener_marco(socket_cliente){
 
@@ -196,7 +194,7 @@ void obtener_marco(socket_cliente){
 	memcpy(&pagina, buffer + sizeof(int), sizeof(int));
 
     // Pasamos el pid a string xq dictionary_get recibe si o si un string
-    char* pid_string=string_itoa(pid)
+    char* pid_string = string_itoa(pid)
 
     t_tabla_pagina* tabla_de_paginas = dictionary_get(diccionario_paginas_porPID , pid_string); //Buscamos la tabla de paginas del PID requerido
     if (!tabla_de_paginas) {
@@ -236,8 +234,41 @@ void liberar_marco(int marco) {
 }
 
 //Acceso a espacio de usuario: "PID:" <PID> "- Accion:" <LEER / ESCRIBIR> "- Direccion fisica:" <DIRECCION_FISICA> "- Tamanio" <TAMANIO A LEER / ESCRIBIR>
-void acceso_lectura(socket_cliente);{
+void acceso_lectura(int socket_cliente) {
+    int size;
+    void* buffer = recibir_buffer(&size, socket_cliente);
+    
+    int desplazamiento = 0;
+    int pid;
+    int direc_fisica;
+    int tamanio_lectura;
 
+    // Deserializamos 
+    memcpy(&pid, buffer + offset, sizeof(int));
+    desplazamiento += sizeof(int);
+
+
+    memcpy(&direc_fisica, buffer + offset, sizeof(int));
+    desplazamiento += sizeof(int);
+
+    memcpy(&tamanio_lectura, buffer + offset, sizeof(int));
+    desplazamiento += sizeof(int);
+
+    // Asignar memoria para el contenido a leer
+    void* contenido_leer = malloc(tamanio_lectura);
+
+    // Realizar la lectura de la memoria
+    log_info(logger, "Acceso a espacio de usuario: PID: %d - Accion: LEER - Direccion fisica: %d", pid, direc_fisica);
+    memcpy(contenido_leer, espacio_usuario + direc_fisica, tamanio_lectura); // Copiamos el contenido
+
+    t_paquete* paquete = crear_paquete(LECTURA_EXITOSA);
+    agregar_a_paquete(paquete, contenido_leer, tamanio_lectura);
+
+    enviar_paquete(paquete, socket_cliente);
+
+    eliminar_paquete(paquete);
+    free(contenido_leer);
+    free(buffer);
 }
 
 void acceso_escritura(socket_cliente);{

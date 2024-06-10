@@ -26,6 +26,7 @@ typedef enum { //podemos juntar todos los procesos
     // EJECUTAR_INSTRUCCIONES
     INSTRUCCION,
     HANDSHAKE,
+    HANDSHAKE_PAGINA,
     OPERACION_IO,
     CREAR_INTERFAZ,
     FINQUANTUM,
