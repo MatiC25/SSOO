@@ -2,7 +2,7 @@
 
 //Estructuras
 
-void* escuchar_peticiones(void* args){
+void* escuchar_peticiones(void* args) {
     t_procesar_server* args_hilo = (t_procesar_server*) args;
     char* server_name = args_hilo->server_name;
     int socket_cliente = args_hilo->socket_servidor;
@@ -89,7 +89,7 @@ void crear_proceso(socket_cliente){
     t_list* tabla_de_paginas = list_create();
 
     // Agregar la tabla de páginas al diccionario
-    char* pid_string=string_itoa(pid)
+    char* pid_string = string_itoa(pid)
 
     dictionary_put(diccionario_paginas_porPID, pid_string, tabla_de_paginas);
 

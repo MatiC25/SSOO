@@ -31,7 +31,7 @@ int generar_pid_unico() {
 }
 
 
-void informar_a_memoria(char* archivo_de_proceso, int pid){
+void informar_a_memoria(char* archivo_de_proceso, int pid) {
     t_paquete* paquete = crear_paquete(PSEUDOCODIGO);
 
     agregar_a_paquete_string(paquete, archivo_de_proceso, strlen(archivo_de_proceso) + 1);
@@ -74,7 +74,7 @@ void creacion_proceso() {
     pcb->program_counter = 0;
     
     log_info(logger, "Se crea el proceso %i en NEW", pcb->pid);
-    agregar_a_cola_estado_new(pcb);
+    // agregar_a_cola_estado_new(pcb);
     informar_a_memoria("./script_io_basico_1", pcb->pid); // Notificación de creación de nuevo proceso
 }
 

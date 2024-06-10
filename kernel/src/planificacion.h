@@ -37,7 +37,7 @@ void mover_procesos_de_ready_a_bloqueado(t_pcb* proceso);
 void mover_procesos_de_bloqueado_a_ready(t_pcb* proceso);
 t_pcb* obtener_siguiente_a_ready();
 void* quantum_handler(void* arg);
-
+void informar_a_memoria(char* archivo_de_proceso, int pid);
 // void creacion_proceso(t_pcb* proceso_nuevo);
 // void agregar_a_cola_estado_new(t_pcb* proceso);
 // void agregar_a_cola_ready();
