@@ -1,7 +1,6 @@
 #include "cpu-ciclo-instrucciones.h"
 //BRANCH DE FEDE juntado con branch leo nico
 t_pcb_cpu* pcb;
-//t_mmu_cpu* mmu;
 int seguir_ejecutando;
 
 void iniciar_ciclo_de_ejecucion(int socket_server ,int socket_cliente) {
@@ -16,89 +15,24 @@ void iniciar_ciclo_de_ejecucion(int socket_server ,int socket_cliente) {
              case RECIBIR_PROCESO:
                 ejecutar_ciclo_instrucciones(socket_cliente, socket_server);
                 break;
-            case PAQUETE:
+            case HANDSHAKE:
+            log_info(logger, "Handshake exitoso con Interrupt");
                 break;
-            case INSTRUCCION:
-                break;
+        default:
+        log_error(logger, "Operacion desconocida");
        }
-    }
+    }   
 }
 
 void ejecutar_ciclo_instrucciones(int socket_cliente, int socket_server) {
     
-    rcv_contexto_ejecucion_cpu(socket_cliente);
-     
-        fecth(socket_server);
-        ejecutar_instruccion(socket_cliente);
+    rcv_contexto_ejecucion(socket_cliente);
+    seguir_ciclo(socket_cliente, socket_server);
 }   
 
-t_pcb_cpu* rcv_contexto_ejecucion_cpu(int socket_cliente) {
-    
-    t_pcb_cpu* proceso = malloc(sizeof(t_pcb_cpu));
-    if (proceso == NULL) {
-        log_error(logger, "Error al asignar memoria para el proceso");
-        return NULL;
-    }
-
-    proceso->registros = malloc(sizeof(t_registro_cpu));
-    if (proceso->registros == NULL) {
-        log_error(logger, "Error al asignar memoria para los registros del proceso");
-        free(proceso);
-        return NULL;
-    }
-
-    int size;
-    int desplazamiento = 0;
-    
-    void* buffer = recibir_buffer(&size, socket_cliente);
-    if (buffer == NULL) {
-        log_error(logger, "Error al recibir el buffer del socket");
-        free(proceso->registros);
-        free(proceso);
-        return NULL;
-    }
-
-    memcpy(&proceso->pid, buffer + desplazamiento, sizeof(int));
-    desplazamiento += sizeof(int);
-
-    memcpy(&proceso->program_counter, buffer + desplazamiento, sizeof(int));
-    desplazamiento += sizeof(int);
-
-    memcpy(&proceso->registros->PC, buffer + desplazamiento, sizeof(uint32_t));
-    desplazamiento += sizeof(uint32_t);
-
-    memcpy(&proceso->registros->AX, buffer + desplazamiento, sizeof(uint8_t));
-    desplazamiento += sizeof(uint8_t);
-
-    memcpy(&proceso->registros->BX, buffer + desplazamiento, sizeof(uint8_t));
-    desplazamiento += sizeof(uint8_t);
-
-    memcpy(&proceso->registros->CX, buffer + desplazamiento, sizeof(uint8_t));
-    desplazamiento += sizeof(uint8_t);
-
-    memcpy(&proceso->registros->DX, buffer + desplazamiento, sizeof(uint8_t));
-    desplazamiento += sizeof(uint8_t);
-
-    memcpy(&proceso->registros->EAX, buffer + desplazamiento, sizeof(uint32_t));
-    desplazamiento += sizeof(uint32_t);
-
-    memcpy(&proceso->registros->EBX, buffer + desplazamiento, sizeof(uint32_t));
-    desplazamiento += sizeof(uint32_t);
-
-    memcpy(&proceso->registros->ECX, buffer + desplazamiento, sizeof(uint32_t));
-    desplazamiento += sizeof(uint32_t);
-
-    memcpy(&proceso->registros->EDX, buffer + desplazamiento, sizeof(uint32_t));
-    desplazamiento += sizeof(uint32_t);
-
-    memcpy(&proceso->registros->SI, buffer + desplazamiento, sizeof(uint32_t));
-    desplazamiento += sizeof(uint32_t);
-
-    memcpy(&proceso->registros->DI, buffer + desplazamiento, sizeof(uint32_t));
-    desplazamiento += sizeof(uint32_t);
-
-    free(buffer);
-    return proceso;
+void seguir_ciclo(){
+    fecth(config_cpu->SOCKET_MEMORIA);
+    ejecutar_instruccion(config_cpu->SOCKET_KERNEL);
 }
 
 
@@ -136,14 +70,28 @@ void* obtener_registro (char *registro) {
         return NULL;
     }
 }
-void operar_registros(void* registro_destino, void* registro_origen, char* registro, char* operacion, int valor){
+
+int espacio_de_registro(char* registro){
+    if (strcmp(registro, "AX") == 0 || strcmp(registro, "BX") == 0|| strcmp(registro, "CX") == 0|| strcmp(registro, "DX") == 0){
+        return 8; //en bits
+    }else if (strcmp(registro, "PC") == 0 || strcmp(registro, "EAX") == 0|| strcmp(registro, "EBX") == 0 || strcmp(registro, "ECX") == 0 || strcmp(registro, "EDX") == 0 || strcmp(registro, "SI") == 0|| strcmp(registro, "DI") == 0){
+        return 32; //en bits
+    }else{
+        log_error(logger,"Error al calulcar el tamanio del registro");
+        return 0;
+    }
+}
+
+void operar_con_registros(void* registro_destino, void* registro_origen, char* registro, char* operacion, int valor){
     if (strcmp(registro, "AX") == 0 || strcmp(registro, "BX") == 0|| strcmp(registro, "CX") == 0|| strcmp(registro, "DX") == 0){
         if (strcmp(operacion, "+")){
             *(uint8_t*)registro_destino += *(uint8_t*) registro_origen;
         }else if (strcmp(operacion, "-")){
-            *(uint8_t*)registro_destino -= *(uint8_t*) registro_origen;
+            if(*(uint8_t*)registro_origen <= *(uint8_t*)registro_destino){
+                *(uint8_t*)registro_destino -= *(uint8_t*) registro_origen;
+            }else{log_error(logger,"Los registros negativos no se guardaran correctamente");}
         }else if(strcmp(operacion, "set")){
-            *(uint32_t*)registro_destino = valor;
+            *(uint8_t*)registro_destino = valor;
         }else{  
             log_error(logger, "los registros no son de 8 bits");
         }
@@ -151,7 +99,9 @@ void operar_registros(void* registro_destino, void* registro_origen, char* regis
         if (strcmp(operacion, "+")){
             *(uint32_t*)registro_destino += *(uint32_t*) registro_origen;
         }else if (strcmp(operacion, "-")){
+            if(*(uint32_t*)registro_origen <= *(uint32_t*)registro_destino){
             *(uint32_t*)registro_destino -= *(uint32_t*) registro_origen;
+            }else{log_error(logger,"Los registros negativos no se guardaran correctamente");}
         }else if(strcmp(operacion, "set")){
             *(uint32_t*)registro_destino = valor;
         }else{
@@ -161,46 +111,19 @@ void operar_registros(void* registro_destino, void* registro_origen, char* regis
         log_error(logger, "Registros desconocidos");
     }
     
-}
-
-void enviar_pcb_a_kernel(t_paquete* paquete_a_kernel){
     
-
-    // Agregar información del PCB al paquete
-    agregar_a_paquete(paquete_a_kernel, &pcb->pid, sizeof(int));
-    agregar_a_paquete(paquete_a_kernel, &pcb->program_counter, sizeof(int));
-
-    // Agregar los registros de la CPU al paquete individualmente
-    agregar_a_paquete(paquete_a_kernel, &pcb->registros->PC, sizeof(uint32_t));
-    agregar_a_paquete(paquete_a_kernel, &pcb->registros->AX, sizeof(uint8_t));
-    agregar_a_paquete(paquete_a_kernel, &pcb->registros->BX, sizeof(uint8_t));
-    agregar_a_paquete(paquete_a_kernel, &pcb->registros->CX, sizeof(uint8_t));
-    agregar_a_paquete(paquete_a_kernel, &pcb->registros->DX, sizeof(uint8_t));
-    agregar_a_paquete(paquete_a_kernel, &pcb->registros->EAX, sizeof(uint32_t));
-    agregar_a_paquete(paquete_a_kernel, &pcb->registros->EBX, sizeof(uint32_t));
-    agregar_a_paquete(paquete_a_kernel, &pcb->registros->ECX, sizeof(uint32_t));
-    agregar_a_paquete(paquete_a_kernel, &pcb->registros->EDX, sizeof(uint32_t));
-    agregar_a_paquete(paquete_a_kernel, &pcb->registros->SI, sizeof(uint32_t));
-    agregar_a_paquete(paquete_a_kernel, &pcb->registros->DI, sizeof(uint32_t));
-
-    // Enviar el paquete a la CPU
-    enviar_paquete(paquete_a_kernel,config_cpu->SOCKET_KERNEL);
-
-    // Liberar recursos del paquete
-    eliminar_paquete(paquete_a_kernel);
 }
 
-// int num_pagina(int direccion_logica, int tamano_pagina){
-
-//     return floor(direccion_logica / tamano_pagina);
-// }
-
-// int desplazamiento(int direccion_logica, int numero_pagina, int tamano_pagina){
-
-//     return (direccion_logica - numero_pagina * tamano_pagina);
-// }
-
-
+void tengoAlgunaInterrupcion(){
+    if (atomic_load(&interrupt_flag) == 1){
+    //Se recibio una interrupcion
+    t_paquete* paquete_a_kernel = crear_paquete(FINQUANTUM);
+    atomic_store(&interrupt_flag,0);
+    enviar_pcb_a_kernel(paquete_a_kernel);
+    }else{
+        seguir_ciclo();
+    }  
+}
 
 void ejecutar_instruccion(int socket_cliente) {
     t_instruccion *instruccion = recv_instruccion(socket_cliente);
@@ -230,77 +153,72 @@ void ejecutar_instruccion(int socket_cliente) {
             break;
         case IO_GEN_SLEEP:
            ejecutar_IO_GEN_SLEEP(instruccion->parametro1,instruccion->parametro2);
-           //Tipo desalojo IO
             log_info(logger,"Instruccion Ejecutada: PID: %d- Ejecutando: %s -%s %s", pcb->pid,instruccion->opcode,instruccion->parametro1,instruccion->parametro2);
             break;
         case MOVE_IN:
-           //ejecutar_MOV_IN(t_instrucciones->registroDireccion, t_instrucciones->registroDatos);
+            ejecutar_MOV_IN(instruccion->parametro1, instruccion->parametro2);
             log_info(logger,"Instruccion Ejecutada: PID: %d- Ejecutando: %s -%s %s", pcb->pid,instruccion->opcode,instruccion->parametro1,instruccion->parametro2);
             break;
         case MOV_OUT:
-           //ejecutar_MOV_OUT(t_instrucciones->registroDireccion, t_instrucciones->registroDatos);
+           ejecutar_MOV_OUT(instruccion->parametro1, instruccion->parametro2);
            log_info(logger,"Instruccion Ejecutada: PID: %d- Ejecutando: %s -%s %s", pcb->pid,instruccion->opcode,instruccion->parametro1,instruccion->parametro2);
             break;
         case RESIZE:
-            //ejecutar_MOV_OUT(tamanio);
-            log_info(logger,"Instruccion Ejecutada: PID: %d- Ejecutando: %s -%s %s", pcb->pid,instruccion->opcode,instruccion->parametro1,instruccion->parametro2);
+            ejecutar_RESIZE(instruccion->parametro1);
+            log_info(logger,"Instruccion Ejecutada: PID: %d- Ejecutando: %s -%s ", pcb->pid,instruccion->opcode,instruccion->parametro1);
             break;
         case COPY_STRING:
-           // ejecutar_COPY_STRING(tamanio);
-            log_info(logger,"Instruccion Ejecutada: PID: %d- Ejecutando: %s -%s %s", pcb->pid,instruccion->opcode,instruccion->parametro1,instruccion->parametro2);
+            ejecutar_COPY_STRING(instruccion->parametro1);
+            log_info(logger,"Instruccion Ejecutada: PID: %d- Ejecutando: %s -%s ", pcb->pid,instruccion->opcode,instruccion->parametro1);
             break;
         case WAIT:
-            //ejecutar_WAIT(recurso);
-            log_info(logger,"Instruccion Ejecutada: PID: %d- Ejecutando: %s -%s %s", pcb->pid,instruccion->opcode,instruccion->parametro1,instruccion->parametro2);
+            ejecutar_WAIT(instruccion->parametro1);
+            log_info(logger,"Instruccion Ejecutada: PID: %d- Ejecutando: %s -%s", pcb->pid,instruccion->opcode,instruccion->parametro1);
             break;
         case SIGNAL:
-            //ejecutar_SINGAL(recurso);
-            log_info(logger,"Instruccion Ejecutada: PID: %d- Ejecutando: %s -%s %s", pcb->pid,instruccion->opcode,instruccion->parametro1,instruccion->parametro2);
+            ejecutar_SINGAL(instruccion->parametro1);
+            log_info(logger,"Instruccion Ejecutada: PID: %d- Ejecutando: %s -%s", pcb->pid,instruccion->opcode,instruccion->parametro1);
             break;
         case IO_STDIN_READ:
-            //ejecutar_IO_STDIN_READ(/*INTERFAZ*/, t_instrucciones->registroDireccion,t_instrucciones->registroTamanio);
-            log_info(logger,"Instruccion Ejecutada: PID: %d- Ejecutando: %s -%s %s", pcb->pid,instruccion->opcode,instruccion->parametro1,instruccion->parametro2);
+            ejecutar_IO_STDIN_READ(instruccion->parametro1, instruccion->parametro2,instruccion->parametro3);
+            log_info(logger,"Instruccion Ejecutada: PID: %d- Ejecutando: %s -%s %s %s", pcb->pid,instruccion->opcode,instruccion->parametro1,instruccion->parametro2, instruccion->parametro3);
         case IO_STDOUT_WRITE:
-            //ejecutar_IO_STDOUT_WRITE(/*INTERFAZ*/,t_instrucciones->registroDireccion, t_instrucciones->registroTamanio);
-            log_info(logger,"Instruccion Ejecutada: PID: %d- Ejecutando: %s -%s %s", pcb->pid,instruccion->opcode,instruccion->parametro1,instruccion->parametro2);
+            ejecutar_IO_STDOUT_WRITE(instruccion->parametro1, instruccion->parametro2,instruccion->parametro3);
+            log_info(logger,"Instruccion Ejecutada: PID: %d- Ejecutando: %s -%s %s %s", pcb->pid,instruccion->opcode,instruccion->parametro1,instruccion->parametro2, instruccion->parametro3);
             break;
         case IO_FS_CREATE:
-            //ejecutar_IO_FS_CREATE(/*INTERFAZ*/, t_instrucciones->nombreArchivo);
+            ejecutar_IO_FS_CREATE(instruccion->parametro1,instruccion->parametro2);
             log_info(logger,"Instruccion Ejecutada: PID: %d- Ejecutando: %s -%s %s", pcb->pid,instruccion->opcode,instruccion->parametro1,instruccion->parametro2);
             break;
         case IO_FS_DELETE:
-            //ejecutar_IO_FS_DELETE(/*INTERFAZ*/, t_instrucciones->nombreArchivo);
+            ejecutar_IO_FS_DELETE(instruccion->parametro1,instruccion->parametro2);
             log_info(logger,"Instruccion Ejecutada: PID: %d- Ejecutando: %s -%s %s", pcb->pid,instruccion->opcode,instruccion->parametro1,instruccion->parametro2);
             break;
         case IO_FS_TRUNCATE:
-            //ejecutar_IO_FS_TRUNCATE(/*INTERFAZ*/, t_instrucciones->nombreArchivo);
-            log_info(logger,"Instruccion Ejecutada: PID: %d- Ejecutando: %s -%s %s", pcb->pid,instruccion->opcode,instruccion->parametro1,instruccion->parametro2);
+            ejecutar_IO_FS_TRUNCATE(instruccion->parametro1, instruccion->parametro2,instruccion->parametro3);
+            log_info(logger,"Instruccion Ejecutada: PID: %d- Ejecutando: %s -%s %s %s", pcb->pid,instruccion->opcode,instruccion->parametro1,instruccion->parametro2, instruccion->parametro3);
             break;
-        case IO_FD_WRITE:
-            //ejecutar_IO_FD_WRITE(/*INTERFAZ*/, t_instrucciones->nombreArchivo,t_instrucciones->registroDireccion,t_instrucciones->registroTamanio,t_instrucciones->registroPuntero);
-            log_info(logger,"Instruccion Ejecutada: PID: %d- Ejecutando: %s -%s %s", pcb->pid,instruccion->opcode,instruccion->parametro1,instruccion->parametro2);
+        case IO_FS_WRITE:
+            ejecutar_IO_FD_WRITE(instruccion->parametro1,instruccion->parametro2,instruccion->parametro3,instruccion->parametro4,instruccion->parametro5);
+            log_info(logger,"Instruccion Ejecutada: PID: %d- Ejecutando: %s -%s %s %s %s %s", pcb->pid,instruccion->opcode,instruccion->parametro1,instruccion->parametro2,instruccion->parametro3,instruccion->parametro4,instruccion->parametro5);
             break;       
          case IO_FS_READ:
-            //ejecutar_IO_FS_READ(/*INTERFAZ*/, t_instrucciones->nombreArchivo,t_instrucciones->registroDireccion,t_instrucciones->registroTamanio,t_instrucciones->registroPuntero);
-            log_info(logger,"Instruccion Ejecutada: PID: %d- Ejecutando: %s -%s %s", pcb->pid,instruccion->opcode,instruccion->parametro1,instruccion->parametro2);
-            break;          
+            ejecutar_IO_FS_READ(instruccion->parametro1,instruccion->parametro2,instruccion->parametro3,instruccion->parametro4,instruccion->parametro5);
+            log_info(logger,"Instruccion Ejecutada: PID: %d- Ejecutando: %s -%s %s %s %s %s", pcb->pid,instruccion->opcode,instruccion->parametro1,instruccion->parametro2,instruccion->parametro3,instruccion->parametro4,instruccion->parametro5);
+            break;
+        default:
+        log_error(logger, "Operacion desconocida");          
         }
 }
 
-void ejecutar_set (char* registro, char valor){
+void ejecutar_set (char* registro, char* valor){
     void* reg = obtener_registro(registro);
     if(reg != NULL){
-        operar_registros(reg,NULL,registro,"set",atoi(&valor));
+        operar_con_registros(reg,NULL,registro,"set",atoi(valor));
     }else{
         log_error(logger,"Error al obtener el SET");
     }
-
-    if (atomic_load(&interrupt_flag) == 1){
-    //Se recibio una interrupcion
-    t_paquete* paquete_a_kernel = crear_paquete(FINQUANTUM);
-    atomic_store(&interrupt_flag,0); 
-    enviar_pcb_a_kernel(paquete_a_kernel);
-    }
+    tengoAlgunaInterrupcion();
 
 }
 
@@ -310,17 +228,11 @@ void ejecutar_sum (char* registro_origen_char, char* registro_desitino_char) {
 
     if (registro_origen != NULL && registro_destino != NULL)
     {
-        operar_registros(registro_destino,registro_origen,registro_origen_char, "+" ,0);
+        operar_con_registros(registro_destino,registro_origen,registro_origen_char, "+" ,0);
     }else{
         log_error(logger,"Error al obtener el SUM");
     }
-
-    if (atomic_load(&interrupt_flag) == 1){
-    //Se recibio una interrupcion
-    t_paquete* paquete_a_kernel = crear_paquete(FINQUANTUM);
-    atomic_store(&interrupt_flag,0);
-    enviar_pcb_a_kernel(paquete_a_kernel);
-    }   
+    tengoAlgunaInterrupcion();  
 }
 
 
@@ -330,41 +242,240 @@ void ejecutar_sub (char* registro_origen_char, char* registro_desitino_char){
 
        if (registro_origen != NULL && registro_destino != NULL)
     {
-        operar_registros(registro_destino,registro_origen,registro_origen_char, "-" , 0);
+        operar_con_registros(registro_destino,registro_origen,registro_origen_char, "-" , 0);
     }else{
         log_error(logger,"Error al obtener el SUB");
     }
-    if (atomic_load(&interrupt_flag) == 1){
-    //Se recibio una interrupcion
-    t_paquete* paquete_a_kernel = crear_paquete(FINQUANTUM);
-    atomic_store(&interrupt_flag,0);
-    enviar_pcb_a_kernel(paquete_a_kernel);
-    }
+    tengoAlgunaInterrupcion();
 }
 
-void ejecutar_JNZ(char* registro, char valor){
+void ejecutar_JNZ(char* registro, char* valor){
     void* reg = obtener_registro(registro);
     if (reg == 0)
     {
-        pcb->program_counter += atoi(&valor);
+        pcb->program_counter += atoi(valor);
     }else{
         log_error(logger,"Error al obtener el JNZ");
     }
-    if (atomic_load(&interrupt_flag) == 1){
-    //Se recibio una interrupcion
-    t_paquete* paquete_a_kernel = crear_paquete(FINQUANTUM);
-    atomic_store(&interrupt_flag,0);
-    enviar_pcb_a_kernel(paquete_a_kernel);
-    }
+    tengoAlgunaInterrupcion();
 }
 
 void ejecutar_IO_GEN_SLEEP(char* interfazAUsar, char* tiempoDeTrabajo){
     t_paquete* paquete_a_kernel = crear_paquete(OPERACION_IO);
-    agregar_a_paquete(paquete_a_kernel, &interfazAUsar, sizeof(char*));
-    agregar_a_paquete(paquete_a_kernel, &tiempoDeTrabajo, sizeof(char*));
+    agregar_a_paquete(paquete_a_kernel, &interfazAUsar, strlen(interfazAUsar) * sizeof(char));
+    agregar_a_paquete(paquete_a_kernel, &tiempoDeTrabajo, strlen(tiempoDeTrabajo) * sizeof(char));
 
     enviar_pcb_a_kernel(paquete_a_kernel);
     // Enviar_Dato_Por_Dispacht
 }
 
-//Parte 2 min 47
+
+void ejecutar_MOV_IN(char* registro_Datos, char* registro_Direccion){
+    void* reg_Direccion = obtener_registro(registro_Direccion);
+    void* reg_Datos   = obtener_registro(registro_Datos);
+    uint32_t direcLogi = *(uint32_t*)reg_Direccion;
+    int direccionLogica = (int)direcLogi;
+    int tamanio_registro = espacio_de_registro(registro_Datos);
+    t_mmu_cpu* mmu_mov_in = traducirDireccion(direccionLogica, tamanio_registro);
+    
+char* valor = comunicaciones_con_memoria_lectura(mmu_mov_in);
+
+    operar_con_registros(reg_Datos,NULL,registro_Datos,"set",atoi(valor));
+    free(valor);
+    free(mmu_mov_in);
+    void tengoAlgunaInterrupcion();
+}
+
+void ejecutar_MOV_OUT(char* Registro_Datos, char* Registro_Direccion){
+    void* reg_Direc = obtener_registro(Registro_Direccion);
+    void* reg_Datos = obtener_registro(Registro_Datos);
+    uint32_t direcLogi = *(uint32_t*)reg_Direc;
+    int direccionLogica = (int)direcLogi;
+    char* valorr = (char*)reg_Datos;
+    
+    int tamanio_registro = espacio_de_registro(Registro_Datos);
+    t_mmu_cpu* mmu_mov_out = traducirDireccion(direccionLogica, tamanio_registro);
+    
+    //Noc como hacer la verificacion ver despues 
+    if(comunicaciones_con_memoria_escritura(mmu_mov_out, valorr) == 1){
+        log_info(logger,"Se puedo escribir correctamente");
+    }else{
+        log_error(logger,"No se pudo escribir en memoria");
+    }
+    free(mmu_mov_out);
+    tengoAlgunaInterrupcion();
+}
+
+void ejecutar_RESIZE (char* tam){
+    int tamanio  = atoi(tam);
+    
+    send_agrandar_memoria(pcb->pid,tamanio);
+    if(recv_agrandar_memoria()!= -1){
+        log_info(logger,"Se pudo agrandar correctamente");
+        tengoAlgunaInterrupcion();
+    }else{
+        log_info(logger,"NO!! se pudo agrandar correctamente");
+        t_paquete* paquete_a_kernel = crear_paquete(OUT_OF_MEMORY);
+        enviar_pcb_a_kernel(paquete_a_kernel);
+        free(paquete_a_kernel);
+    }
+}
+
+
+void ejecutar_COPY_STRING(char* tam){
+    int tamanio = atoi(tam);
+    void* registroSI = obtener_registro("SI");
+    void* registroDI = obtener_registro ("DI");
+    uint32_t regSI = *(uint32_t*) registroSI;
+    int registerSI = (int)regSI;
+    uint32_t regDI = *(uint32_t*) registroDI;
+    t_mmu_cpu* mmu_copiar_string_SI = traducirDireccion(registerSI, tamanio);
+
+    char* valor = comunicaciones_con_memoria_lectura(mmu_copiar_string_SI);
+    free(mmu_copiar_string_SI); 
+
+    int registreDI = (int)regDI;
+    t_mmu_cpu* mmu_copiar_string_DI = traducirDireccion(registreDI, tamanio);
+
+        if(comunicaciones_con_memoria_escritura(mmu_copiar_string_DI, valor) == 1){
+        log_info(logger,"Se puedo escribir correctamente");
+    }else{
+        log_error(logger,"No se pudo escribir en memoria");
+    }
+    free(valor);
+    free(mmu_copiar_string_DI);
+    tengoAlgunaInterrupcion();
+}
+
+void ejecutar_WAIT(char* recurso){
+    t_paquete* paquete_a_kernel = crear_paquete(WAIT);
+    enviar_pcb_a_kernel(paquete_a_kernel);
+    agregar_a_paquete(paquete_a_kernel, &recurso, strlen(recurso) * sizeof(char));
+    enviar_paquete(paquete_a_kernel, config_cpu->SOCKET_KERNEL);
+    eliminar_paquete(paquete_a_kernel);
+}
+
+void ejecutar_SINGAL(char* recurso){
+    t_paquete* paquete_a_kernel = crear_paquete(SIGNAL);
+    enviar_pcb_a_kernel(paquete_a_kernel);
+    agregar_a_paquete(paquete_a_kernel, &recurso, strlen(recurso) * sizeof(char));
+    enviar_paquete(paquete_a_kernel, config_cpu->SOCKET_KERNEL);
+    eliminar_paquete(paquete_a_kernel);
+}
+
+
+void ejecutar_IO_STDIN_READ(char* interfaz, char* registro_direccion, char* registro_tamanio){
+    void* registroDireccion = obtener_registro(registro_direccion);
+    void* registroTamanio  = obtener_registro(registro_tamanio);
+    uint32_t regDireccion = *(uint32_t*) registroDireccion;
+    int reg_Direc = (int)regDireccion;
+    uint32_t regTamanio   = *(uint32_t*) registroTamanio; 
+    int reg_Tamanio = (int) regTamanio;
+    t_mmu_cpu * mmu_io_stdin_read = traducirDireccion(reg_Direc,reg_Tamanio);
+    t_paquete* paquete_std = crear_paquete(STDIN);
+    solicitar_a_kernel_std(interfaz,reg_Tamanio, mmu_io_stdin_read->direccionFIsica,paquete_std);  
+    enviar_paquete(paquete_std, config_cpu->SOCKET_KERNEL);
+    eliminar_paquete(paquete_std);
+    free(mmu_io_stdin_read);
+}
+
+void ejecutar_IO_STDOUT_WRITE(char* interfaz, char* registro_direccion, char* registro_tamanio){
+    void* registroDireccion = obtener_registro(registro_direccion);
+    void* registroTamanio  = obtener_registro(registro_tamanio);
+    uint32_t regDireccion = *(uint32_t*) registroDireccion;
+    int reg_Direc = (int)regDireccion;
+    uint32_t regTamanio   = *(uint32_t*) registroTamanio; 
+    int reg_Tamanio = (int) regTamanio;
+    t_mmu_cpu * mmu_io_stdout_write = traducirDireccion(reg_Direc,reg_Tamanio);
+    t_paquete* paquete_std = crear_paquete(STDOUT);
+    solicitar_a_kernel_std(interfaz, reg_Tamanio,mmu_io_stdout_write->direccionFIsica,paquete_std);
+    enviar_paquete(paquete_std, config_cpu->SOCKET_KERNEL);
+    eliminar_paquete(paquete_std);
+    free(mmu_io_stdout_write);
+    
+}
+
+
+void ejecutar_IO_FS_CREATE(char* interfaz, char* nombre_archibo){
+    t_paquete* paquete_IO = crear_paquete(IO_FS_CREATE);
+    enviar_pcb_a_kernel(paquete_IO);
+    agregar_a_paquete(paquete_IO, &interfaz, strlen(interfaz) * sizeof(char));
+    agregar_a_paquete(paquete_IO, &nombre_archibo, strlen(nombre_archibo) * sizeof(char));
+    enviar_paquete(paquete_IO, config_cpu->SOCKET_KERNEL);
+    eliminar_paquete(paquete_IO); 
+}
+
+void ejecutar_IO_FS_DELETE(char* interfaz, char* nombre_archibo){
+    t_paquete* paquete_IO = crear_paquete(IO_FS_DELETE);
+    enviar_pcb_a_kernel(paquete_IO);
+    agregar_a_paquete(paquete_IO, &interfaz, strlen(interfaz) * sizeof(char));
+    agregar_a_paquete(paquete_IO, &nombre_archibo, strlen(nombre_archibo) * sizeof(char));
+    enviar_paquete(paquete_IO, config_cpu->SOCKET_KERNEL);
+    eliminar_paquete(paquete_IO); 
+}
+
+void ejecutar_IO_FS_TRUNCATE(char* interfaz, char* nombre_archivo, char* registro_tamanio){
+    void* registroTamanio  = obtener_registro(registro_tamanio);
+    uint32_t regTamanio   = *(uint32_t*) registroTamanio; 
+    int reg_Tamanio = (int) regTamanio;
+    t_paquete* paquete_IO = crear_paquete(IO_FS_TRUNCATE);
+    enviar_pcb_a_kernel(paquete_IO);
+    agregar_a_paquete(paquete_IO, &interfaz, strlen(interfaz) * sizeof(char));
+    agregar_a_paquete(paquete_IO, &nombre_archivo, strlen(nombre_archivo) * sizeof(char));
+    agregar_a_paquete(paquete_IO, &reg_Tamanio, sizeof(int));
+    enviar_paquete(paquete_IO, config_cpu->SOCKET_KERNEL);
+    eliminar_paquete(paquete_IO);
+}
+
+void ejecutar_IO_FD_WRITE(char* interfaz, char* nombre_archivo, char* registro_direccion, char* registro_tamanio, char* registro_puntero_archivo){
+    void* registroDireccion = obtener_registro(registro_direccion);
+    uint32_t regDireccion = *(uint32_t*) registroDireccion;
+    int reg_Direc = (int)regDireccion;
+    void* registroTamanio  = obtener_registro(registro_tamanio);
+    uint32_t regTamanio   = *(uint32_t*) registroTamanio; 
+    int reg_Tamanio = (int) regTamanio;
+    void* registroArchivo  = obtener_registro(registro_puntero_archivo);
+    uint32_t regArchivo = *(uint32_t*) registroArchivo;
+    int reg_Archi = (int)regArchivo;
+    t_mmu_cpu * mmu_io_fs_write = traducirDireccion(reg_Direc,reg_Tamanio);
+    char* valor = comunicaciones_con_memoria_lectura(mmu_io_fs_write);
+    t_paquete* paquete_IO = crear_paquete(IO_FS_WRITE);
+    enviar_pcb_a_kernel(paquete_IO);
+    agregar_a_paquete(paquete_IO, &interfaz, strlen(interfaz) * sizeof(char));
+    agregar_a_paquete(paquete_IO, &nombre_archivo, strlen(nombre_archivo) * sizeof(char));
+    agregar_a_paquete(paquete_IO, &valor, strlen(valor) * sizeof(char));
+    agregar_a_paquete(paquete_IO, &reg_Tamanio, sizeof(int)); //Noc si hace falta
+    agregar_a_paquete(paquete_IO, &reg_Archi, sizeof(int)); //Porsicion en archivo 
+    enviar_paquete(paquete_IO, config_cpu->SOCKET_KERNEL);
+    eliminar_paquete(paquete_IO);
+    free(mmu_io_fs_write);
+}
+
+
+void ejecutar_IO_FS_READ(char* interfaz, char* nombre_archivo, char* registro_direccion, char* registro_tamanio, char* registro_puntero_archivo){
+    void* registroDireccion = obtener_registro(registro_direccion);
+    uint32_t regDireccion = *(uint32_t*) registroDireccion;
+    int reg_Direc = (int)regDireccion;
+    void* registroTamanio  = obtener_registro(registro_tamanio);
+    uint32_t regTamanio   = *(uint32_t*) registroTamanio; 
+    int reg_Tamanio = (int) regTamanio;
+    void* registroArchivo  = obtener_registro(registro_puntero_archivo);
+    uint32_t regArchivo = *(uint32_t*) registroArchivo;
+    int reg_Archi = (int)regArchivo;
+    t_mmu_cpu * mmu_io_fs_read = traducirDireccion(reg_Direc,reg_Tamanio);
+    t_paquete* paquete_IO = crear_paquete(IO_FS_READ);
+    enviar_pcb_a_kernel(paquete_IO);
+    agregar_a_paquete(paquete_IO, &interfaz, strlen(interfaz) * sizeof(char));
+    agregar_a_paquete(paquete_IO, &nombre_archivo, strlen(nombre_archivo) * sizeof(char));
+    agregar_a_paquete(paquete_IO, &reg_Tamanio, sizeof(int));
+    agregar_a_paquete(paquete_IO, &reg_Archi, sizeof(int)); //Porsicion en archivo 
+       while (list_is_empty(mmu_io_fs_read->direccionFIsica)){
+        int* direccion_fisica = (int*)list_remove(mmu_io_fs_read->direccionFIsica, 0);
+        agregar_a_paquete(paquete_IO, direccion_fisica, sizeof(int));
+        free(direccion_fisica);
+    }
+    enviar_paquete(paquete_IO, config_cpu->SOCKET_KERNEL);
+    eliminar_paquete(paquete_IO);
+    free(mmu_io_fs_read);
+
+}

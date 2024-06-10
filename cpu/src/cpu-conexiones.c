@@ -8,22 +8,45 @@ void* generar_conexion_a_memoria(void* arg) {
     char* puerto_memoria = string_itoa(config_cpu->PUERTO_MEMORIA);
     char* ip_memoria = config_cpu->IP_MEMORIA;
 
-    if (ip_memoria == NULL){
+    if (!ip_memoria){
         log_error(logger, "IP_MEMORIA es NULL");
         //free(puerto_memoria); // Liberar memoria asignada por string_itoa
         return NULL;
     }
 
     md_memoria = crear_conexion("MEMORIA", ip_memoria, puerto_memoria); // No harcodearlo! Sino leerlo de kernel.config
-
-    if(md_memoria == -1) {
-        log_error(logger, "No se pudo conectar a la memoria");
+    if(!md_memoria) {
         return NULL;
     }
-  
+    
+    generar_handshake(md_memoria, "MEMORIA", ip_memoria, puerto_memoria);
+    
+    generar_handshake_para_pagina(md_memoria, "MEMORIA", ip_memoria, puerto_memoria);
+    
     //log_info(logger, %s, md_memoria);
     config_cpu->SOCKET_MEMORIA = md_memoria;
     return NULL;
+}
+
+void generar_handshake_para_pagina(int socket, char *server_name, char *ip, char *puerto){
+    int32_t handshake = 1;
+    int32_t result;
+
+	op_code cod_op = HANDSHAKEPAGINA; 
+	send(socket, &cod_op, sizeof(op_code), 0);
+
+
+    send(socket, &handshake, sizeof(int32_t), 0);
+	recv(socket, &result, sizeof(int32_t), MSG_WAITALL);
+
+    if(!result){ 
+        log_info(logger, "Handshake exitoso con %s", server_name);
+        config_cpu->TAMANIO_PAGINA = recv_pagina(config_cpu->SOCKET_MEMORIA);
+    }else {
+        log_error(logger, "Error en el handshake con %s", server_name);
+        exit(EXIT_FAILURE);
+    }
+
 }
 
 int generar_servidor_cpu_dispatch() {
@@ -71,11 +94,11 @@ void crear_servidores_cpu(int *md_cpu_ds,int *md_cpu_it) {
 
 void* server_interrupt(void* args) {
     t_procesar_server* arg = (t_procesar_server*) args;
-    char* server_name = arg -> server_name;
+    char* server_namee = arg -> server_name;
     int socket_server = arg -> socket_servidor;
-     while (1)
-    {
-        int socket_cliente = esperar_cliente("INTERRUPT", socket_server);
+     while (1){
+    
+        int socket_cliente = esperar_cliente(server_namee, socket_server);
         
     if(socket_cliente != -1){
    
@@ -85,9 +108,14 @@ void* server_interrupt(void* args) {
 
 		switch (cod_op) 
 		{
+            case HANDSHAKE:
+            log_info(logger, "Handshake exitoso con Interrupt");
 			case FINQUANTUM:
 				atomic_store(&interrupt_flag,1);
 			break;
+             default:
+        log_error(logger, "Operacion desconocida");
+        break;
 	    }
     }
 	

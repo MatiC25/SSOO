@@ -28,7 +28,7 @@ typedef enum {
     IO_FS_CREATE,
     IO_FS_DELETE,
     IO_FS_TRUNCATE,
-    IO_FD_WRITE,
+    IO_FS_WRITE,
     IO_FS_READ
 } t_tipo_instruccion;
 
@@ -53,7 +53,7 @@ typedef struct {
     int long_par5;
 } t_instruccion;
 
-
+int recv_pagina(int socket_cliente);
 void send_instruccion(int socket_cliente, char *instruccion, t_list *parametros);
 t_instruccion* recv_instruccion(int socket_cliente);
 void solicitar_instruccion(int socket_server, int PID, int program_counter);
