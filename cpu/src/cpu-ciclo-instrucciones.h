@@ -11,6 +11,7 @@
 #include <commons/log.h>
 #include <utils/socket.h>
 #include <utils/logger.h>
+#include <utils/protocolo.h>
 #include <utils/instrucciones.h>
 #include "cpu.h"
 #include "cpu-estructuras.h"
@@ -23,14 +24,14 @@ typedef enum{
     FIFO
 } t_algoritmo;
 
-void* obtener_registro (char *registro);
+// void* obtener_registro (char *registro);
 void seguir_ciclo();
 int espacio_de_registro(char* registro);
 void tengoAlgunaInterrupcion();
 void iniciar_ciclo_de_ejecucion(int socket_server ,int socket_cliente);
 void ejecutar_ciclo_instrucciones(int socket_cliente, int socket_server);
 void fecth(int socket_server);
-void ejecutar_instruccion(int socket_cliente);
+// void ejecutar_instruccion(int socket_cliente);
 // void ejecutar_set(char* registro, char* valor);
 // void ejecutar_sum(char* registro_origen_char, char* registro_desitino_char);
 // void operar_con_registros(void* registro_destino, void* registro_origen, char* registro, char* operacion, int valor);

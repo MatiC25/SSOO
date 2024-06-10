@@ -2,7 +2,7 @@
 
 void generar_conexiones_con() {
     generar_conexiones_con_cpu();
-     generar_conexion_con_memoria();
+    //generar_conexion_con_memoria();
 }
 
 void generar_conexiones_con_cpu(void) {
@@ -47,7 +47,7 @@ void generar_conexion_con_memoria(void) {
 
 int crear_servidor_kernel() {
     int socket_servidor = 0;
-    char* puerto = string_itoa(config_kernel->PUERTO_KERNEL);
+    // char* puerto = string_itoa(config_kernel->PUERTO_KERNEL);
 
     socket_servidor = iniciar_servidor("KERNEL", "127.0.0.1", "8003");
 

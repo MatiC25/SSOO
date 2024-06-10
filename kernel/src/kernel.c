@@ -10,35 +10,52 @@ int main(int argc, char *argv[]) {
     config_kernel = cargar_config_kernel(config_path);
 
     // Generar conexiones con memoria y cpu:
-    generar_conexiones_con();
+    // generar_conexiones_con();
 
-    // Levantamos servidor:
-    //int socket_servidor = crear_servidor_kernel();
+    int socket_servidor = crear_servidor_kernel();
 
     // Inicializamos modulo:
     // iniciar_modulo_kernel(socket_servidor);
+    int seguir = 1;
 
-    t_pcb *pcb = malloc(sizeof(t_pcb));
-    pcb->pid = 100;
-    pcb->program_counter = 50;
-    pcb->quantum = 10;
-    pcb->registros = malloc(sizeof(t_registro_cpu));
-    pcb->estado = NEW;
-    pcb->registros->AX = 1;
-    pcb->registros->BX = 2;
-    pcb->registros->CX = 3;
-    pcb->registros->DI = 4;
-    pcb->registros->DX = 5;
-    pcb->registros->EAX = 5;
-    pcb->registros->EBX = 6;
-    pcb->registros->ECX = 7;
-    pcb->registros->EDX = 8;
-    pcb->registros->PC = 9;
-    pcb->registros->SI = 10;
+     while (1) {
+        int socket_cliente = esperar_cliente("Kernel", socket_servidor);
 
-    pcb->estado = NEW;
+        if(socket_cliente != -1) {     
+			// pthread_t hilo;
+			// t_procesar_conexion *args_hilo = crear_procesar_conexion("IO", socket_cliente);
 
-    enviar_proceso_a_cpu(pcb);
+             while(seguir) {
+                op_code codigo_operacion = recibir_operacion(socket_cliente);
+
+                switch(codigo_operacion) {
+                    case HANDSHAKE:
+                        recibir_handshake(socket_cliente);
+                    break;
+                    case CREAR_INTERFAZ:
+                        create_interface(socket_cliente);
+                        seguir = 0;
+                    break;
+                    default:
+                        seguir = 0;
+                }
+            }
+        }
+    }
+
+    // t_pcb *pcb = malloc(sizeof(t_pcb));
+    // pcb->pid = 100;
+    // pcb->program_counter = 50;
+    // pcb->registros = malloc(sizeof(t_registro_cpu));
+
+    // pcb->registros->AX = 1;
+    // pcb->registros->BX = 2;
+    // pcb->registros->CX = 3;
+    // pcb->registros->DX = 5;
+    // pcb->palabra = "HOLA!";
+
+    // printf("%i", config_kernel->SOCKET_DISPATCH);
+    // send_contexto_ejecucion(RECIBIR_PROCESO, config_kernel->SOCKET_DISPATCH, pcb);
     // informar_a_memoria();
 
     return 0;

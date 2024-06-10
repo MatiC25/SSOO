@@ -26,11 +26,7 @@ typedef struct {
 
 
 typedef struct {
-    uint32_t PC;
     uint8_t AX, BX, CX, DX;
-    uint32_t EAX, EBX, ECX, EDX;
-    uint32_t SI; // Cambiado a puntero
-    uint32_t DI; // Cambiado a puntero
 } t_registro_cpu;
 
 typedef enum {
@@ -44,9 +40,8 @@ typedef enum {
 typedef struct { // PCB de un proceso 
     int pid;
     int program_counter; 
-    int quantum; //Para el VRR
     t_registro_cpu* registros;
-    int estado;
+    char *palabra;
 }t_pcb;
 
 // typedef enum {

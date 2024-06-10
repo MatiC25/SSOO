@@ -61,13 +61,13 @@ t_paquete* crear_paquete(op_code operacion);
 void crear_buffer(t_paquete* paquete);
 void agregar_a_paquete(t_paquete* paquete, void* valor, int tamanio);
 void enviar_paquete(t_paquete* paquete, int socket_cliente);
-void* serializar_paquete(t_paquete* paquete, int* bytes);
+void* serializar_paquete(t_paquete* paquete, int bytes);
 void eliminar_paquete(t_paquete* paquete);
 void* recibir_buffer(int* size, int socket_cliente);
 
 // Funciones para realizar operaciones basicas:
 void enviar_mensaje(char* mensaje, int socket_cliente);
-void recibir_mensaje(int socket_cliente);
+// void recibir_mensaje(int socket_cliente);
 void retardo_pedido(int tiempo_de_espera);
 
 // Funciones para deserializcion:

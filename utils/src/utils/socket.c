@@ -130,7 +130,7 @@ void atender_conexion(char* server_name, int cliente_socket)
 		switch (cod_op) 
 		{
 			case MENSAJE:
-				recibir_mensaje(cliente_socket);
+				// recibir_mensaje(cliente_socket);
 				break;
 			case PAQUETE:
 				lista = recv_list(cliente_socket);
