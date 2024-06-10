@@ -17,8 +17,8 @@
 #include "instruc_memoria.h"
 #include "inicializar_memoria.h"
 
-extern t_dictionary* lista_instrucciones_porPID;
-extern char* path_proceso;
-extern t_bitarray* bitmap;
+//extern t_dictionary* lista_instrucciones_porPID;
+//extern char* path_proceso;
+//extern t_bitarray* bitmap;
 
 #endif // MAIN_H

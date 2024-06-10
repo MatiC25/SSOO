@@ -5,6 +5,7 @@
 #include <utils/protocolo.h>
 #include <stdlib.h>
 #include <string.h>
+#include <stdio.h>
 
 
 typedef enum {
@@ -59,5 +60,6 @@ t_instruccion* recv_instruccion(int socket_cliente);
 void solicitar_instruccion(int socket_server, int PID, int program_counter);
 t_tipo_instruccion obtener_tipo_instruccion(char *instruccion);
 t_tipo_instruccion obtener_tipo_instruccion(char *instruccion);
+char* deserializar_cadena(void* buffer, int* desplazamiento);
 
 #endif // INSTRUCCIONES_H

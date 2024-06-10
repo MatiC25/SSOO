@@ -17,16 +17,16 @@
 #include "main.h"
 #include "inicializar_memoria.h"
 
-void* escuchar_peticiones(void* args);
-void handshake_desde_memoria(int socket_cliente);
-void crear_proceso(socket_cliente);
-void terminar_proceso(socket_cliente);
-void obtener_marco(socket_cliente);
-void resize_proceso(socket_cliente);
-void acceso_lectura(socket_cliente);
-void acceso_escrituratura(socket_cliente);
-int obtener_marco_libre(t_bitarray bitmap);
-void liberar_marco(int marco);
+// void* escuchar_peticiones(void* args);
+// void handshake_desde_memoria(int socket_cliente);
+// void crear_proceso(socket_cliente);
+// void terminar_proceso(socket_cliente);
+// void obtener_marco(socket_cliente);
+// void resize_proceso(socket_cliente);
+// void acceso_lectura(socket_cliente);
+// void acceso_escrituratura(socket_cliente);
+// //int obtener_marco_libre(t_bitarray bitmap);
+// void liberar_marco(int marco);
 
 
 #endif //PETICIONES_H

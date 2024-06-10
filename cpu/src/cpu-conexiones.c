@@ -19,35 +19,35 @@ void* generar_conexion_a_memoria(void* arg) {
         return NULL;
     }
     
-    generar_handshake(md_memoria, "MEMORIA", ip_memoria, puerto_memoria);
+    //generar_handshake(md_memoria, "MEMORIA", ip_memoria, puerto_memoria);
     
-    generar_handshake_para_pagina(md_memoria, "MEMORIA", ip_memoria, puerto_memoria);
+    //generar_handshake_para_pagina(md_memoria, "MEMORIA", ip_memoria, puerto_memoria);
     
     //log_info(logger, %s, md_memoria);
     config_cpu->SOCKET_MEMORIA = md_memoria;
     return NULL;
 }
 
-void generar_handshake_para_pagina(int socket, char *server_name, char *ip, char *puerto){
-    int32_t handshake = 1;
-    int32_t result;
+// void generar_handshake_para_pagina(int socket, char *server_name, char *ip, char *puerto){
+//     int32_t handshake = 1;
+//     int32_t result;
 
-	op_code cod_op = HANDSHAKEPAGINA; 
-	send(socket, &cod_op, sizeof(op_code), 0);
+// 	op_code cod_op = HANDSHAKEPAGINA; 
+// 	send(socket, &cod_op, sizeof(op_code), 0);
 
 
-    send(socket, &handshake, sizeof(int32_t), 0);
-	recv(socket, &result, sizeof(int32_t), MSG_WAITALL);
+//     send(socket, &handshake, sizeof(int32_t), 0);
+// 	recv(socket, &result, sizeof(int32_t), MSG_WAITALL);
 
-    if(!result){ 
-        log_info(logger, "Handshake exitoso con %s", server_name);
-        config_cpu->TAMANIO_PAGINA = recv_pagina(config_cpu->SOCKET_MEMORIA);
-    }else {
-        log_error(logger, "Error en el handshake con %s", server_name);
-        exit(EXIT_FAILURE);
-    }
+//     if(!result){ 
+//         log_info(logger, "Handshake exitoso con %s", server_name);
+//         config_cpu->TAMANIO_PAGINA = recv_pagina(config_cpu->SOCKET_MEMORIA);
+//     }else {
+//         log_error(logger, "Error en el handshake con %s", server_name);
+//         exit(EXIT_FAILURE);
+//     }
 
-}
+// }
 
 int generar_servidor_cpu_dispatch() {
     char* puerto_dispatch = string_itoa(config_cpu->PUERTO_ESCUCHA_DISPATCH); // Convierte un int a una cadena de char
@@ -114,7 +114,7 @@ void* server_interrupt(void* args) {
 				atomic_store(&interrupt_flag,1);
 			break;
              default:
-        log_error(logger, "Operacion desconocida");
+        //log_error(logger, "Operacion desconocida");
         break;
 	    }
     }

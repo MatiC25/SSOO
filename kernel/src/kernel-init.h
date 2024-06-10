@@ -23,9 +23,9 @@ void inicializar_lista();
 
 
 
-extern t_list* cola_new;
-extern t_list* cola_ready; 
-extern t_list* cola_block;
-extern t_list* cola_prima_VRR;
+//extern t_list* cola_new;
+//extern t_list* cola_ready; 
+//extern t_list* cola_block;
+//extern t_list* cola_prima_VRR;
 
 #endif //KERNEL_INIT_H

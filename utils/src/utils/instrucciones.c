@@ -28,7 +28,7 @@ int recv_pagina(int socket_cliente){
 
 
 t_instruccion* recv_instruccion(int socket_cliente){
-    int tamanio;
+    // int tamanio;
     // t_instruccion *instruccion = malloc(sizeof(t_instruccion));
     // recv(socket_cliente,&tamanio,sizeof(int),MSG_WAITALL);
 
@@ -44,55 +44,118 @@ if (instruccion == NULL){
     log_error(logger,"Error al asignar memoria");
 }
 
+
 int size;
 int desplazamiento = 0;
 void* buffer = recibir_buffer(&size, socket_cliente);
 if (buffer == NULL) {
-        log_error(logger, "Error al recibir el buffer del socket");
+        log_error(logger,"Error al recibir el buffer del socket");
         free(instruccion);
 }
-//No se si esta bien poner size_t
-    memcpy(&(instruccion->long_opcode), buffer+desplazamiento,sizeof(size_t)); 
-    desplazamiento += sizeof(size_t);
+
+    // Leer long_opcode
+    if (desplazamiento + sizeof(int) > size) {
+        log_error(logger, "Error: Desbordamiento de buffer al leer long_opcode");
+        free(instruccion);
+        free(buffer);
+        return NULL;
+    }
+    memcpy(&(instruccion->long_opcode), buffer + desplazamiento, sizeof(int));
+    desplazamiento += sizeof(int);
+
+     log_info(logger, "Desplazamiento después de long_opcode: %d, Size: %d", desplazamiento, size);
+
+    // Leer opcode
     instruccion->opcode = malloc(instruccion->long_opcode);
-    memcpy(instruccion->opcode,buffer+desplazamiento, instruccion->long_opcode);
-    desplazamiento += instruccion->long_opcode;
+    if (instruccion->opcode == NULL) {
+        log_error(logger, "Error al asignar memoria para opcode");
+        free(instruccion);
+        free(buffer);
+        return NULL;
+    }
+    if (desplazamiento + instruccion->long_opcode > size) {
+        log_error(logger, "Error: Desbordamiento de buffer al leer opcode");
+        free(instruccion->opcode);
+        free(instruccion);
+        free(buffer);
+        return NULL;
+    }
+     instruccion->opcode = deserializar_cadena(buffer, &desplazamiento);
 
-    memcpy(&(instruccion->long_par1), buffer+desplazamiento,sizeof(size_t)); 
-    desplazamiento += sizeof(size_t);
-    instruccion->parametro1 = malloc(instruccion->long_par1);
-    memcpy(instruccion->parametro1,buffer+desplazamiento, instruccion->long_par1);
-    desplazamiento += instruccion->long_par1;
+    log_info(logger, "%d", instruccion->long_opcode);
+    log_info(logger, "%s", instruccion->opcode);
+    //instruccion->opcode = deserializar_cadena(buffer, &desplazamiento);
+    //log_info(logger,"%s", instruccion->opcode);
 
-    memcpy(&(instruccion->long_par2), buffer+desplazamiento,sizeof(size_t)); 
-    desplazamiento += sizeof(size_t);
-    instruccion->parametro2 = malloc(instruccion->long_par2);
-    memcpy(instruccion->parametro2,buffer+desplazamiento, instruccion->long_par2);
-    desplazamiento += instruccion->long_par2;
+// Recibir long_opcode
+// memcpy(&(instruccion->long_opcode), buffer+desplazamiento,sizeof(int)); 
+//     desplazamiento += sizeof(int);
+//     //instruccion->opcode = malloc(instruccion->long_opcode);
+    
 
-    memcpy(&(instruccion->long_par3), buffer+desplazamiento,sizeof(size_t)); 
-    desplazamiento += sizeof(size_t);
-    instruccion->parametro3 = malloc(instruccion->long_par3);
-    memcpy(instruccion->parametro3,buffer+desplazamiento, instruccion->long_par3);
-    desplazamiento += instruccion->long_par3;
+// memcpy(instruccion->opcode,buffer+desplazamiento, instruccion->long_opcode);
+// desplazamiento += instruccion->long_opcode;
+//  log_info(logger,"%s", instruccion->opcode);
+//No se si esta bien poner size_t
 
-    memcpy(&(instruccion->long_par4), buffer+desplazamiento,sizeof(size_t)); 
-    desplazamiento += sizeof(size_t);
-    instruccion->parametro4 = malloc(instruccion->long_par4);
-    memcpy(instruccion->parametro4,buffer+desplazamiento, instruccion->long_par4);
-    desplazamiento += instruccion->long_par4;
+    // memcpy(&(instruccion->long_opcode), buffer+desplazamiento,sizeof(int)); 
+    // desplazamiento += sizeof(int);
+    // instruccion->opcode = malloc(instruccion->long_opcode);
+    // log_info(logger,"%i", instruccion->long_opcode);
+    // memcpy(instruccion->opcode,buffer+desplazamiento, instruccion->long_opcode);
+    // desplazamiento += instruccion->long_opcode;
+    // log_info(logger,"%s", instruccion->opcode);
+    // memcpy(&(instruccion->long_par1), buffer+desplazamiento,sizeof(size_t)); 
+    // desplazamiento += sizeof(size_t);
+    // instruccion->parametro1 = malloc(instruccion->long_par1);
+    // memcpy(instruccion->parametro1,buffer+desplazamiento, instruccion->long_par1);
+    // desplazamiento += instruccion->long_par1;
 
-    memcpy(&(instruccion->long_par5), buffer+desplazamiento,sizeof(size_t)); 
-    desplazamiento += sizeof(size_t);
-    instruccion->parametro5 = malloc(instruccion->long_par5);
-    memcpy(instruccion->parametro5,buffer+desplazamiento, instruccion->long_par5);
-    desplazamiento += instruccion->long_par5;
+    // memcpy(&(instruccion->long_par2), buffer+desplazamiento,sizeof(size_t)); 
+    // desplazamiento += sizeof(size_t);
+    // instruccion->parametro2 = malloc(instruccion->long_par2);
+    // memcpy(instruccion->parametro2,buffer+desplazamiento, instruccion->long_par2);
+    // desplazamiento += instruccion->long_par2;
+
+    // memcpy(&(instruccion->long_par3), buffer+desplazamiento,sizeof(size_t)); 
+    // desplazamiento += sizeof(size_t);
+    // instruccion->parametro3 = malloc(instruccion->long_par3);
+    // memcpy(instruccion->parametro3,buffer+desplazamiento, instruccion->long_par3);
+    // desplazamiento += instruccion->long_par3;
+
+    // memcpy(&(instruccion->long_par4), buffer+desplazamiento,sizeof(size_t)); 
+    // desplazamiento += sizeof(size_t);
+    // instruccion->parametro4 = malloc(instruccion->long_par4);
+    // memcpy(instruccion->parametro4,buffer+desplazamiento, instruccion->long_par4);
+    // desplazamiento += instruccion->long_par4;
+
+    // memcpy(&(instruccion->long_par5), buffer+desplazamiento,sizeof(size_t)); 
+    // desplazamiento += sizeof(size_t);
+    // instruccion->parametro5 = malloc(instruccion->long_par5);
+    // memcpy(instruccion->parametro5,buffer+desplazamiento, instruccion->long_par5);
+    // desplazamiento += instruccion->long_par5;
 
 
-
-    return instruccion;
+free(buffer); // Libera el buffer después de usarlo
+     return instruccion;
 }
 
+char* deserializar_cadena(void* buffer, int* desplazamiento) {
+    int cadena_length;
+    memcpy(&cadena_length, buffer + *desplazamiento, sizeof(int));
+    *desplazamiento += sizeof(int);
+
+    char* cadena = malloc(cadena_length);
+    if (cadena == NULL) {
+        log_error(logger, "Error al asignar memoria para la cadena deserializada");
+        return NULL;
+    }
+
+    memcpy(cadena, buffer + *desplazamiento, cadena_length);
+    *desplazamiento += cadena_length;
+
+    return cadena;
+}
 
 
 void solicitar_instruccion(int socket_server, int PID, int program_counter) {

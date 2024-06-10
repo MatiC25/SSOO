@@ -149,29 +149,42 @@ void enviar_instruccion_a_cpu(int socket_cpu, int retardo_de_respuesta){
     int pid;
     int program_counter;
 
-    recibir_program_counter(socket_cpu, &pid, &program_counter);//lo hice gede asi no nos olvidamos
+    //recibir_program_counter(socket_cpu, &pid, &program_counter);//lo hice gede asi no nos olvidamos
   
 
-    t_list* lista_de_instrucciones = dictionary_get(lista_instrucciones_porPID, string_itoa(pid));
+    //t_list* lista_de_instrucciones = dictionary_get(lista_instrucciones_porPID, string_itoa(pid));
 
-    if(lista_de_instrucciones == NULL){
-        log_error(logger, "no se hayo la lista de instrucciones en el psedocodigo");
-    }
+    //if(lista_de_instrucciones == NULL){
+      //  log_error(logger, "no se hayo la lista de instrucciones en el psedocodigo");
+    //}
 
     //consigo la instruccion actual. como el PC indica la siguiente instruccion a ejecutar, le resto 1
-    t_instruccion *instrucciones = list_get(lista_de_instrucciones, program_counter-1);
+    t_instruccion *instrucciones = malloc(sizeof(t_instruccion));
+if (instrucciones == NULL) {
+    log_error(logger, "Error al asignar memoria para instrucciones");
+    return;
+}
+instrucciones->opcode = "SET";
+instrucciones->long_opcode = strlen("SET") + 1; // 4 bytes incluyendo el terminador nulo
 
+log_info(logger, "%i", instrucciones->long_opcode);
+log_info(logger, "%s", instrucciones->opcode);
+
+    
+    
     //creo el paquete con la instruccion y serializo
     t_paquete *paquete_de_instrucciones = crear_paquete(INSTRUCCION);
-    agregar_a_paquete(paquete_de_instrucciones, instrucciones -> opcode, instrucciones -> long_opcode);
-    agregar_a_paquete(paquete_de_instrucciones, instrucciones -> parametro1, instrucciones -> long_par1);
-    agregar_a_paquete(paquete_de_instrucciones, instrucciones -> parametro2, instrucciones -> long_par2);
-    agregar_a_paquete(paquete_de_instrucciones, instrucciones -> parametro3, instrucciones -> long_par3);
-    agregar_a_paquete(paquete_de_instrucciones, instrucciones -> parametro4, instrucciones -> long_par4);
-    agregar_a_paquete(paquete_de_instrucciones, instrucciones -> parametro5, instrucciones -> long_par5);
+    agregar_a_paquete(paquete_de_instrucciones, &(instrucciones->long_opcode), sizeof(int));
+    agregar_a_paquete(paquete_de_instrucciones, instrucciones->opcode, instrucciones->long_opcode);
+    // agregar_a_paquete(paquete_de_instrucciones, instrucciones -> parametro1, instrucciones -> long_par1);
+    // agregar_a_paquete(paquete_de_instrucciones, instrucciones -> parametro2, instrucciones -> long_par2);
+    // agregar_a_paquete(paquete_de_instrucciones, instrucciones -> parametro3, instrucciones -> long_par3);
+    // agregar_a_paquete(paquete_de_instrucciones, instrucciones -> parametro4, instrucciones -> long_par4);
+    // agregar_a_paquete(paquete_de_instrucciones, instrucciones -> parametro5, instrucciones -> long_par5);
     //agrego el retardo pedido por la consigna
-    retardo_pedido(retardo_de_respuesta);
+    //retardo_pedido(retardo_de_respuesta);
 
     enviar_paquete(paquete_de_instrucciones, socket_cpu);
     eliminar_paquete(paquete_de_instrucciones);
+    free(instrucciones);
 }

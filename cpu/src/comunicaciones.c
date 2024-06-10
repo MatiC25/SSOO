@@ -1,4 +1,77 @@
-// #include "comunicaciones.h"
+#include "comunicaciones.h"
+
+t_pcb_cpu* rcv_contexto_ejecucion_cpu(int socket_cliente){
+    
+    t_pcb_cpu* proceso = malloc(sizeof(t_pcb_cpu));
+    if (proceso == NULL) {
+        log_error(logger, "Error al asignar memoria para el proceso");
+        return NULL;
+    }
+
+    proceso->registros = malloc(sizeof(t_registro_cpu));
+    if (proceso->registros == NULL) {
+        log_error(logger, "Error al asignar memoria para los registros del proceso");
+        free(proceso);
+        return NULL;
+    }
+
+    int size;
+    int desplazamiento = 0;
+    
+    void* buffer = recibir_buffer(&size, socket_cliente);
+    if (buffer == NULL) {
+        log_error(logger, "Error al recibir el buffer del socket");
+        free(proceso->registros);
+        free(proceso);
+        return NULL;
+    }
+
+    memcpy(&proceso->pid, buffer + desplazamiento, sizeof(int));
+    desplazamiento += sizeof(int);
+
+    memcpy(&proceso->program_counter, buffer + desplazamiento, sizeof(int));
+    desplazamiento += sizeof(int);
+
+    memcpy(&proceso->registros->PC, buffer + desplazamiento, sizeof(uint32_t));
+    desplazamiento += sizeof(uint32_t);
+
+    memcpy(&proceso->registros->AX, buffer + desplazamiento, sizeof(uint8_t));
+    desplazamiento += sizeof(uint8_t);
+
+    memcpy(&proceso->registros->BX, buffer + desplazamiento, sizeof(uint8_t));
+    desplazamiento += sizeof(uint8_t);
+
+    memcpy(&proceso->registros->CX, buffer + desplazamiento, sizeof(uint8_t));
+    desplazamiento += sizeof(uint8_t);
+
+    memcpy(&proceso->registros->DX, buffer + desplazamiento, sizeof(uint8_t));
+    desplazamiento += sizeof(uint8_t);
+
+    memcpy(&proceso->registros->EAX, buffer + desplazamiento, sizeof(uint32_t));
+    desplazamiento += sizeof(uint32_t);
+
+    memcpy(&proceso->registros->EBX, buffer + desplazamiento, sizeof(uint32_t));
+    desplazamiento += sizeof(uint32_t);
+
+    memcpy(&proceso->registros->ECX, buffer + desplazamiento, sizeof(uint32_t));
+    desplazamiento += sizeof(uint32_t);
+
+    memcpy(&proceso->registros->EDX, buffer + desplazamiento, sizeof(uint32_t));
+    desplazamiento += sizeof(uint32_t);
+
+    memcpy(&proceso->registros->SI, buffer + desplazamiento, sizeof(uint32_t));
+    desplazamiento += sizeof(uint32_t);
+
+    memcpy(&proceso->registros->DI, buffer + desplazamiento, sizeof(uint32_t));
+    desplazamiento += sizeof(uint32_t);
+
+	
+
+    free(buffer);
+    return proceso;
+}
+
+
 
 // char* comunicaciones_con_memoria_lectura(t_mmu_cpu* mmu){
 //     char* valor;
@@ -31,6 +104,26 @@
 //     return verificador;
 // }
 
+void enviar_pcb_a_kernel(t_paquete* paquete_a_kernel){
+    
+
+    // Agregar información del PCB al paquete
+    agregar_a_paquete(paquete_a_kernel, &pcb->pid, sizeof(int));
+    agregar_a_paquete(paquete_a_kernel, &pcb->program_counter, sizeof(int));
+
+    // Agregar los registros de la CPU al paquete individualmente
+    agregar_a_paquete(paquete_a_kernel, &pcb->registros->PC, sizeof(uint32_t));
+    agregar_a_paquete(paquete_a_kernel, &pcb->registros->AX, sizeof(uint8_t));
+    agregar_a_paquete(paquete_a_kernel, &pcb->registros->BX, sizeof(uint8_t));
+    agregar_a_paquete(paquete_a_kernel, &pcb->registros->CX, sizeof(uint8_t));
+    agregar_a_paquete(paquete_a_kernel, &pcb->registros->DX, sizeof(uint8_t));
+    agregar_a_paquete(paquete_a_kernel, &pcb->registros->EAX, sizeof(uint32_t));
+    agregar_a_paquete(paquete_a_kernel, &pcb->registros->EBX, sizeof(uint32_t));
+    agregar_a_paquete(paquete_a_kernel, &pcb->registros->ECX, sizeof(uint32_t));
+    agregar_a_paquete(paquete_a_kernel, &pcb->registros->EDX, sizeof(uint32_t));
+    agregar_a_paquete(paquete_a_kernel, &pcb->registros->SI, sizeof(uint32_t));
+    agregar_a_paquete(paquete_a_kernel, &pcb->registros->DI, sizeof(uint32_t));
+}
 
 
 // t_pcb_cpu* rcv_contexto_ejecucion_cpu(int socket_cliente) {

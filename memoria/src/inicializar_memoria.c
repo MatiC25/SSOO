@@ -85,3 +85,59 @@ void cerrar_programa(t_config_memoria *config_memoria, int socket_server){
     config_destroy(config_memoria);
     close(socket_server);
 }
+
+void* escuchar_peticiones(void* args) {
+    t_procesar_server* args_hilo = (t_procesar_server*) args;
+    char* server_name = args_hilo->server_name;
+    int socket_cliente = args_hilo->socket_servidor;
+
+
+    while (1)
+    {
+        op_code cod_op = recibir_operacion(socket_cliente);
+        
+        switch (cod_op)
+        {
+        case HANDSHAKE:
+            //generar_handshake(socket_cliente);
+            break;
+        //case HANDSHAKE_PAGINA:
+            //handshake_desde_memoria(socket_cliente);
+          //  break;
+        case INICIAR_PROCESO: 
+            //retardo_pedido(config_memoria -> retardo_de_respuesta);
+            //crear_proceso(socket_cliente);
+            //leer_archivoPseudo(socket_cliente);
+            break;
+        case FINALIZAR_PROCESO:
+            //sretardo_pedido(config_memoria -> retardo_de_respuesta);
+            //terminar_proceso(socket_cliente);
+            break;
+        case INSTRUCCION: 
+            log_info(logger,"%i", socket_cliente);
+            enviar_instruccion_a_cpu(socket_cliente,10);
+            //El retardo ya esta oincluido en la funcion
+            //enviar_instruccion_a_cpu(socket_cliente, config_memoria -> retardo_de_respuesta);
+            break;
+        case ACCEDER_TABLA_PAGINAS: 
+            //retardo_pedido(config_memoria -> retardo_de_respuesta);
+            //obtener_marco(socket_cliente);
+            break;
+        case MODIFICAR_TAMAÑO_MEMORIA:
+            //retardo_pedido(config_memoria -> retardo_de_respuesta);
+            //resize_proceso(socket_cliente);
+            break;
+        case ACCESO_A_LECTURA:
+            //retardo_pedido(config_memoria -> retardo_de_respuesta);
+            //acceso_lectura(socket_cliente);
+            break;
+        case ACCESO_A_ESCRITURA:
+            //retardo_pedido(config_memoria -> retardo_de_respuesta);
+            //(socket_cliente);
+            break;
+        default:
+            //log_error(logger, "Operacion desconocida");
+            break;
+        }
+    }
+}

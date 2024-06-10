@@ -1,5 +1,5 @@
-// #include "mmu.h"
-// int posicion_fifo = 0;
+#include "mmu.h"
+int posicion_fifo = 0;
 
 // t_mmu_cpu* traducirDireccion(int direccionLogica , int tamanio){
 //     t_mmu_cpu* mmu = (t_mmu_cpu*)malloc(sizeof(t_mmu_cpu));
