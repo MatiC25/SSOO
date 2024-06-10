@@ -1,8 +1,8 @@
 #include "kernel-conexiones.h"
 
 void generar_conexiones_con() {
-    // generar_conexiones_con_cpu();
-    generar_conexion_con_memoria();
+    generar_conexiones_con_cpu();
+    // generar_conexion_con_memoria();
 }
 
 void generar_conexiones_con_cpu(void) {

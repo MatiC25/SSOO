@@ -40,7 +40,7 @@ int main(int argc, char *argv[]) {
     pcb->program_counter = 0;
 
     enviar_proceso_a_cpu(pcb);
-    informar_a_memoria();
+    // informar_a_memoria();
 
     return 0;
 }
