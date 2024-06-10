@@ -9,22 +9,22 @@ t_procesar_conexion* crear_procesar_conexion(char *server_name, int socket_clien
     return procesar_cliente;
 }
 
-char *tipo_interfaz_to_string(tipo_interfaz tipo) {
-    switch (tipo)
-    {
-        case GENERICA:
-            return "Generica";
-            break;
-        case DIALFS
-            return "DIALFS";
-            break;
-        case STDIN:
-            return "STDIN";
-            break;
-        case STDOUT:
-            return "STDOUT";
-            break;
-        default :
-            return "Desconocido";
-    }
-}
+// char tipo_interfaz_to_string(tipo_interfaz tipo) {
+//     switch (tipo)
+//     {
+//         case GENERICA:
+//             return "Generica";
+//             break;
+//         case DIALFS
+//             return "DIALFS";
+//             break;
+//         case STDIN:
+//             return "STDIN";
+//             break;
+//         case STDOUT:
+//             return "STDOUT";
+//             break;
+//         default :
+//             return "Desconocido";
+//     }
+// }

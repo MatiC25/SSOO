@@ -159,7 +159,6 @@ void agregar_a_paquete_string(t_paquete* paquete, char* cadena, int tamanio) {
     paquete->buffer->size += tamanio;
 }
 
-
 t_pcb* rcv_contexto_ejecucion(int socket_cliente) {
     
     t_pcb* proceso = malloc(sizeof(t_pcb));
@@ -224,6 +223,8 @@ t_pcb* rcv_contexto_ejecucion(int socket_cliente) {
 
     memcpy(&proceso->registros->DI, buffer + desplazamiento, sizeof(uint32_t));
     desplazamiento += sizeof(uint32_t);
+
+	
 
     free(buffer);
     return proceso;

@@ -14,8 +14,8 @@
 #include <utils/instrucciones.h>
 #include "cpu.h"
 #include "cpu-estructuras.h"
-#include "comunicaciones.h"
-#include "mmu.h"
+// #include "comunicaciones.h"
+// #include "mmu.h"
 
 
 typedef enum{

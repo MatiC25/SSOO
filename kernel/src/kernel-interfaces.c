@@ -9,7 +9,7 @@ sem_t semaforo_interfaces;
 void handle_new_interface(void* arg) {
     t_procesar_conexion *args = (t_procesar_server *) arg;
     char *server_name = args->server_name;
-    int socket_server = args->socket_servidor;
+    int socket_server = args->socket_cliente;
 
     while (1) {
         int socket_cliente = esperar_cliente(server_name, socket_server);
@@ -250,7 +250,7 @@ void recibir_interfaz(char **interface_name, tipo_interfaz *tipo, int socket) {
     int desplazamiento = 0;
     int tamanio;
     void *buffer = recibir_buffer(&size, socket);
-    printf("tipo: %s, tam: %i, primeros: %c", tipo_interfaz_to_string(*buffer), *(buffer + sizeof(int)), *(buffer + sizeof(int)*2));
+    // printf("tipo: %s, tam: %i, primeros: %c", tipo_interfaz_to_string(*buffer), *(buffer + sizeof(int)), *(buffer + sizeof(int)*2));
     
     memcpy(tipo, buffer + desplazamiento, sizeof(tipo_interfaz));
     desplazamiento += sizeof(tipo_interfaz);

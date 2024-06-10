@@ -37,9 +37,9 @@ typedef enum { //podemos juntar todos los procesos
     ACCESO_A_LECTURA,
     ACCESO_A_ESCRITURA,
     OUT_OF_MEMORY,
+    HANDSHAKEPAGINA
 // ----------------
-}
-
+} op_code;
 
 
 typedef struct
