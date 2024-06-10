@@ -7,6 +7,9 @@
     "pthread.h": "c",
     "instrucciones.h": "c",
     "list.h": "c",
-    "queue.h": "c"
+    "queue.h": "c",
+    "inicializar_memoria.h": "c",
+    "pag_memoria.h": "c",
+    "stdbool.h": "c"
   }
 }

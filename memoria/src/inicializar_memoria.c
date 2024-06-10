@@ -1,4 +1,5 @@
-#include "init_memoria.h"
+#include "inicializar_memoria.h"
+
 
 t_config_memoria* config_memoria; // Variable global
 //SEPARAR EN 2 
@@ -84,26 +85,3 @@ void cerrar_programa(t_config_memoria *config_memoria, int socket_server){
     config_destroy(config_memoria);
     close(socket_server);
 }
-
-void* escuchar_peticiones(void* args){
-    t_procesar_server* args_hilo = (t_procesar_server*) args;
-    char* server_name = args_hilo->server_name;
-    int socket_cliente = args_hilo->socket_servidor;
-
-    while (1)
-    {
-        op_code cod_op = recibir_operacion(socket_cliente);
-        
-        switch (cod_op)
-        {
-        case PSEUDOCODIGO:
-            leer_archivoPseudo(socket_cliente);
-            break;
-        case INSTRUCCION: 
-            enviar_instruccion_a_cpu(socket_cliente, config_memoria->retardo_respuesta);
-            break;
-        
-        }
-    }
-}
-

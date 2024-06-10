@@ -1,5 +1,5 @@
-#ifndef INSTRUC_MEMORIA_H
-#define INSTRUC_MEMORIA_H
+#ifndef PAG_MEMORIA_H
+#define PAG_MEMORIA_H
 
 #include <stdio.h>
 #include <stdbool.h>
@@ -16,13 +16,12 @@
 #include <utils/logger.h>
 #include <utils/instrucciones.h>
 
+//Estructuras para paginacion simple
 
+typedef struct {
+    int nro_pagina;
+    int marco;
+    int bit_validez;
+} t_tabla_de_paginas;
 
-void leer_archivoPseudo(int socket_kernel);
-char* crear_path_instrucciones(char* path_proceso, char* archivo_path);
-void enviar_instruccion_a_cpu(int socket_cpu, int retardo_de_respuesta);
-
-
-
-
-#endif // INSTRUC_MEMORIA_H
+#endif // PAG_MEMORIA_H

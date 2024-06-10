@@ -1,8 +1,7 @@
-#ifndef INIT_MEMORIA_H
-#define INIT_MEMORIA_H
+#ifndef INICIALIZAR_MEMORIA_H
+#define INICIALIZAR_MEMORIA_H
 
 #include <stdio.h>
-#include <stdbool.h>
 #include <stdlib.h>
 #include <signal.h>
 #include <commons/config.h>
@@ -15,6 +14,7 @@
 #include <utils/logger.h>
 #include <utils/protocolo.h>
 #include "instruc_memoria.h"
+#include "peticiones_memoria.h"
 
 typedef struct 
 {
@@ -39,4 +39,4 @@ void iniciar_modulo(t_config_memoria* t_config_memoria);
 void cerrar_programa(t_config_memoria *config_memoria, int socket_server);
 void* escuchar_peticiones(void* args);
 
-#endif // INIT_MEMORIA_H
+#endif // INICIALIZAR_MEMORIA_H
