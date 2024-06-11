@@ -20,5 +20,6 @@
 extern t_dictionary* lista_instrucciones_porPID;
 extern char* path_proceso;
 extern t_bitarray* bitmap;
+extern void* espacio_de_usuario;
 
 #endif // MAIN_H

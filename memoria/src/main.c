@@ -42,7 +42,7 @@ int main()
     int cantidad_marcos = config_memoria->TAM_MEMORIA / config_memoria->TAM_PAGINA; //calculamos la cantidad de marcos
     void* espacio_de_usuario = malloc (config_memoria->TAM_MEMORIA); // reservamos memoria para el espacio de usuarip
     void* memoria_usuario_bitmap = malloc (cantidad_marcos/8);// reservamos memoria para el bitmap
-    bitmap = bitarray_create_with_mode (memoria_usuario_bitmap , cantidad_marcos/8, LSB_FIRST);
+    t_bitarray* bitmap = bitarray_create_with_mode (memoria_usuario_bitmap , cantidad_marcos/8, LSB_FIRST);
 
     return 0;
 }

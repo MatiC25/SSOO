@@ -234,7 +234,7 @@ void liberar_marco(int marco) {
 }
 
 //Acceso a espacio de usuario: "PID:" <PID> "- Accion:" <LEER / ESCRIBIR> "- Direccion fisica:" <DIRECCION_FISICA> "- Tamanio" <TAMANIO A LEER / ESCRIBIR>
-void acceso_lectura(int socket_cliente) {
+void acceso_lectura(int socket_cliente){
     int size;
     void* buffer = recibir_buffer(&size, socket_cliente);
     
@@ -243,27 +243,22 @@ void acceso_lectura(int socket_cliente) {
     int direc_fisica;
     int tamanio_lectura;
 
-    // Deserializamos 
-    memcpy(&pid, buffer + offset, sizeof(int));
+    memcpy(&pid, buffer + desplazamiento, sizeof(int));
     desplazamiento += sizeof(int);
-
-
-    memcpy(&direc_fisica, buffer + offset, sizeof(int));
+    memcpy(&direc_fisica, buffer + desplazamiento, sizeof(int));
     desplazamiento += sizeof(int);
-
-    memcpy(&tamanio_lectura, buffer + offset, sizeof(int));
+    memcpy(&tamanio_lectura, buffer + desplazamiento, sizeof(int));
     desplazamiento += sizeof(int);
 
     // Asignar memoria para el contenido a leer
     void* contenido_leer = malloc(tamanio_lectura);
 
-    // Realizar la lectura de la memoria
-    log_info(logger, "Acceso a espacio de usuario: PID: %d - Accion: LEER - Direccion fisica: %d", pid, direc_fisica);
-    memcpy(contenido_leer, espacio_usuario + direc_fisica, tamanio_lectura); // Copiamos el contenido
+    // Realizar la lectura del espacio de usuario
+    memcpy(contenido_leer, espacio_de_usuario + direc_fisica, tamanio_lectura);
+    log_info(logger, "Acceso a espacio de usuario: PID: %d - Accion: LEER - Direccion fisica: %d  - Tamaño: %d", pid, direc_fisica, tamanio_lectura);
 
     t_paquete* paquete = crear_paquete(LECTURA_EXITOSA);
     agregar_a_paquete(paquete, contenido_leer, tamanio_lectura);
-
     enviar_paquete(paquete, socket_cliente);
 
     eliminar_paquete(paquete);
@@ -271,43 +266,44 @@ void acceso_lectura(int socket_cliente) {
     free(buffer);
 }
 
-void acceso_escritura(socket_cliente);{
+void acceso_escritura(socket_cliente){
+    int size;
+    void* buffer = recibir_buffer(&size, socket_cliente);
     
+    int desplazamiento = 0;
+    int pid;
+    int direc_fisica;
+    int tamanio_escritura;
+    void* contenido_a_escribir;
+
+    memcpy(&pid, buffer + desplazamiento, sizeof(int));
+    desplazamiento += sizeof(int);
+    memcpy(&direc_fisica, buffer + desplazamiento, sizeof(int));
+    desplazamiento += sizeof(int);
+    memcpy(&tamanio_escritura, buffer + desplazamiento, sizeof(int));
+    desplazamiento += sizeof(int);
+
+    // Asignar memoria para el contenido a escribir
+    contenido_a_escribir = malloc(tamanio_escritura);
+    // copiamos el contenido a escribir
+    memcpy(contenido_a_escribir, buffer + desplazamiento, tamanio_escritura);
+
+    // Verificar que no se escriba fuera del espacio de usuario
+    if (direc_fisica + tamanio_escritura > config_memoria->tam_memoria) {
+        log_error(logger, "Error: Se intentó escribir fuera del espacio de usuario\n");
+        t_paquete* paquete = crear_paquete(OUT_OF_MEMORY);
+        enviar_paquete(paquete, socket_cliente);
+        return -1;
+    }
+    // se escribe en el espacio usuario el contenido a escribir
+    memcpy(espacio_de_usuario + direc_fisica, contenido_a_escribir, tamanio_escritura);; 
+    log_info(logger, "Acceso a espacio de usuario: PID: %d - Accion: ESCRIBIR - Direccion fisica: %d  - Tamaño: %d", pid, direc_fisica, tamanio_escritura);
+
+    t_paquete* paquete = crear_paquete(LECTURA_EXITOSA);
+    agregar_a_paquete(paquete, contenido_leer, tamanio_lectura);
+    enviar_paquete(paquete, socket_cliente);
+
+    eliminar_paquete(paquete);
+    free(contenido_leer);
+    free(buffer);
 }
-
-/*
-->tabla*->pag->marco
-                        ->pag
-
--> Busca en la TLB
-    -> Si no esta  en la TLB
-    TLB MISS 
-
-->  Buscar en la tabla de paginas(pid, nu mero_pag, cant _movimiento)
-    -> P = 1 
-        -> PAGE HIT
-        -> Se agrega entrada a TLB
-
-    ->  P = 0
-    -> Busca marco libre (bitmap -> t_marco* marcos[CANT_MARCOS]) //CANT_MARCOS = TAM_MEMORIA/LONG_MARCO
-        -> Si hay marco libre 
-            -> Se marca como frame ocupado , y se marca la pagina como presente (P = 1)
-            -> Se agrega  entrada a TLB
-
-        -> Si no hay marco libre 
-            -> se devuelve error al que lo pida
-            
--> Se sigue con la ejecución de la instrucción
-
-  
-        int posicion_libre = obtener_marco_libre(bitmap, cant_marcos);
-        if (posicion_libre != -1){ //rebisamos si hay espacio para agregar la pagina
-            agregar_marco(pid, pagina, posicion_libre); //agregamos la pagina al marco
-            t_paquete* marco_paquete = crear_paquete();
-            agregar_a_paquete(marco_paquete, entrada->marco, sizedof(int))
-            enviar_paquete(marco_paquete, socket_cliente);
-        }
-        else{     //de no haberlo, se devolvemos OUT_OF_MEMORY a cpu y termianmos la instruccion
-            t_paquete* paquete = crear_paquete(OUT_OF_MEMORY);
-            agregar_a_paquete(error_paquete, "No hay marcos libres", sizeof("No hay marcos libres"));
-            enviar_paquete(error_paquete, socket_cliente);

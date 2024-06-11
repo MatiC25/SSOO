@@ -51,7 +51,6 @@ int crear_servidores(t_config_memoria* config_memoria, int *md_generico) {
 
 void iniciar_modulo(t_config_memoria* config_memoria) {
     int md_generico = 0;
-    char* server_name;
 
     if(crear_servidores(config_memoria, &md_generico) != 1) {
         log_error(logger, "No se pudo crear los servidores de escucha");
@@ -60,13 +59,13 @@ void iniciar_modulo(t_config_memoria* config_memoria) {
 
     while (1)
     {
-        int socket_cliente = esperar_cliente(server_name, md_generico);
+        int socket_cliente = esperar_cliente("MEMORIA", md_generico);
 
         if(socket_cliente != -1) 
         {
           
 			pthread_t hilo_memora;
-			t_procesar_conexion *args_hilo = crear_procesar_conexion(server_name, socket_cliente);
+			t_procesar_conexion *args_hilo = crear_procesar_conexion("MEMORIA", socket_cliente);
             
 
             pthread_create(&hilo_memora, NULL, escuchar_peticiones, (void *) args_hilo);
