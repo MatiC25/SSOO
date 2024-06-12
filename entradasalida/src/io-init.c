@@ -8,8 +8,9 @@ t_interfaz *inicializar_interfaz(char *name_interfaz, char *config_path) {
         exit(EXIT_FAILURE);
     }
 
+    interfaz->nombre = name_interfaz;
     interfaz->config = cargar_configuraciones(config_path, interfaz);
-    
+
     return interfaz;
 }
 
@@ -27,7 +28,6 @@ t_config_io *cargar_configuraciones(char *config_path, t_interfaz *interfaz) {
 
     if (config_io == NULL) {
         log_error(logger, "Error al asignar memoria para config_io");
-        config_destroy(config);
         exit(EXIT_FAILURE);
     }
 
@@ -56,7 +56,7 @@ t_config_io *cargar_configuraciones(char *config_path, t_interfaz *interfaz) {
 
 void cargar_configuraciones_generica(t_config *config, t_config_io *config_io) {
     char *configuraciones[] = {
-        "TIEMPO_UNIDAD_UNIDAD",
+        "TIEMPO_UNIDAD_TRABAJO",
         "IP_KERNEL",
         "PUERTO_KERNEL",
         NULL
@@ -98,7 +98,7 @@ void cargar_configuraciones_dialfs(t_config *config, t_config_io *config_io) {
         "PATH_BASE_DIALFS",
         "BLOCK_SIZE",
         "BLOCK_COUNT",
-        NULL
+        NULL,
     };
 
     validar_configuraciones(config, configuraciones);
@@ -108,6 +108,10 @@ void cargar_configuraciones_dialfs(t_config *config, t_config_io *config_io) {
     configurar_valores_dialfs(config_io, config);
 }
 
+void get_tipo_interfaz_with_config(t_config *config, t_interfaz *interfaz) {
+    char *tipo = config_get_string_value(config, "TIPO_INTERFAZ");
+    interfaz->tipo = get_tipo_interfaz(tipo);
+}
 
 tipo_interfaz get_tipo_interfaz(char *tipo) {
     if (string_equals_ignore_case(tipo, "GENERICA")) {
@@ -118,8 +122,7 @@ tipo_interfaz get_tipo_interfaz(char *tipo) {
         return STDOUT;
     } else if (string_equals_ignore_case(tipo, "DIALFS")) {
         return DIALFS;
-    } else {
-        log_error(logger, "Tipo de interfaz desconocido");
-        exit(EXIT_FAILURE);
     }
+
+    return -1;
 }

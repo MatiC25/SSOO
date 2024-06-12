@@ -11,6 +11,9 @@
     "kernel-peticiones-dispatch.h": "c",
     "planificacion.h": "c",
     "dictionary.h": "c",
-    "logger.h": "c"
+    "logger.h": "c",
+    "kernel-interfaces.h": "c",
+    "protocolo.h": "c",
+    "socket.h": "c"
   }
 }

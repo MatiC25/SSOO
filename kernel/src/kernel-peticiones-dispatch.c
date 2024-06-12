@@ -224,24 +224,36 @@ t_pcb* recibir_contexto_y_recurso(char** recurso) {
 }
 
 
-void peticion_IO() {
-    // char *interface_name = recibir_interface_name();
-    // interface_io *interface = get_interface_from_dict(interface_name);
-    // tipo_operacion operacion = recibir_operacion(); 
+void peticion_IO(t_pcb *pcb_bloqueado) {
+    char *interface_name;
+    
+    // recibimos el nombre de la interfaz:
+    rcv_interface(&interface_name, config_kernel->SOCKET_DISPATCH);
 
-    // // Verificamos que la interfaz exista:
-    // if (consulta_existencia_interfaz(interface)) {
-    //     move_pcb_to_exit();
+    interface_io *interface = get_interface_from_dict(interface_name);
+    tipo_operacion operacion = recibir_operacion(); 
 
-    //     return NULL; // Salimos de la funcion
-    // }
+    // Verificamos que la interfaz exista:
+    if (consulta_existencia_interfaz(interface) && consulta_interfaz_para_aceptacion_de_operacion(interface)) {
+        move_pcb_to_exit(pcb_bloqueado); // Si no existe la interfaz o no acepta la operacion, mover a exit!
 
-    // // Verificamos que la operacion sea valida:
-    // if(consulta_interfaz_para_aceptacion_de_operacion(interface, operacion)) {
-        
+        return NULL; // Salimos de la funcion
+    }
+    
+    t_list *args = rcv_args(); // Recibimos los argumentos de la operacion
 
-    // } else
-    //     move_pcb_to_exit();
+    // Si la interfaz existe y acepta la operacion, procedemos a ejecutarla:
+    queue_push(interface->process_blocked, pcb_bloqueado);
+    queue_push(interface->args_process, args); // Agregamos los argumentos a la cola de argumentos
+    sem_post(&interface->size_blocked); // Aumentamos el tamaño de la cola de bloqueados
 }
 
 
+void rcv_interface(char **interface_name, int socket) {
+    int tamanio;
+    int desplazamiento = 0;
+    int size = 0;
+    void *buffer = recibir_buffer(&size, socket);
+    
+    recibir_nombre_interfaz(interface_name, buffer, &desplazamiento, &tamanio);
+}

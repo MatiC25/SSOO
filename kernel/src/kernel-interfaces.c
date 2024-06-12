@@ -1,38 +1,40 @@
 #include "kernel-interfaces.h"
 
-
+t_dictionary *interfaces;
+sem_t semaforo_interfaces;
 
 // Funciones de manejo de interfaz desde el lado del kernel:
 
-void handle_new_interface(void* arg) {
-    int socket_servidor = (intptr_t) arg;
+void handle_new_interface(void *arg) {
+    int socket_kernel = (int) arg;
 
     while(1) {
-        pthread_t accept_interfaces_thread;
-        int socket_cliente = esperar_cliente("Interfaces", socket_servidor);
+        int socket_cliente_nueva_interfaz = esperar_cliente("KENEL", socket_kernel);
 
-        pthread_create(&accept_interfaces_thread, NULL, (void*)manage_interface, (void *)(intptr_t) socket_cliente); // Cambiado de "administrar_interfaz"
-        pthread_detach(accept_interfaces_thread);
+        if(socket_cliente_nueva_interfaz != -1) {
+            pthread_t hilo_nueva_interfaz;
+
+            pthread_create(&hilo_nueva_interfaz, NULL, (void *) manage_interface, (void *) socket_cliente_nueva_interfaz);
+            pthread_detach(&hilo_nueva_interfaz);
+        }
     }
 }
 
-void manage_interface(void *socket_cliente) { 
+void manage_interface(void *socket_cliente) {
     int socket = (int) socket_cliente;
-    int seguir = 1;
+    int execute = 1;
 
-    while(seguir) {
-        op_code codigo_operacion = recibir_operacion(socket);
+    while(execute) {
+        op_code operacion = recibir_operacion(socket);
 
-        switch(codigo_operacion) {
-            case HANDSHAKE:
-                recibir_handshake(socket);
-            break;
-            case CREAR_INTERFAZ:
+        switch(operacion) {
+            case NEW_INTERFACE:
                 create_interface(socket);
-                seguir = 0;
-            break;
+                execute = 0;
+                break;
             default:
-                seguir = 0;
+                log_error(logger, "Operacion invalida!");
+                break;
         }
     }
 }
@@ -59,7 +61,7 @@ void consumers_pcbs_blockeds(void *args) {
 
         // Sacamos el primer proceso de la cola de bloqueados:
         t_pcb *pcb = queue_pop(interface->process_blocked);
-        //t_list *args = get_args(pcb); // Obtenemos los argumentos del proceso
+        t_list *args = queue_pop(interface->args_process); // Obtenemos los argumentos del proceso
 
         // Obtenemos el socket de la interfaz:
         int socket_with_interface = get_socket_interface(interface);
@@ -82,7 +84,7 @@ void consumers_pcbs_blockeds(void *args) {
 
 interface_io *initialize_interface() {
     interface_io *interface = malloc(sizeof(interface_io));
-    interface->SOCKET = -1;
+    interface->socket_interface = -1;
     interface->process_blocked = queue_create();
     sem_init(&interface->semaforo_used, 0, 1);
     sem_init(&interface->size_blocked, 0, 0);
@@ -91,14 +93,19 @@ interface_io *initialize_interface() {
 }
 
 void create_interface(int socket) {
-    char *interface_name = recibir_mesj(socket);
+    tipo_interfaz tipo;
+    char *interface_name;
+
+    // Inicializamos interfaz:
     interface_io *interface = initialize_interface();
+
+    // Recibimos el nombre de la interfaz y el tipo:
+    recibir_interfaz(&interface_name, &tipo, socket);
 
     // Seteamos nombre de la interfaz:
     set_name_interface(interface, interface_name);
 
     // Seteamos las operaciones validas:
-    tipo_interfaz tipo = recibir_tipo_interfaz(socket);
     set_valid_operations(interface, tipo);
 
     // Seteamos socket de la interfaz:
@@ -114,51 +121,16 @@ void create_interface(int socket) {
 
 // Funciones de operaciones basicas de interfaz:
 
-t_list *cargar_configuraciones_operaciones(tipo_interfaz tipo) {
-    tipo_operacion operaciones[] = {
-        IO_GEN_SLEEP_INT,
-        IO_STDIN_READ_INT,
-        IO_STDOUT_WRITE_INT,
-        IO_FS_CREATE_INT,
-        IO_FS_DELETE_INT,
-        IO_FS_TRUNCATE_INT,
-        IO_FS_WRITE_INT,
-        IO_FS_READ_INT
-    };
-
-    // Creamos la lista de operaciones:
-    t_list *lista_operaciones = list_create();
-    agregar_operaciones(lista_operaciones, operaciones, tipo);
-
-    return lista_operaciones;
-}
-
-// void agregar_operaciones(t_list *lista_operaciones, tipo_operacion operaciones[], tipo_interfaz tipo) {
-//     if(tipo == GENERICA) {
-//         list_add(lista_operaciones, operaciones[0]);
-//     } else if(tipo == STDIN) {
-//         list_add(lista_operaciones, operaciones[1]);
-//     } else if(tipo == STDOUT) {
-//         list_add(lista_operaciones, operaciones[2]);
-//     } else if(tipo == DIALFS) {
-//         for(int i = 3; i < 7; i++) {
-//             list_add(lista_operaciones, operaciones[i]);
-//         }
-//     }
-// }
-
-// Metodos de interfaz:
-
 void set_name_interface(interface_io *interface, char *name) {
     interface->name = name;
 }
 
 int get_socket_interface(interface_io *interface) {
-    return interface->SOCKET;
+    return interface->socket_interface;
 }
 
 void set_socket_interface(interface_io *interface, int socket) {
-    interface->SOCKET = socket;
+    interface->socket_interface = socket;
 }
 
 void add_interface_to_dict(interface_io *interfaces, char *key) { 
@@ -173,7 +145,6 @@ void set_valid_operations(interface_io *interface, tipo_interfaz tipo) {
     interface->operaciones_validas = cargar_configuraciones_operaciones(tipo);
 }
 
-// Funciones para pedir operaciones a la interfaz:
 
 consulta_existencia_interfaz(interface_io *interface) {
     return interface != NULL;
@@ -188,13 +159,32 @@ int consulta_interfaz_para_aceptacion_de_operacion(interface_io *interface) {
 }
 
 int acepta_operacion_interfaz(interface_io *interface, tipo_operacion operacion) {
-    int size_operaciones_validas = list_size(interface -> operaciones_validas);
-    for(int i = 0; i < size_operaciones_validas; i++)
-        if(operacion == list_get(interface -> operaciones_validas, i))
-            return 1; // Operacion valida
+    tipo_operacion operaciones[] = {
+        IO_GEN_SLEEP_INT,
+        IO_STDIN_READ_INT,
+        IO_STDOUT_WRITE_INT,
+        IO_FS_CREATE_INT,
+        IO_FS_DELETE_INT,
+        IO_FS_TRUNCATE_INT,
+        IO_FS_WRITE_INT,
+        IO_FS_READ_INT
+    };
+
+    tipo_interfaz tipo = interface->tipo;
     
-    return 0; // Operacion invalida
+    if(tipo == GENERICA)
+        return operacion == operaciones[0];
+    else if(tipo == STDIN)
+        return operacion == operaciones[1];
+    else if(tipo == STDOUT)
+        return operacion == operaciones[2];
+    else if(tipo == DIALFS)
+        return operacion == operaciones[3] || operacion == operaciones[4] || operacion == operaciones[5] || operacion == operaciones[6] || operacion == operaciones[7];
+    else
+        return 0; // Operacion invalida
 }
+
+// Funciones para pedir operaciones a la interfaz:
 
 void send_message_to_generic_interface(int socket, t_list *args, int *response) {
     char *tiempo_sleep = list_get(args, 0);
@@ -227,7 +217,23 @@ tipo_interfaz recibir_tipo_interfaz(int socket) {
 }
 
 // Funciones de auxiliares:
-void get_args(t_pcb *pcb) {
+void recibir_interfaz(char **interface_name, tipo_interfaz *tipo, int socket) {
+    int size = 0;
+    int desplazamiento = 0;
+    int tamanio;
+    void *buffer = recibir_buffer(&size, socket);
     
-    return dictionary_get;
+    memcpy(tipo, buffer + desplazamiento, sizeof(tipo_interfaz));
+    desplazamiento += sizeof(tipo_interfaz);
+    
+    recibir_nombre_interfaz(interface_name, buffer, &desplazamiento, &tamanio);
+}
+
+
+void recibir_nombre_interfaz(char **interface_name, void *buffer, int *desplazamiento, int *size) { 
+    memcpy(*size, buffer + desplazamiento, sizeof(int));
+    desplazamiento += sizeof(int);
+    *interface_name = malloc(tamanio);
+    memcpy(*interface_name, buffer + desplazamiento, tamanio);
+    *desplazamiento += *size; 
 }
