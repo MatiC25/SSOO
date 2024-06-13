@@ -32,7 +32,7 @@ void informar_a_memoria_creacion_proceso(char* archivo_de_proceso, int pid){
 }
 
 
-void creacion_proceso() {
+void creacion_proceso(char *archivo_de_proceso) {
     t_pcb* pcb = malloc(sizeof(t_pcb)); 
     
     if (pcb == NULL) {

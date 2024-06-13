@@ -28,6 +28,11 @@ typedef struct {
     char* IP_KERNEL;
 } t_config_kernel;
 
+typedef struct {
+    int PID;
+    char* recurso;
+} t_recursos_pedidos;
+
 
 extern t_config_kernel* config_kernel;
 extern t_list* cola_new;
@@ -35,5 +40,8 @@ extern t_list* cola_ready;
 extern t_list* cola_prima_VRR;
 
 extern t_queue* cola_block[MAX_RECURSOS];
+
+extern t_recursos_pedidos* vector_recursos_pedidos;
+extern int tam_vector_recursos_pedidos;
 
 #endif

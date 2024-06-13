@@ -109,16 +109,37 @@ void peticion_fin_quantum() {
 
 
 void peticion_exit(const char* tipo_de_exit) { 
-    t_pcb *pcb = rcv_contexto_ejecucion(config_kernel->SOCKET_DISPATCH);
+    t_pcb* pcb = rcv_contexto_ejecucion(config_kernel->SOCKET_DISPATCH);
     if (!pcb) {  
         log_error(logger, "Dispatch acaba de recibir algo inexistente!");
+        return;
     }
 
     log_info(logger, "Finaliza el proceso %i - Motivo: %s", pcb->pid, tipo_de_exit);
 
-    informar_a_memoria_liberacion_proceso(pcb -> pid); // PREGUNTAR
+    // Verificar si el proceso tiene algún recurso asociado
+    for (int i = 0; i < tam_vector_recursos_pedidos; i++) {
+        if (vector_recursos_pedidos[i].pid == pcb->pid) {
+            // Liberar el recurso asociado al proceso
+            int indice_recurso = obtener_indice_recurso(vector_recursos_pedidos[i].nombre_recurso);
+            if (indice_recurso != -1) {
+                config_kernel->instancias_recursos[indice_recurso]++;
+            }
+            else {
+                log_error(logger, "Hay una descoordinacion, recurso no coincide con pid");
+                continue;
+            }
 
-    free(pcb -> registros);
+            // Limpiar la entrada en el vector de recursos pedidos
+            vector_recursos_pedidos[i].pid = -1;
+            free(vector_recursos_pedidos[i].nombre_recurso);
+            vector_recursos_pedidos[i].nombre_recurso = NULL;
+        }
+    }
+
+    informar_a_memoria_liberacion_proceso(pcb->pid);
+
+    free(pcb->registros);
     free(pcb);
 
     sem_post(&limite_grado_multiprogramacion);
@@ -145,13 +166,23 @@ void peticion_wait() {
 
     if (config_kernel->instancias_recursos[indice_recurso] > 0) {
         config_kernel->instancias_recursos[indice_recurso]--;
+
+        // Guardar el pid y el recurso en el vector
+        for (int i = 0; i < tam_vector_recursos_pedidos; i++) {
+            if (vector_recursos_pedidos[i].pid == -1) {
+                vector_recursos_pedidos[i].pid = pcb->pid;
+                vector_recursos_pedidos[i].nombre_recurso = strdup(recurso);
+                break;
+            }
+        }
+
     } else {
         mover_a_bloqueado_por_wait(pcb, recurso);
         free(recurso);
         return;
     }
 
-    enviar_proceso_a_cpu(pcb);
+    enviar_proceso_a_cpu(pcb); //DUDASSSSSS
 
     free(recurso);
 }
@@ -163,21 +194,30 @@ void peticion_signal() {
     t_pcb* pcb = recibir_contexto_y_recurso(&recurso); 
     if (!pcb) {  
         log_error(logger, "Dispatch acaba de recibir algo inexistente!");
-        return EXIT_FAILURE;
+        return;
     }
     
     if (!recurso_existe(recurso)) {
         log_error(logger, "El recurso solicitado no existe!");
-        mover_a_exit(pcb);
+        peticion_exit(pcb, "INVALID_RESOURCE");
         free(recurso);
-        return EXIT_FAILURE;
+        return;
     }
 
     int indice_recurso = obtener_indice_recurso(recurso);
     config_kernel->instancias_recursos[indice_recurso]++;
 
-    if (!queue_is_empty(config_kernel->colas_bloqueados[indice_recurso])) {
+    // Liberar el pid y el recurso en el vector
+    for (int i = 0; i < tam_vector_recursos_pedidos; i++) {
+        if (vector_recursos_pedidos[i].pid == pcb->pid && strcmp(vector_recursos_pedidos[i].nombre_recurso, recurso) == 0) {
+            vector_recursos_pedidos[i].pid = -1;
+            free(vector_recursos_pedidos[i].nombre_recurso);
+            vector_recursos_pedidos[i].nombre_recurso = NULL;
+            break;
+        }
+    }
 
+    if (!queue_is_empty(config_kernel->colas_bloqueados[indice_recurso])) {
         pthread_mutex_lock(&mutex_estado_block);
         t_pcb* pcb_signal = queue_pop(config_kernel->colas_bloqueados[indice_recurso]);
         pthread_mutex_unlock(&mutex_estado_block);
@@ -188,12 +228,10 @@ void peticion_signal() {
         pthread_mutex_unlock(&mutex_estado_ready);
 
         log_info(logger, "PID: %i - Estado Anterior: BLOCK - Estado Actual: READY", pcb_signal->pid);
-
         sem_post(&hay_en_estado_ready);
     }
 
-    enviar_proceso_a_cpu(pcb);
-
+    enviar_proceso_a_cpu(pcb); // DUDASSSSS
     free(recurso);
 }
 
@@ -240,7 +278,9 @@ t_pcb* recibir_contexto_y_recurso(char** recurso) {
         return NULL;
     }
 
-    *recurso = rcv_nombre_recurso(config_kernel->SOCKET_DISPATCH);
+    // Recibimos el nombre del recurso:
+    rcv_nombre_recurso(recurso, config_kernel->SOCKET_DISPATCH);
+
     if (!*recurso) {
         log_error(logger, "Error al recibir el nombre del recurso");
         free(proceso->registros);
@@ -284,4 +324,49 @@ void rcv_interface(char **interface_name, int socket) {
     void *buffer = recibir_buffer(&size, socket);
     
     recibir_nombre_interfaz(interface_name, buffer, &desplazamiento, &tamanio);
+}
+
+
+void rcv_nombre_recurso(char **recurso, int socket) {
+    int tamanio;
+
+    // Recibir el tamaño del nombre del recurso
+    if (recv(socket, &tamanio, sizeof(int), 0) <= 0) {
+        *recurso = NULL;
+        log_error(logger, "No llego el length nombre de recurso o interfaz")
+        return;
+    }
+
+    // Reservar memoria para el nombre del recurso
+    *recurso = malloc(tamanio);
+    if (*recurso == NULL) {
+        return;
+    }
+
+    // Recibir el nombre del recurso
+    if (recv(socket, *recurso, tamanio, 0) <= 0) {
+        log_error(logger, "No llego el nombre de recurso o interfaz");
+        free(*recurso);
+        *recurso = NULL;
+    }
+}
+
+
+void inicializar_vector_recursos_pedidos() {
+    tam_vector_recursos_pedidos = calcular_total_instancias();
+    vector_recursos_pedidos = malloc(tam_vector_recursos_pedidos * sizeof(t_recurso_pedido));
+
+    for (int i = 0; i < tam_vector_recursos_pedidos; i++) {
+        vector_recursos_pedidos[i].pid = -1;  // Inicializar con un PID inválido
+        vector_recursos_pedidos[i].nombre_recurso = NULL;
+    }
+}
+
+
+int calcular_total_instancias() {
+    int suma = 0;
+    for (int i = 0; i < MAX_RECURSOS; i++) {
+        suma += config_kernel->instancias_recursos[i];
+    }
+    return suma;
 }

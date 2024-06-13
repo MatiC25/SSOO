@@ -2,11 +2,11 @@
 
 COMMAND comandos[] = {
     {"INICIAR_PROCESO", iniciar_proceso},
+    {"PROCESO_ESTADO", proceso_estado},
     /*{"FINALIZAR_PROCESO", finalizar_proceso},
     {"DETENER_PLANIFICACION", detener_planificacion},
     {"INICIAR_PLANIFICACION", iniciar_planificacion},
     {"MULTIPROGRAMACION", multiprogramacion},
-    {"PROCESO_ESTADO", proceso_estado},
     {"HELP", help},*/
     {NULL, NULL}
 };
@@ -112,8 +112,56 @@ char* generador_de_comandos(const char* texto, int estado) {
 }
 
 void* iniciar_proceso(void* args) {
-    char *argumento = (char*) args;
-    printf("Iniciando proceso...\n");
-    printf("Argumento: %s\n", argumento);
-    return;
+    char *path = (char*) args; // Path del archivo a ejecutar
+
+    creacion_proceso(path); // Invocamos a la función que crea el proces
+}
+
+
+void *proceso_estado(void *args) {
+    int size_estados_proceso;
+    t_list *estados_procesos[5];
+
+    agregar_procesos_a_lista(estados_procesos);
+
+    for(int i = 0; i < 5; i++) {
+        t_list *estado_aux = estados_procesos[i];
+        size_estados_proceso = list_size(estado_aux);
+
+        for(int j = 0; j < size_estados_proceso; j++) {
+            t_pcb *pcb = list_get(estado_aux, j);
+            printf("Proceso %d: %s\n", pcb->pid, estado_proceso(i)); // Imprimimos el estado del proceso
+        }
+    }
+} 
+
+void agregar_procesos_a_lista(t_list *estados_procesos[]) {
+    estados_procesos[0] = cola_new;
+    estados_procesos[1] = cola_ready;
+    estados_procesos[2] = cola_exec;
+    estados_procesos[3] = cola_block;
+    estados_procesos[4] = cola_exit;
+}
+
+char *estado_proceso(int estado) {
+    switch(estado) {
+        case 0:
+            return "NEW";
+        case 1:
+            return "READY";
+        case 2:
+            return "EXEC";
+        case 3:
+            return "BLOCK";
+        case 4:
+            return "EXIT";
+    }
+}
+
+void *multiprogramacion(void *args) {
+    char *multiprogramacion = (char*) args;
+    int valor_multiprogramacion = atoi(multiprogramacion);
+
+    for(int i = 0; i < valor_multiprogramacion; i++)
+        sem_post(&sem_multiprogramacion);
 }

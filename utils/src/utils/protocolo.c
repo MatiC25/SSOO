@@ -28,15 +28,15 @@ void agregar_a_paquete(t_paquete* paquete, void* valor, int tamanio) {
 
 void enviar_paquete(t_paquete* paquete, int socket_cliente) {
 	int bytes = paquete->buffer->size + sizeof(op_code) + sizeof(uint32_t);
-	void* a_enviar = serializar_paquete(paquete, &bytes);
+	void* a_enviar = serializar_paquete(paquete, bytes);
 
 	send(socket_cliente, a_enviar, bytes, 0);
 
 	free(a_enviar);
 }
 
-void* serializar_paquete(t_paquete* paquete, int* bytes) {
-	void * magic = malloc(*bytes);
+void* serializar_paquete(t_paquete* paquete, int bytes) {
+	void * magic = malloc(bytes);
 	int desplazamiento = 0;
 
 	memcpy(magic + desplazamiento, &(paquete->codigo_operacion), sizeof(op_code)); //Creo qeu hay que sacarlo

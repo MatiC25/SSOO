@@ -10,6 +10,9 @@
 #include <readline/history.h>
 #include <utils/shared.h>
 
+
+#include "planificador.h"
+
 typedef struct {
     char* nombre;
     void* (*funcion)(void*); // Firma de las funciones!
