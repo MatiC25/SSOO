@@ -15,14 +15,10 @@
 #include <pthread.h>
 #include <utils/logger.h>
 #include <utils/instrucciones.h>
-
-
+#include "estructuras_compartidas_memoria.h"
 
 void leer_archivoPseudo(int socket_kernel);
 char* crear_path_instrucciones(char* path_proceso, char* archivo_path);
 void enviar_instruccion_a_cpu(int socket_cpu, int retardo_de_respuesta);
-
-
-
 
 #endif // INSTRUC_MEMORIA_H

@@ -36,10 +36,12 @@ typedef enum { //podemos juntar todos los procesos
     ACCEDER_TABLA_PAGINAS,
     MODIFICAR_TAMAÑO_MEMORIA,
     ACCESO_A_LECTURA,
+    LECTURA_EXITOSA,// No sabemos como lo recibe cpu
+    EXITO_CONSULTA,
     ACCESO_A_ESCRITURA,
     OUT_OF_MEMORY,
 // ----------------
-}
+} op_code;
 
 
 

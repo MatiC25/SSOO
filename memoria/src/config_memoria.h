@@ -1,10 +1,10 @@
-#ifndef PAG_MEMORIA_H
-#define PAG_MEMORIA_H
+#ifndef CONFIG_MEMORIA_H
+#define CONFIG_MEMORIA_H
 
 #include <stdio.h>
-#include <stdbool.h>
 #include <stdlib.h>
 #include <signal.h>
+#include <pthread.h>
 #include <commons/config.h>
 #include <commons/string.h>
 #include <commons/log.h>
@@ -12,16 +12,12 @@
 #include <utils/shared.h>
 #include <utils/estructuras_compartidas.h>
 #include <utils/protocolo.h>
-#include <pthread.h>
 #include <utils/logger.h>
 #include <utils/instrucciones.h>
+#include "estructuras_compartidas_memoria.h"
 
-//Estructuras para paginacion simple
+int cargar_configuraciones_memoria(t_config_memoria* config_memoria);
 
-typedef struct {
-    int nro_pagina;
-    int marco;
-    int bit_validez;
-} t_tabla_de_paginas;
+t_config_memoria* inicializar_config_memoria(void);
 
-#endif // PAG_MEMORIA_H
+#endif // CONFIG_MEMORIA_H

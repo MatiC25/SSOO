@@ -10,6 +10,13 @@
     "queue.h": "c",
     "inicializar_memoria.h": "c",
     "pag_memoria.h": "c",
-    "stdbool.h": "c"
+    "stdbool.h": "c",
+    "protocolo.h": "c",
+    "logger.h": "c",
+    "main.h": "c",
+    "signal.h": "c",
+    "peticiones_memoria.h": "c",
+    "memoria.h": "c",
+    "estructuras_compartidas_memoria.h": "c"
   }
 }
