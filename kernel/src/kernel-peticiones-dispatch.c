@@ -128,7 +128,7 @@ void peticion_exit(const char* tipo_de_exit) {
 void peticion_wait() {
     char* recurso;
 
-    t_pcb *pcb = recibir_contexto_y_recurso(&recurso); 
+    t_pcb* pcb = recibir_contexto_y_recurso(&recurso); 
     if (!pcb) {  
         log_error(logger, "Dispatch acaba de recibir algo inexistente!");
         return;
@@ -136,63 +136,91 @@ void peticion_wait() {
     
     if (!recurso_existe(recurso)) {
         log_error(logger, "El recurso solicitado no existe!");
-        mover_a_exit(pcb); // TODO
+        peticion_exit(pcb, "INVALID_RESOURCE");
         free(recurso);
         return;
     }
 
-    // Obtener el índice del recurso en la lista
     int indice_recurso = obtener_indice_recurso(recurso);
 
-    // Verificar la cantidad de instancias
-    int* instancias = list_get(config_kernel->INST_RECURSOS, indice_recurso);
-    if (*instancias > 0) {
-        // Hay instancias disponibles => restar una instancia
-        (*instancias)--;
+    if (config_kernel->instancias_recursos[indice_recurso] > 0) {
+        config_kernel->instancias_recursos[indice_recurso]--;
     } else {
-        // No hay instancias disponibles => bloquear el proceso
-        mover_a_bloqueado_por_wait(pcb, recurso); // TODO
+        mover_a_bloqueado_por_wait(pcb, recurso);
         free(recurso);
         return;
     }
 
-    // Resto del manejo del proceso que hace WAIT...
+    enviar_proceso_a_cpu(pcb);
+
     free(recurso);
 }
+
 
 void peticion_signal() {
     char* recurso;
 
-    t_pcb *pcb = recibir_contexto_y_recurso(&recurso); 
+    t_pcb* pcb = recibir_contexto_y_recurso(&recurso); 
     if (!pcb) {  
         log_error(logger, "Dispatch acaba de recibir algo inexistente!");
-        return;
+        return EXIT_FAILURE;
     }
     
     if (!recurso_existe(recurso)) {
         log_error(logger, "El recurso solicitado no existe!");
-        mover_a_exit(pcb); // TODO
+        mover_a_exit(pcb);
         free(recurso);
-        return;
+        return EXIT_FAILURE;
     }
 
-    // Obtener el índice del recurso en la lista
     int indice_recurso = obtener_indice_recurso(recurso);
+    config_kernel->instancias_recursos[indice_recurso]++;
 
-    // Incrementar una instancia del recurso
-    int* instancias = list_get(config_kernel->INST_RECURSOS, indice_recurso);
-    (*instancias)++;
+    if (!queue_is_empty(config_kernel->colas_bloqueados[indice_recurso])) {
 
-    //FALTA EL TEMA DE GESTION DE LISTAS BLOQUEADAS
+        pthread_mutex_lock(&mutex_estado_block);
+        t_pcb* pcb_signal = queue_pop(config_kernel->colas_bloqueados[indice_recurso]);
+        pthread_mutex_unlock(&mutex_estado_block);
+
+        pthread_mutex_lock(&mutex_estado_ready);
+        pcb_signal->estado = READY;
+        list_add(cola_ready, pcb_signal);
+        pthread_mutex_unlock(&mutex_estado_ready);
+
+        log_info(logger, "PID: %i - Estado Anterior: BLOCK - Estado Actual: READY", pcb_signal->pid);
+
+        sem_post(&hay_en_estado_ready);
+    }
+
+    enviar_proceso_a_cpu(pcb);
 
     free(recurso);
 }
 
 
+void mover_a_bloqueado_por_wait(t_pcb* pcb, char* recurso) {
+    log_info(logger, "PID: %i - Bloqueado por: %s", pcb->pid, recurso);
+    int indice_recurso = obtener_indice_recurso(recurso);
+
+    pthread_mutex_lock(&mutex_estado_block);
+    pcb->estado = BLOCK;
+    queue_push(colas_bloqueados[indice_recurso], pcb);
+    pthread_mutex_unlock(&mutex_estado_block);
+
+    log_info(logger, "PID: %i - Estado Anterior: EXEC - Estado Actual: BLOCK", pcb->pid);
+}
+
+
+void inicializar_colas_bloqueados() {
+    for (int i = 0; i < MAX_RECURSOS; i++) {
+        colas_bloqueados[i] = queue_create();
+    }
+}
+
+
 int obtener_indice_recurso(char* recurso) {
-    for (int i = 0; i < list_size(config_kernel->RECURSOS); i++) {
-        char* recurso_actual = list_get(config_kernel->RECURSOS, i);
-        if (strcmp(recurso_actual, recurso) == 0) {
+    for (int i = 0; i < MAX_RECURSOS; i++) {
+        if (strcmp(config_kernel->recursos[i], recurso) == 0) {
             return i;  // Se encontró el recurso, devolver el índice
         }
     }
@@ -234,8 +262,8 @@ void peticion_IO(t_pcb *pcb_bloqueado) {
     tipo_operacion operacion = recibir_operacion(); 
 
     // Verificamos que la interfaz exista:
-    if (consulta_existencia_interfaz(interface) && consulta_interfaz_para_aceptacion_de_operacion(interface)) {
-        move_pcb_to_exit(pcb_bloqueado); // Si no existe la interfaz o no acepta la operacion, mover a exit!
+    if (!consulta_existencia_interfaz(interface) && !consulta_interfaz_para_aceptacion_de_operacion(interface)) {
+        peticion_exit(pcb_bloqueado, "INVALID_INTERFACE"); // Si no existe la interfaz o no acepta la operacion, mover a exit!
 
         return NULL; // Salimos de la funcion
     }

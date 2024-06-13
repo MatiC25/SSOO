@@ -8,7 +8,7 @@
 #include <semaphore.h>
 #include <pthread.h>
 #include <commons/collections/dictionary.h>
-
+#define MAX_RECURSOS 3
 typedef struct {
     int PUERTO_ESCUCHA;
     char *IP_MEMORIA;
@@ -30,10 +30,10 @@ typedef struct {
 
 
 extern t_config_kernel* config_kernel;
-
 extern t_list* cola_new;
 extern t_list* cola_ready; 
-extern t_list* cola_block;
 extern t_list* cola_prima_VRR;
+
+extern t_queue* cola_block[MAX_RECURSOS];
 
 #endif

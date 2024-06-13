@@ -3,25 +3,25 @@
 // Funciones para inicializar:
 
 t_config_kernel* inicializar_config_kernel() {
-	t_config_kernel* config_kernel = malloc(sizeof(t_config_kernel));
+    t_config_kernel* config_kernel = malloc(sizeof(t_config_kernel));
 
-	config_kernel->PUERTO_ESCUCHA = 0;
-	config_kernel->IP_MEMORIA = NULL;
-	config_kernel->PUERTO_MEMORIA = 0;
-	config_kernel->IP_CPU = NULL;
-	config_kernel->SOCKET_DISPATCH = 0;
-	config_kernel->SOCKET_INTERRUPT = 0;
-	config_kernel->ALGORITMO_PLANIFICACION = NULL;
-	config_kernel->QUANTUM = 0;
-	config_kernel->RECURSOS = NULL;
-	config_kernel->INST_RECURSOS = NULL;
-	config_kernel->GRADO_MULTIP = 0;
-	config_kernel->PUERTO_CPU_DS = 0;
-	config_kernel->PUERTO_CPU_IT = 0;
-	config_kernel->PUERTO_KERNEL = 0;
-	config_kernel->IP_KERNEL = 0;
+    config_kernel->PUERTO_ESCUCHA = 0;
+    config_kernel->IP_MEMORIA = NULL;
+    config_kernel->PUERTO_MEMORIA = 0;
+    config_kernel->IP_CPU = NULL;
+    config_kernel->SOCKET_DISPATCH = 0;
+    config_kernel->SOCKET_INTERRUPT = 0;
+    config_kernel->ALGORITMO_PLANIFICACION = NULL;
+    config_kernel->QUANTUM = 0;
+    config_kernel->RECURSOS = calloc(MAX_RECURSOS, sizeof(char*));
+    config_kernel->INST_RECURSOS = calloc(MAX_RECURSOS, sizeof(int));
+    config_kernel->GRADO_MULTIP = 0;
+    config_kernel->PUERTO_CPU_DS = 0;
+    config_kernel->PUERTO_CPU_IT = 0;
+    config_kernel->PUERTO_KERNEL = 0;
+    config_kernel->IP_KERNEL = NULL;
 
-	return config_kernel;
+    return config_kernel;
 }
 
 t_config_kernel *cargar_config_kernel(char *path_config) {
@@ -88,25 +88,32 @@ void cargar_valores_de_planificacion(t_config *config, t_config_kernel *config_k
 	config_kernel->QUANTUM = config_get_int_value(config, "QUANTUM");
 }
 
-void cargar_valores_de_recursos(t_config *config, t_config_kernel *config_kernel) {
-    char **recursos = config_get_array_value(config, "RECURSOS");
-    char **instancias_str = config_get_array_value(config, "INSTANCIAS_RECURSOS");
+void cargar_valores_de_recursos(t_config* config, t_config_kernel* config_kernel) {
+    char** recursos = config_get_array_value(config, "RECURSOS");
+    char** instancias_str = config_get_array_value(config, "INSTANCIAS_RECURSOS");
 
-    config_kernel->RECURSOS = list_create();
-    config_kernel->INST_RECURSOS = list_create();
-
-    for (int i = 0; recursos[i] != NULL && instancias_str[i] != NULL; i++) {
-        list_add(config_kernel->RECURSOS, strdup(recursos[i])); // Añadir el nombre del recurso
-
-        int instancias = atoi(instancias_str[i]); // Convertir la cadena a entero
-        int *instancia = malloc(sizeof(int));
-        *instancia = instancias;
-        list_add(config_kernel->INST_RECURSOS, instancia); // Añadir el número de instancias
+    for (int i = 0; i < MAX_RECURSOS; i++) {
+        if (recursos[i] != NULL && instancias_str[i] != NULL) {
+            config_kernel->RECURSOS[i] = strdup(recursos[i]);
+            config_kernel->INST_RECURSOS[i] = atoi(instancias_str[i]);
+        } else {
+            config_kernel->RECURSOS[i] = NULL;
+            config_kernel->INST_RECURSOS[i] = 0;
+        }
     }
 
     liberar_array(recursos);
     liberar_array(instancias_str);
 }
+
+
+void liberar_array(char** array) {
+    for (int i = 0; array[i] != NULL; i++) {
+        free(array[i]);
+    }
+    free(array);
+}
+
 
 void cargar_valores_de_grado_multiprogramacion(t_config *config, t_config_kernel *config_kernel) {
 	config_kernel->GRADO_MULTIP = config_get_int_value(config, "GRADO_MULTIPROGRAMACION");
@@ -125,8 +132,6 @@ int get_socket_dispatch() {
 int get_socket_interrupt() {
 	return config_kernel->SOCKET_INTERRUPT;
 }
-
-// Funciones para setear valores:
 
 void set_socket_memoria(int socket) {
 	config_kernel->SOCKET_MEMORIA = socket;
