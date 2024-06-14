@@ -296,7 +296,7 @@ void peticion_IO(t_pcb *pcb_bloqueado) {
     char *interface_name;
     
     // recibimos el nombre de la interfaz:
-    rcv_interface(&interface_name, config_kernel->SOCKET_DISPATCH);
+    rcv_nombre_interfaz(&interface_name, config_kernel->SOCKET_DISPATCH);
 
     interface_io *interface = get_interface_from_dict(interface_name);
     tipo_operacion operacion = recibir_operacion(); 
@@ -308,7 +308,7 @@ void peticion_IO(t_pcb *pcb_bloqueado) {
         return NULL; // Salimos de la funcion
     }
     
-    t_list *args = rcv_args(); // Recibimos los argumentos de la operacion
+    t_list *args = rcv_args(operacion); // Recibimos los argumentos de la operacion
 
     // Si la interfaz existe y acepta la operacion, procedemos a ejecutarla:
     queue_push(interface->process_blocked, pcb_bloqueado);
@@ -316,15 +316,6 @@ void peticion_IO(t_pcb *pcb_bloqueado) {
     sem_post(&interface->size_blocked); // Aumentamos el tamaño de la cola de bloqueados
 }
 
-
-void rcv_interface(char **interface_name, int socket) {
-    int tamanio;
-    int desplazamiento = 0;
-    int size = 0;
-    void *buffer = recibir_buffer(&size, socket);
-    
-    recibir_nombre_interfaz(interface_name, buffer, &desplazamiento, &tamanio);
-}
 
 
 void rcv_nombre_recurso(char **recurso, int socket) {

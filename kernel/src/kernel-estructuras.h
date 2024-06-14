@@ -33,6 +33,16 @@ typedef struct {
     char* recurso;
 } t_recursos_pedidos;
 
+typedef struct {
+    char *name;
+    int socket_interface;
+    tipo_interfaz tipo;
+    t_queue *process_blocked;
+    t_queue *args_process;
+    sem_t semaforo_used;
+    sem_t size_blocked;
+} interface_io;
+
 
 extern t_config_kernel* config_kernel;
 extern t_list* cola_new;

@@ -12,9 +12,13 @@ void interfaz_recibir_peticiones(t_interfaz * interfaz, t_config_io* config_io) 
 }
 
 void ejecutar_operacion_generica(t_interfaz * interfaz, t_config_io* config_io) {
+    // Inicializamos las variables:
+    int tiempo_espera;
+    int tiempo_unidad;
+
     while(1) {
-        int tiempo_espera = recibir_entero(interfaz);
-        int tiempo_unidad = get_tiempo_unidad(config_io);
+        tiempo_espera = recibir_entero(interfaz);
+        tiempo_unidad = get_tiempo_unidad(config_io);
 
         // Realizamos la operacion:
         sleep(tiempo_espera * tiempo_unidad);
@@ -25,6 +29,7 @@ void ejecutar_operacion_generica(t_interfaz * interfaz, t_config_io* config_io) 
 }
 
 void ejecutar_operacion_stdin(t_interfaz *interfaz, t_config_io *config_io) {
+    // Inicializamos las variables:
     char *input = NULL;
 
     while(1) {
