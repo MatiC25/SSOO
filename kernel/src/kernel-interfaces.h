@@ -29,5 +29,4 @@ void consumers_pcbs_blockeds(void *args);
 interface_io *initialize_interface();
 void create_interface(int socket);
 
-
 #endif // KERNEL_INTERFACES_H

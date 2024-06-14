@@ -116,14 +116,3 @@ void create_interface(int socket) {
     create_consumer_thread(&interface_name);
 }
 
-void send_message_to_interface(interface_io *interface, t_list *args, int *response) {
-    if(interface->tipo == GENERICA) {
-        send_message_to_generic_interface(get_socket_interface(interface), args, response);
-    } else if(interface->tipo == STDIN) {
-        send_message_to_stdin_interface(get_socket_interface(interface), args, response);
-    } else if(interface->tipo == STDOUT) {
-        send_message_to_stdout_interface(get_socket_interface(interface), args, response);
-    } else if(interface->tipo == DIALFS) {
-        send_message_to_dialfs_interface(get_socket_interface(interface), args, response);
-    }
-}
