@@ -143,13 +143,14 @@ void resize_proceso(int socket_cliente) {
     if (!tabla_de_paginas) {
         log_error(logger, "Error: No se encontró la tabla de páginas para el PID %d\n", pid);
         t_paquete* paquete = crear_paquete(OUT_OF_MEMORY);
-        agregar_a_paquete(paquete, (-1) , sizeof(int));
+        int tabla_de_pag_no_encontrado = -1;
+        agregar_a_paquete(paquete, &tabla_de_pag_no_encontrado , sizeof(int));
         eliminar_paquete(paquete);
     } // CHEQUEAR ESTO
 
     // Calcular el número de páginas necesarias
     int num_paginas = ceil((double)tamanio_bytes / 4); // La funcion ceil redondea hacia arriba
-
+S
     int paginas_actuales = list_size(tabla_de_paginas); // Calculamos la cantidad de paginas que tiene la tabla
                                                         
     if (num_paginas > paginas_actuales) { // Si la cantidad de paginas de la tabla actual son menos al calculo del resize -> se amplia 
@@ -161,7 +162,8 @@ void resize_proceso(int socket_cliente) {
             log_error(logger, "Out of memory (faltan marcos).\n");
 
         t_paquete* paquete = crear_paquete(OUT_OF_MEMORY);
-        agregar_a_paquete(paquete, (-1) , sizeof(int));
+        int fuera_de_memoria = -1;
+        agregar_a_paquete(paquete, &fuera_de_memoria , sizeof(int));
         eliminar_paquete(paquete);
         free(buffer);
         
@@ -186,7 +188,8 @@ void resize_proceso(int socket_cliente) {
         }
     }
     t_paquete* paquete = crear_paquete(EXITO_CONSULTA);
-    agregar_a_paquete(paquete, 1, sizeof(int));
+    int operacion_exitosa = 1;
+    agregar_a_paquete(paquete, &operacion_exitosa, sizeof(int));
     eliminar_paquete(paquete);
     free(buffer);
 }
@@ -212,16 +215,16 @@ void obtener_marco(int socket_cliente){
     }
     t_tabla_de_paginas* entrada = list_get(tabla_de_paginas, pagina);  //Obtenemos la pagina requerida
  
-    if(entrada->bit_validez == 1){ //fijarnos despues si vamos a usar bools o ints
-        // si la pagina existe, se la enviamos a cpu
+    if(entrada->bit_validez == 1){// si la pagina existe, se la enviamos a cpu
         t_paquete* marco_paquete = crear_paquete(ACCEDER_TABLA_PAGINAS);
-        agregar_a_paquete(marco_paquete, entrada->marco, sizeof(int));
+        agregar_a_paquete(marco_paquete, &(entrada->marco), sizeof(int));
         enviar_paquete(marco_paquete, socket_cliente);
         log_info(logger, "PID: %c - Pagina: %d PAGINA> - %d <MARCO ,>" , pid, entrada->nro_pagina, entrada->marco);
     } 
-    else{ //caso contrario enviamos el mensaje 
+    else{ //caso contrario enviamos el mensaje de error
         t_paquete* marco_paquete = crear_paquete(ACCEDER_TABLA_PAGINAS);
-        agregar_a_paquete(marco_paquete, (-1) , sizeof(int));
+        int marco_no_encontrado = -1;
+        agregar_a_paquete(marco_paquete, &marco_no_encontrado , sizeof(int));
         enviar_paquete(marco_paquete, socket_cliente);
         log_error(logger,"La pagina pedida no existe");
     }

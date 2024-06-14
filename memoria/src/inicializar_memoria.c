@@ -38,6 +38,6 @@ int iniciar_modulo(t_config_memoria* config_memoria) {
 }
 
 void cerrar_programa(t_config_memoria* config_memoria, int socket_server){
-    config_destroy(config_memoria);
+    config_destroy_version_memoria(config_memoria);
     close(socket_server);
 }

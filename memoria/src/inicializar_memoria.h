@@ -14,6 +14,7 @@
 #include <utils/logger.h>
 #include <utils/protocolo.h>
 #include "peticiones_memoria.h"
+#include "config_memoria.h"
 #include "estructuras_compartidas_memoria.h"
 
 // Funciones para manejo de clientes y conexiones del modulo:

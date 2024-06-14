@@ -17,7 +17,7 @@
 #include "estructuras_compartidas_memoria.h"
 
 int cargar_configuraciones_memoria(t_config_memoria* config_memoria);
-
 t_config_memoria* inicializar_config_memoria(void);
+void config_destroy_version_memoria(t_config_memoria* config_memoria);
 
 #endif // CONFIG_MEMORIA_H
