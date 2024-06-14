@@ -38,12 +38,3 @@ void generar_conexion(int *socket, char *nombre_interfaz, char *ip, char *puerto
 
     // generar_handshake(*socket, nombre_interfaz, ip, puerto);
 }
-
-void interfaz_conectar(t_interfaz * interfaz) {
-    t_paquete *paquete = crear_paquete(CREAR_INTERFAZ);
-    int socket_cliente = get_socket_kernel(interfaz);
-
-    agregar_a_paquete(paquete, &interfaz->tipo, sizeof(tipo_interfaz));
-    agregar_a_paquete_string(paquete, interfaz->nombre, strlen(interfaz->nombre) + 1);
-    enviar_paquete(paquete, socket_cliente);
-}

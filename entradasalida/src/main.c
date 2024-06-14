@@ -12,8 +12,8 @@ int main(int argc, char *argv[]) {
     interfaz = inicializar_interfaz(name_interfaz, config_path);
 
     interfaz_generar_conexiones_con(interfaz);
-    interfaz_conectar(interfaz);
-    // interfaz_recibir_peticiones(interfaz, config_io);
+    send_interfaz_a_kernel(interfaz);
+    interfaz_recibir_peticiones(interfaz, config_io);
 
     return 0;
 }

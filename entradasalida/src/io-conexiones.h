@@ -18,7 +18,4 @@ void generar_conexiones_con_kernel(t_interfaz* interfaz);
 void generar_conexiones_con_memoria(t_interfaz* interfaz);
 void generar_conexion(int *socket, char *nombre_interfaz, char *ip, char *puerto);
 
-// Funciones: 
-void interfaz_conectar(t_interfaz * interfaz);
-
 #endif // IO_CONEXIONES_H
