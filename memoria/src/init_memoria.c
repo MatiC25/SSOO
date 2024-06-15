@@ -66,15 +66,34 @@ int iniciar_modulo(t_config_memoria* config_memoria) {
 
     while (1) {
         int socket_cliente = esperar_cliente("MEMORIA", md_generico);
+        log_warning(logger,"socket_cliente %i", socket_cliente);
         if (socket_cliente != -1) {
-            
-            pthread_t hilo_memoria;
-            int* args_hilo = malloc(sizeof(int)); // Creamos espacio para los argumentos
-            *args_hilo = socket_cliente; // Asignamos el socket cliente a los argumentos
-            pthread_create(&hilo_memoria, NULL, escuchar_peticiones, (void*) args_hilo);
-            pthread_detach(hilo_memoria);
+            op_code cod_op = recibir_operacion(socket_cliente);
+            log_warning(logger,"codigo operacion %i", cod_op);
+            switch(cod_op) {
+                case HANDSHAKE:
+                    recibir_handshake(socket_cliente);
+                    break;
+                case MENSAJE:
+                
+                    recibir_mensaje(socket_cliente);
+                    log_warning(logger,"enviado mensaje");
+                    enviar_mensaje("RESPUESTA MEMORIA -> CPU", socket_cliente);
+                    break;
+                 case HANDSHAKE_PAGINA:
+                    recibir_handshake(socket_cliente);
+                    //handshake_desde_memoria(socket_cliente);
+                    break;
+                case -1:
+                    log_info(logger, "Se desconectó el cliente");
+                    close(socket_cliente);
+                    break;
+                default:
+                    log_error(logger, "Operación desconocida");
+            }
         }
     }
+
     return md_generico;
 }
 
@@ -84,69 +103,67 @@ void cerrar_programa(t_config_memoria* config_memoria, int socket_server) {
 }
 
 
-void* escuchar_peticiones(void* args) {
-    int socket_cliente = *(int*) args; // Convertimos los argumentos de nuevo a int
+// void* escuchar_peticiones(void* args) {
+//     int socket_cliente = *(int*) args; // Convertimos los argumentos de nuevo a int
+//     free(args);
+//     while (1) {
+//         int cod_op = recibir_operacion(socket_cliente);
+//         switch (cod_op) {
+//         case MENSAJE:
+//         recibir_mensaje(socket_cliente);
+//         //enviar_mensaje("sdkfhasz", socket_cliente);
+//             break;
+//             case HANDSHAKE:
+//                 recibir_handshake(socket_cliente);
+//                 //enviar_mensaje("sdkfhasz", socket_cliente);
+//                 break;
+//             case HANDSHAKE_PAGINA:
+//                 recibir_handshake(socket_cliente);
+//                 handshake_desde_memoria(socket_cliente);
+//                 break;
+//             case INICIAR_PROCESO:
+//                 //retardo_pedido(config_memoria->retardo_respuesta);
+//                 //crear_proceso(socket_cliente);
+//                 //leer_archivoPseudo(socket_cliente);
+//                 break;
+//             case FINALIZAR_PROCESO:
+//                 //retardo_pedido(config_memoria->retardo_respuesta);
+//                 //terminar_proceso(socket_cliente);
+//                 break;
+//             case INSTRUCCION: 
+//                 // El retardo ya está incluido en la función
+//                 // enviar_instruccion_a_cpu(socket_cliente);
+//                 break;
+//             case ACCEDER_TABLA_PAGINAS: 
+//                 //retardo_pedido(config_memoria->retardo_respuesta);
+//                 //obtener_marco(socket_cliente);
+//                 break;
+//             case MODIFICAR_TAMAÑO_MEMORIA:
+//                 //retardo_pedido(config_memoria->retardo_respuesta);
+//                 //resize_proceso(socket_cliente);
+//                 break;
+//             case ACCESO_A_LECTURA:
+//                 //retardo_pedido(config_memoria->retardo_respuesta);
+//                 //acceso_lectura(socket_cliente);
+//                 break;
+//             case ACCESO_A_ESCRITURA:
+//                 //retardo_pedido(config_memoria->retardo_respuesta);
+//                 //acceso_escritura(socket_cliente);
+//                 break;
+//             case -1:
+//                 log_info(logger, "Se desconectó el cliente");
+//                 free(args); // Liberamos la memoria asignada a los argumentos
+//                 close(socket_cliente);
+//                 return NULL;
+//             default:
+//                 log_error(logger, "Operación desconocida");
+//         }
+//     }
 
-    while (1) {
-        int cod_op = recibir_operacion(socket_cliente);
-        
-        switch (cod_op) {
-        case MENSAJE:
-        recibir_mensaje(socket_cliente);
-        enviar_mensaje("sdkfhasz", socket_cliente);
-            break;
-            case HANDSHAKE:
-                recibir_handshake(socket_cliente);
-                enviar_mensaje("sdkfhasz", socket_cliente);
-                break;
-            case HANDSHAKE_PAGINA:
-                recibir_handshake(socket_cliente);
-                handshake_desde_memoria(socket_cliente);
-                break;
-            case INICIAR_PROCESO:
-                //retardo_pedido(config_memoria->retardo_respuesta);
-                //crear_proceso(socket_cliente);
-                //leer_archivoPseudo(socket_cliente);
-                break;
-            case FINALIZAR_PROCESO:
-                //retardo_pedido(config_memoria->retardo_respuesta);
-                //terminar_proceso(socket_cliente);
-                break;
-            case INSTRUCCION: 
-                // El retardo ya está incluido en la función
-                // enviar_instruccion_a_cpu(socket_cliente);
-                break;
-            case ACCEDER_TABLA_PAGINAS: 
-                //retardo_pedido(config_memoria->retardo_respuesta);
-                //obtener_marco(socket_cliente);
-                break;
-            case MODIFICAR_TAMAÑO_MEMORIA:
-                //retardo_pedido(config_memoria->retardo_respuesta);
-                //resize_proceso(socket_cliente);
-                break;
-            case ACCESO_A_LECTURA:
-                //retardo_pedido(config_memoria->retardo_respuesta);
-                //acceso_lectura(socket_cliente);
-                break;
-            case ACCESO_A_ESCRITURA:
-                //retardo_pedido(config_memoria->retardo_respuesta);
-                //acceso_escritura(socket_cliente);
-                break;
-            case -1:
-                log_info(logger, "Se desconectó el cliente");
-                free(args); // Liberamos la memoria asignada a los argumentos
-                close(socket_cliente);
-                return NULL;
-            default:
-                log_error(logger, "Operación desconocida");
-        }
-    }
-
-    // Cerramos el socket del cliente y liberamos la memoria asignada a los argumentos
-    close(socket_cliente);
-    free(args);
-    return NULL;
-}
+//     // Cerramos el socket del cliente y liberamos la memoria asignada a los argumentos
+//     close(socket_cliente);
+//     return NULL;
+// }           
 
 void handshake_desde_memoria(int socket_cliente) {
     t_paquete* paquete = crear_paquete(HANDSHAKE_PAGINA);

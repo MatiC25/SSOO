@@ -3,6 +3,9 @@
 t_config_kernel *config_kernel; // La declaros como variable global, y la vez instanciar aca!
 
 int main(int argc, char *argv[]) {
+    char *mensaje;
+    int tam;
+
     char *config_path = argv[1];
     
     // Inicializamos logger y cargamos configuracion:
@@ -13,10 +16,12 @@ int main(int argc, char *argv[]) {
     generar_conexiones_con();
 
     // Levantamos servidor:
-    int socket_servidor = crear_servidor_kernel();
-
-    // Inicializamos modulo:
-    iniciar_modulo_kernel(socket_servidor); 
+    // int socket_servidor = crear_servidor_kernel();
+    //recv(config_kernel->SOCKET_DISPATCH, &resultado, sizeof(int), MSG_WAITALL);
+    //log_info(logger, "Recibido: %d", resultado);
+    //mensaje = malloc(resultado);
+    //recv(config_kernel->SOCKET_DISPATCH, mensaje, resultado, MSG_WAITALL);
+    log_info(logger, "Recibido: %s", mensaje);
 
     return 0;
 }

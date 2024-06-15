@@ -16,15 +16,25 @@ void* generar_conexion_a_memoria(void* arg) {
     }
 
     int md_memoria = crear_conexion("MEMORIA", ip_memoria, puerto_memoria);
+    log_warning(logger,"md_memoria: %i",md_memoria);
     if (md_memoria == -1) {
         log_error(logger, "Error al conectar con MEMORIA");
         return NULL;
     }
+
     config_cpu->SOCKET_MEMORIA = md_memoria;
-    enviar_mensaje("mando un mensaje de CPU a memoria", md_memoria);
+    log_warning(logger,"enviado mensaje");
+    enviar_mensaje("Hola, soy el CPU", md_memoria);
+    
+    log_warning(logger,"reciviendo mensaje");
+    // Recibir mensaje de la memoria:    
+    op_code cod_op = recibir_operacion(md_memoria);
+    log_info(logger, "Código de operación recibido: %i", cod_op);
     recibir_mensaje(md_memoria);
-    //generar_handshake(md_memoria, "MEMORIA", ip_memoria, puerto_memoria);
-    //generar_handshake_para_pagina(md_memoria, "MEMORIA", ip_memoria, puerto_memoria);
+    
+
+    generar_handshake(md_memoria, "MEMORIA", ip_memoria, puerto_memoria);
+    generar_handshake_para_pagina(md_memoria, "MEMORIA", ip_memoria, puerto_memoria);
 
     return NULL;
 }
@@ -140,12 +150,11 @@ void* server_interrupt(void* args) {
 
         while (1) {
             int cod_op = recibir_operacion(socket_cliente);
-            log_info(logger, "%i", cod_op);
 
             switch (cod_op) {
                 case MENSAJE:
                     recibir_mensaje(socket_cliente);
-                    enviar_mensaje("respuesta it a kernel",socket_cliente);
+                    enviar_mensaje("Hola, soy el CPU", socket_cliente);
                     break;
                 case HANDSHAKE:
                     recibir_handshake(socket_cliente);
