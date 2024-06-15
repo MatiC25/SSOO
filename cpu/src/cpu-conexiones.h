@@ -10,10 +10,12 @@
 #include <utils/socket.h>
 #include <utils/logger.h>
 #include <stdatomic.h>
+#include <utils/protocolo.h>
 
 #include "cpu.h"
 #include "cpu-estructuras.h"
 #include "cpu-ciclo-instrucciones.h"
+#include "comunicaciones.h"
 
 extern atomic_int interrupt_flag;
 
@@ -23,7 +25,7 @@ void* generar_conexion_a_memoria(void* arg);
 int generar_servidor_cpu_dispatch();
 int generar_servidor_cpu_interrupt();
 void* server_interrupt(void* args);
-
+void generar_handshake_para_pagina(int socket, char *server_name, char *ip, char *puerto);
 
 
 

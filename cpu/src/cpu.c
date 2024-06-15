@@ -11,7 +11,7 @@ int main(void) {
     int md_cpu_it = 0;
     logger = log_create("CPUlog.log", "CPU", 1, LOG_LEVEL_INFO);
 
-    if (logger == NULL) {
+    if (!logger) {
 		perror("No se puedo encontrar el archivo");
 		return EXIT_FAILURE;
 	}
@@ -22,7 +22,7 @@ int main(void) {
     
 
     pthread_t hilo_memoria;
-    pthread_create(&hilo_memoria,NULL, generar_conexion_a_memoria, NULL);
+    pthread_create(&hilo_memoria, NULL, generar_conexion_a_memoria, NULL);
     pthread_join(hilo_memoria,NULL);
 
     crear_servidores_cpu(&md_cpu_ds, &md_cpu_it);
@@ -30,5 +30,3 @@ int main(void) {
 
     return EXIT_SUCCESS;
 }
-
-
