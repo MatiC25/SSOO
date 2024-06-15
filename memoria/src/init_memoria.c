@@ -68,28 +68,28 @@ int iniciar_modulo(t_config_memoria* config_memoria) {
         int socket_cliente = esperar_cliente("MEMORIA", md_generico);
         log_warning(logger,"socket_cliente %i", socket_cliente);
         if (socket_cliente != -1) {
-            op_code cod_op = recibir_operacion(socket_cliente);
-            log_warning(logger,"codigo operacion %i", cod_op);
-            switch(cod_op) {
+            while(1) {
+                op_code cod_op = recibir_operacion(socket_cliente);
+                switch(cod_op) {
                 case HANDSHAKE:
                     recibir_handshake(socket_cliente);
                     break;
                 case MENSAJE:
-                
                     recibir_mensaje(socket_cliente);
                     log_warning(logger,"enviado mensaje");
-                    enviar_mensaje("RESPUESTA MEMORIA -> CPU", socket_cliente);
+                    enviar_mensaje("MEMORIA -> CPU", socket_cliente);
                     break;
-                 case HANDSHAKE_PAGINA:
+                    case HANDSHAKE_PAGINA:
                     recibir_handshake(socket_cliente);
-                    //handshake_desde_memoria(socket_cliente);
+                    handshake_desde_memoria(socket_cliente);
                     break;
                 case -1:
                     log_info(logger, "Se desconectó el cliente");
                     close(socket_cliente);
-                    break;
+                    return;
                 default:
                     log_error(logger, "Operación desconocida");
+                }
             }
         }
     }
@@ -169,6 +169,8 @@ void handshake_desde_memoria(int socket_cliente) {
     t_paquete* paquete = crear_paquete(HANDSHAKE_PAGINA);
     int tam_pagina = config_memoria ->tam_pagina;
 
+    // send(socket_cliente, &tam_pagina, sizeof(int), 0);
+    
     agregar_a_paquete(paquete, &tam_pagina, sizeof(int));
     enviar_paquete(paquete, socket_cliente);
     eliminar_paquete(paquete);

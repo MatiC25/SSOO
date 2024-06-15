@@ -25,7 +25,7 @@ int main(void) {
     pthread_create(&hilo_memoria, NULL, generar_conexion_a_memoria, NULL);
     pthread_join(hilo_memoria,NULL);
 
-    // crear_servidores_cpu(&md_cpu_ds, &md_cpu_it);
+    crear_servidores_cpu(&md_cpu_ds, &md_cpu_it);
     
 
     return EXIT_SUCCESS;

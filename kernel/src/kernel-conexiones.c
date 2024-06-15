@@ -20,15 +20,19 @@ void generar_conexiones_con_cpu(void) {
         log_error(logger, "No se pudo conectar con la CPU");
         exit(-1);
     }
-    enviar_mensaje("ME LLEGO UN MENSAJE KERNEL DS",md_dispatch_cpu);
-    enviar_mensaje("ME LLEGO UN MENSAJE DE KERNEL IT",md_interrupt_cpu);
-    
-    recibir_mensaje(md_dispatch_cpu);
-    recibir_mensaje(md_interrupt_cpu);
-    // Handshake:
 
+    
     generar_handshake(md_dispatch_cpu, "DISPATCHER", ip_cpu, puerto_dispatch);
     generar_handshake(md_interrupt_cpu, "INTERRUPT", ip_cpu, puerto_interrupt);
+
+    enviar_mensaje("KERNEL -> CPU DS",md_dispatch_cpu);
+    op_code cod_op = recibir_operacion(md_dispatch_cpu);
+    recibir_mensaje(md_dispatch_cpu);
+
+    enviar_mensaje("KERNEL -> CPU IT ",md_interrupt_cpu);
+    op_code cod = recibir_operacion(md_interrupt_cpu);
+    recibir_mensaje(md_interrupt_cpu);
+    // Handshake:
 
     // Seteo de sockets:
     set_socket_dispatch(md_dispatch_cpu);
@@ -47,7 +51,12 @@ void generar_conexion_con_memoria(void) {
         exit(-1);
 
     // Handshake:
-    //generar_handshake(md_memoria, "MEMORIA", ip_memoria, puerto_memoria);
+    generar_handshake(md_memoria, "MEMORIA", ip_memoria, puerto_memoria);
+
+    enviar_mensaje("KERNEL -> CPU DS",md_memoria);
+    op_code cod_op = recibir_operacion(md_memoria);
+    recibir_mensaje(md_memoria);
+
 
     // Seteo de socket:
     set_socket_memoria(md_memoria);

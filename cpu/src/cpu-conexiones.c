@@ -23,21 +23,18 @@ void* generar_conexion_a_memoria(void* arg) {
     }
 
     config_cpu->SOCKET_MEMORIA = md_memoria;
-    log_warning(logger,"enviado mensaje");
-    enviar_mensaje("Hola, soy el CPU", md_memoria);
     
-    log_warning(logger,"reciviendo mensaje");
-    // Recibir mensaje de la memoria:    
-    op_code cod_op = recibir_operacion(md_memoria);
-    log_info(logger, "Código de operación recibido: %i", cod_op);
-    recibir_mensaje(md_memoria);
-    
-
     generar_handshake(md_memoria, "MEMORIA", ip_memoria, puerto_memoria);
     generar_handshake_para_pagina(md_memoria, "MEMORIA", ip_memoria, puerto_memoria);
 
-    return NULL;
+    
+    log_warning(logger,"enviado mensaje");
+    enviar_mensaje("CPU -> MEMORIA", md_memoria);
+    op_code cod_op = recibir_operacion(md_memoria);
+    recibir_mensaje(md_memoria); 
 }
+
+
 
 void generar_handshake_para_pagina(int socket, char *server_name, char *ip, char *puerto) {
     int32_t handshake = 1;
@@ -55,15 +52,19 @@ void generar_handshake_para_pagina(int socket, char *server_name, char *ip, char
 
     if (!result) { 
         // Handshake exitoso
+        int tam_pagina;
         log_info(logger, "Handshake exitoso con página %s", server_name);
         
+        op_code cod_op = recibir_operacion(socket);
+        tam_pagina = recv_pagina(socket);
+        log_info(logger, "Código de operación recibido: %i", cod_op);
+    
         // Recibir tamaño de página desde el servidor
-        int tam_pagina = recv_pagina(socket);
-        // config_cpu->TAMANIO_PAGINA = recv_pagina(socket);
+        config_cpu->TAMANIO_PAGINA = tam_pagina;
         log_info(logger, "Tamaño de página recibido: %i", tam_pagina);
     } else {
         // Error en el handshake
-        log_error(logger, "Error en el handshake con %s", server_name);
+        log_error(logger, "Error en el handshake con PAGINA %s", server_name);
         exit(EXIT_FAILURE); // Terminar el programa en caso de error crítico
     }
 }
@@ -145,7 +146,7 @@ void* server_interrupt(void* args) {
         int socket_cliente = esperar_cliente(server_name, socket_server);
         if (socket_cliente == -1) {
             log_error(logger, "Error al esperar cliente en %s", server_name);
-            continue; // O salir del bucle dependiendo de la lógica deseada
+            return; // O salir del bucle dependiendo de la lógica deseada
         }
 
         while (1) {
@@ -154,7 +155,7 @@ void* server_interrupt(void* args) {
             switch (cod_op) {
                 case MENSAJE:
                     recibir_mensaje(socket_cliente);
-                    enviar_mensaje("Hola, soy el CPU", socket_cliente);
+                    enviar_mensaje("CPU IT -> KERNEL", socket_cliente);
                     break;
                 case HANDSHAKE:
                     recibir_handshake(socket_cliente);
@@ -165,7 +166,7 @@ void* server_interrupt(void* args) {
                 case -1:
                     log_info(logger, "Se desconectó el cliente Kernel (IT)");
                     close(socket_cliente);
-                    break;
+                    return;
                 default:
                     log_error(logger, "Operación desconocida");
                     break;

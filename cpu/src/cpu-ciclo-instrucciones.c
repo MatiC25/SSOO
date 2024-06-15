@@ -11,13 +11,13 @@ void iniciar_ciclo_de_ejecucion(int socket_server ,int socket_cliente) {
         switch(codigo_operacion) {
             case MENSAJE:
             recibir_mensaje(socket_cliente);
-            enviar_mensaje("respuesta ds a kernel",socket_cliente);
+            enviar_mensaje("CPU DS -> KERNEL",socket_cliente);
             break;
             case RECIBIR_PROCESO:
                 //ejecutar_ciclo_instrucciones(socket_cliente, socket_server);
                 break;
             case HANDSHAKE:
-            recibir_handshake(config_cpu->SOCKET_KERNEL);
+            recibir_handshake(socket_cliente);
             break;
             case -1:
             log_info(logger,"Se desconecto el cliente Kernel (Ds)");

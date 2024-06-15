@@ -101,13 +101,12 @@ void recibir_mensaje(int socket_cliente) {
         return;
     }
 
-    memcpy(mensaje, buffer + desplazamiento, tam);
+    memcpy(mensaje, buffer + desplazamiento, tam );
 
     log_info(logger, "Mensaje recibido: %s", mensaje);
     free(buffer);
     free(mensaje); // No olvides liberar la memoria del mensaje después de usarlo
 }
-
 
 
 void send_contexto_ejecucion(op_code operacion, int socket_cliente, t_pcb* proceso) {
@@ -293,8 +292,7 @@ void generar_handshake(int socket, char *server_name, char *ip, char *puerto) {
 
 	op_code cod_op = HANDSHAKE; 
 	send(socket, &cod_op, sizeof(op_code), 0);
-
-
+    
     send(socket, &handshake, sizeof(int32_t), 0);
 	recv(socket, &result, sizeof(int32_t), MSG_WAITALL);
 
@@ -307,18 +305,16 @@ void generar_handshake(int socket, char *server_name, char *ip, char *puerto) {
 }
 
 void recibir_handshake(int socket) {
-	size_t bytes;
-
 	int32_t handshake;
 	int32_t resultOk = 0;
 	int32_t resultError = -1;
 
-	bytes = recv(socket, &handshake, sizeof(int32_t), MSG_WAITALL);
+	recv(socket, &handshake, sizeof(int32_t), MSG_WAITALL);
 	
 	if (handshake == 1) 
-		bytes = send(socket, &resultOk, sizeof(int32_t), 0);
+		send(socket, &resultOk, sizeof(int32_t), 0);
 	else 
-		bytes = send(socket, &resultError, sizeof(int32_t), 0);
+		send(socket, &resultError, sizeof(int32_t), 0);
 }
 
 //Creamos una funcion que envie el archivo pseudo y el pid del proceso desde kernel a memoria para que pueda ser utilizado en la lectura de pseudocodigo
