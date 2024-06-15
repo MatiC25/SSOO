@@ -9,9 +9,10 @@ t_list* cola_prima_VRR = NULL;
 void iniciar_modulo_kernel(int socket_servidor) {
     inicializar_lista();
     aceptar_interfaces(socket_servidor);
-    // manejar_peticion_con_memoria();
-    manejar_peticion_con_cpu();
-    iniciar_planificacion();
+    
+    //manejar_peticion_con_memoria();
+    // manejar_peticion_con_cpu();
+    // iniciar_planificacion();
 }
 
 void inicializar_lista(){

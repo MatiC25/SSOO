@@ -71,7 +71,10 @@ void rcv_bytes_a_leer(t_interfaz *interfaz, int bytes_a_mostrar, char **bytes) {
 
     // Recibimos el buffer:
     void *buffer = recibir_buffer(&size, socket_memoria);
-
-    // copiamos el buffer a bytes:
+    
+    // Copiamos el buffer a bytes:
     memcpy(*bytes, buffer, bytes_a_mostrar);
+
+    // Liberamos el buffer recibido:
+    free(buffer);
 }

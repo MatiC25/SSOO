@@ -8,6 +8,8 @@
 #include <stdint.h>
 #include <pthread.h>
 #include <utils/socket.h>
+
+#include "consola.h"
 #include "kernel-estructuras.h"
 #include "kernel-interfaces.h"
 #include "planificacion.h"
@@ -19,8 +21,6 @@ void iniciar_planificacion();
 void manejar_peticion_con_memoria();
 void manejar_peticion_con_cpu();
 void inicializar_lista();
-
-
 
 
 extern t_list* cola_new;

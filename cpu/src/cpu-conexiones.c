@@ -146,7 +146,7 @@ void* server_interrupt(void* args) {
         int socket_cliente = esperar_cliente(server_name, socket_server);
         if (socket_cliente == -1) {
             log_error(logger, "Error al esperar cliente en %s", server_name);
-            return; // O salir del bucle dependiendo de la lógica deseada
+            return NULL; // O salir del bucle dependiendo de la lógica deseada
         }
 
         while (1) {
@@ -166,11 +166,12 @@ void* server_interrupt(void* args) {
                 case -1:
                     log_info(logger, "Se desconectó el cliente Kernel (IT)");
                     close(socket_cliente);
-                    return;
+                    return NULL;
                 default:
                     log_error(logger, "Operación desconocida");
                     break;
             }
         }
     }
+    return NULL;
 }

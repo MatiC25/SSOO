@@ -1,10 +1,10 @@
-#ifndef INSTRUC_MEMORIA_H
-#define INSTRUC_MEMORIA_H
+#ifndef CONFIG_MEMORIA_H
+#define CONFIG_MEMORIA_H
 
 #include <stdio.h>
-#include <stdbool.h>
 #include <stdlib.h>
 #include <signal.h>
+#include <pthread.h>
 #include <commons/config.h>
 #include <commons/string.h>
 #include <commons/log.h>
@@ -12,13 +12,12 @@
 #include <utils/shared.h>
 #include <utils/estructuras_compartidas.h>
 #include <utils/protocolo.h>
-#include <pthread.h>
 #include <utils/logger.h>
 #include <utils/instrucciones.h>
 #include "estructuras_compartidas_memoria.h"
 
-char* crear_path_instrucciones(char* archivo_path);
-void leer_archivoPseudo(int socket_kernel);
-void enviar_instruccion_a_cpu(int socket_cpu, int retardo_de_respuesta);
+int cargar_configuraciones_memoria(t_config_memoria* config_memoria);
+t_config_memoria* inicializar_config_memoria(void);
+void config_destroy_version_memoria(t_config_memoria* config_memoria);
 
-#endif // INSTRUC_MEMORIA_H
+#endif // CONFIG_MEMORIA_H

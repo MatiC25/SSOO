@@ -112,8 +112,6 @@ char* generador_de_comandos(const char* texto, int estado) {
 }
 
 void* iniciar_proceso(void* args) {
-    char *argumento = (char*) args;
-    printf("Iniciando proceso...\n");
-    printf("Argumento: %s\n", argumento);
-    return;
+    char *path_proceso = (char *) args;
+    
 }

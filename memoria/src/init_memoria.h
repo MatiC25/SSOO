@@ -14,9 +14,8 @@
 #include <utils/logger.h>
 #include <utils/protocolo.h>
 #include <utils/estructuras_compartidas.h>
-#include "main.h"
-#include "instruc_memoria.h"
-
+#include "estructuras_compartidas_memoria.h"
+#include "peticiones_memoria.h"
 
 
 // Funcion para cargar configuraciones de Memoria:
@@ -30,8 +29,6 @@ int iniciar_modulo(t_config_memoria* config_memoria);
 void cerrar_programa(t_config_memoria* config_memoria, int socket_server);
 
 // Funciones de operaciones basicas del modulo:
-void* escuchar_peticiones(void* args);
 t_procesar_conexion* crear_procesar_conexion(char* nombre, int socket_cliente);
-void handshake_desde_memoria(int socket_cliente);
 
 #endif // INIT_MEMORIA_H

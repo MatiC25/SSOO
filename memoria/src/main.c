@@ -1,4 +1,4 @@
-#include "main.h"
+#include "memoria.h"
 
 t_config_memoria* config_memoria;
 
@@ -23,9 +23,10 @@ int main()
         return EXIT_FAILURE;
     }
     
-    //abrimos el servidor
-    
+    // Creamos el diccionario de instrucciones por pid 
+    lista_instrucciones_porPID = dictionary_create();
 
+    //abrimos el servidor
     iniciar_modulo(config_memoria);
 //    cerrar_programa(config_memoria,)
 

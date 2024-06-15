@@ -56,8 +56,7 @@ void generar_conexion_con_memoria(void) {
     enviar_mensaje("KERNEL -> CPU DS",md_memoria);
     op_code cod_op = recibir_operacion(md_memoria);
     recibir_mensaje(md_memoria);
-
-
+    
     // Seteo de socket:
     set_socket_memoria(md_memoria);
 }

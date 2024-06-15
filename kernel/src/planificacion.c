@@ -41,7 +41,7 @@ void informar_a_memoria(char* archivo_de_proceso, int pid){
 }
 
 
-void creacion_proceso() {
+void creacion_proceso(char *archivo_de_proceso) {
     t_pcb* pcb = malloc(sizeof(t_pcb)); 
     
     if (pcb == NULL) {
@@ -75,7 +75,7 @@ void creacion_proceso() {
     
     log_info(logger, "Se crea el proceso %i en NEW", pcb->pid);
     agregar_a_cola_estado_new(pcb);
-    informar_a_memoria("./script_io_basico_1", pcb->pid); // Notificación de creación de nuevo proceso
+    informar_a_memoria(archivo_de_proceso, pcb->pid); // Notificación de creación de nuevo proceso
 }
 
 

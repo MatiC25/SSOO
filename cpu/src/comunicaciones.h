@@ -12,14 +12,18 @@
 #include <utils/socket.h>
 #include <utils/logger.h>
 #include <utils/instrucciones.h>
-// #include "cpu.h"
-// #include "cpu-estructuras.h"
+#include <utils/protocolo.h>
+#include "cpu.h"
+#include "cpu-estructuras.h"
+
 
 int recv_pagina(int socket);
+t_pcb_cpu* rcv_contexto_ejecucion_cpu(int socket_cliente) ;
+void enviar_pcb_a_kernel(t_paquete* paquete_a_kernel);
+//int recv_pagina(int socket);
 // void send_agrandar_memoria (int pid , int tamanio);
 // int recv_agrandar_memoria();
-// void enviar_pcb_a_kernel(t_paquete* paquete_a_kernel);
-// void enviar_pcb_a_kernel(t_paquete* paquete_a_kernel);
+//void enviar_pcb_a_kernel(t_paquete* paquete_a_kernel);
 // void enviar_a_leer_memoria(int pid,int direccionFIsica, int tamanio);
 // char* recv_leer_memoria(int tamanio);
 // void send_escribi_memoria(int pid,int direccionFIsica, int tamanio,char* valor);
