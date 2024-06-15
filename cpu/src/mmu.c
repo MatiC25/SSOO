@@ -56,14 +56,17 @@ while (!list_is_empty(mmu->num_pagina)){
             return NULL;
         }
         }else{
+            
             solicitar_tablas_a_memoria((intptr_t)list_remove(mmu->num_pagina, 0)); 
             tabla = recv_tablas();
             if (tabla != NULL){
                 log_error(logger, "Eror en recibir tabla de memeoria ");
-            } 
+            }
+            log_info(logger, "PID %s - TLB MISS  - Pagina: %s",pcb->pid, tabla->nropagina);
         }
         
     }
+        log_info(logger, "PID %s - TLB HIT  - Pagina: %s",pcb->pid, mmu->num_pagina);
         list_add(mmu->direccionFIsica , (void*)(intptr_t) (tabla->marco * config_cpu -> TAMANIO_PAGINA + mmu->ofset));
 }
 

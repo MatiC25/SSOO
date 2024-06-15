@@ -4,12 +4,15 @@
 // Incluye las bibliotecas necesarias:
 #include <commons/config.h>
 #include <utils/shared.h>
+#include <utils/estructuras_compartidas.h>
 
 // Incluye las estructuras necesarias:
 #include "io-estructuras.h"
+#include "io.h"
+#include "io-init.h"
 
 // Funciones para inicializar:
-t_config_io* inicializar_config_io();
+void inicializar_config_io();
 
 // Funciones para configurar:
 void configurar_valores_kernel(t_config_io* config_io, t_config* config);

@@ -12,16 +12,19 @@
 #include <utils/socket.h>
 #include <utils/logger.h>
 #include <utils/instrucciones.h>
+#include <utils/protocolo.h>
 #include "cpu.h"
 #include "cpu-estructuras.h"
 #include "comunicaciones.h"
 #include "mmu.h"
 
 
+
 typedef enum{
     LRU,
     FIFO
 } t_algoritmo;
+
 
 void* obtener_registro (char *registro);
 void seguir_ciclo();
@@ -51,8 +54,6 @@ void ejecutar_IO_FS_DELETE(char* interfaz, char* nombre_archivo);
 void ejecutar_IO_FS_TRUNCATE(char* intefaz, char* nombre_archivo, char* registro_tamanio);
 void ejecutar_IO_FD_WRITE(char* intefaz, char* nombre_archivo, char* registro_direccion, char* registro_tamanio, char* puntero_archivo);
 void ejecutar_IO_FS_READ(char* intefaz, char* nombre_archivo, char* registro_direccion, char* registro_tamanio, char* puntero_archivo);
-
-
 
 
 #endif

@@ -22,21 +22,28 @@ typedef enum { //podemos juntar todos los procesos
     PAQUETE,
     //INTERRUPT,
     RECIBIR_PROCESO,
-   // EJECUTAR_INSTRUCCIONES
-   INSTRUCCION,
-   HANDSHAKE,
-   OPERACION_IO,
-   CREAR_INTERFAZ,
-   FINQUANTUM,
-   HANDSHAKEPAGINA,
-   ACCEDER_TABLA_PAGINAS,
-   ACCESO_A_LECTURA,
-   ACCESO_A_ESCRITURA,
-   OUT_OF_MEMORY,
-   AMPLIACION_MEMORIA,
-   
+    PSEUDOCODIGO,
+    // EJECUTAR_INSTRUCCIONES
+    INSTRUCCION,
+    HANDSHAKE,
+    HANDSHAKE_PAGINA,
+    OPERACION_IO,
+    CREAR_INTERFAZ,
+    FINQUANTUM,
+    FIN_EJECUCION,
+    INICIAR_PROCESO,
+    FINALIZAR_PROCESO,
+    ACCEDER_TABLA_PAGINAS,
+    MODIFICAR_TAMAÑO_MEMORIA,
+    ACCESO_A_LECTURA,
+    LECTURA_EXITOSA,// No sabemos como lo recibe cpu
+    EXITO_CONSULTA,
+    ACCESO_A_ESCRITURA,
+    OUT_OF_MEMORY,
 // ----------------
 } op_code;
+
+
 
 typedef struct
 {
@@ -82,5 +89,6 @@ void recibir_program_counter(int socket_cpu,int *pid,int *program_counter);
 void recv_archi_pid(int socket_cliente, char **path, int* pid);
 // Funciones de saludo inicial:
 void generar_handshake(int socket, char *server_name, char *ip, char *puerto);
+void recibir_handshake(int socket);
 
 #endif //PROTOCOLO_H

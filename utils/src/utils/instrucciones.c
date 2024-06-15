@@ -94,6 +94,7 @@ if (buffer == NULL) {
 }
 
 
+
 void solicitar_instruccion(int socket_server, int PID, int program_counter) {
     t_paquete *paquete = crear_paquete(INSTRUCCION);
     agregar_a_paquete(paquete, &PID, sizeof(int));

@@ -41,15 +41,32 @@ typedef enum {
     EXITT,
 } status_cod;
 
-
 typedef struct { // PCB de un proceso 
-
     int pid;
     int program_counter; 
     int quantum; //Para el VRR
     t_registro_cpu* registros;
     int estado;
 }t_pcb;
+
+// typedef enum {
+//     IO,
+//     FIN_QUANTUM,
+//     WAIT,
+//     SIGNAL,
+//     FIN_EJECUCION,
+// } tipo_desalojo;
+
+typedef enum {
+    IO_GEN_SLEEP_INT,
+    IO_STDIN_READ_INT,
+    IO_STDOUT_WRITE_INT,
+    IO_FS_CREATE_INT,
+    IO_FS_DELETE_INT,
+    IO_FS_TRUNCATE_INT,
+    IO_FS_WRITE_INT,
+    IO_FS_READ_INT
+} tipo_operacion;
 
 
 // Funciones para creacion de estructuras compartidas:

@@ -4,6 +4,7 @@
 #include <utils/logger.h>
 #include <utils/shared.h>
 #include <utils/socket.h>
+#include <stdio.h>
 
 #include "kernel-config.h"
 

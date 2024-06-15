@@ -209,7 +209,7 @@ t_tabla_de_paginas_cpu* recv_tablas(){
 }
 
 void send_agrandar_memoria (int pid , int tamanio){
-    t_paquete* paquete_a_agrandar = crear_paquete(AMPLIACION_MEMORIA);
+    t_paquete* paquete_a_agrandar = crear_paquete(MODIFICAR_TAMAÑO_MEMORIA);
     agregar_a_paquete(paquete_a_agrandar, &pid, sizeof(int));
     agregar_a_paquete(paquete_a_agrandar, &tamanio, sizeof(int));
     enviar_paquete(paquete_a_agrandar,config_cpu->SOCKET_MEMORIA);

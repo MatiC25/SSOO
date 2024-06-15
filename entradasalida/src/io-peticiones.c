@@ -1,44 +1,41 @@
-#include "io.h"
-
-void interfaz_conectar(t_interfaz *interfaz) {
-    t_paquete *paquete = crear_paquete(CREAR_INTERFAZ);
-
-    agregar_a_paquete(paquete, &interfaz->tipo, sizeof(tipo_interfaz));
-    agregar_a_paquete_string(paquete, interfaz->nombre);
-    enviar_paquete(paquete, interfaz->config->socket_kernel);
-}
+#include "io-peticiones.h"
 
 void interfaz_recibir_peticiones() {
+    if(interfaz->tipo == GENERICA)
+        ejecutar_operacion_generica();
+}
+
+void ejecutar_operacion_generica() {
     while(1) {
-        int operacion_a_realizar = recibir_operacion_de_kernel();
-        validar_operacion(operacion_a_realizar);
+        int tiempo_espera = recibir_tiempo();
+        int tiempo_unidad = get_tiempo_unidad();
+
+        // Realizamos la operacion:
+        sleep(tiempo_espera * tiempo_unidad);
+
+        // Enviamos la respuesta:
+        enviar_respuesta_a_kernel(1);
     }
 }
 
-void validar_operacion() {
-    tipo_operacion operacion = operacion_a_realizar();
-    if(acepta_operacion_interfaz(operacion))
-        enviar_respuesta_a_kernel(operacion, 1);
-    else 
-        ejecutar_operacion(operacion);
+// Funciones enviar mensajes a kernel:
+
+void enviar_respuesta_a_kernel(int respuesta) {
+    int socket_kernel = get_socket_kernel();
+    send(socket_kernel, &respuesta, sizeof(int), 0);
+
+    return;
 }
 
-tipo_operacion operacion_a_realizar() {
-    tipo_operacion operacion;
-    recv(socket_kernel, &operacion, sizeof(tipo_operacion), 0);
-    return operacion;
+// Funciones recibir mensajes de kernel:
+
+int recibir_tiempo() {
+    int tiempo_espera;
+    int socket_kernel = get_socket_kernel();
+
+    recv(socket_kernel, &tiempo_espera, sizeof(int), 0);
+
+    return tiempo_espera;
 }
 
-int acept_operacion_interfaz(tipo_operacion operacion) {
-    int size_operaciones_validas = list_size(interfaz -> operaciones_validas);
-    for(int i = 0; i < size_operaciones_validas; i++)
-        if(operacion == list_get(interfaz -> operaciones_validas, i))
-            return 0;
-    
-    return 1;
-}
-
-void ejecutar_operacion() {
-    // Falta implementar
-    enviar_respuesta_a_kernel(operacion, 0); // Esto señal que la operacion fue terminada
-}
+// Funciones de metodos de interfaz:

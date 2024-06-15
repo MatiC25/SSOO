@@ -21,6 +21,7 @@ void* generar_conexion_a_memoria(void* arg) {
     
     generar_handshake(md_memoria, "MEMORIA", ip_memoria, puerto_memoria);
     
+    log_warning(logger,"Entro al hansheick pagina");
     generar_handshake_para_pagina(md_memoria, "MEMORIA", ip_memoria, puerto_memoria);
     
     //log_info(logger, %s, md_memoria);
@@ -32,7 +33,7 @@ void generar_handshake_para_pagina(int socket, char *server_name, char *ip, char
     int32_t handshake = 1;
     int32_t result;
 
-	op_code cod_op = HANDSHAKEPAGINA; 
+	op_code cod_op = HANDSHAKE_PAGINA; 
 	send(socket, &cod_op, sizeof(op_code), 0);
 
 
@@ -42,6 +43,8 @@ void generar_handshake_para_pagina(int socket, char *server_name, char *ip, char
     if(!result){ 
         log_info(logger, "Handshake exitoso con %s", server_name);
         config_cpu->TAMANIO_PAGINA = recv_pagina(config_cpu->SOCKET_MEMORIA);
+        log_warning(logger,"Entro al hansheick pagina %s",config_cpu->TAMANIO_PAGINA);
+
     }else {
         log_error(logger, "Error en el handshake con %s", server_name);
         exit(EXIT_FAILURE);
@@ -94,6 +97,7 @@ void crear_servidores_cpu(int *md_cpu_ds,int *md_cpu_it) {
 
 void* server_interrupt(void* args) {
     t_procesar_server* arg = (t_procesar_server*) args;
+
     char* server_namee = arg -> server_name;
     int socket_server = arg -> socket_servidor;
      while (1){
@@ -113,6 +117,9 @@ void* server_interrupt(void* args) {
 			case FINQUANTUM:
 				atomic_store(&interrupt_flag,1);
 			break;
+            case -1:
+            log_info(logger,"Se desconecto el cliente");
+            return ; //a facu le gusta exit(-1) pero nico nos amenaza para poner return
              default:
         log_error(logger, "Operacion desconocida");
         break;

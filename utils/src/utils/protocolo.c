@@ -80,7 +80,7 @@ void enviar_mensaje(char* mensaje, int socket_cliente)
 {
 	t_paquete* paquete = malloc(sizeof(t_paquete));
 
-	paquete->codigo_operacion = MENSAJE;
+	paquete->codigo_operacion = MENSAJE;       //ponele Pseudocodigo hdp!!!!
 	paquete->buffer = malloc(sizeof(t_buffer));
 	paquete->buffer->size = strlen(mensaje) + 1;
 	paquete->buffer->stream = malloc(paquete->buffer->size);
@@ -301,7 +301,21 @@ void generar_handshake(int socket, char *server_name, char *ip, char *puerto) {
         log_error(logger, "Error en el handshake con %s", server_name);
         exit(EXIT_FAILURE);
     }
+}
 
+void recibir_handshake(int socket) {
+	size_t bytes;
+
+	int32_t handshake;
+	int32_t resultOk = 0;
+	int32_t resultError = -1;
+
+	bytes = recv(socket, &handshake, sizeof(int32_t), MSG_WAITALL);
+	
+	if (handshake == 1) 
+		bytes = send(socket, &resultOk, sizeof(int32_t), 0);
+	else 
+		bytes = send(socket, &resultError, sizeof(int32_t), 0);
 }
 
 //Creamos una funcion que envie el archivo pseudo y el pid del proceso desde kernel a memoria para que pueda ser utilizado en la lectura de pseudocodigo

@@ -10,14 +10,17 @@ void iniciar_ciclo_de_ejecucion(int socket_server ,int socket_cliente) {
 
         switch(codigo_operacion) {
             case MENSAJE:
-				recibir_mensaje(socket_cliente);
+				recibir_handshake(config_cpu->SOCKET_KERNEL);
 				break;
-             case RECIBIR_PROCESO:
+            case RECIBIR_PROCESO:
                 ejecutar_ciclo_instrucciones(socket_cliente, socket_server);
                 break;
             case HANDSHAKE:
             log_info(logger, "Handshake exitoso con Interrupt");
-                break;
+            case -1:
+            log_info(logger,"Se desconecto el cliente");
+            return ; //a facu le gusta exit(-1) pero nico nos amenaza para poner return
+            break;
         default:
         log_error(logger, "Operacion desconocida");
        }
@@ -26,13 +29,17 @@ void iniciar_ciclo_de_ejecucion(int socket_server ,int socket_cliente) {
 
 void ejecutar_ciclo_instrucciones(int socket_cliente, int socket_server) {
     
+
     rcv_contexto_ejecucion(socket_cliente);
+    log_info(logger,"%s", pcb->program_counter);
+    log_info(logger,"%s", pcb->pid);
     seguir_ciclo(socket_cliente, socket_server);
 }   
 
 void seguir_ciclo(){
     fecth(config_cpu->SOCKET_MEMORIA);
     ejecutar_instruccion(config_cpu->SOCKET_KERNEL);
+
 }
 
 
@@ -110,7 +117,6 @@ void operar_con_registros(void* registro_destino, void* registro_origen, char* r
     }else{
         log_error(logger, "Registros desconocidos");
     }
-    
     
 }
 
