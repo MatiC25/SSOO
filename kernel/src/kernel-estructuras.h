@@ -12,7 +12,7 @@
 typedef struct {
     int PUERTO_ESCUCHA;
     char *IP_MEMORIA;
-    int PUERTO_MEMORIA;
+    char *PUERTO_MEMORIA;
     char *IP_CPU;
     char *ALGORITMO_PLANIFICACION;
     int QUANTUM;
@@ -22,9 +22,8 @@ typedef struct {
     int SOCKET_DISPATCH;
     int SOCKET_INTERRUPT;
     int SOCKET_MEMORIA;
-    int PUERTO_CPU_DS;
-    int PUERTO_CPU_IT;
-    int PUERTO_KERNEL;
+    char *PUERTO_CPU_DS;
+    char *PUERTO_CPU_IT;
     char* IP_KERNEL;
 } t_config_kernel;
 

@@ -2,15 +2,17 @@
 #define IO_CONFIG_H
 
 // Incluye las bibliotecas necesarias:
+
+//#include "io-estructuras.h"
 #include <utils/estructuras_compartidas.h>
 #include <utils/logger.h>
 #include <utils/shared.h>
 #include <commons/config.h>
-#include "io.h"
+
 // Incluye las estructuras necesarias:
 #include "io-config.h"
 #include "io-estructuras.h"
-#include "io-init.h"
+#include "io-utils.h"
 
 
 // Funciones para inicializar:

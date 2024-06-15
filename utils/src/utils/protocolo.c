@@ -26,26 +26,15 @@ void agregar_a_paquete(t_paquete* paquete, void* valor, int tamanio) {
 	// paquete->buffer->size += tamanio;
 }
 
-void enviar_paquete(t_paquete* paquete, int socket_cliente) {
-	int bytes = paquete->buffer->size + sizeof(op_code) + sizeof(uint32_t);
-	void* a_enviar = serializar_paquete(paquete, &bytes);
+
+void enviar_paquete(t_paquete* paquete, int socket_cliente)
+{
+	int bytes = paquete->buffer->size + 2*sizeof(int);
+	void* a_enviar = serializar_paquete(paquete, bytes);
 
 	send(socket_cliente, a_enviar, bytes, 0);
 
 	free(a_enviar);
-}
-
-void* serializar_paquete(t_paquete* paquete, int* bytes) {
-	void * magic = malloc(*bytes);
-	int desplazamiento = 0;
-
-	memcpy(magic + desplazamiento, &(paquete->codigo_operacion), sizeof(op_code)); //Creo qeu hay que sacarlo
-	desplazamiento += sizeof(op_code);
-	memcpy(magic + desplazamiento, &(paquete->buffer->size), sizeof(uint32_t));
-	desplazamiento += sizeof(uint32_t);
-	memcpy(magic + desplazamiento, paquete->buffer->stream, paquete->buffer->size);
-
-	return magic;
 }
 
 void eliminar_paquete(t_paquete* paquete) {
@@ -76,26 +65,39 @@ int recibir_operacion(int socket_cliente)
 	}
 }
 
+void* serializar_paquete(t_paquete* paquete, int bytes) {
+    void* magic = malloc(bytes);
+    int desplazamiento = 0;
+
+    memcpy(magic + desplazamiento, &(paquete->codigo_operacion), sizeof(int));
+    desplazamiento += sizeof(int);
+    memcpy(magic + desplazamiento, &(paquete->buffer->size), sizeof(uint32_t));  // Cambiado a sizeof(uint32_t)
+    desplazamiento += sizeof(uint32_t);  // Cambiado a sizeof(uint32_t)
+    memcpy(magic + desplazamiento, paquete->buffer->stream, paquete->buffer->size);
+
+    return magic;
+}
+
 void enviar_mensaje(char* mensaje, int socket_cliente)
 {
-	t_paquete* paquete = malloc(sizeof(t_paquete));
+    t_paquete* paquete = malloc(sizeof(t_paquete));
 
-	paquete->codigo_operacion = MENSAJE;       //ponele Pseudocodigo hdp!!!!
-	paquete->buffer = malloc(sizeof(t_buffer));
-	paquete->buffer->size = strlen(mensaje) + 1;
-	paquete->buffer->stream = malloc(paquete->buffer->size);
-	memcpy(paquete->buffer->stream, mensaje, paquete->buffer->size);
+    paquete->codigo_operacion = MENSAJE;
+    paquete->buffer = malloc(sizeof(t_buffer));
+    paquete->buffer->size = strlen(mensaje) + 1;
+    paquete->buffer->stream = malloc(paquete->buffer->size);
+    memcpy(paquete->buffer->stream, mensaje, paquete->buffer->size);
 
-	int bytes = paquete->buffer->size + 2 * sizeof(int);
-	void* a_enviar = serializar_paquete(paquete, &bytes);
-	int bytes_enviados = send(socket_cliente, a_enviar, bytes, 0);
+    int bytes = paquete->buffer->size + 2 * sizeof(uint32_t);  // Ajustado según el tamaño de uint32_t
+    void* a_enviar = serializar_paquete(paquete, bytes);
+    int bytes_enviados = send(socket_cliente, a_enviar, bytes, 0);
 
-	if (bytes_enviados == -1){
-		log_error (logger, "Error al enviar mensaje");
-	}
+    if (bytes_enviados == -1){
+        log_error(logger, "Error al enviar mensaje");
+    }
 
-	free(a_enviar);
-	eliminar_paquete(paquete);
+    free(a_enviar);
+    eliminar_paquete(paquete);
 }
 
 void recibir_mensaje(int socket_cliente)

@@ -14,10 +14,18 @@
 #include <utils/protocolo.h>
 #include <pthread.h>
 #include <utils/logger.h>
-#include "instruc_memoria.h"
-#include "init_memoria.h"
+//#include "instruc_memoria.h"
 
+typedef struct 
+{
+    int puerto_escucha;
+    int tam_memoria;
+    int tam_pagina;
+    char* path_instrucciones;
+    int retardo_respuesta;
 
-void inicializar_config(t_config_memoria* config_memoria);
+} t_config_memoria;
+
+extern t_config_memoria* config_memoria;
 
 #endif // MAIN_H

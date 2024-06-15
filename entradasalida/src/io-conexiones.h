@@ -1,12 +1,14 @@
 #ifndef IO_CONEXIONES_H
 #define IO_CONEXIONES_H
 
-#include <utils/estructuras_compartidas.h>
-#include <utils/logger.h>
-#include "io.h"
+//#include "io-estructuras.h"
+// Incluye las estructuras necesarias:
+
 // Incluye las estructuras necesarias:
 #include "io-config.h"
 #include "io-estructuras.h"
+#include "io-utils.h"
+#include "io.h"
 
 
 // Funciones para generar conexiones:

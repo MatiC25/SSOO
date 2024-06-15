@@ -13,6 +13,22 @@ int recv_pagina(int socket){
     return valor;
 }
 
+// int recv_pagina(int socket_cliente) {
+//     int tam_pagina;
+//     op_code cod_op = recibir_operacion(socket_cliente);
+    
+//     if (cod_op == HANDSHAKE_PAGINA) {
+//         int size;
+//         recv(socket_cliente, &size, sizeof(int), MSG_WAITALL);
+//         recv(socket_cliente, &tam_pagina, size, MSG_WAITALL);
+//     } else {
+//         log_error(logger, "Código de operación inesperado");
+//         return -1;
+//     }
+
+//     return tam_pagina;
+// }
+
 
 // char* comunicaciones_con_memoria_lectura(t_mmu_cpu* mmu){
 //     char* valor;

@@ -1,15 +1,20 @@
 #include "init_memoria.h"
 
-t_config_memoria* config_memoria; // Variable global
-//SEPARAR EN 2 
-//un archivo config y otro conexiones 
+t_config_memoria* inicializar_config_memoria(void){
 
-int cargar_configuraciones_memoria(t_config_memoria* config_memoria) { //(char *path_config_memoria
+    t_config_memoria* config_memoria = malloc(sizeof(t_config_memoria));
+    config_memoria->puerto_escucha = 0;
+    config_memoria->tam_memoria = 0;
+    config_memoria->tam_pagina = 0;
+    config_memoria->path_instrucciones = NULL;
+    config_memoria->retardo_respuesta = 0;
+    return config_memoria;
+}
+
+int cargar_configuraciones_memoria(t_config_memoria* config_memoria) {
     t_config* config = config_create("memoria.config");
-
-    if(!config) {
-        log_error(logger, "No se pudo cargar la configuracion de memoria");
-
+    if (config == NULL) {
+        log_error(logger, "No se pudo cargar la configuración de memoria");
         return -1;
     }
 
@@ -21,14 +26,12 @@ int cargar_configuraciones_memoria(t_config_memoria* config_memoria) { //(char *
         "RETARDO_RESPUESTA",
         NULL
     };
-    
-    if(!tiene_todas_las_configuraciones(config, configuraciones)) {
-        log_error(logger, "No se pudo cargar la configuracion de la memoria");
 
+    if (!tiene_todas_las_configuraciones(config, configuraciones)) {
+        log_error(logger, "Faltan configuraciones en memoria.config");
+        config_destroy(config);
         return -1;
     }
-
-    
     config_memoria->puerto_escucha = config_get_int_value(config, "PUERTO_ESCUCHA");
     config_memoria->tam_memoria = config_get_int_value(config, "TAM_MEMORIA");
     config_memoria->tam_pagina = config_get_int_value(config, "TAM_PAGINA");
@@ -37,73 +40,119 @@ int cargar_configuraciones_memoria(t_config_memoria* config_memoria) { //(char *
 
     log_info(logger, "Configuraciones cargadas correctamente");
     config_destroy(config);
-
     return 1;
 }
 
+void config_destroy_version_memoria(t_config_memoria* config_memoria) {
+    if (config_memoria->path_instrucciones != NULL) {
+        free(config_memoria->path_instrucciones);
+    }
+    free(config_memoria);
+}
+
 int crear_servidores(t_config_memoria* config_memoria, int *md_generico) {
-    char* puerto_memoria = string_itoa(config_memoria->puerto_escucha); // Convierte un int a una cadena de char
-    //Linux tarda
-    *md_generico = iniciar_servidor("MEMORIA", "127.0.0.1", puerto_memoria);
-    
-    free(puerto_memoria);
+    char* puerto_memoria = string_itoa(config_memoria->puerto_escucha);
+    *md_generico = iniciar_servidor("MEMORIA", NULL, puerto_memoria);
+    free(puerto_memoria); // Liberamos la memoria utilizada por string_itoa
     return (*md_generico != 0) ? 1 : -1;
 }
 
-void iniciar_modulo(t_config_memoria* config_memoria) {
+int iniciar_modulo(t_config_memoria* config_memoria) {
     int md_generico = 0;
-    char* server_name;
-
-    if(crear_servidores(config_memoria, &md_generico) != 1) {
+    if (crear_servidores(config_memoria, &md_generico) != 1) {
         log_error(logger, "No se pudo crear los servidores de escucha");
-        return;
+        return -1;
     }
-    
-    while (1)
-    {
-        
-        int socket_cliente = esperar_cliente(server_name, md_generico);
-        if(socket_cliente != -1) 
-        {
-          
-			pthread_t hilo_memora;
-			t_procesar_conexion *args_hilo = crear_procesar_conexion(server_name, socket_cliente);
-            
 
-            pthread_create(&hilo_memora, NULL, escuchar_peticiones, (void *) args_hilo);
-            pthread_detach(hilo_memora);
+    while (1) {
+        int socket_cliente = esperar_cliente("MEMORIA", md_generico);
+        if (socket_cliente != -1) {
+            
+            pthread_t hilo_memoria;
+            int* args_hilo = malloc(sizeof(int)); // Creamos espacio para los argumentos
+            *args_hilo = socket_cliente; // Asignamos el socket cliente a los argumentos
+            pthread_create(&hilo_memoria, NULL, escuchar_peticiones, (void*) args_hilo);
+            pthread_detach(hilo_memoria);
         }
-        
     }
     return md_generico;
-
-    cerrar_programa(config_memoria, md_generico);
 }
 
-void cerrar_programa(t_config_memoria *config_memoria, int socket_server){
-    config_destroy(config_memoria);
+void cerrar_programa(t_config_memoria* config_memoria, int socket_server) {
+    config_destroy_version_memoria(config_memoria);
     close(socket_server);
 }
 
-void* escuchar_peticiones(void* args){
-    t_procesar_server* args_hilo = (t_procesar_server*) args;
-    char* server_name = args_hilo->server_name;
-    int socket_cliente = args_hilo->socket_servidor;
 
-    while (1)
-    {
-        op_code cod_op = recibir_operacion(socket_cliente);
+void* escuchar_peticiones(void* args) {
+    int socket_cliente = *(int*) args; // Convertimos los argumentos de nuevo a int
+
+    while (1) {
+        int cod_op = recibir_operacion(socket_cliente);
         
-        switch (cod_op)
-        {
-        case PSEUDOCODIGO:
-            leer_archivoPseudo(socket_cliente);
+        switch (cod_op) {
+        case MENSAJE:
+        recibir_mensaje(socket_cliente);
+        enviar_mensaje("sdkfhasz", socket_cliente);
             break;
-        case INSTRUCCION: 
-            enviar_instruccion_a_cpu(socket_cliente, config_memoria->retardo_respuesta);
-            break;
-        
+            case HANDSHAKE:
+                recibir_handshake(socket_cliente);
+                enviar_mensaje("sdkfhasz", socket_cliente);
+                break;
+            case HANDSHAKE_PAGINA:
+                recibir_handshake(socket_cliente);
+                handshake_desde_memoria(socket_cliente);
+                break;
+            case INICIAR_PROCESO:
+                //retardo_pedido(config_memoria->retardo_respuesta);
+                //crear_proceso(socket_cliente);
+                //leer_archivoPseudo(socket_cliente);
+                break;
+            case FINALIZAR_PROCESO:
+                //retardo_pedido(config_memoria->retardo_respuesta);
+                //terminar_proceso(socket_cliente);
+                break;
+            case INSTRUCCION: 
+                // El retardo ya está incluido en la función
+                // enviar_instruccion_a_cpu(socket_cliente);
+                break;
+            case ACCEDER_TABLA_PAGINAS: 
+                //retardo_pedido(config_memoria->retardo_respuesta);
+                //obtener_marco(socket_cliente);
+                break;
+            case MODIFICAR_TAMAÑO_MEMORIA:
+                //retardo_pedido(config_memoria->retardo_respuesta);
+                //resize_proceso(socket_cliente);
+                break;
+            case ACCESO_A_LECTURA:
+                //retardo_pedido(config_memoria->retardo_respuesta);
+                //acceso_lectura(socket_cliente);
+                break;
+            case ACCESO_A_ESCRITURA:
+                //retardo_pedido(config_memoria->retardo_respuesta);
+                //acceso_escritura(socket_cliente);
+                break;
+            case -1:
+                log_info(logger, "Se desconectó el cliente");
+                free(args); // Liberamos la memoria asignada a los argumentos
+                close(socket_cliente);
+                return NULL;
+            default:
+                log_error(logger, "Operación desconocida");
         }
     }
+
+    // Cerramos el socket del cliente y liberamos la memoria asignada a los argumentos
+    close(socket_cliente);
+    free(args);
+    return NULL;
 }
 
+void handshake_desde_memoria(int socket_cliente) {
+    t_paquete* paquete = crear_paquete(HANDSHAKE_PAGINA);
+    int tam_pagina = config_memoria ->tam_pagina;
+
+    agregar_a_paquete(paquete, &tam_pagina, sizeof(int));
+    enviar_paquete(paquete, socket_cliente);
+    eliminar_paquete(paquete);
+}

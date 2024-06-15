@@ -11,6 +11,7 @@ void iniciar_ciclo_de_ejecucion(int socket_server ,int socket_cliente) {
         switch(codigo_operacion) {
             case MENSAJE:
             recibir_mensaje(socket_cliente);
+            enviar_mensaje("respuesta ds a kernel",socket_cliente);
             break;
             case RECIBIR_PROCESO:
                 //ejecutar_ciclo_instrucciones(socket_cliente, socket_server);
@@ -21,7 +22,6 @@ void iniciar_ciclo_de_ejecucion(int socket_server ,int socket_cliente) {
             case -1:
             log_info(logger,"Se desconecto el cliente Kernel (Ds)");
             return ; 
-            break;
         default:
         log_error(logger, "Operacion desconocida");
        }

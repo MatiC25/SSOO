@@ -16,9 +16,8 @@ t_config_kernel* inicializar_config_kernel() {
 	config_kernel->RECURSOS = NULL;
 	config_kernel->INST_RECURSOS = NULL;
 	config_kernel->GRADO_MULTIP = 0;
-	config_kernel->PUERTO_CPU_DS = 0;
-	config_kernel->PUERTO_CPU_IT = 0;
-	config_kernel->PUERTO_KERNEL = 0;
+	config_kernel->PUERTO_CPU_DS = NULL;
+	config_kernel->PUERTO_CPU_IT = NULL;
 	config_kernel->IP_KERNEL = 0;
 
 	return config_kernel;
@@ -74,13 +73,14 @@ void cargar_configuraciones(t_config_kernel* config_kernel, char *path_config) {
 
 void cargar_valores_de_memoria(t_config *config, t_config_kernel *config_kernel) {
 	copiar_valor(&config_kernel->IP_MEMORIA, config_get_string_value(config, "IP_MEMORIA"));
-	config_kernel->PUERTO_MEMORIA = config_get_int_value(config, "PUERTO_MEMORIA");
+	copiar_valor(&config_kernel->PUERTO_MEMORIA, config_get_string_value(config, "PUERTO_MEMORIA"));
+	copiar_valor(&config_kernel->PUERTO_ESCUCHA, config_get_string_value(config, "PUERTO_ESCUCHA"));
 }
 
 void cargar_valores_de_cpu(t_config *config, t_config_kernel *config_kernel) {
 	copiar_valor(&config_kernel->IP_CPU, config_get_string_value(config, "IP_CPU"));
-	config_kernel->PUERTO_CPU_DS = config_get_int_value(config, "PUERTO_CPU_DISPATCH");
-	config_kernel->PUERTO_CPU_IT = config_get_int_value(config, "PUERTO_CPU_INTERRUPT");
+	copiar_valor(&config_kernel->PUERTO_CPU_DS, config_get_string_value(config, "PUERTO_CPU_DISPATCH"));
+	copiar_valor(&config_kernel->PUERTO_CPU_IT, config_get_string_value(config, "PUERTO_CPU_INTERRUPT"));
 }
 
 void cargar_valores_de_planificacion(t_config *config, t_config_kernel *config_kernel) {

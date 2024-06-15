@@ -1,14 +1,13 @@
 #ifndef IO_ESTRUCTURAS_H
 #define IO_ESTRUCTURAS_H
 
-#include <utils/estructuras_compartidas.h>
-#include <utils/logger.h>
-#include "io.h"
+
+//#include "io.h"
 // Incluye las estructuras necesarias:
 #include "io-config.h"
 
 typedef struct {
-    int TIEMPO_UNIDAD_UNIDAD;
+    int TIEMPO_UNIDAD_TRABAJO;
     char *IP_KERNEL;
     char *PUERTO_KERNEL;
     char *IP_MEMORIA;
@@ -27,8 +26,8 @@ typedef struct {
     t_config_io *config;
 } t_interfaz;
 
-
-//extern t_interfaz *interfaz;
+extern t_config_io* config_io;
+extern t_interfaz *interfaz;
 
 
 #endif //IO_ESTRUCTURAS_H
