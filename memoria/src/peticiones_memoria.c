@@ -25,7 +25,7 @@ void* escuchar_peticiones(void* args){
             handshake_desde_memoria(socket_cliente);
             break;
         case INICIAR_PROCESO:
-            retardo_pedido(config_memoria -> retardo_respuesta);
+            // retardo_pedido(config_memoria -> retardo_respuesta);
             // crear_proceso(socket_cliente);
             leer_archivoPseudo(socket_cliente);
             break;

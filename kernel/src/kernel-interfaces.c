@@ -50,7 +50,7 @@ void create_consumer_thread(char *interface_name) {
     pthread_t consumer_thread;
 
     pthread_create(&consumer_thread, NULL, (void*) consumers_pcbs_blockeds, (void *) interface_name);
-    pthread_join(consumer_thread, NULL);
+    pthread_detach(consumer_thread);
 }
 
 void consumers_pcbs_blockeds(void *args) {

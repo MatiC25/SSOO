@@ -46,7 +46,7 @@ void generar_conexion_con_memoria(void) {
     generar_handshake(md_memoria, "MEMORIA", ip_memoria, puerto_memoria);
     
     // Seteo de socket:
-    // set_socket_memoria(md_memoria);
+    set_socket_memoria(md_memoria);
 }
 
 int crear_servidor_kernel() {

@@ -12,6 +12,7 @@ sem_t hay_en_estado_ready;
 sem_t hay_en_estado_new;
 sem_t cortar_sleep;
 sem_t desalojo_proceso;
+int pid = 0;
 
 t_pcb* proceso_en_exec = NULL;
 
@@ -40,19 +41,19 @@ void inicializacion_semaforos() {
 }
 
 
-int generar_pid_unico() {
-    static int pid = 0; //Es static para que mantenga su valor luego de terminar la ejecucion, y no reinicializar en 0 siempre
+int generar_pid_unico() { //Es static para que mantenga su valor luego de terminar la ejecucion, y no reinicializar en 0 siempre
     return pid++;
 }
 
 
-void informar_a_memoria_creacion_proceso(char* archivo_de_proceso, int pid){
+void informar_a_memoria_creacion_proceso(char* archivo_de_proceso, int pid) {
     t_paquete* paquete = crear_paquete(INICIAR_PROCESO);
 
     agregar_a_paquete_string(paquete, archivo_de_proceso, strlen(archivo_de_proceso) + 1);
-    agregar_a_paquete(paquete, &pid, sizeof(pid));
+    agregar_a_paquete(paquete, &pid, sizeof(int));
 
     enviar_paquete(paquete, config_kernel->SOCKET_MEMORIA);
+    eliminar_paquete(paquete);
 }
 
 
@@ -77,7 +78,7 @@ void creacion_proceso(char *archivo_de_proceso) {
     
     log_info(logger, "Se crea el proceso %i en NEW", pcb->pid);
     agregar_a_cola_estado_new(pcb);
-    informar_a_memoria_creacion_proceso("/path/.../operaciones", pcb->pid);
+    informar_a_memoria_creacion_proceso("./script_solo_cpu_2", pcb->pid);
 } 
 
 

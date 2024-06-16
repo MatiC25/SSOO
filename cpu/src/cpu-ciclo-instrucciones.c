@@ -14,7 +14,8 @@ void iniciar_ciclo_de_ejecucion(int socket_server ,int socket_cliente) {
             enviar_mensaje("CPU DS -> KERNEL",socket_cliente);
             break;
             case RECIBIR_PROCESO:
-                //ejecutar_ciclo_instrucciones(socket_cliente, socket_server);
+            log_info(logger,"Recibiendo la PCB");
+            ejecutar_ciclo_instrucciones(socket_cliente, socket_server);
                 break;
             case HANDSHAKE:
             recibir_handshake(socket_cliente);

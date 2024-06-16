@@ -354,17 +354,17 @@ void recv_archi_pid(int socket_cliente, char **path, int* pid){ // Se usan punte
 	int size;
 	int desplazamiento = 0;
 	void *buffer;
-	int tamanio;
+	int tamaño;
 
 	buffer = recibir_buffer(&size, socket_cliente); //Recibimos el buffer que antes enviamos
 	while (desplazamiento < size) // Leemos el buffer hasta que lleguemos al final
 	{
-		memcpy(&tamanio, buffer + desplazamiento, sizeof(int)); //Averiguamos que tan largo es el string (path)
+		memcpy(&tamaño, buffer + desplazamiento, sizeof(int)); //Averiguamos que tan largo es el string (path)
 		desplazamiento += sizeof(int);
-		path = malloc(tamanio); // Una vez que sabemos el largo, podemos reservar el espacio de memoraia del mismo 
+		path = malloc(tamaño); // Una vez que sabemos el largo, podemos reservar el espacio de memoraia del mismo 
 								
-		memcpy(*path, buffer + desplazamiento, tamanio); // Copiamos todo el path de una en la variable "*path"
-		desplazamiento += tamanio;
+		memcpy(*path, buffer + desplazamiento, tamaño); // Copiamos todo el path de una en la variable "*path"
+		desplazamiento += tamaño;
 
 		memcpy(pid, buffer + desplazamiento, sizeof(int));
 		desplazamiento += sizeof(int);
@@ -372,6 +372,34 @@ void recv_archi_pid(int socket_cliente, char **path, int* pid){ // Se usan punte
 	}
 	free(buffer);
 }
+
+// void recv_archi_pid(int socket_cliente, char **path, int* pid) {
+//     int size;
+//     int desplazamiento = 0;
+//     void *buffer;
+//     int tamanio;
+
+//     buffer = recibir_buffer(&size, socket_cliente); // Recibimos el buffer que antes enviamos
+//     if (size > 0) { // Ensure there's data to process
+//         memcpy(&tamanio, buffer + desplazamiento, sizeof(int)); // Averiguamos que tan largo es el string (path)
+//         desplazamiento += sizeof(int);
+
+//         *path = malloc(tamanio + 1); // Allocate memory for the path, +1 for null terminator
+//         if (*path == NULL) {
+//             free(buffer);
+//             return; // Handle memory allocation failure
+//         }
+
+//         memcpy(*path, buffer + desplazamiento, tamanio); // Copiamos todo el path en la variable "*path"
+//         (*path)[tamanio] = '\0'; // Null-terminate the string
+//         desplazamiento += tamanio;
+
+//         memcpy(pid, buffer + desplazamiento, sizeof(int)); // Copy the PID
+//         desplazamiento += sizeof(int);
+//     }
+
+//     free(buffer);
+// }
 
 //Funcion para recibir el PC y el PID de un proceso
 void recibir_program_counter(int socket_cpu, int *pid, int *program_counter){
