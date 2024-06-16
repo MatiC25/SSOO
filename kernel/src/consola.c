@@ -3,10 +3,10 @@
 COMMAND comandos[] = {
     {"INICIAR_PROCESO", iniciar_proceso},
     {"PROCESO_ESTADO", proceso_estado},
+    {"MULTIPROGRAMACION", multiprogramacion},
     /*{"FINALIZAR_PROCESO", finalizar_proceso},
     {"DETENER_PLANIFICACION", detener_planificacion},
     {"INICIAR_PLANIFICACION", iniciar_planificacion},
-    {"MULTIPROGRAMACION", multiprogramacion},
     {"HELP", help},*/
     {NULL, NULL}
 };

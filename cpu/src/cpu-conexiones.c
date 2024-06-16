@@ -7,8 +7,8 @@ void* generar_conexion_a_memoria(void* arg) {
     char* puerto_memoria = config_cpu->PUERTO_MEMORIA;
     char* ip_memoria = config_cpu->IP_MEMORIA;
 
-    log_info(logger, "%s", ip_memoria);
-    log_info(logger, "%s", puerto_memoria);
+    //log_info(logger, "%s", ip_memoria);
+    //log_info(logger, "%s", puerto_memoria);
     
     if (!ip_memoria){
         log_error(logger, "IP_MEMORIA es NULL");
@@ -16,7 +16,7 @@ void* generar_conexion_a_memoria(void* arg) {
     }
 
     int md_memoria = crear_conexion("MEMORIA", ip_memoria, puerto_memoria);
-    log_warning(logger,"md_memoria: %i",md_memoria);
+    //log_warning(logger,"md_memoria: %i",md_memoria);
     if (md_memoria == -1) {
         log_error(logger, "Error al conectar con MEMORIA");
         return NULL;
@@ -28,10 +28,10 @@ void* generar_conexion_a_memoria(void* arg) {
     generar_handshake_para_pagina(md_memoria, "MEMORIA", ip_memoria, puerto_memoria);
 
     
-    log_warning(logger,"enviado mensaje");
-    enviar_mensaje("CPU -> MEMORIA", md_memoria);
-    op_code cod_op = recibir_operacion(md_memoria); //lo comento pq no se usa, ni idea si es pq falta mas codigo
-    recibir_mensaje(md_memoria);
+    //log_warning(logger,"enviado mensaje");
+    //enviar_mensaje("CPU -> MEMORIA", md_memoria);
+    //op_code cod_op = recibir_operacion(md_memoria); //lo comento pq no se usa, ni idea si es pq falta mas codigo
+    //recibir_mensaje(md_memoria);
 
     return NULL;
 }
@@ -152,12 +152,12 @@ void* server_interrupt(void* args) {
         }
 
         while (1) {
-            op_code cod_op = recibir_operacion(socket_cliente);
-
+            int cod_op = recibir_operacion(socket_cliente);
+            log_warning(logger,"OPERACION DS: %i",cod_op);
             switch (cod_op) {
                 case MENSAJE:
-                    recibir_mensaje(socket_cliente);
-                    enviar_mensaje("CPU IT -> KERNEL", socket_cliente);
+                    //recibir_mensaje(socket_cliente);
+                    //enviar_mensaje("CPU IT -> KERNEL", socket_cliente);
                     break;
                 case HANDSHAKE:
                     recibir_handshake(socket_cliente);

@@ -42,13 +42,13 @@ void cargar_configuraciones(t_config_cpu* config_cpu) {
     }
     
     copiar_valor(&config_cpu->IP_MEMORIA, config_get_string_value(config, "IP_MEMORIA"));
-    log_warning(logger,"%s",config_cpu->IP_MEMORIA);
+    //log_warning(logger,"%s",config_cpu->IP_MEMORIA);
     copiar_valor(&config_cpu->PUERTO_MEMORIA, config_get_string_value(config, "PUERTO_MEMORIA"));
-    log_warning(logger,"%s",config_cpu->PUERTO_MEMORIA);
+    //log_warning(logger,"%s",config_cpu->PUERTO_MEMORIA);
     copiar_valor(&config_cpu->PUERTO_ESCUCHA_DISPATCH, config_get_string_value(config, "PUERTO_ESCUCHA_DISPATCH"));
-    log_warning(logger,"%s",config_cpu->PUERTO_ESCUCHA_DISPATCH);
+    //log_warning(logger,"%s",config_cpu->PUERTO_ESCUCHA_DISPATCH);
     copiar_valor(&config_cpu->PUERTO_ESCUCHA_INTERRUPT, config_get_string_value(config, "PUERTO_ESCUCHA_INTERRUPT"));
-    log_warning(logger,"%s",config_cpu->PUERTO_ESCUCHA_INTERRUPT);
+    //log_warning(logger,"%s",config_cpu->PUERTO_ESCUCHA_INTERRUPT);
     copiar_valor(&config_cpu->ALGORITMO_TLB, config_get_string_value(config, "ALGORITMO_TLB")); 
     config_cpu->CANTIDAD_ENTRADAS_TLB = config_get_int_value(config, "CANTIDAD_ENTRADAS_TLB");
 

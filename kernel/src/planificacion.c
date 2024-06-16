@@ -6,6 +6,7 @@ pthread_mutex_t mutex_estado_ready;
 pthread_mutex_t mutex_estado_exec;
 pthread_mutex_t mutex_cola_priori_vrr;
 pthread_mutex_t mutex_proceso_exec;
+sem_t sem_proceso_exec;
 sem_t sem_multiprogramacion;
 sem_t habilitar_corto_plazo;
 sem_t hay_en_estado_ready;
@@ -49,8 +50,8 @@ int generar_pid_unico() { //Es static para que mantenga su valor luego de termin
 void informar_a_memoria_creacion_proceso(char* archivo_de_proceso, int pid) {
     t_paquete* paquete = crear_paquete(INICIAR_PROCESO);
 
-    agregar_a_paquete_string(paquete, archivo_de_proceso, strlen(archivo_de_proceso) + 1);
     agregar_a_paquete(paquete, &pid, sizeof(int));
+    agregar_a_paquete_string(paquete, archivo_de_proceso, strlen(archivo_de_proceso) + 1);
 
     enviar_paquete(paquete, config_kernel->SOCKET_MEMORIA);
     eliminar_paquete(paquete);
@@ -73,12 +74,13 @@ void creacion_proceso(char *archivo_de_proceso) {
         return;
     }
 
+    pcb->quantum = 0;
     pcb->estado = NEW;
     pcb->program_counter = 0;
     
     log_info(logger, "Se crea el proceso %i en NEW", pcb->pid);
     agregar_a_cola_estado_new(pcb);
-    informar_a_memoria_creacion_proceso("./script_solo_cpu_2", pcb->pid);
+    informar_a_memoria_creacion_proceso("script_solo_cpu_2", pcb->pid);
 } 
 
 
@@ -97,7 +99,6 @@ void* agregar_a_cola_ready() {
         sem_wait(&hay_en_estado_new);
 
         t_pcb* proceso = obtener_siguiente_a_ready();
-
         pthread_mutex_lock(&mutex_estado_ready);
         list_add(cola_ready, proceso);
         log_info(logger, "PID: %i - Estado Anterior: NEW - Estado Actual: READY", proceso->pid);
@@ -211,14 +212,17 @@ void hilo_planificador_cortoplazo_VRR() {
 
 void* planificador_cortoplazo_fifo(void* arg) {
     while (1) {
+        
         sem_wait(&habilitar_corto_plazo);
         sem_wait(&hay_en_estado_ready);
 
         pthread_mutex_lock(&mutex_estado_ready);
 
         pthread_mutex_lock(&mutex_proceso_exec);
+
         proceso_en_exec = list_remove(cola_ready, 0);
         proceso_en_exec->estado = EXEC;
+
         pthread_mutex_unlock(&mutex_proceso_exec);
 
         pthread_mutex_unlock(&mutex_estado_ready);
@@ -416,6 +420,7 @@ void destruir_semaforos() {
     sem_destroy(&sem_multiprogramacion);
     sem_destroy(&cortar_sleep);
     sem_destroy(&desalojo_proceso);
+    sem_destroy(&sem_proceso_exec);
 }
 
 

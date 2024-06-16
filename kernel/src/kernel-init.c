@@ -3,6 +3,7 @@
 void iniciar_modulo_kernel(int socket_servidor) {
     inicializar_lista();
     aceptar_interfaces(socket_servidor);
+    inicializacion_semaforos();
     iniciar_planificacion();
     iniciar_consola();
     //manejar_peticion_con_memoria();

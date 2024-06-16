@@ -26,140 +26,140 @@ void leer_archivoPseudo(int socket_kernel) {
     int pid;
     int desplazamiento = 0;
     void *buffer = recibir_buffer(&size, socket_kernel);
-    log_info(logger, "Tamaño del buffer recibido: %d", size);
+
+    memcpy(&pid, buffer + desplazamiento, sizeof(int));
+    desplazamiento += sizeof(int);
+
     // Recibimos el tamaño del archivo:
     memcpy(&tam, buffer + desplazamiento, sizeof(int));
-    log_info(logger, "Tamaño del archivo recibido: %d", tam);
     desplazamiento += sizeof(int);
 
     // Recibimos el nombre del archivo:
     char* archivo_path = malloc(tam);
     memcpy(archivo_path, buffer + desplazamiento, tam);
     log_info(logger, "Nombre del archivo recibido: %s", archivo_path);
-    desplazamiento += tam;
 
     // Recibimos el PID:
-    memcpy(&pid, buffer + desplazamiento, sizeof(int));
-
-    log_info(logger, "Recibimos el archivo %s con PID %i", archivo_path, pid);
     
-    free(buffer);
-    free(archivo_path);
-
     // recv_archi_pid(socket_kernel, &archivo_path, &pid);
 
-    // char* path = crear_path_instrucciones(archivo_path);
+    char* path = crear_path_instrucciones(archivo_path);
 
     //Abrimos archivo_path para leer broOOOOoooOoder
-    // FILE *archivo = fopen(path, "r");
+    FILE *archivo = fopen(path, "r");
 
-	//     //Comprobar si el archivo existe
-    //     if(archivo == NULL){
-	// 	    log_error(logger, "Error en la apertura del archivo: Error");
-	// 	    free(path);
-	// 	    return;
-	//     }
-
-
-    // char* cadena;
-    // t_list* lista_de_instrucciones = list_create();
-
-    // // Estamos leyendo el archivo, y pasandolo a una lista
-    // while(feof(archivo) == 0 ){ //&& program_counter != -1
-
-    //     //Accedemos a cada linea del archivo
-    //     cadena = malloc(500);
-    //     char* dato_cadena = fgets(cadena, 500, archivo); // Fgets lee cada linea
-
-    //     if(dato_cadena == NULL){
-    //         log_error(logger, "Archivo vacío, linea 33");
-    //         break;
-    //     }
-
-    //     if(string_contains(cadena, "\n")){
-	// 	    char** lista_de_cadenas = string_split(cadena, "\n");
-
-	// 	    cadena = string_array_pop(lista_de_cadenas);
+    log_info(logger, "Abriendo archivo: %s", path);
+	    //Comprobar si el archivo existe
+    if(archivo == NULL){
+        log_error(logger, "Error en la apertura del archivo: Error");
+        free(path);
+        return;
+    }
 
 
-	//         while(lista_de_cadenas != NULL && strcmp(cadena,"") == 0){
-	// 		    cadena = string_array_pop(lista_de_cadenas);
-	// 	    }
+    char* cadena;
+    t_list* lista_de_instrucciones = list_create();
 
-	// 	    string_array_destroy(lista_de_cadenas);
-	//     }
+    // Estamos leyendo el archivo, y pasandolo a una lista
+    while(!feof(archivo)){ //&& program_counter != -1
 
-    //     t_instruccion *ptr_inst = malloc(sizeof(t_instruccion));
+        //Accedemos a cada linea del archivo
+        cadena = malloc(500);
+        char* dato_cadena = fgets(cadena, 500, archivo); // Fgets lee cada linea
+
+        if(dato_cadena == NULL){
+            log_error(logger, "Archivo vacío, linea 33");
+            break;
+        }
+
+        if(string_contains(cadena, "\n")){
+		    char** lista_de_cadenas = string_split(cadena, "\n");
+
+		    cadena = string_array_pop(lista_de_cadenas);
 
 
-    //     ptr_inst->parametro1  =  NULL;
-    //     ptr_inst->parametro2  =  NULL;
-    //     ptr_inst->parametro3  =  NULL;
-    //     ptr_inst->parametro4  =  NULL;
-    //     ptr_inst->parametro5  =  NULL;
+	        while(lista_de_cadenas != NULL && strcmp(cadena,"") == 0){
+			    cadena = string_array_pop(lista_de_cadenas);
+		    }
 
-    //     char *token = strtok(cadena," "); //obtenesmo el opcode(esta separado por un espacio)
-    //     ptr_inst -> opcode = token;
-    //     ptr_inst -> long_opcode = strlen(ptr_inst -> opcode) + 1;
+		    string_array_destroy(lista_de_cadenas);
+	    }
 
-    //     //obtengo los parametros(tambien estan separados por un espacSio)
-    //     token = strtok(NULL," ");
-    //     ptr_inst -> parametro1 = token;
-    //     //me aseguro que no siga sacando si no hay mas parametros
-    //     if (token != NULL){
-    //         token = strtok(NULL," ");
-    //         ptr_inst -> parametro2 = token;
+        t_instruccion *ptr_inst = malloc(sizeof(t_instruccion));
 
-    //         if (token != NULL){
-    //             token = strtok(NULL," ");
-    //             ptr_inst -> parametro3 = token;
 
-    //             if (token != NULL){
-    //                 token = strtok(NULL," ");
+        ptr_inst->parametro1  =  NULL;
+        ptr_inst->parametro2  =  NULL;
+        ptr_inst->parametro3  =  NULL;
+        ptr_inst->parametro4  =  NULL;
+        ptr_inst->parametro5  =  NULL;
 
-    //                 ptr_inst -> parametro4 = token;
-    //                 if (token != NULL){
-    //                     token = strtok(NULL," ");
-    //                     ptr_inst -> parametro5 = token;
-    //                }
-    //             }
-    //         }
-    //     }
-    //     if(ptr_inst -> parametro1 != NULL){
-    //         ptr_inst -> long_par1 = strlen(ptr_inst -> parametro1)+1;
-    //     } else {
-    //         ptr_inst -> long_par1 = 0;
-    //     }
-    //     if(ptr_inst -> parametro2 != NULL){
-    //         ptr_inst -> long_par2 = strlen(ptr_inst -> parametro2)+1;
-    //     } else {
-    //         ptr_inst -> long_par2 = 0;
-    //     }
-    //     if(ptr_inst -> parametro3 != NULL){
-    //         ptr_inst -> long_par3 = strlen(ptr_inst -> parametro3)+1;
-    //     } else {
-    //         ptr_inst -> long_par3 = 0;
-    //     }
-    //     if(ptr_inst -> parametro4 != NULL){
-    //         ptr_inst -> long_par4 = strlen(ptr_inst -> parametro4)+1;
-    //     } else {
-    //         ptr_inst -> long_par4 = 0;
-    //     }
-    //     if(ptr_inst -> parametro5 != NULL){
-    //         ptr_inst -> long_par5 = strlen(ptr_inst -> parametro5)+1;
-    //     } else {
-    //         ptr_inst -> long_par5 = 0;
-    //     }
+        char *token = strtok(cadena," "); //obtenesmo el opcode(esta separado por un espacio)
+        ptr_inst -> opcode = token;
+        ptr_inst -> long_opcode = strlen(ptr_inst -> opcode) + 1;
 
-    //     list_add(lista_de_instrucciones,ptr_inst);
+        //obtengo los parametros(tambien estan separados por un espacSio)
+        token = strtok(NULL," ");
+        ptr_inst -> parametro1 = token;
+        //me aseguro que no siga sacando si no hay mas parametros
+        if (token != NULL){
+            token = strtok(NULL," ");
+            ptr_inst -> parametro2 = token;
 
-    // }
-    // //añadimos a un diccionario para usarlo mas tarde para enviar la instruccion a cpu
-    // dictionary_put(lista_instrucciones_porPID, string_itoa(pid), lista_de_instrucciones);
+            if (token != NULL){
+                token = strtok(NULL," ");
+                ptr_inst -> parametro3 = token;
+
+                if (token != NULL){
+                    token = strtok(NULL," ");
+
+                    ptr_inst -> parametro4 = token;
+                    if (token != NULL){
+                        token = strtok(NULL," ");
+                        ptr_inst -> parametro5 = token;
+                   }
+                }
+            }
+        }
+        if(ptr_inst -> parametro1 != NULL){
+            ptr_inst -> long_par1 = strlen(ptr_inst -> parametro1)+1;
+        } else {
+            ptr_inst -> long_par1 = 0;
+        }
+        if(ptr_inst -> parametro2 != NULL){
+            ptr_inst -> long_par2 = strlen(ptr_inst -> parametro2)+1;
+        } else {
+            ptr_inst -> long_par2 = 0;
+        }
+        if(ptr_inst -> parametro3 != NULL){
+            ptr_inst -> long_par3 = strlen(ptr_inst -> parametro3)+1;
+        } else {
+            ptr_inst -> long_par3 = 0;
+        }
+        if(ptr_inst -> parametro4 != NULL){
+            ptr_inst -> long_par4 = strlen(ptr_inst -> parametro4)+1;
+        } else {
+            ptr_inst -> long_par4 = 0;
+        }
+        if(ptr_inst -> parametro5 != NULL){
+            ptr_inst -> long_par5 = strlen(ptr_inst -> parametro5)+1;
+        } else {
+            ptr_inst -> long_par5 = 0;
+        }
+
+        list_add(lista_de_instrucciones,ptr_inst);
+
+    }
+
+    //añadimos a un diccionario para usarlo mas tarde para enviar la instruccion a cpu
+    dictionary_put(lista_instrucciones_porPID, string_itoa(pid), lista_de_instrucciones);
     
-    // free(path);
     // fclose(archivo);
-
+    
+    free(path);
+    free(buffer);
+    free(archivo_path);
+    fclose(archivo);
 }
 
 void enviar_instruccion_a_cpu(int socket_cpu, int retardo_de_respuesta){

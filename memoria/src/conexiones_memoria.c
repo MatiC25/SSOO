@@ -22,7 +22,7 @@ int iniciar_modulo(t_config_memoria* config_memoria) {
             pthread_t hilo_memoria;
             int* args_hilo = malloc(sizeof(int)); // Creamos espacio para los argumentos
             *args_hilo = socket_cliente; // Asignamos el socket cliente a los argumentos
-            log_info(logger, "Se creo el hilo en %i" ,socket_cliente);
+            //log_info(logger, "Se creo el hilo en %i" ,socket_cliente);
             pthread_create(&hilo_memoria, NULL, escuchar_peticiones, (void*) args_hilo);
             
             pthread_detach(hilo_memoria);

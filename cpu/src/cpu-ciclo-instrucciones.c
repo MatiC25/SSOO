@@ -7,14 +7,14 @@ void iniciar_ciclo_de_ejecucion(int socket_server ,int socket_cliente) {
     
     while(1) {
         int codigo_operacion = recibir_operacion(socket_cliente); //Acordarme que lo cambie
-        
+        log_warning(logger,"OPERACION DS: %i",codigo_operacion);
         switch(codigo_operacion) {
             case MENSAJE:
-            recibir_mensaje(socket_cliente);
-            enviar_mensaje("CPU DS -> KERNEL",socket_cliente);
+            //recibir_mensaje(socket_cliente);
+            //Wenviar_mensaje("CPU DS -> KERNEL",socket_cliente);
             break;
             case RECIBIR_PROCESO:
-            log_info(logger,"Recibiendo la PCB");
+            log_warning(logger,"Recibiendo la PCB");
             ejecutar_ciclo_instrucciones(socket_cliente, socket_server);
                 break;
             case HANDSHAKE:
@@ -31,7 +31,7 @@ void iniciar_ciclo_de_ejecucion(int socket_server ,int socket_cliente) {
 
 void ejecutar_ciclo_instrucciones(int socket_cliente, int socket_server) {
     
-    rcv_contexto_ejecucion(socket_cliente);
+    rcv_contexto_ejecucion_cpu(socket_cliente);
     seguir_ciclo(socket_cliente, socket_server);
 }   
 

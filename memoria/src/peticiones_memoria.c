@@ -7,20 +7,20 @@ void* escuchar_peticiones(void* args){
     while (1)
     {
         int cod_op = recibir_operacion(socket_cliente);
-        log_warning(logger,"cod op %i",cod_op);
+        //log_warning(logger,"cod op %i",cod_op);
         switch (cod_op){
         case HANDSHAKE:
-            log_warning(logger,"HANDSHAKE");
+            //log_warning(logger,"HANDSHAKE");
             recibir_handshake(socket_cliente);
             break;
         case MENSAJE:
-            log_warning(logger,"MENSAJE");
+            //log_warning(logger,"MENSAJE");
             recibir_mensaje(socket_cliente);
-            log_warning(logger,"enviado mensaje");
-            enviar_mensaje("MEMORIA -> CPU", socket_cliente);
+            //log_warning(logger,"enviado mensaje");
+            //enviar_mensaje("MEMORIA -> CPU", socket_cliente);
             break;
         case HANDSHAKE_PAGINA:
-            log_warning(logger,"HANDSHAKE_PAGINA");
+            //log_warning(logger,"HANDSHAKE_PAGINA");
             recibir_handshake(socket_cliente);
             handshake_desde_memoria(socket_cliente);
             break;
