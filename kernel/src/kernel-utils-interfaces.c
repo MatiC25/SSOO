@@ -1,6 +1,7 @@
 #include "kernel-utils-interfaces.h"
 
 t_dictionary *interfaces; // Diccionario de interfaces
+interface_io* interfaces
 
 // Funciones de manejo de interfaz desde el lado del kernel:
 
@@ -29,14 +30,6 @@ int consulta_existencia_interfaz(interface_io *interface) {
 }
 
 // Funciones para pedir operaciones a la interfaz:
-
-int consulta_interfaz_para_aceptacion_de_operacion(interface_io *interface) {
-    tipo_operacion operacion = operacion_a_realizar(config_kernel->SOCKET_DISPATCH);
-    if(acepta_operacion_interfaz(interface, operacion)) 
-        return 1; // Operacion valida
-    else 
-        return 0; // Operacion invalida
-}
 
 int acepta_operacion_interfaz(interface_io *interface, tipo_operacion operacion) {
     tipo_operacion operaciones[] = {

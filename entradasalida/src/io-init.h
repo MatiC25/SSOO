@@ -1,18 +1,16 @@
 #ifndef IO_INIT_H
 #define IO_INIT_H
 
-// Incluye las bibliotecas necesarias:
-
-// Incluye las estructuras necesarias:
-//#include "io-estructuras.h"
+// Incluye las bibliotecas externas necesarias:
 #include <utils/estructuras_compartidas.h>
+#include <utils/shared.h>
 #include <utils/logger.h>
 #include <commons/config.h>
 
-
-// Incluye las estructuras necesarias:
+// Incluye las bibliotecas internas necesarias:
 #include "io-config.h"
 #include "io-estructuras.h"
+
 // Funciones para inicializar:
 t_interfaz *inicializar_interfaz(char *name_interfaz, char *config_path);
 t_config_io *cargar_configuraciones(char *config_path, t_interfaz *interfaz);

@@ -1,11 +1,6 @@
 #ifndef IO_UTILS_H
 #define IO_UTILS_H
-// #include <utils/estructuras_compartidas.h>
-// #include <utils/logger.h>
-// #include "io-estructuras.h"
-// #include <utils/estructuras_compartidas.h>
-// #include <utils/logger.h>
-// #include "io-estructuras.h"
+
 #include "io-config.h"
 #include "io-estructuras.h"
 

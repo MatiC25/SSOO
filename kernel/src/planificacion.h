@@ -9,28 +9,36 @@
 #include <stdbool.h>
 #include <commons/temporal.h>
 #include "kernel-init.h"
+#include <utils/protocolo.h>
 
 extern pthread_mutex_t mutex_estado_block;
 extern pthread_mutex_t mutex_estado_ready;
 extern pthread_mutex_t mutex_estado_new;
 extern pthread_mutex_t mutex_estado_exec;
 extern pthread_mutex_t mutex_cola_priori_vrr;
-extern sem_t limite_grado_multiprogramacion;
+extern pthread_mutex_t mutex_proceso_exec;
+extern sem_t sem_multiprogramacion;
 extern sem_t habilitar_corto_plazo;
 extern sem_t hay_en_estado_ready;
 extern sem_t hay_en_estado_new;
 extern sem_t hay_en_estado_new;
+extern sem_t cortar_sleep;
+extern sem_t desalojo_proceso;
 
+extern t_pcb* proceso_en_exec;
+
+void mover_procesos_a_bloqueado(t_pcb* proceso);
+void informar_a_memoria_creacion_proceso(char* archivo_de_proceso, int pid);
+void informar_a_memoria_liberacion_proceso(int pid);
 void creacion_proceso();
 void agregar_a_cola_estado_new(t_pcb* proceso);
-void agregar_a_cola_ready();
 int generar_pid_unico();
 void inicializacion_semaforos();
 void elegir_algoritmo_corto_plazo();
 void hilo_planificador_cortoplazo_fifo();
 void* planificador_cortoplazo_fifo(void* arg);
 void hilo_planificador_cortoplazo_RoundRobin();
-void* planificador_corto_plazo_RoundRobin(void*);
+void* planificador_corto_plazo_RoundRobin(void* arg);
 void enviar_proceso_a_cpu(t_pcb* pcbproceso);
 void liberar_pcb(t_pcb* estructura);
 void mover_procesos_de_ready_a_bloqueado(t_pcb* proceso);
@@ -38,22 +46,5 @@ void mover_procesos_de_bloqueado_a_ready(t_pcb* proceso);
 t_pcb* obtener_siguiente_a_ready();
 void* quantum_handler(void* arg);
 
-// void creacion_proceso(t_pcb* proceso_nuevo);
-// void agregar_a_cola_estado_new(t_pcb* proceso);
-// void agregar_a_cola_ready();
-// int generar_pid_unico();
 
-// void inicializacion_semaforos();
-// void elegir_algoritmo_corto_plazo(char* algoritmo);
-// void hilo_planificador_cortoplazo_fifo();
-// void* planificador_cortoplazo_fifo(void* arg);
-
-// void hilo_planificador_cortoplazo_RoundRobin();
-// void* planificador_corto_plazo_RoundRobin(voi   d);
-// void planificacion_VRR();
-// void enviar_proceso_a_cpu(t_pcb* pcbproceso);
-
-
-
-// void liberar_pcb(t_pcb* estructura);
 #endif

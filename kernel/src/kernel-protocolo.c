@@ -55,7 +55,7 @@ void rcv_interfaz(char **interface_name, tipo_interfaz *tipo, int socket) {
     rcv_nombre_interfaz(interface_name, buffer, &desplazamiento, &tamanio);
 }
 
-void rcv_nombre_interfaz(char **interface_name, int socket) {
+void rcv_nombre_interfaz_dispatch(char **interface_name, int socket) {
     int tamanio;
     int desplazamiento = 0;
     int size = 0;

@@ -31,7 +31,8 @@ void* generar_conexion_a_memoria(void* arg) {
     log_warning(logger,"enviado mensaje");
     enviar_mensaje("CPU -> MEMORIA", md_memoria);
     op_code cod_op = recibir_operacion(md_memoria);
-    recibir_mensaje(md_memoria); 
+    recibir_mensaje(md_memoria);
+
 }
 
 

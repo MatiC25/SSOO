@@ -16,7 +16,6 @@ char* crear_path_instrucciones(char* archivo_path){
     else if(string_contains(path, "~/")){
 		path = string_replace(path, "~/", "/home/utnso/");
 	}
-
     return path;
 }
 // Obtenemos las instrucciones de los archivos de pseudocódigo

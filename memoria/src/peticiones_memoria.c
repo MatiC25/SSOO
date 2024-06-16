@@ -3,14 +3,12 @@
 //Estructuras
 
 void* escuchar_peticiones(void* args){
-    int* socket_cliente = *(int*) args;
-    log_warning(logger,"Socket %i",socket_cliente);
+    int socket_cliente = *(int*) args;
     while (1)
     {
         int cod_op = recibir_operacion(socket_cliente);
         log_warning(logger,"cod op %i",cod_op);
-        switch (cod_op)
-        {
+        switch (cod_op){
         case HANDSHAKE:
             log_warning(logger,"HANDSHAKE");
             recibir_handshake(socket_cliente);
@@ -22,7 +20,7 @@ void* escuchar_peticiones(void* args){
             enviar_mensaje("MEMORIA -> CPU", socket_cliente);
             break;
         case HANDSHAKE_PAGINA:
-        log_warning(logger,"HANDSHAKE_PAGINA");
+            log_warning(logger,"HANDSHAKE_PAGINA");
             recibir_handshake(socket_cliente);
             handshake_desde_memoria(socket_cliente);
             break;
@@ -36,8 +34,8 @@ void* escuchar_peticiones(void* args){
             //terminar_proceso(socket_cliente);
             break;
         case INSTRUCCION: 
-            El retardo ya esta incluido en la funcion
-            enviar_instruccion_a_cpu(socket_cliente);
+            //El retardo ya esta incluido en la funcion
+            enviar_instruccion_a_cpu(socket_cliente, config_memoria->retardo_respuesta);
             break;
         case ACCEDER_TABLA_PAGINAS: 
             //retardo_pedido(config_memoria -> retardo_respuesta);
@@ -57,7 +55,7 @@ void* escuchar_peticiones(void* args){
             break;
         case -1:
             log_info(logger,"Se desconecto el cliente");
-            return; //a facu le gusta exit(-1) pero nico nos amenaza para poner return
+            exit(-1); //a facu le gusta exit(-1) pero nico nos amenaza para poner return
         default:
             log_error(logger, "Operacion desconocida");
         }

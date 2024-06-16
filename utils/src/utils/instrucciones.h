@@ -8,10 +8,16 @@
 
 
 typedef enum {
-//Generales    
+//Generales Compartidas con kernel
+    FIN_QUANTUM,    
     WAIT,
     SIGNAL,
     EXIT,
+    OUT_OF_MEMORY,
+    INSTRUCCION_IO,
+    IO_INVALIDA,
+    INVALID_RESOURCE,
+    INTERRUPTED_BY_USER,
 
 // CPU
     SET,

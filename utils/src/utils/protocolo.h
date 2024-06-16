@@ -29,7 +29,6 @@ typedef enum { //podemos juntar todos los procesos
     OPERACION_IO,
     CREAR_INTERFAZ,
     FINQUANTUM,
-    FIN_EJECUCION,
     INICIAR_PROCESO,
     FINALIZAR_PROCESO,
     ACCEDER_TABLA_PAGINAS,
@@ -39,7 +38,6 @@ typedef enum { //podemos juntar todos los procesos
     HANDSHAKE_PAGINA,
     LECTURA_EXITOSA,// No sabemos como lo recibe cpu
     EXITO_CONSULTA,
-    OUT_OF_MEMORY,
     ESCRIBIR_MEMORIA,
     LEER_MEMORIA
 // ----------------

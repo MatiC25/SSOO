@@ -67,7 +67,7 @@ void ejecutar_operacion_stdout(t_interfaz *interfaz) {
 
         // Solicitamos los bytes a memoria:
         send_bytes_a_leer(interfaz, direccion_fisica, bytes_a_mostrar);
-        rcv_bytes_a_leer(interfaz, bytes_a_mostrar, bytes);
+        rcv_bytes_a_leer(interfaz, bytes_a_mostrar, &bytes);
 
         // Mostramos los bytes:
         log_info(logger, "Bytes a mostrar: %s", bytes);

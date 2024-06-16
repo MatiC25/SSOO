@@ -2,17 +2,15 @@
 #define IO_PROTOCOLOS_H
 
 // Incluye las biblotecas externas necesarias:
-// Incluye las bibliotecas necesarias:
-
-//#include "io-estructuras.h"
 #include <utils/estructuras_compartidas.h>
+#include <utils/protocolo.h>
 #include <utils/logger.h>
-#include "io.h"
+
 // Incluye las estructuras necesarias:
 #include "io-config.h"
 #include "io-estructuras.h"
-
 #include "io-utils.h"
+
 // Funciones para enviar mensajes al kernel
 void send_respuesta_a_kernel(int respuesta, t_interfaz * interfaz);
 

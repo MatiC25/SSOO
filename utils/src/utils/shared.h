@@ -31,6 +31,7 @@ void liberar_espacios_de_memoria(void** vector);
 
 // Funciones para el manejo de logs
 void info_config(t_config *config);
+void validar_configuraciones(t_config *config, char *configuraciones[]);
 
 
 #endif // SHARED_H

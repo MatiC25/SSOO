@@ -1,6 +1,7 @@
 #include "memoria.h"
 
 t_config_memoria* config_memoria;
+t_dictionary* lista_instrucciones_porPID;
 
 int main()
 {
@@ -28,7 +29,7 @@ int main()
 
     //abrimos el servidor
     iniciar_modulo(config_memoria);
-//    cerrar_programa(config_memoria,)
+    //cerrar_programa(config_memoria,)
 
     return 0;
 }

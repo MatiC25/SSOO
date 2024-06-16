@@ -49,13 +49,13 @@ typedef struct { // PCB de un proceso
     int estado;
 } t_pcb;
 
-typedef enum {
-    IO,
-    FIN_QUANTUM,
-    WAIT,
-    SIGNAL,
-    FIN_EJECUCION
-} tipo_desalojo;
+// typedef enum {
+//     IO,
+//     FIN_QUANTUM,
+//     WAIT,
+//     SIGNAL,
+//     FIN_EJECUCION
+// } tipo_desalojo;
 
 typedef enum {
     IO_GEN_SLEEP_INT,

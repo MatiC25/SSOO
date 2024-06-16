@@ -16,8 +16,9 @@
 #include <utils/instrucciones.h>
 #include "estructuras_compartidas_memoria.h"
 
-int cargar_configuraciones_memoria(t_config_memoria* config_memoria);
+// Funcion para cargar configuraciones de Memoria:
 t_config_memoria* inicializar_config_memoria(void);
+int cargar_configuraciones_memoria(t_config_memoria* config_memoria);
 void config_destroy_version_memoria(t_config_memoria* config_memoria);
 
 #endif // CONFIG_MEMORIA_H

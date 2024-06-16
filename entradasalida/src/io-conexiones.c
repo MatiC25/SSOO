@@ -21,7 +21,6 @@ void generar_conexiones_con_kernel(t_interfaz* interfaz) {
 void generar_conexiones_con_memoria(t_interfaz* interfaz) {
     int socket_memoria;
 
-    char *nombre_interfaz = interfaz->nombre;
     char *ip_memoria = interfaz->config->IP_MEMORIA;
     char *puerto_memoria = interfaz->config->PUERTO_MEMORIA;
 
@@ -31,13 +30,11 @@ void generar_conexiones_con_memoria(t_interfaz* interfaz) {
 }
 
 void generar_conexion(int *socket, char *nombre_interfaz, char *ip, char *puerto) {
-    socket = crear_conexion(nombre_interfaz, ip, puerto);
+    *socket = crear_conexion(nombre_interfaz, ip, puerto);
 
-    if( socket == 0 || socket == -1)
+    if(*socket == 0 || *socket == -1)
         exit(EXIT_FAILURE);
 
-    generar_handshake(socket, nombre_interfaz, ip, puerto);
-    enviar_mensaje("DE IO PARA EL MUNDO",socket);
-    op_code code = recibir_operacion(socket);
-    recibir_mensaje(socket);
+
+    generar_handshake(*socket, nombre_interfaz, ip, puerto);
 }

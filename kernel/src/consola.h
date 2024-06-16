@@ -9,7 +9,6 @@
 #include <readline/readline.h>
 #include <readline/history.h>
 #include <utils/shared.h>
-
 #include "planificacion.h"
 
 typedef struct {
@@ -30,6 +29,10 @@ int ejecutar_comando(char* linea);
 COMMAND* encontrar_comando(char* nombre);
 
 // Comandos
-void* iniciar_proceso(void* args);
+void *iniciar_proceso(void* args);
+void *proceso_estado(void *args); 
+void agregar_procesos_a_lista(t_list *estados_procesos[]);
+char *estado_proceso(int estado);
+void *multiprogramacion(void *args);
 
 #endif

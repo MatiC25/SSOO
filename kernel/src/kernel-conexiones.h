@@ -7,6 +7,7 @@
 
 #include "kernel-config.h"
 
+
 // Funciones para manejar conexiones:
 void generar_conexiones_con();
 void generar_conexiones_con_cpu();

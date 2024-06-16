@@ -2,6 +2,7 @@
 
 t_config_kernel *config_kernel; // La declaros como variable global, y la vez instanciar aca!
 
+
 int main(int argc, char *argv[]) {
     char *config_path = argv[1];
     

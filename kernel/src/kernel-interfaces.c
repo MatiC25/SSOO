@@ -97,7 +97,7 @@ void create_interface(int socket) {
     interface_io *interface = initialize_interface();
 
     // Recibimos el nombre de la interfaz y el tipo:
-    recibir_interfaz(&interface_name, &tipo, socket);
+    rcv_interfaz(&interface_name, &tipo, socket);
 
     // Seteamos nombre de la interfaz:
     set_name_interface(interface, interface_name);

@@ -1,7 +1,6 @@
 #include "io.h"
 
 t_interfaz *interfaz = NULL;
-t_config_io *config_io = NULL;
 
 int main(int argc, char *argv[]) {
     char *name_interfaz = "FedeInterfaz";
