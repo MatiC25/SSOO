@@ -1,5 +1,29 @@
 #include "planificacion.h"
 
+pthread_mutex_t mutex_estado_new;
+pthread_mutex_t mutex_estado_block;
+pthread_mutex_t mutex_estado_ready;
+pthread_mutex_t mutex_estado_exec;
+pthread_mutex_t mutex_cola_priori_vrr;
+pthread_mutex_t mutex_proceso_exec;
+sem_t sem_multiprogramacion;
+sem_t habilitar_corto_plazo;
+sem_t hay_en_estado_ready;
+sem_t hay_en_estado_new;
+sem_t cortar_sleep;
+sem_t desalojo_proceso;
+
+t_pcb* proceso_en_exec = NULL;
+
+t_list* cola_new;
+t_list* cola_ready; 
+t_list* cola_prima_VRR;
+t_list* cola_block;
+t_queue* colas_resource_block[MAX_RECURSOS];
+t_recursos_pedidos* vector_recursos_pedidos;
+int tam_vector_recursos_pedidos;
+
+
 void inicializacion_semaforos() {
     pthread_mutex_init(&mutex_estado_ready, NULL);
     pthread_mutex_init(&mutex_estado_new, NULL);
@@ -26,7 +50,7 @@ void informar_a_memoria_creacion_proceso(char* archivo_de_proceso, int pid){
     t_paquete* paquete = crear_paquete(INICIAR_PROCESO);
 
     agregar_a_paquete_string(paquete, archivo_de_proceso, strlen(archivo_de_proceso) + 1);
-    agregar_a_paquete(paquete, pid, sizeof(pid));
+    agregar_a_paquete(paquete, &pid, sizeof(pid));
 
     enviar_paquete(paquete, config_kernel->SOCKET_MEMORIA);
 }
@@ -67,9 +91,9 @@ void agregar_a_cola_estado_new(t_pcb* proceso) { //NEW
 
 
 void* agregar_a_cola_ready() {
+    sem_wait(&sem_multiprogramacion);
     while (1) {
         sem_wait(&hay_en_estado_new);
-        sem_wait(&limite_grado_multiprogramacion);
 
         t_pcb* proceso = obtener_siguiente_a_ready();
 
@@ -87,26 +111,26 @@ void* agregar_a_cola_ready() {
 }
 
 
-void mover_procesos_de_ready_a_bloqueado(t_pcb* proceso) {
-    pthread_mutex_lock(&mutex_estado_ready);
-    proceso = list_remove(cola_ready, 0);
-    pthread_mutex_unlock(&mutex_estado_ready);
+// void mover_procesos_de_ready_a_bloqueado(t_pcb* proceso) {
+//     pthread_mutex_lock(&mutex_estado_ready);
+//     proceso = list_remove(cola_ready, 0);
+//     pthread_mutex_unlock(&mutex_estado_ready);
 
-    pthread_mutex_lock(&mutex_estado_block);
-    proceso->estado = BLOCK;
-    list_add(cola_block, proceso);
-    log_info(logger, "PID: %i - Estado Anterior: READY - Estado Actual: BLOCK", proceso->pid);
-    pthread_mutex_unlock(&mutex_estado_block);
-}
+//     pthread_mutex_lock(&mutex_estado_block);
+//     proceso->estado = BLOCK;
+//     list_add(cola_block, proceso);
+//     log_info(logger, "PID: %i - Estado Anterior: READY - Estado Actual: BLOCK", proceso->pid);
+//     pthread_mutex_unlock(&mutex_estado_block);
+// }
 
 
-void mover_procesos_a_bloqueado(t_pcb* proceso) {
-    pthread_mutex_lock(&mutex_estado_block);
-    proceso->estado = BLOCK;
-    list_add(cola_block, proceso);
-    log_info(logger, "PID: %i - Estado Anterior: READY - Estado Actual: BLOCK", proceso->pid);
-    pthread_mutex_unlock(&mutex_estado_block);
-}
+// void mover_procesos_a_bloqueado(t_pcb* proceso) {
+//     pthread_mutex_lock(&mutex_estado_block);
+//     proceso->estado = BLOCK;
+//     list_add(cola_block, proceso);
+//     log_info(logger, "PID: %i - Estado Anterior: READY - Estado Actual: BLOCK", proceso->pid);
+//     pthread_mutex_unlock(&mutex_estado_block);
+// }
 
 
 void mover_procesos_de_bloqueado_a_ready(t_pcb* proceso) {
@@ -135,23 +159,24 @@ t_pcb* obtener_siguiente_a_ready() {
 
 void informar_a_memoria_liberacion_proceso(int pid) {
     t_paquete* paquete = crear_paquete(FINALIZAR_PROCESO);
-    agregar_a_paquete(paquete, pid, sizeof(int));
+    agregar_a_paquete(paquete, &pid, sizeof(int));
     enviar_paquete(paquete, config_kernel->SOCKET_MEMORIA);
     eliminar_paquete(paquete); 
     //NO SE SI DEBERIA ESPERAR A QUE MEMORIA ME DE EL OK PARA BORRAR EL PROCESO
 }
 
 
-void elegir_algoritmo_corto_plazo() {
-    if(!strcmp(config_kernel->ALGORITMO_PLANIFICACION, "FIFO")) {
+void* elegir_algoritmo_corto_plazo() {
+    if(strcmp(config_kernel->ALGORITMO_PLANIFICACION, "FIFO") == 0) {
         hilo_planificador_cortoplazo_fifo();
-    } else if(!strcmp(config_kernel->ALGORITMO_PLANIFICACION, "RR")) {
+    } else if(strcmp(config_kernel->ALGORITMO_PLANIFICACION, "RR") == 0) {
         hilo_planificador_cortoplazo_RoundRobin();
-    } else if(!strcmp(config_kernel->ALGORITMO_PLANIFICACION, "VRR")) {
-        // Implementar VRR
+    } else if(strcmp(config_kernel->ALGORITMO_PLANIFICACION, "VRR") == 0) {
+        hilo_planificador_cortoplazo_VRR();
     } else {
-        log_error(NULL, "El algoritmo no coincide con los algoritmos");
+        log_error(logger, "El algoritmo no coincide con los algoritmos" );
     }
+    return NULL;
 }
 
 
@@ -173,6 +198,13 @@ void hilo_planificador_cortoplazo_RoundRobin() {
     pthread_t hilo_RoundRobin;
     pthread_create(&hilo_RoundRobin, NULL, planificador_corto_plazo_RoundRobin, NULL);
     pthread_detach(hilo_RoundRobin);
+}
+
+
+void hilo_planificador_cortoplazo_VRR() {
+    pthread_t hilo_VRR;
+    pthread_create(&hilo_VRR, NULL, planificacion_cortoplazo_VRR, NULL);
+    pthread_detach(hilo_VRR);
 }
 
 
@@ -237,7 +269,7 @@ void* planificador_corto_plazo_RoundRobin(void* arg) {
 }
 
 
-void planificacion_cortoplazo_VRR() {
+void* planificacion_cortoplazo_VRR() {
     sem_wait(&habilitar_corto_plazo);
 
     while (1) {
@@ -287,7 +319,7 @@ void planificacion_cortoplazo_VRR() {
         pthread_cancel(hilo_quantum);
         pthread_join(hilo_quantum, NULL);
 
-        int64_t tiempo_ejecutado = temporal_diff(tiempo_inicial_de_exec, temporal_gettime(tiempo_de_ejecucion));
+        int64_t tiempo_ejecutado = temporal_gettime(tiempo_de_ejecucion) - tiempo_inicial_de_exec;
 
         temporal_destroy(tiempo_de_ejecucion);
 
@@ -356,9 +388,9 @@ void enviar_proceso_a_cpu(t_pcb* pcbproceso) {
 void prevent_from_memory_leaks() {
 
     // Liberar las colas si existen
-    if (cola_block != NULL) {
-        list_destroy_and_destroy_elements(cola_block, free); // Liberar los elementos de la lista
-    }
+    // if (cola_block != NULL) {
+    //     list_destroy_and_destroy_elements(cola_block, free); // Liberar los elementos de la lista
+    // }
 
     if (cola_new != NULL) {
         list_destroy_and_destroy_elements(cola_new, free); // Liberar los elementos de la lista
@@ -380,7 +412,7 @@ void destruir_semaforos() {
     sem_destroy(&habilitar_corto_plazo);
     sem_destroy(&hay_en_estado_ready);
     sem_destroy(&hay_en_estado_new);
-    sem_destroy(&limite_grado_multiprogramacion);
+    sem_destroy(&sem_multiprogramacion);
     sem_destroy(&cortar_sleep);
     sem_destroy(&desalojo_proceso);
 }

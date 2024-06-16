@@ -37,6 +37,7 @@ int recv_pagina(int socket){
 //         int tamanio = (int)(intptr_t)list_remove(mmu->tamanio, 0);
 //         enviar_a_leer_memoria(pcb->pid,direccionFIsicaa, tamanio); 
 //         valor = recv_leer_memoria(tamanio); 
+//         log_info(logger,"PID: %i -Accion LEER -Direccion Fisica: %i -Valor: %s",pcb->pid,direccionFIsicaa,valor);
 //     }
 //     return valor;
 // }
@@ -57,6 +58,7 @@ int recv_pagina(int socket){
 //             log_error(logger,"Error en memoria  direccion fisica :%d", direccionFIsicaa);
 //             return -1;
 //         }
+//         log_info(logger,"PID: %i -Accion ESCRIBIR -Direccion Fisica: %i -Valor: %s",pcb->pid,direccionFIsicaa,valor);
 //     }
 //     return verificador;
 // }
@@ -91,42 +93,55 @@ t_pcb_cpu* rcv_contexto_ejecucion_cpu(int socket_cliente) {
 
     memcpy(&proceso->pid, buffer + desplazamiento, sizeof(int));
     desplazamiento += sizeof(int);
+    log_info(logger,"PID: %i", proceso->pid);
 
     memcpy(&proceso->program_counter, buffer + desplazamiento, sizeof(int));
     desplazamiento += sizeof(int);
+    log_info(logger,"Program Counter:%i",proceso->program_counter);
 
     memcpy(&proceso->registros->PC, buffer + desplazamiento, sizeof(uint32_t));
     desplazamiento += sizeof(uint32_t);
+    log_info(logger,"Reg PC:%i",proceso->registros->PC);
 
     memcpy(&proceso->registros->AX, buffer + desplazamiento, sizeof(uint8_t));
     desplazamiento += sizeof(uint8_t);
+    log_info(logger,"Reg AX:%i",proceso->registros->AX);
 
     memcpy(&proceso->registros->BX, buffer + desplazamiento, sizeof(uint8_t));
     desplazamiento += sizeof(uint8_t);
+    log_info(logger,"Reg BX:%i",proceso->registros->BX);
 
     memcpy(&proceso->registros->CX, buffer + desplazamiento, sizeof(uint8_t));
     desplazamiento += sizeof(uint8_t);
+    log_info(logger,"Reg CX:%i",proceso->registros->CX);
 
     memcpy(&proceso->registros->DX, buffer + desplazamiento, sizeof(uint8_t));
     desplazamiento += sizeof(uint8_t);
+    log_info(logger,"Reg DX:%i",proceso->registros->DX);
 
     memcpy(&proceso->registros->EAX, buffer + desplazamiento, sizeof(uint32_t));
     desplazamiento += sizeof(uint32_t);
+    log_info(logger,"Reg EAX:%i",proceso->registros->EAX);
 
     memcpy(&proceso->registros->EBX, buffer + desplazamiento, sizeof(uint32_t));
     desplazamiento += sizeof(uint32_t);
+    log_info(logger,"Reg EBX:%i",proceso->registros->EBX);
 
     memcpy(&proceso->registros->ECX, buffer + desplazamiento, sizeof(uint32_t));
     desplazamiento += sizeof(uint32_t);
+    log_info(logger,"Reg ECX:%i",proceso->registros->ECX);
 
     memcpy(&proceso->registros->EDX, buffer + desplazamiento, sizeof(uint32_t));
     desplazamiento += sizeof(uint32_t);
+    log_info(logger,"Reg EDX:%i",proceso->registros->EDX);
 
     memcpy(&proceso->registros->SI, buffer + desplazamiento, sizeof(uint32_t));
     desplazamiento += sizeof(uint32_t);
+    log_info(logger,"Reg SI:%i",proceso->registros->SI);
 
     memcpy(&proceso->registros->DI, buffer + desplazamiento, sizeof(uint32_t));
     desplazamiento += sizeof(uint32_t);
+    log_info(logger,"Reg DI:%i",proceso->registros->DI);
 
     free(buffer);
     return proceso;

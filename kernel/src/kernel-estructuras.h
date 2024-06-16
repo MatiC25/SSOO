@@ -10,9 +10,9 @@
 
 #define MAX_RECURSOS 3
 typedef struct {
-    int PUERTO_ESCUCHA;
+    char* PUERTO_ESCUCHA;
     char *IP_MEMORIA;
-    int PUERTO_MEMORIA;
+    char* PUERTO_MEMORIA;
     char *IP_CPU;
     char *ALGORITMO_PLANIFICACION;
     int QUANTUM;
@@ -22,8 +22,8 @@ typedef struct {
     int SOCKET_DISPATCH;
     int SOCKET_INTERRUPT;
     int SOCKET_MEMORIA;
-    int PUERTO_CPU_DS;
-    int PUERTO_CPU_IT;
+    char* PUERTO_CPU_DS;
+    char* PUERTO_CPU_IT;
     int PUERTO_KERNEL;
     char* IP_KERNEL;
 } t_config_kernel;
@@ -45,12 +45,12 @@ typedef struct {
 
 
 extern t_config_kernel* config_kernel;
+
 extern t_list* cola_new;
 extern t_list* cola_ready; 
 extern t_list* cola_prima_VRR;
-
-extern t_queue* cola_block[MAX_RECURSOS];
-
+extern t_list* cola_block;
+extern t_queue* colas_resource_block[MAX_RECURSOS];
 
 extern t_recursos_pedidos* vector_recursos_pedidos;
 extern int tam_vector_recursos_pedidos;

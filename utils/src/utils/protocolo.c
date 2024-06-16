@@ -163,7 +163,7 @@ void agregar_a_paquete_string(t_paquete* paquete, char* cadena, int tamanio) {
 
 
 t_pcb* rcv_contexto_ejecucion(int socket_cliente) {
-    
+    op_code code = recibir_operacion(socket_cliente);
     t_pcb* proceso = malloc(sizeof(t_pcb));
     if (proceso == NULL) {
         log_error(logger, "Error al asignar memoria para el proceso");

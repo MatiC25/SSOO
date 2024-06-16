@@ -17,6 +17,8 @@ void set_socket_interface(interface_io *interface, int socket);
 void add_interface_to_dict(interface_io *interfaces, char *key);
 interface_io *get_interface_from_dict(char *key);
 int consulta_existencia_interfaz(interface_io *interface); 
+void set_socket_interface(interface_io *interface, int socket);
+void set_tipo_interfaz(interface_io *interface, tipo_interfaz tipo);
 
 // Funciones para pedir operaciones a la interfaz
 int consulta_interfaz_para_aceptacion_de_operacion(interface_io *interface);

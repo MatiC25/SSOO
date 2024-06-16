@@ -18,42 +18,73 @@ void send_instruccion(int socket_cliente, char *instruccion, t_list *parametros)
 
 
 t_instruccion* recv_instruccion(int socket_cliente){
-    int tamanio;
-    t_instruccion *instruccion = malloc(sizeof(t_instruccion));
-    recv(socket_cliente,&tamanio,sizeof(int),MSG_WAITALL);
-
-    void* buffer = recibir_buffer(&tamanio,socket_cliente);
-
-    memcpy(&instruccion, buffer, sizeof(t_instruccion));
-    
-    
-    free(buffer);
-
- 
-   
-   
+    // int tamanio;
     // t_instruccion *instruccion = malloc(sizeof(t_instruccion));
+    // recv(socket_cliente,&tamanio,sizeof(int),MSG_WAITALL);
+
+    // void* buffer = recibir_buffer(&tamanio,socket_cliente);
+
+    // memcpy(&instruccion, buffer, sizeof(t_instruccion));
     
-    // if (recv(socket_cliente,&instruccion->opcode,instruccion->long_opcode,MSG_WAITALL)<= 0 ){
-    //     free(instruccion);
-    //     return NULL;
-    // }
-    // if (recv(socket_cliente,&instruccion->parametro1,instruccion->long_par1,MSG_WAITALL)<= 0 ){
-    //     free(instruccion);
-    //     return NULL;
-    // }
-    // if (recv(socket_cliente,&instruccion->parametro2,instruccion->long_par2,MSG_WAITALL)<= 0 ){
-    //     free(instruccion);
-    //     return NULL;
-    // }
-    // if (recv(socket_cliente,&instruccion->parametro3,instruccion->long_par3,MSG_WAITALL)<= 0 ){
-    //     free(instruccion);
-    //     return NULL;
-    // }
-    // if (recv(socket_cliente,&instruccion->parametro4,instruccion->long_par4,MSG_WAITALL)<= 0 ){
-    //     free(instruccion);
-    //     return NULL;
-    // }
+    
+    // free(buffer);
+op_code cod_op = recibir_operacion(socket_cliente);
+t_instruccion* instruccion = malloc(sizeof(t_instruccion));
+if (instruccion == NULL){
+    log_error(logger,"Error al asignar memoria");
+}
+
+int size;
+int desplazamiento = 0;
+void* buffer = recibir_buffer(&size, socket_cliente);
+if (buffer == NULL) {
+        log_error(logger, "Error al recibir el buffer del socket");
+        free(instruccion);
+}
+//No se si esta bien poner size_t
+    memcpy(&(instruccion->long_opcode), buffer+desplazamiento,sizeof(size_t)); 
+    desplazamiento += sizeof(size_t);
+    instruccion->opcode = malloc(instruccion->long_opcode);
+    memcpy(instruccion->opcode,buffer+desplazamiento, instruccion->long_opcode);
+    desplazamiento += instruccion->long_opcode;
+    log_info(logger,"Largo Opecode: %i Opecode:%s", instruccion->long_opcode,instruccion->opcode);
+
+    memcpy(&(instruccion->long_par1), buffer+desplazamiento,sizeof(size_t)); 
+    desplazamiento += sizeof(size_t);
+    instruccion->parametro1 = malloc(instruccion->long_par1);
+    memcpy(instruccion->parametro1,buffer+desplazamiento, instruccion->long_par1);
+    desplazamiento += instruccion->long_par1;
+    log_info(logger,"Largo P1: %i P1:%s", instruccion->long_par1,instruccion->parametro1);
+
+    memcpy(&(instruccion->long_par2), buffer+desplazamiento,sizeof(size_t)); 
+    desplazamiento += sizeof(size_t);
+    instruccion->parametro2 = malloc(instruccion->long_par2);
+    memcpy(instruccion->parametro2,buffer+desplazamiento, instruccion->long_par2);
+    desplazamiento += instruccion->long_par2;
+    log_info(logger,"Largo P2: %i P2:%s", instruccion->long_par2,instruccion->parametro2);
+
+    memcpy(&(instruccion->long_par3), buffer+desplazamiento,sizeof(size_t)); 
+    desplazamiento += sizeof(size_t);
+    instruccion->parametro3 = malloc(instruccion->long_par3);
+    memcpy(instruccion->parametro3,buffer+desplazamiento, instruccion->long_par3);
+    desplazamiento += instruccion->long_par3;
+    log_info(logger,"Largo P3: %i P3:%s", instruccion->long_par3,instruccion->parametro3);
+
+    memcpy(&(instruccion->long_par4), buffer+desplazamiento,sizeof(size_t)); 
+    desplazamiento += sizeof(size_t);
+    instruccion->parametro4 = malloc(instruccion->long_par4);
+    memcpy(instruccion->parametro4,buffer+desplazamiento, instruccion->long_par4);
+    desplazamiento += instruccion->long_par4;
+    log_info(logger,"Largo P4: %i P4:%s", instruccion->long_par4,instruccion->parametro4);
+
+    memcpy(&(instruccion->long_par5), buffer+desplazamiento,sizeof(size_t)); 
+    desplazamiento += sizeof(size_t);
+    instruccion->parametro5 = malloc(instruccion->long_par5);
+    memcpy(instruccion->parametro5,buffer+desplazamiento, instruccion->long_par5);
+    desplazamiento += instruccion->long_par5;
+    log_info(logger,"P5: %i P5:%s", instruccion->long_par5,instruccion->parametro5);
+
+    free(buffer);
     return instruccion;
 }
 

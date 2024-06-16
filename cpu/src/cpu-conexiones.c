@@ -30,9 +30,10 @@ void* generar_conexion_a_memoria(void* arg) {
     
     log_warning(logger,"enviado mensaje");
     enviar_mensaje("CPU -> MEMORIA", md_memoria);
-    op_code cod_op = recibir_operacion(md_memoria);
+    op_code cod_op = recibir_operacion(md_memoria); //lo comento pq no se usa, ni idea si es pq falta mas codigo
     recibir_mensaje(md_memoria);
 
+    return NULL;
 }
 
 
@@ -151,7 +152,7 @@ void* server_interrupt(void* args) {
         }
 
         while (1) {
-            int cod_op = recibir_operacion(socket_cliente);
+            op_code cod_op = recibir_operacion(socket_cliente);
 
             switch (cod_op) {
                 case MENSAJE:

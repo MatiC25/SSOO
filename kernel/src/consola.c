@@ -115,6 +115,8 @@ void* iniciar_proceso(void* args) {
     char *path = (char*) args; // Path del archivo a ejecutar
 
     creacion_proceso(path); // Invocamos a la función que crea el proces
+        return NULL;
+
 }
 
 
@@ -133,6 +135,8 @@ void *proceso_estado(void *args) {
             printf("Proceso %d: %s\n", pcb->pid, estado_proceso(i)); // Imprimimos el estado del proceso
         }
     }
+        return NULL;
+
 } 
 
 void agregar_procesos_a_lista(t_list *estados_procesos[]) {
@@ -156,6 +160,8 @@ char *estado_proceso(int estado) {
         case 4:
             return "EXIT";
     }
+        return NULL;
+
 }
 
 void *multiprogramacion(void *args) {
@@ -164,4 +170,5 @@ void *multiprogramacion(void *args) {
 
     for(int i = 0; i < valor_multiprogramacion; i++)
         sem_post(&sem_multiprogramacion);
+    return NULL;
 }

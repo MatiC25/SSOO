@@ -1,4 +1,4 @@
-#include "kernel-estructuras.h"
+#include "kernel.h"
 
 t_config_kernel *config_kernel; // La declaros como variable global, y la vez instanciar aca!
 

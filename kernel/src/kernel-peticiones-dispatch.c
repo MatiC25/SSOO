@@ -191,9 +191,9 @@ void peticion_signal() {
         }
     }
 
-    if (!queue_is_empty(cola_block[indice_recurso])) {
+    if (!queue_is_empty(colas_resource_block[indice_recurso])) {
         pthread_mutex_lock(&mutex_estado_block);
-        t_pcb* pcb_signal = queue_pop(cola_block[indice_recurso]);
+        t_pcb* pcb_signal = queue_pop(colas_resource_block[indice_recurso]);
         pthread_mutex_unlock(&mutex_estado_block);
 
         pthread_mutex_lock(&mutex_estado_ready);
@@ -216,7 +216,7 @@ void mover_a_bloqueado_por_wait(t_pcb* pcb, char* recurso) {
 
     pthread_mutex_lock(&mutex_estado_block);
     pcb->estado = BLOCK;
-    queue_push(cola_block[indice_recurso], pcb);
+    queue_push(colas_resource_block[indice_recurso], pcb);
     pthread_mutex_unlock(&mutex_estado_block);
 
     log_info(logger, "PID: %i - Estado Anterior: EXEC - Estado Actual: BLOCK", pcb->pid);
@@ -225,7 +225,7 @@ void mover_a_bloqueado_por_wait(t_pcb* pcb, char* recurso) {
 
 void inicializar_colas_bloqueados() {
     for (int i = 0; i < MAX_RECURSOS; i++) {
-        cola_block[i] = queue_create();
+        colas_resource_block[i] = queue_create();
     }
 }
 
@@ -291,7 +291,7 @@ void peticion_IO() {
         return;
     }
 
-    t_list* args = rcv_argumentos_para_io(interface->tipo);
+    t_list* args = rcv_argumentos_para_io(interface->tipo, config_kernel->SOCKET_DISPATCH);
 
     pthread_mutex_lock(&mutex_estado_block);
     queue_push(interface->process_blocked, pcb_bloqueado);

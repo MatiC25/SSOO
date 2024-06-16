@@ -13,7 +13,7 @@
 
 // Funciones para enviar mensajes al kernel
 void send_respuesta_a_kernel(int respuesta, t_interfaz * interfaz);
-
+void send_interfaz_a_kernel(t_interfaz * interfaz);
 // Funciones para recibir mensajes del kernel
 int recibir_entero(t_interfaz * interfaz);
 

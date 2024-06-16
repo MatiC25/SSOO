@@ -22,7 +22,7 @@
 void iniciar_ciclo_de_ejecucion(int socket_server ,int socket_cliente);
 void* obtener_registro (char *registro);
 void seguir_ciclo();
-//int espacio_de_registro(char* registro);
+int espacio_de_registro(char* registro);
 void tengoAlgunaInterrupcion();
 void ejecutar_ciclo_instrucciones(int socket_cliente, int socket_server);
 void fecth(int socket_server);

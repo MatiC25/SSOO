@@ -39,7 +39,8 @@ typedef enum { //podemos juntar todos los procesos
     LECTURA_EXITOSA,// No sabemos como lo recibe cpu
     EXITO_CONSULTA,
     ESCRIBIR_MEMORIA,
-    LEER_MEMORIA
+    LEER_MEMORIA,
+    NEW_INTERFACE
 // ----------------
 } op_code;
 

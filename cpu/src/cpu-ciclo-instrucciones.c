@@ -75,16 +75,16 @@ void* obtener_registro (char *registro) {
     }
 }
 
-// int espacio_de_registro(char* registro){
-//     if (strcmp(registro, "AX") == 0 || strcmp(registro, "BX") == 0|| strcmp(registro, "CX") == 0|| strcmp(registro, "DX") == 0){
-//         return 8; //en bits
-//     }else if (strcmp(registro, "PC") == 0 || strcmp(registro, "EAX") == 0|| strcmp(registro, "EBX") == 0 || strcmp(registro, "ECX") == 0 || strcmp(registro, "EDX") == 0 || strcmp(registro, "SI") == 0|| strcmp(registro, "DI") == 0){
-//         return 32; //en bits
-//     }else{
-//         log_error(logger,"Error al calulcar el tamanio del registro");
-//         return 0;
-//     }
-// }
+int espacio_de_registro(char* registro){
+    if (strcmp(registro, "AX") == 0 || strcmp(registro, "BX") == 0|| strcmp(registro, "CX") == 0|| strcmp(registro, "DX") == 0){
+        return 8; //en bits
+    }else if (strcmp(registro, "PC") == 0 || strcmp(registro, "EAX") == 0|| strcmp(registro, "EBX") == 0 || strcmp(registro, "ECX") == 0 || strcmp(registro, "EDX") == 0 || strcmp(registro, "SI") == 0|| strcmp(registro, "DI") == 0){
+        return 32; //en bits
+    }else{
+        log_error(logger,"Error al calulcar el tamanio del registro");
+        return 0;
+    }
+}
 
 void operar_con_registros(void* registro_destino, void* registro_origen, char* registro, char* operacion, int valor){
     if (strcmp(registro, "AX") == 0 || strcmp(registro, "BX") == 0|| strcmp(registro, "CX") == 0|| strcmp(registro, "DX") == 0){
@@ -114,8 +114,6 @@ void operar_con_registros(void* registro_destino, void* registro_origen, char* r
     }else{
         log_error(logger, "Registros desconocidos");
     }
-    
-    
 }
 
 void tengoAlgunaInterrupcion(){

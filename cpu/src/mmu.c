@@ -64,6 +64,8 @@
 //         }
         
 //     }
+//         log_info(logger,"PID %i - TLB HIT - Pagina: %i",pcb->pid,tabla->nropagina);
+//         log_info(logger, "PID %i -OBTENER MARCO - Pagina: %i -Marco: %i",pcb->pid,tabla->nropagina,tabla->marco);
 //         list_add(mmu->direccionFIsica , (void*)(intptr_t) (tabla->marco * config_cpu -> TAMANIO_PAGINA + mmu->ofset));
 // }
 
@@ -110,6 +112,7 @@
 //             solicitar_tablas_a_memoria(numero_pagina); 
 //             t_tabla_de_paginas_cpu* nueva_tabla = recv_tablas();
 //             if (nueva_tabla != NULL){
+//                 log_info(logger,"PID %i -TLB MISS -Pagina %i",pcb->pid,nueva_tabla->nropagina);
 //                 list_add_in_index(tlb,posicion_fifo,nueva_tabla);//Puede ser pcb->tabla_cpu
 //             }else{
 //                 log_error(logger, "No llego nada la tabla de memoria FIFO");
@@ -120,6 +123,7 @@
 //             solicitar_tablas_a_memoria(numero_pagina); 
 //             t_tabla_de_paginas_cpu* nueva_tabla = recv_tablas();
 //             if (nueva_tabla != NULL){
+//                 log_info(logger,"PID %i -TLB MISS -Pagina %i",pcb->pid,nueva_tabla->nropagina);
 //                 list_add_in_index(tlb,posicion_fifo,nueva_tabla); //Puede ser pcb->tabla_cpu
 //             }else{
 //                 log_error(logger, "No llego nada la tabla de memoria FIFO");
@@ -148,6 +152,7 @@
 //     solicitar_tablas_a_memoria(numero_pagina);
 //     t_tabla_de_paginas_cpu* nueva_tabla = recv_tablas();
 //     if (nueva_tabla != NULL){
+//         log_info(logger,"PID %i -TLB MISS -Pagina %i",pcb->pid,nueva_tabla->nropagina);
 //         nueva_tabla->contador = 0;
 //         list_add(tlb, nueva_tabla); //Puede ser pcb->tabla_cpu
 //     }else{

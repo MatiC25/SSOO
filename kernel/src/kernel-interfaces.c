@@ -26,8 +26,13 @@ void manage_interface(void *socket_cliente) {
     while(execute) {
         op_code operacion = recibir_operacion(socket);
 
+        log_info(logger, "Operacion recibida: %d", operacion);
+
         switch(operacion) {
-            case NEW_INTERFACE:
+            case HANDSHAKE:
+                recibir_handshake(socket);
+                break;
+            case CREAR_INTERFAZ:
                 create_interface(socket);
                 execute = 0;
                 break;
@@ -37,7 +42,6 @@ void manage_interface(void *socket_cliente) {
         }
     }
 }
-
 // Funciones de consumidores:
 
 void create_consumer_thread(char *interface_name) {
@@ -50,7 +54,7 @@ void create_consumer_thread(char *interface_name) {
 void consumers_pcbs_blockeds(void *args) {
     sem_wait(&semaforo_interfaces);
     char *interface_name = (char *) args;
-    interface_io *interface = get_interface_from_dict(interfaces, interface_name);
+    interface_io *interface = get_interface_from_dict(interface_name);
     sem_post(&semaforo_interfaces);
 
     while(1) {
@@ -60,14 +64,14 @@ void consumers_pcbs_blockeds(void *args) {
 
         // Sacamos el primer proceso de la cola de bloqueados:
         t_pcb *pcb = queue_pop(interface->process_blocked);
-        t_list *args = queue_pop(interface->args_process); // Obtenemos los argumentos del proceso
+        t_list *args_pcb = queue_pop(interface->args_process); // Obtenemos los argumentos del proceso
 
         // Obtenemos el socket de la interfaz:
         int socket_with_interface = get_socket_interface(interface);
         int response = 0;
         
         // Esto tenemos que cambiarlo, es solo para probar:
-        send_message_to_interface(interface, args, &response);
+        send_message_to_interface(interface, args_pcb, &response, socket_with_interface);
         
         if(response == 1)
             mover_procesos_de_bloqueado_a_ready(pcb);
@@ -103,15 +107,15 @@ void create_interface(int socket) {
     set_name_interface(interface, interface_name);
 
     // Seteamos las operaciones validas:
-    set_valid_operations(interface, tipo);
+    set_tipo_interfaz(interface, tipo);
 
     // Seteamos socket de la interfaz:
     set_socket_interface(interface, socket);
 
     // Agregamos interfaz al dccionario:
     sem_wait(&semaforo_interfaces);
-    add_interface_to_dict(interface_name);
+    add_interface_to_dict(interface ,interface_name);
     sem_post(&semaforo_interfaces);
 
-    create_consumer_thread(&interface_name);
+    create_consumer_thread(interface_name);
 }

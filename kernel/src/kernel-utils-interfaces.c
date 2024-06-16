@@ -1,7 +1,6 @@
 #include "kernel-utils-interfaces.h"
 
-t_dictionary *interfaces; // Diccionario de interfaces
-interface_io* interfaces
+t_dictionary *dictionary_interfaces; // Diccionario de interfaces
 
 // Funciones de manejo de interfaz desde el lado del kernel:
 
@@ -17,16 +16,20 @@ void set_socket_interface(interface_io *interface, int socket) {
     interface->socket_interface = socket;
 }
 
-void add_interface_to_dict(interface_io *interfaces, char *key) { 
-    dictionary_put(interfaces, key, interfaces);
+void add_interface_to_dict(interface_io *interface, char *key) { 
+    dictionary_put(dictionary_interfaces, key, interface);
 }
 
 interface_io *get_interface_from_dict(char *key) {
-    return dictionary_get(interfaces, key); 
+    return dictionary_get(dictionary_interfaces, key); 
 }
 
 int consulta_existencia_interfaz(interface_io *interface) {
     return interface != NULL;
+}
+
+void set_tipo_interfaz(interface_io *interface, tipo_interfaz tipo) {
+    interface->tipo = tipo;
 }
 
 // Funciones para pedir operaciones a la interfaz:

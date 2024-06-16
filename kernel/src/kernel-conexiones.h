@@ -12,5 +12,6 @@
 void generar_conexiones_con();
 void generar_conexiones_con_cpu();
 void generar_conexion_con_memoria();
+int crear_servidor_kernel();
 
 #endif // KERNEL_CONEXIONES_H

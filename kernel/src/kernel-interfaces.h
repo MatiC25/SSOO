@@ -13,6 +13,7 @@
 #include "kernel-estructuras.h"
 #include "kernel-protocolo.h"
 #include "kernel-utils-interfaces.h"
+#include "planificacion.h"
 
 // Variables globales:
 extern sem_t semaforo_interfaces;
