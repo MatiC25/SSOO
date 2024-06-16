@@ -23,6 +23,7 @@
 #include "kernel-estructuras.h"
 #include "kernel-interfaces.h"
 #include "planificacion.h"
+#include "consola.h"
 
 void iniciar_modulo_kernel(int socket_servidor);
 void aceptar_interfaces(int socket_servidor);

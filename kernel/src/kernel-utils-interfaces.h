@@ -8,7 +8,7 @@
 // Incluyendo bibliotecas necesarias internas:
 #include "kernel-estructuras.h"
 
-extern t_dictionary *interfaces;
+extern t_dictionary *dictionary_interfaces;
 
 // Funciones de manejo de interfaz desde el lado del kernel
 void set_name_interface(interface_io *interface, char *name);

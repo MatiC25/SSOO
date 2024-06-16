@@ -6,6 +6,8 @@ sem_t semaforo_interfaces;
 
 void handle_new_interface(void *arg) {
     int socket_kernel = (int) arg;
+    sem_init(&semaforo_interfaces, 0, 1);
+    inicializar_diccionario_interfaces();
 
     while(1) {
         int socket_cliente_nueva_interfaz = esperar_cliente("KENEL", socket_kernel);
@@ -14,7 +16,7 @@ void handle_new_interface(void *arg) {
             pthread_t hilo_nueva_interfaz;
 
             pthread_create(&hilo_nueva_interfaz, NULL, (void *) manage_interface, (void *) socket_cliente_nueva_interfaz);
-            pthread_detach(&hilo_nueva_interfaz);
+            pthread_detach(hilo_nueva_interfaz);
         }
     }
 }
@@ -108,13 +110,13 @@ void create_interface(int socket) {
 
     // Seteamos las operaciones validas:
     set_tipo_interfaz(interface, tipo);
-
+    
     // Seteamos socket de la interfaz:
     set_socket_interface(interface, socket);
 
     // Agregamos interfaz al dccionario:
     sem_wait(&semaforo_interfaces);
-    add_interface_to_dict(interface ,interface_name);
+    add_interface_to_dict(interface, interface_name);
     sem_post(&semaforo_interfaces);
 
     create_consumer_thread(interface_name);

@@ -3,7 +3,7 @@
 void iniciar_modulo_kernel(int socket_servidor) {
     inicializar_lista();
     aceptar_interfaces(socket_servidor);
-    
+    iniciar_consola();
     //manejar_peticion_con_memoria();
     // manejar_peticion_con_cpu();
     // iniciar_planificacion();
@@ -20,7 +20,7 @@ void aceptar_interfaces(int socket_servidor) {
     pthread_t aceptar_interfaces_thread;
 
     pthread_create(&aceptar_interfaces_thread, NULL, (void *) handle_new_interface, (void *) socket_servidor);
-    pthread_join(aceptar_interfaces_thread, NULL);    
+    pthread_detach(aceptar_interfaces_thread);   
 }
 
 void iniciar_planificacion() {

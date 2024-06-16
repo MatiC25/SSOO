@@ -2,6 +2,10 @@
 
 t_dictionary *dictionary_interfaces; // Diccionario de interfaces
 
+void inicializar_diccionario_interfaces() {
+    dictionary_interfaces = dictionary_create();
+}
+
 // Funciones de manejo de interfaz desde el lado del kernel:
 
 void set_name_interface(interface_io *interface, char *name) {
