@@ -6,6 +6,7 @@ pthread_mutex_t mutex_estado_ready;
 pthread_mutex_t mutex_estado_exec;
 pthread_mutex_t mutex_cola_priori_vrr;
 pthread_mutex_t mutex_proceso_exec;
+pthread_mutex_t mutex_cola_block;
 sem_t sem_proceso_exec;
 sem_t sem_multiprogramacion;
 sem_t habilitar_corto_plazo;
@@ -33,6 +34,7 @@ void inicializacion_semaforos() {
     pthread_mutex_init(&mutex_estado_block, NULL);
     pthread_mutex_init(&mutex_cola_priori_vrr, NULL);
     pthread_mutex_init(&mutex_proceso_exec, NULL);
+    pthread_mutex_init(&mutex_cola_block, NULL);
     sem_init(&habilitar_corto_plazo, 0, 0);
     sem_init(&hay_en_estado_ready, 0, 0);
     sem_init(&hay_en_estado_new, 0, 0);
@@ -76,7 +78,6 @@ void creacion_proceso(char *archivo_de_proceso) {
 
     pcb->quantum = 0;
     pcb->estado = NEW;
-    pcb->program_counter = 0;
     
     log_info(logger, "Se crea el proceso %i en NEW", pcb->pid);
     agregar_a_cola_estado_new(pcb);
@@ -95,16 +96,16 @@ void agregar_a_cola_estado_new(t_pcb* proceso) { //NEW
 
 void* agregar_a_cola_ready() {
     sem_wait(&sem_multiprogramacion);
+    log_warning(logger,"Entro proceso a ready");
     while (1) {
         sem_wait(&hay_en_estado_new);
-
         t_pcb* proceso = obtener_siguiente_a_ready();
         pthread_mutex_lock(&mutex_estado_ready);
         list_add(cola_ready, proceso);
-        log_info(logger, "PID: %i - Estado Anterior: NEW - Estado Actual: READY", proceso->pid);
+        //log_info(logger, "PID: %i - Estado Anterior: NEW - Estado Actual: READY", proceso->pid);
         pthread_mutex_unlock(&mutex_estado_ready);
         
-        mostrar_lista_de_pids(cola_ready);
+        //mostrar_lista_de_pids(cola_ready);
 
         sem_post(&habilitar_corto_plazo);
         sem_post(&hay_en_estado_ready);
@@ -222,13 +223,20 @@ void* planificador_cortoplazo_fifo(void* arg) {
 
         proceso_en_exec = list_remove(cola_ready, 0);
         proceso_en_exec->estado = EXEC;
-
+        
         pthread_mutex_unlock(&mutex_proceso_exec);
 
         pthread_mutex_unlock(&mutex_estado_ready);
 
         log_info(logger, "PID: %i - Estado Anterior: READY - Estado Actual: EXEC", proceso_en_exec->pid);
-        enviar_proceso_a_cpu(proceso_en_exec);
+
+        int socket_memoria = config_kernel->SOCKET_MEMORIA;
+        int respuesta;
+
+        recv(socket_memoria, &respuesta, sizeof(int), 0);
+
+        if(respuesta == 1)
+            enviar_proceso_a_cpu(proceso_en_exec);
 
     }
     return NULL;
@@ -383,7 +391,8 @@ void enviar_proceso_a_cpu(t_pcb* pcbproceso) {
     agregar_a_paquete(paquete_cpu, &pcbproceso->registros->DI, sizeof(uint32_t));
 
     // Enviar el paquete a la CPU
-    enviar_paquete(paquete_cpu, config_kernel->SOCKET_DISPATCH);
+    enviar_paquete(paquete_cpu, config_kernel->SOCKET_DISPATCH); //SOCKET MAL
+   // log_info(logger,"%i", config_kernel->SOCKET_DISPATCH);
 
     // Liberar recursos del paquete
     eliminar_paquete(paquete_cpu);
@@ -414,6 +423,7 @@ void destruir_semaforos() {
     pthread_mutex_destroy(&mutex_estado_block);
     pthread_mutex_destroy(&mutex_cola_priori_vrr);
     pthread_mutex_destroy(&mutex_proceso_exec);
+    pthread_mutex_destroy(&mutex_cola_block);
     sem_destroy(&habilitar_corto_plazo);
     sem_destroy(&hay_en_estado_ready);
     sem_destroy(&hay_en_estado_new);

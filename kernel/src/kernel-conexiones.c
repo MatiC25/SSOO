@@ -13,8 +13,8 @@ void generar_conexiones_con_cpu(void) {
     char* puerto_interrupt = config_kernel->PUERTO_CPU_IT;
     char* ip_cpu = config_kernel->IP_CPU;
 
-    md_interrupt_cpu = crear_conexion("DISPATCHER", ip_cpu, puerto_dispatch);
-    md_dispatch_cpu = crear_conexion("INTERRUPT", ip_cpu, puerto_interrupt);
+    md_dispatch_cpu  = crear_conexion("DISPATCHER", ip_cpu, puerto_dispatch);
+    md_interrupt_cpu = crear_conexion("INTERRUPT", ip_cpu, puerto_interrupt);
 
     if(md_dispatch_cpu == -1 || md_interrupt_cpu == -1) {
         log_error(logger, "No se pudo conectar con la CPU");
@@ -24,7 +24,6 @@ void generar_conexiones_con_cpu(void) {
     // Handshake:    
     generar_handshake(md_dispatch_cpu, "DISPATCHER", ip_cpu, puerto_dispatch);
     generar_handshake(md_interrupt_cpu, "INTERRUPT", ip_cpu, puerto_interrupt);
-
 
     // Seteo de sockets:
     set_socket_dispatch(md_dispatch_cpu);

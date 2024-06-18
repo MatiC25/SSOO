@@ -27,12 +27,6 @@ void* generar_conexion_a_memoria(void* arg) {
     generar_handshake(md_memoria, "MEMORIA", ip_memoria, puerto_memoria);
     generar_handshake_para_pagina(md_memoria, "MEMORIA", ip_memoria, puerto_memoria);
 
-    
-    //log_warning(logger,"enviado mensaje");
-    //enviar_mensaje("CPU -> MEMORIA", md_memoria);
-    //op_code cod_op = recibir_operacion(md_memoria); //lo comento pq no se usa, ni idea si es pq falta mas codigo
-    //recibir_mensaje(md_memoria);
-
     return NULL;
 }
 
@@ -59,11 +53,11 @@ void generar_handshake_para_pagina(int socket, char *server_name, char *ip, char
         
         op_code cod_op = recibir_operacion(socket);
         tam_pagina = recv_pagina(socket);
-        log_info(logger, "Código de operación recibido: %i", cod_op);
+       // log_info(logger, "Código de operación recibido: %i", cod_op);
     
         // Recibir tamaño de página desde el servidor
         config_cpu->TAMANIO_PAGINA = tam_pagina;
-        log_info(logger, "Tamaño de página recibido: %i", tam_pagina);
+        log_info(logger, "Tamaño de página recibido desde memoria: %i", tam_pagina);
     } else {
         // Error en el handshake
         log_error(logger, "Error en el handshake con PAGINA %s", server_name);
@@ -153,12 +147,7 @@ void* server_interrupt(void* args) {
 
         while (1) {
             int cod_op = recibir_operacion(socket_cliente);
-            log_warning(logger,"OPERACION DS: %i",cod_op);
             switch (cod_op) {
-                case MENSAJE:
-                    //recibir_mensaje(socket_cliente);
-                    //enviar_mensaje("CPU IT -> KERNEL", socket_cliente);
-                    break;
                 case HANDSHAKE:
                     recibir_handshake(socket_cliente);
                     break;

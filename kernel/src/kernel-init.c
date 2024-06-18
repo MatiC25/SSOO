@@ -1,13 +1,13 @@
 #include "kernel-init.h"
 
 void iniciar_modulo_kernel(int socket_servidor) {
+    hilo_motivo_de_desalojo();
     inicializar_lista();
     aceptar_interfaces(socket_servidor);
     inicializacion_semaforos();
     iniciar_planificacion();
     iniciar_consola();
     //manejar_peticion_con_memoria();
-    // manejar_peticion_con_cpu();
 }
 
 void inicializar_lista(){
@@ -15,7 +15,6 @@ void inicializar_lista(){
     cola_ready = list_create();
     cola_prima_VRR = list_create();
 }
-
 
 void aceptar_interfaces(int socket_servidor) {
     pthread_t aceptar_interfaces_thread;

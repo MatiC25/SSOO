@@ -8,7 +8,7 @@
 
 
 typedef enum {
-//Generales Compartidas con kernel
+// Generales Compartidas con kernel
     FIN_QUANTUM,    
     WAIT,
     SIGNAL,
@@ -18,7 +18,6 @@ typedef enum {
     IO_INVALIDA,
     INVALID_RESOURCE,
     INTERRUPTED_BY_USER,
-
 // CPU
     SET,
     MOVE_IN,
@@ -37,12 +36,6 @@ typedef enum {
     IO_FD_WRITE,
     IO_FS_READ
 } t_tipo_instruccion;
-
-// typedef struct {
-//     t_tipo_instruccion tipo;
-//     int cantParametros;
-//     t_list* parametros;
-// } t_instruccion;
 
 typedef struct {  
     char* opcode;
@@ -64,6 +57,6 @@ void send_instruccion(int socket_cliente, char *instruccion, t_list *parametros)
 t_instruccion* recv_instruccion(int socket_cliente);
 void solicitar_instruccion(int socket_server, int PID, int program_counter);
 t_tipo_instruccion obtener_tipo_instruccion(char *instruccion);
-t_tipo_instruccion obtener_tipo_instruccion(char *instruccion);
+t_instruccion* crear_instrucciones(t_list *parametros);
 
 #endif // INSTRUCCIONES_H

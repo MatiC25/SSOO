@@ -96,15 +96,15 @@
 //     return NULL;
 // }
 // void actualizar_TLB_por_fifo(t_list* tlb, int numero_pagina){
-// //Segunda opcion pero aca no mantengo la tabla  
-//     // t_tabla_de_paginas_cpu* victima = list_remove(tlb, 0);
-//     // free(victima);
+// Segunda opcion pero aca no mantengo la tabla  
+//     t_tabla_de_paginas_cpu* victima = list_remove(tlb, 0);
+//     free(victima);
 
-//     // solicitar_instruccion(numero_pagina);
-//     // t_tabla_de_paginas_cpu* nueva_tabla = recv_tablas();
-//     // if (nueva_tabla != NULL){
-//     //     list_add(tlb,nueva_tabla);
-//     // }
+//     solicitar_instruccion(numero_pagina);
+//     t_tabla_de_paginas_cpu* nueva_tabla = recv_tablas();
+//     if (nueva_tabla != NULL){
+//         list_add(tlb,nueva_tabla);
+//     }
 
     
 //         if (posicion_fifo <= config_cpu->CANTIDAD_ENTRADAS_TLB){

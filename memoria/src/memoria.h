@@ -1,10 +1,13 @@
 #ifndef MEMORIA_H
 #define MEMORIA_H
 
-#include "config_memoria.h"
-#include "conexiones_memoria.h"
-#include "peticiones_memoria.h"
-#include "instruc_memoria.h"
-#include "estructuras_compartidas_memoria.h"
+#include "memoria_config.h"
+#include "memoria_conexiones.h"
+#include "memoria_peticiones.h"
+#include "memoria_instrucciones.h"
+#include "memoria_estructuras_compartidas.h"
+
+
+void inicializacion_diccionario();
 
 #endif //MEMORIA_H

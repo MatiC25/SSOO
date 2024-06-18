@@ -1,11 +1,13 @@
-#ifndef PETICIONES_MEMORIA_H
-#define PETICIONES_MEMORIA_H
+#ifndef MEMORIA_PETICIONES_H
+#define MEMORIA_PETICIONES_H
 
 #include <stdio.h>
 #include <stdbool.h>
 #include <stdlib.h>
 #include <signal.h>
 #include <math.h>
+#include <pthread.h>
+#include <semaphore.h>
 #include <commons/config.h>
 #include <commons/string.h>
 #include <commons/log.h>
@@ -13,11 +15,14 @@
 #include <utils/shared.h>
 #include <utils/estructuras_compartidas.h>
 #include <utils/protocolo.h>
-#include <pthread.h>
 #include <utils/logger.h>
-#include "estructuras_compartidas_memoria.h"
-#include "instruc_memoria.h"
+#include "memoria_estructuras_compartidas.h"
+#include "memoria_instrucciones.h"
 
+extern sem_t enviar_instruc;
+extern sem_t sem_lectura_archivo;
+
+void inicializar_semaforo();
 void* escuchar_peticiones(void* args);
 void handshake_desde_memoria(int socket_cliente);
 // void crear_proceso(int socket_cliente);
@@ -29,5 +34,4 @@ void handshake_desde_memoria(int socket_cliente);
 // int obtener_marco_libre(t_bitarray* bitmap);
 // void liberar_marco(int marco);
 
-
-#endif //PETICIONES_MEMORIA_H
+#endif //MEMORIA_PETICIONES_H

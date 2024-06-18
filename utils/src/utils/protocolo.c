@@ -163,74 +163,57 @@ void agregar_a_paquete_string(t_paquete* paquete, char* cadena, int tamanio) {
 
 
 t_pcb* rcv_contexto_ejecucion(int socket_cliente) {
-    op_code code = recibir_operacion(socket_cliente);
-    t_pcb* proceso = malloc(sizeof(t_pcb));
-    if (proceso == NULL) {
-        log_error(logger, "Error al asignar memoria para el proceso");
-        return NULL;
-    }
-
-    proceso->registros = malloc(sizeof(t_registro_cpu));
-    if (proceso->registros == NULL) {
-        log_error(logger, "Error al asignar memoria para los registros del proceso");
-        free(proceso);
-        return NULL;
-    }
-
+    
     int size;
     int desplazamiento = 0;
+
+    void *buffer = recibir_buffer(&size, socket_cliente);
+
+    t_pcb *pcb = malloc(sizeof(t_pcb));
+    pcb->registros = malloc(sizeof(t_registro_cpu));
+
+    memcpy(&(pcb->pid), buffer + desplazamiento, sizeof(int));
+    desplazamiento += sizeof(int);
+
+    memcpy(&(pcb->program_counter), buffer + desplazamiento, sizeof(int));
+    desplazamiento += sizeof(int);
+
+    memcpy(&(pcb->registros->PC), buffer + desplazamiento, sizeof(uint32_t));
+    desplazamiento += sizeof(uint32_t);
+
+    memcpy(&(pcb->registros->AX), buffer + desplazamiento, sizeof(uint8_t));
+    desplazamiento += sizeof(uint8_t);
+
+    memcpy(&(pcb->registros->BX), buffer + desplazamiento, sizeof(uint8_t));
+    desplazamiento += sizeof(uint8_t);
+
+    memcpy(&(pcb->registros->CX), buffer + desplazamiento, sizeof(uint8_t));
+    desplazamiento += sizeof(uint8_t);
+
+    memcpy(&(pcb->registros->DX), buffer + desplazamiento, sizeof(uint8_t));
+    desplazamiento += sizeof(uint8_t);
+
+    memcpy(&(pcb->registros->EAX), buffer + desplazamiento, sizeof(uint32_t));
+    desplazamiento += sizeof(uint32_t);
+
+    memcpy(&(pcb->registros->EBX), buffer + desplazamiento, sizeof(uint32_t));
+    desplazamiento += sizeof(uint32_t);
+
+    memcpy(&(pcb->registros->ECX), buffer + desplazamiento, sizeof(uint32_t));
+    desplazamiento += sizeof(uint32_t);
+
+    memcpy(&(pcb->registros->EDX), buffer + desplazamiento, sizeof(uint32_t));
+    desplazamiento += sizeof(uint32_t);
+
+    memcpy(&(pcb->registros->SI), buffer + desplazamiento, sizeof(uint32_t));
+    desplazamiento += sizeof(uint32_t);
     
-    void* buffer = recibir_buffer(&size, socket_cliente);
-    if (buffer == NULL) {
-        log_error(logger, "Error al recibir el buffer del socket");
-        free(proceso->registros);
-        free(proceso);
-        return NULL;
-    }
-
-    memcpy(&proceso->pid, buffer + desplazamiento, sizeof(int));
-    desplazamiento += sizeof(int);
-
-    memcpy(&proceso->program_counter, buffer + desplazamiento, sizeof(int));
-    desplazamiento += sizeof(int);
-
-    memcpy(&proceso->registros->PC, buffer + desplazamiento, sizeof(uint32_t));
-    desplazamiento += sizeof(uint32_t);
-
-    memcpy(&proceso->registros->AX, buffer + desplazamiento, sizeof(uint8_t));
-    desplazamiento += sizeof(uint8_t);
-
-    memcpy(&proceso->registros->BX, buffer + desplazamiento, sizeof(uint8_t));
-    desplazamiento += sizeof(uint8_t);
-
-    memcpy(&proceso->registros->CX, buffer + desplazamiento, sizeof(uint8_t));
-    desplazamiento += sizeof(uint8_t);
-
-    memcpy(&proceso->registros->DX, buffer + desplazamiento, sizeof(uint8_t));
-    desplazamiento += sizeof(uint8_t);
-
-    memcpy(&proceso->registros->EAX, buffer + desplazamiento, sizeof(uint32_t));
-    desplazamiento += sizeof(uint32_t);
-
-    memcpy(&proceso->registros->EBX, buffer + desplazamiento, sizeof(uint32_t));
-    desplazamiento += sizeof(uint32_t);
-
-    memcpy(&proceso->registros->ECX, buffer + desplazamiento, sizeof(uint32_t));
-    desplazamiento += sizeof(uint32_t);
-
-    memcpy(&proceso->registros->EDX, buffer + desplazamiento, sizeof(uint32_t));
-    desplazamiento += sizeof(uint32_t);
-
-    memcpy(&proceso->registros->SI, buffer + desplazamiento, sizeof(uint32_t));
-    desplazamiento += sizeof(uint32_t);
-
-    memcpy(&proceso->registros->DI, buffer + desplazamiento, sizeof(uint32_t));
+    memcpy(&(pcb->registros->DI), buffer + desplazamiento, sizeof(uint32_t));
     desplazamiento += sizeof(uint32_t);
 
     free(buffer);
-    return proceso;
+    return pcb;
 }
-
 
 t_list *recv_list(int socket_cliente) {
 	int tamanio;
@@ -350,28 +333,28 @@ void enviar_buffer(void* buffer, size_t tamanio, int socket){
 }
 
 
-void recv_archi_pid(int socket_cliente, char **path, int* pid){ // Se usan punteros xq necesitamos modificar las variables que se pasan por parametro
-	int size;
-	int desplazamiento = 0;
-	void *buffer;
-	int tamaño;
+// void recv_archi_pid(int socket_cliente, char **path, int* pid){ // Se usan punteros xq necesitamos modificar las variables que se pasan por parametro
+// 	int size;
+// 	int desplazamiento = 0;
+// 	void *buffer;
+// 	int tamaño;
 
-	buffer = recibir_buffer(&size, socket_cliente); //Recibimos el buffer que antes enviamos
-	while (desplazamiento < size) // Leemos el buffer hasta que lleguemos al final
-	{
-		memcpy(&tamaño, buffer + desplazamiento, sizeof(int)); //Averiguamos que tan largo es el string (path)
-		desplazamiento += sizeof(int);
-		path = malloc(tamaño); // Una vez que sabemos el largo, podemos reservar el espacio de memoraia del mismo 
+// 	buffer = recibir_buffer(&size, socket_cliente); //Recibimos el buffer que antes enviamos
+// 	while (desplazamiento < size) // Leemos el buffer hasta que lleguemos al final
+// 	{
+// 		memcpy(&tamaño, buffer + desplazamiento, sizeof(int)); //Averiguamos que tan largo es el string (path)
+// 		desplazamiento += sizeof(int);
+// 		path = malloc(tamaño); // Una vez que sabemos el largo, podemos reservar el espacio de memoraia del mismo 
 								
-		memcpy(*path, buffer + desplazamiento, tamaño); // Copiamos todo el path de una en la variable "*path"
-		desplazamiento += tamaño;
+// 		memcpy(*path, buffer + desplazamiento, tamaño); // Copiamos todo el path de una en la variable "*path"
+// 		desplazamiento += tamaño;
 
-		memcpy(pid, buffer + desplazamiento, sizeof(int));
-		desplazamiento += sizeof(int);
+// 		memcpy(pid, buffer + desplazamiento, sizeof(int));
+// 		desplazamiento += sizeof(int);
 
-	}
-	free(buffer);
-}
+// 	}
+// 	free(buffer);
+// }
 
 // void recv_archi_pid(int socket_cliente, char **path, int* pid) {
 //     int size;

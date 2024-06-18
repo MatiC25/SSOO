@@ -1,4 +1,4 @@
-#include "config_memoria.h"
+#include "memoria_config.h"
 
 t_config_memoria* inicializar_config_memoria(void){
 

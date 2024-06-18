@@ -1,4 +1,4 @@
-#include "conexiones_memoria.h"
+#include "memoria_conexiones.h"
 
 
 int crear_servidores(t_config_memoria* config_memoria, int *md_generico) {

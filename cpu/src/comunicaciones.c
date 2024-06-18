@@ -93,62 +93,62 @@ t_pcb_cpu* rcv_contexto_ejecucion_cpu(int socket_cliente) {
 
     memcpy(&proceso->pid, buffer + desplazamiento, sizeof(int));
     desplazamiento += sizeof(int);
-    log_info(logger,"PID: %i", proceso->pid);
+    //log_info(logger,"PID: %i", proceso->pid);
 
     memcpy(&proceso->program_counter, buffer + desplazamiento, sizeof(int));
     desplazamiento += sizeof(int);
-    log_info(logger,"Program Counter:%i",proceso->program_counter);
+    //log_info(logger,"Program Counter:%i",proceso->program_counter);
 
     memcpy(&proceso->registros->PC, buffer + desplazamiento, sizeof(uint32_t));
     desplazamiento += sizeof(uint32_t);
-    log_info(logger,"Reg PC:%i",proceso->registros->PC);
+    //log_info(logger,"Reg PC:%i",proceso->registros->PC);
 
     memcpy(&proceso->registros->AX, buffer + desplazamiento, sizeof(uint8_t));
     desplazamiento += sizeof(uint8_t);
-    log_info(logger,"Reg AX:%i",proceso->registros->AX);
+    //log_info(logger,"Reg AX:%i",proceso->registros->AX);
 
     memcpy(&proceso->registros->BX, buffer + desplazamiento, sizeof(uint8_t));
     desplazamiento += sizeof(uint8_t);
-    log_info(logger,"Reg BX:%i",proceso->registros->BX);
+    //log_info(logger,"Reg BX:%i",proceso->registros->BX);
 
     memcpy(&proceso->registros->CX, buffer + desplazamiento, sizeof(uint8_t));
     desplazamiento += sizeof(uint8_t);
-    log_info(logger,"Reg CX:%i",proceso->registros->CX);
+    //log_info(logger,"Reg CX:%i",proceso->registros->CX);
 
     memcpy(&proceso->registros->DX, buffer + desplazamiento, sizeof(uint8_t));
     desplazamiento += sizeof(uint8_t);
-    log_info(logger,"Reg DX:%i",proceso->registros->DX);
+   //log_info(logger,"Reg DX:%i",proceso->registros->DX);
 
     memcpy(&proceso->registros->EAX, buffer + desplazamiento, sizeof(uint32_t));
     desplazamiento += sizeof(uint32_t);
-    log_info(logger,"Reg EAX:%i",proceso->registros->EAX);
+    //log_info(logger,"Reg EAX:%i",proceso->registros->EAX);
 
     memcpy(&proceso->registros->EBX, buffer + desplazamiento, sizeof(uint32_t));
     desplazamiento += sizeof(uint32_t);
-    log_info(logger,"Reg EBX:%i",proceso->registros->EBX);
+    //log_info(logger,"Reg EBX:%i",proceso->registros->EBX);
 
     memcpy(&proceso->registros->ECX, buffer + desplazamiento, sizeof(uint32_t));
     desplazamiento += sizeof(uint32_t);
-    log_info(logger,"Reg ECX:%i",proceso->registros->ECX);
+    //log_info(logger,"Reg ECX:%i",proceso->registros->ECX);
 
     memcpy(&proceso->registros->EDX, buffer + desplazamiento, sizeof(uint32_t));
     desplazamiento += sizeof(uint32_t);
-    log_info(logger,"Reg EDX:%i",proceso->registros->EDX);
+    //log_info(logger,"Reg EDX:%i",proceso->registros->EDX);
 
     memcpy(&proceso->registros->SI, buffer + desplazamiento, sizeof(uint32_t));
     desplazamiento += sizeof(uint32_t);
-    log_info(logger,"Reg SI:%i",proceso->registros->SI);
+    //log_info(logger,"Reg SI:%i",proceso->registros->SI);
 
     memcpy(&proceso->registros->DI, buffer + desplazamiento, sizeof(uint32_t));
     desplazamiento += sizeof(uint32_t);
-    log_info(logger,"Reg DI:%i",proceso->registros->DI);
+    //log_info(logger,"Reg DI:%i",proceso->registros->DI);
 
     free(buffer);
     return proceso;
 }
 
 
-void enviar_pcb_a_kernel(t_paquete* paquete_a_kernel){
+    void enviar_pcb_a_kernel(t_paquete* paquete_a_kernel){
     
 
     // Agregar información del PCB al paquete
@@ -167,7 +167,6 @@ void enviar_pcb_a_kernel(t_paquete* paquete_a_kernel){
     agregar_a_paquete(paquete_a_kernel, &pcb->registros->EDX, sizeof(uint32_t));
     agregar_a_paquete(paquete_a_kernel, &pcb->registros->SI, sizeof(uint32_t));
     agregar_a_paquete(paquete_a_kernel, &pcb->registros->DI, sizeof(uint32_t));
-
 }
 
 
@@ -303,3 +302,19 @@ void enviar_pcb_a_kernel(t_paquete* paquete_a_kernel){
 //         free(direccion_fisica);
 //     }
 // }
+
+void mostrar_pcb(t_pcb_cpu* pcb){
+    log_info(logger,"PID: %i", pcb->pid);
+    log_info(logger,"Program Counter:%i",pcb->program_counter);
+    log_info(logger,"Reg PC:%i",pcb->registros->PC);
+    log_info(logger,"Reg AX:%i",pcb->registros->AX);
+    log_info(logger,"Reg BX:%i",pcb->registros->BX);
+    log_info(logger,"Reg CX:%i",pcb->registros->CX);
+    log_info(logger,"Reg DX:%i",pcb->registros->DX);
+    log_info(logger,"Reg EAX:%i",pcb->registros->EAX);
+    log_info(logger,"Reg EBX:%i",pcb->registros->EBX);
+    log_info(logger,"Reg ECX:%i",pcb->registros->ECX);
+    log_info(logger,"Reg EDX:%i",pcb->registros->EDX);
+    log_info(logger,"Reg SI:%i",pcb->registros->SI);
+    log_info(logger,"Reg DI:%i",pcb->registros->DI);
+}

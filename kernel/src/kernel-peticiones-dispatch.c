@@ -2,15 +2,29 @@
 
 void hilo_motivo_de_desalojo() {
     pthread_t hilo_desalojo;
-    pthread_create(&hilo_desalojo, NULL, escuchar_peticiones_dispatch, NULL);
-    pthread_detach(hilo_desalojo);
+
+    // Crear el hilo de desalojo y verificar si hay errores
+    if (pthread_create(&hilo_desalojo, NULL, escuchar_peticiones_dispatch, NULL) != 0) {
+        log_error(logger, "ROMPIO HILO DE DESALOJO");
+        return;
+    }
+
+    log_info(logger, "Hilo de desalojo creado con éxito!");
+
+    // Detach el hilo para liberar recursos automáticamente cuando el hilo termine
+    if (pthread_detach(hilo_desalojo) != 0) {
+        log_error(logger, "No se pudo detach el hilo de desalojo");
+    }
 }
 
 
 void* escuchar_peticiones_dispatch() {
-
     while (1) {
+        
         t_tipo_instruccion motivo_desalojo = recibir_operacion(config_kernel->SOCKET_DISPATCH);
+        
+        //op_code motivo_desalojo;
+        //recv(config_kernel->SOCKET_DISPATCH, &motivo_desalojo, sizeof(int), MSG_WAITALL);
 
         if (motivo_desalojo < 0) {
             log_error(logger, "Dispatch acaba de recibir un motivo de desalojo inválido!");
@@ -18,6 +32,8 @@ void* escuchar_peticiones_dispatch() {
         }
 
         const char* tipo_de_exit = transformar_motivos_a_exit(&motivo_desalojo);
+
+        log_info(logger, "Motivo de desalojo: %i", motivo_desalojo);
 
         switch (motivo_desalojo) {
             case FIN_QUANTUM:
@@ -37,9 +53,10 @@ void* escuchar_peticiones_dispatch() {
                 break;
             default:
                 log_error(logger, "El motivo de desalojo no existe!");
-                break;
+                return;
         }
     }
+    
     return NULL;
 }
 
@@ -49,6 +66,7 @@ const char* transformar_motivos_a_exit(t_tipo_instruccion* motivo_inicial) {
     switch (*motivo_inicial) {
 
         case EXIT:
+            *motivo_inicial = EXIT;
             return "SUCCESS";
 
         case OUT_OF_MEMORY:
@@ -97,25 +115,41 @@ void peticion_fin_quantum() {
 }
 
 
-void peticion_exit(const char* tipo_de_exit) {
+void peticion_exit(const char *tipo_de_exit) {
 
     t_pcb* pcb = rcv_contexto_ejecucion(config_kernel->SOCKET_DISPATCH);
-
+    log_info(logger, "PID: %i", pcb->pid);
+    log_info(logger, "Program Counter: %i", pcb->program_counter);
+    log_info(logger, "PC: %i", pcb->registros->PC);
+    log_info(logger, "AX: %i", pcb->registros->AX);
+    log_info(logger, "BX: %i", pcb->registros->BX);
+    log_info(logger, "CX: %i", pcb->registros->CX);
+    log_info(logger, "DX: %i", pcb->registros->DX);
+    log_info(logger, "EAX: %i", pcb->registros->EAX);
+    log_info(logger, "EBX: %i", pcb->registros->EBX);
+    log_info(logger, "ECX: %i", pcb->registros->ECX);
+    log_info(logger, "EDX: %i", pcb->registros->EDX);
+    log_info(logger, "SI: %i", pcb->registros->SI);
+    log_info(logger, "DI: %i", pcb->registros->DI);
     if (!pcb) {
         log_error(logger, "Dispatch acaba de recibir algo inexistente!");
         return;
     }
 
+    //const char *tipo_de_exit = transformar_motivos_a_exit(tipo_de_exit);
+
     log_info(logger, "Finaliza el proceso %i - Motivo: %s", pcb->pid, tipo_de_exit);
 
     // Verificar si el proceso tiene algún recurso asociado
     liberar_recurso_por_exit(pcb);
-
-    informar_a_memoria_liberacion_proceso(pcb->pid);
+    
+    log_info(logger, "Se manda a Memoria para liberar el Proceso");
+    // informar_a_memoria_liberacion_proceso(pcb->pid);
 
     free(pcb->registros);
     free(pcb);
 
+    log_info(logger, "Aumentamos Grado de Multiprogramacion por EXIT");
     sem_post(&sem_multiprogramacion);
 }
 
@@ -210,16 +244,25 @@ void peticion_signal() {
 }
 
 
-void mover_a_bloqueado_por_wait(t_pcb* pcb, char* recurso) {
-    log_info(logger, "PID: %i - Bloqueado por: %s", pcb->pid, recurso);
-    int indice_recurso = obtener_indice_recurso(recurso);
+void mover_a_bloqueado_por_wait(t_pcb* pcb, char* motivo) {
+    log_info(logger, "PID: %i - Bloqueado por: %s", pcb->pid, motivo);
+    int indice_recurso = obtener_indice_recurso(motivo);
 
     pthread_mutex_lock(&mutex_estado_block);
     pcb->estado = BLOCK;
     queue_push(colas_resource_block[indice_recurso], pcb);
     pthread_mutex_unlock(&mutex_estado_block);
 
+    mover_a_cola_block_general(pcb);
+
     log_info(logger, "PID: %i - Estado Anterior: EXEC - Estado Actual: BLOCK", pcb->pid);
+}
+
+
+void mover_a_cola_block_general(t_pcb* pcb) {
+    pthread_mutex_lock(&mutex_cola_block);
+    list_add(cola_block, pcb);
+    pthread_mutex_unlock(&mutex_cola_block);
 }
 
 
@@ -267,6 +310,7 @@ t_pcb* recibir_contexto_y_recurso(char** recurso) {
 
 
 void peticion_IO() {
+    
     t_pcb* pcb_bloqueado = rcv_contexto_ejecucion(config_kernel->SOCKET_DISPATCH);
     
     if (!pcb_bloqueado) {
@@ -279,14 +323,14 @@ void peticion_IO() {
     
     interface_io* interface = get_interface_from_dict(interface_name);
     if (!interface) {
-        peticion_exit("INVALID_INTERFACE");
+        finalizar_por_invalidacion(pcb_bloqueado, "INVALID_INTERFACE");
         free(interface_name);
         return;
     }
 
     tipo_operacion operacion = recibir_operacion(config_kernel->SOCKET_DISPATCH);
     if (!acepta_operacion_interfaz(interface, operacion)) {
-        peticion_exit("INVALID_OPERATION");
+        finalizar_por_invalidacion(pcb_bloqueado, "INVALID_INTERFACE");
         free(interface_name);
         return;
     }

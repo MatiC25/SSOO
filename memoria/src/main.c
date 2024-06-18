@@ -1,7 +1,6 @@
 #include "memoria.h"
 
 t_config_memoria* config_memoria;
-t_dictionary* lista_instrucciones_porPID;
 
 int main()
 {
@@ -15,7 +14,7 @@ int main()
 	}
 
     config_memoria = inicializar_config_memoria();
-
+    
     //Inicializamos conexiones
     if (cargar_configuraciones_memoria(config_memoria) != 1)
     { // Generar conexiones, no va a mantener la conexion, sino que va a crear la conexion y la va a cerrar!
@@ -24,12 +23,18 @@ int main()
         return EXIT_FAILURE;
     }
     
-    // Creamos el diccionario de instrucciones por pid 
-    lista_instrucciones_porPID = dictionary_create();
-
+    inicializacion_diccionario();
     //abrimos el servidor
     iniciar_modulo(config_memoria);
     //cerrar_programa(config_memoria,)
 
     return 0;
+}
+
+void inicializacion_diccionario() {
+    lista_instrucciones_porPID = dictionary_create();
+    if (lista_instrucciones_porPID == NULL) {
+        log_error(logger, "Error al crear el diccionario");
+        exit(1);
+    }
 }

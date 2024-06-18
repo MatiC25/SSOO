@@ -1,5 +1,5 @@
-#ifndef INIT_MEMORIA_H
-#define INIT_MEMORIA_H
+#ifndef MEMORIA_CONEXIONES_H
+#define MEMORIA_CONEXIONES_H
 
 #include <stdio.h>
 #include <stdbool.h>
@@ -9,13 +9,13 @@
 #include <commons/config.h>
 #include <commons/string.h>
 #include <commons/log.h>
+#include <utils/estructuras_compartidas.h>
 #include <utils/socket.h>
 #include <utils/shared.h>
 #include <utils/logger.h>
 #include <utils/protocolo.h>
-#include <utils/estructuras_compartidas.h>
-#include "estructuras_compartidas_memoria.h"
-#include "peticiones_memoria.h"
+#include "memoria_estructuras_compartidas.h"
+#include "memoria_peticiones.h"
 
 
 // Funcion para cargar configuraciones de Memoria:
@@ -31,4 +31,4 @@ void cerrar_programa(t_config_memoria* config_memoria, int socket_server);
 // Funciones de operaciones basicas del modulo:
 t_procesar_conexion* crear_procesar_conexion(char* nombre, int socket_cliente);
 
-#endif // INIT_MEMORIA_H
+#endif // MEMORIA_CONEXIONES_H

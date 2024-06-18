@@ -28,7 +28,7 @@ void manage_interface(void *socket_cliente) {
     while(execute) {
         op_code operacion = recibir_operacion(socket);
 
-        log_info(logger, "Operacion recibida: %d", operacion);
+        //log_info(logger, "Operacion recibida: %d", operacion);
 
         switch(operacion) {
             case HANDSHAKE:

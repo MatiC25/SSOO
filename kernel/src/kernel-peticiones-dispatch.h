@@ -13,7 +13,7 @@ void hilo_motivo_de_desalojo();
 void* escuchar_peticiones_dispatch();
 const char* transformar_motivos_a_exit(t_tipo_instruccion* motivo_inicial);
 void peticion_fin_quantum();
-void peticion_exit(const char* tipo_de_exit);
+void peticion_exit(const char *tipo_de_exit);
 void peticion_wait();
 void peticion_signal();
 void mover_a_bloqueado_por_wait(t_pcb* pcb, char* recurso);

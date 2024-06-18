@@ -20,6 +20,8 @@
 #include <stdint.h>
 #include <pthread.h>
 #include <utils/socket.h>
+
+#include "kernel-peticiones-dispatch.h"
 #include "kernel-estructuras.h"
 #include "kernel-interfaces.h"
 #include "planificacion.h"
