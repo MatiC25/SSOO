@@ -4,8 +4,9 @@ COMMAND comandos[] = {
     {"INICIAR_PROCESO", iniciar_proceso},
     {"PROCESO_ESTADO", proceso_estado},
     {"MULTIPROGRAMACION", multiprogramacion},
-    /*{"FINALIZAR_PROCESO", finalizar_proceso},
-    {"DETENER_PLANIFICACION", detener_planificacion},
+    {"EJECUTAR_SCRIPT", ejecutar_script},
+    {"FINALIZAR_PROCESO", finalizar_proceso},
+    /*{"DETENER_PLANIFICACION", detener_planificacion},
     {"INICIAR_PLANIFICACION", iniciar_planificacion},
     {"HELP", help},*/
     {NULL, NULL}
@@ -142,9 +143,9 @@ void *proceso_estado(void *args) {
 void agregar_procesos_a_lista(t_list *estados_procesos[]) {
     estados_procesos[0] = cola_new;
     estados_procesos[1] = cola_ready;
-    // estados_procesos[2] = cola_exec;
-    // estados_procesos[3] = cola_block;
-    // estados_procesos[4] = cola_exit;
+    //estados_procesos[2] = cola_exec;
+    estados_procesos[3] = cola_block;
+    //estados_procesos[4] = cola_exit;
 }
 
 char *estado_proceso(int estado) {
@@ -172,3 +173,107 @@ void *multiprogramacion(void *args) {
         sem_post(&sem_multiprogramacion);
     return NULL;
 }
+
+void *ejecutar_script(void *args) {
+    char* script_path = (char*) args;
+
+    FILE* archivo_script = fopen(script_path, "r");
+    if(!archivo_script) {
+        log_error(logger, "¡Archivo de script erroneo!");
+    }
+
+    char comando [MAX_COMMAND_LETTERS];
+    while(fgets(comando, sizeof(MAX_COMMAND_LETTERS), archivo_script)) {
+        comando[strcspn(comando, CENTINELA)] = '\0';
+        ejecutar_comando(comando);
+        log_info(logger, "COMANDO LEIDO: %s", comando);
+    }
+    
+    fclose(archivo_script);
+}
+
+/*Finalizar proceso: Se encargara de finalizar un proceso que se encuentre dentro del sistema. 
+Este mensaje se encargara de realizar las mismas operaciones como si el proceso llegara a EXIT 
+por sus caminos habituales (debera liberar recursos, archivos y memoria).
+Nomenclatura: FINALIZAR_PROCESO [PID]*/
+
+void *finalizar_proceso(void *pid) {
+    int pid_buscado = *(int*) pid;
+
+    pthread_mutex_lock(&mutex_estado_exec);
+    if (proceso_en_exec != NULL && pid_buscado == proceso_en_exec->pid) {
+        finalizar_por_invalidacion(proceso_en_exec, "INTERRUPTED_BY_USER");
+        pthread_mutex_unlock(&mutex_estado_exec);
+    } else {
+        pthread_mutex_unlock(&mutex_estado_exec);
+
+        pthread_mutex_lock(&mutex_estado_block);
+        if (existe_proceso_con_pid_ingresado(cola_block, pid_buscado)) {
+            finalizar_por_invalidacion(pcb_encontrado(cola_block, pid_buscado), "INTERRUPTED_BY_USER");
+            pthread_mutex_unlock(&mutex_estado_block);
+        } else {
+            pthread_mutex_unlock(&mutex_estado_block);
+
+            pthread_mutex_lock(&mutex_estado_ready);
+            if (existe_proceso_con_pid_ingresado(cola_ready, pid_buscado)) {
+                finalizar_por_invalidacion(pcb_encontrado(cola_ready, pid_buscado), "INTERRUPTED_BY_USER");
+                pthread_mutex_unlock(&mutex_estado_ready);
+            } else {
+                pthread_mutex_unlock(&mutex_estado_ready);
+
+                pthread_mutex_lock(&mutex_cola_priori_vrr);
+                if (existe_proceso_con_pid_ingresado(cola_prima_VRR, pid_buscado)) {
+                    finalizar_por_invalidacion(pcb_encontrado(cola_prima_VRR, pid_buscado), "INTERRUPTED_BY_USER");
+                    pthread_mutex_unlock(&mutex_cola_priori_vrr);
+                } else {
+                    pthread_mutex_unlock(&mutex_cola_priori_vrr);
+                    log_error(logger, "¡No existe el PID indicado! Ingrese nuevamente ...");
+                }
+            }
+        }
+    }
+}
+
+t_pcb* pcb_encontrado(t_list* cola_a_buscar_pid, int pid_buscado) {
+    if (existe_proceso_con_pid_ingresado(cola_a_buscar_pid, pid_buscado)) {
+        return list_find(cola_a_buscar_pid, es_el_proceso_buscado, &pid_buscado);
+    } else {
+        return NULL;
+    }
+}
+
+bool existe_proceso_con_pid_ingresado(t_list* cola_a_buscar_pid, int pid_buscado) {
+    return list_any_satisfy(cola_a_buscar_pid, es_el_proceso_buscado, &pid_buscado);
+}
+
+// Función auxiliar para comparar el PID
+bool es_el_proceso_buscado(void* elemento, void* aux) {
+    t_pcb* pcb = (t_pcb*)elemento;
+    int *pid_aux = *(int*)aux;
+    return pid_aux == pcb->pid;
+}
+
+
+// /*Detener planificacion: Este mensaje se encargara de pausar la planificacion de corto y largo plazo.
+// El proceso que se encuentra en ejecucion NO es desalojado, pero una vez que salga de EXEC se va a 
+// pausar el manejo de su motivo de desalojo. De la misma forma, los procesos bloqueados van a pausar
+// su transicion a la cola de Ready.
+// Nomenclatura: DETENER_PLANIFICACION*/
+// // void *detener_planificacion(void* args) {
+    
+// }
+
+// Iniciar planificacion: Este mensaje se encargara de retomar (en caso que se encuentre pausada) 
+// la planificacion de corto y largo plazo. En caso que la planificacion no se encuentre pausada, 
+// se debe ignorar el mensaje.
+// Nomenclatura: INICIAR_PLANIFICACION
+
+
+// void *iniciar_planificacion(void* args){
+//     if(la_plani_esta_pausafa){ //tampoco se como ver esta condicion
+//         pthread_mutex_unlock(&planificacion_cortoplazo); //leito, fijate que semaforo es
+//     } else {
+//         log_info(logger, "La planificación ya está en marcha");
+//     }
+// }
+

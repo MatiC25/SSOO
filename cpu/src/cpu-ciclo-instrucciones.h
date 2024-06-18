@@ -34,19 +34,20 @@ void ejecutar_sub(char* registro_origen_char, char* registro_desitino_char);
 void ejecutar_JNZ(char* registro, char* valor);
 void ejecutar_IO_GEN_SLEEP(char* interfazAUsar, char* tiempoDeTrabajo);
 
-// void ejecutar_MOV_IN(char* RegistroDatos, char* RegistroDireccion);
-// void ejecutar_MOV_OUT(char* RegistroDatos, char* RegistroDireccion);
-// void ejecutar_RESIZE(char* tamanio);
-// void ejecutar_COPY_STRING(char* tamanio);
-// void ejecutar_WAIT(char* recurso);
-// void ejecutar_SINGAL(char* recurso);
-// void ejecutar_IO_STDIN_READ(char* interfaz, char* registro_direccion, char* registro_tamanio);
-// void ejecutar_IO_STDOUT_WRITE(char* interfaz, char* registro_direccion, char* registro_tamanio);
-// void ejecutar_IO_FS_CREATE(char* interfaz, char* nombre_archivo);
-// void ejecutar_IO_FS_DELETE(char* interfaz, char* nombre_archivo);
-// void ejecutar_IO_FS_TRUNCATE(char* intefaz, char* nombre_archivo, char* registro_tamanio);
-// void ejecutar_IO_FD_WRITE(char* intefaz, char* nombre_archivo, char* registro_direccion, char* registro_tamanio, char* puntero_archivo);
-// void ejecutar_IO_FS_READ(char* intefaz, char* nombre_archivo, char* registro_direccion, char* registro_tamanio, char* puntero_archivo);
+void ejecutar_MOV_IN(char* registro_Datos, char* registro_Direccion);
+void ejecutar_MOV_OUT(char* Registro_Datos, char* Registro_Direccion);
+void ejecutar_COPY_STRING(char* tam);
+void ejecutar_COPY_STRING(char* tamanio);
+void ejecutar_WAIT(char* recurso);
+void ejecutar_SINGAL(char* recurso);
+void ejecutar_RESIZE(char* tam);
+void ejecutar_IO_STDIN_READ(char* interfaz, char* registro_direccion, char* registro_tamanio);
+void ejecutar_IO_STDOUT_WRITE(char* interfaz, char* registro_direccion, char* registro_tamanio);
+void ejecutar_IO_FS_CREATE(char* interfaz, char* nombre_archivo);
+void ejecutar_IO_FS_DELETE(char* interfaz, char* nombre_archivo);
+void ejecutar_IO_FS_TRUNCATE(char* intefaz, char* nombre_archivo, char* registro_tamanio);
+void ejecutar_IO_FD_WRITE(char* intefaz, char* nombre_archivo, char* registro_direccion, char* registro_tamanio, char* puntero_archivo);
+void ejecutar_IO_FS_READ(char* intefaz, char* nombre_archivo, char* registro_direccion, char* registro_tamanio, char* puntero_archivo);
 
 
 

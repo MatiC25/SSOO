@@ -37,13 +37,10 @@ void generar_handshake_para_pagina(int socket, char *server_name, char *ip, char
     int32_t result;
     op_code cod_op = HANDSHAKE_PAGINA;
 
-    // Enviar código de operación HANDSHAKE_PAGINA
     send(socket, &cod_op, sizeof(op_code), 0);
 
-    // Enviar handshake
     send(socket, &handshake, sizeof(int32_t), 0);
 
-    // Recibir respuesta del servidor
     recv(socket, &result, sizeof(int32_t), MSG_WAITALL);
 
     if (!result) { 
@@ -51,17 +48,15 @@ void generar_handshake_para_pagina(int socket, char *server_name, char *ip, char
         int tam_pagina;
         log_info(logger, "Handshake exitoso con página %s", server_name);
         
-        op_code cod_op = recibir_operacion(socket);
         tam_pagina = recv_pagina(socket);
        // log_info(logger, "Código de operación recibido: %i", cod_op);
-    
-        // Recibir tamaño de página desde el servidor
+
         config_cpu->TAMANIO_PAGINA = tam_pagina;
         log_info(logger, "Tamaño de página recibido desde memoria: %i", tam_pagina);
     } else {
         // Error en el handshake
         log_error(logger, "Error en el handshake con PAGINA %s", server_name);
-        exit(EXIT_FAILURE); // Terminar el programa en caso de error crítico
+        exit(-1); 
     }
 }
 
@@ -149,13 +144,14 @@ void* server_interrupt(void* args) {
             int cod_op = recibir_operacion(socket_cliente);
             switch (cod_op) {
                 case HANDSHAKE:
+                    //log_warning(logger,"Haciendo HANDSHAKE");
                     recibir_handshake(socket_cliente);
                     break;
                 case FINQUANTUM:
                     atomic_store(&interrupt_flag, 1);
                     break;
                 case -1:
-                    log_info(logger, "Se desconectó el cliente Kernel (IT)");
+                    log_warning(logger, "Se desconectó el cliente Kernel (IT)");
                     close(socket_cliente);
                     return NULL;
                 default:

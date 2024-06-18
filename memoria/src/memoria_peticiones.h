@@ -25,13 +25,13 @@ extern sem_t sem_lectura_archivo;
 void inicializar_semaforo();
 void* escuchar_peticiones(void* args);
 void handshake_desde_memoria(int socket_cliente);
-// void crear_proceso(int socket_cliente);
-// void terminar_proceso(int socket_cliente);
-// void obtener_marco(int socket_cliente);
-// void resize_proceso(int socket_cliente);
-// void acceso_lectura(int socket_cliente);
-// void acceso_escritura(int socket_cliente);
-// int obtener_marco_libre(t_bitarray* bitmap);
-// void liberar_marco(int marco);
+void crear_proceso(int socket_cliente);
+void terminar_proceso(int socket_cliente);
+void obtener_marco(int socket_cliente);
+void resize_proceso(int socket_cliente);
+void acceso_lectura(int socket_cliente);
+void acceso_escritura(int socket_cliente);
+int obtener_marco_libre(t_bitarray* bitmap);
+void liberar_marco(int marco);
 
 #endif //MEMORIA_PETICIONES_H

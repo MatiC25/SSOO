@@ -23,7 +23,7 @@ void agregar_a_paquete(t_paquete* paquete, void* valor, int tamanio) {
 
 void enviar_paquete(t_paquete* paquete, int socket_cliente)
 {
-	int bytes = paquete->buffer->size + 2*sizeof(int);
+	int bytes = paquete->buffer->size + 2 *sizeof(int);
 	void* a_enviar = serializar_paquete(paquete, bytes);
 
 	send(socket_cliente, a_enviar, bytes, 0);
@@ -41,6 +41,9 @@ void* recibir_buffer(int* size, int socket_cliente) {
 	void * buffer;
 
 	recv(socket_cliente, size, sizeof(int), MSG_WAITALL);
+
+    log_info(logger, "Recibiendo buffer de %d bytes", *size);
+
 	buffer = malloc(*size);
 	recv(socket_cliente, buffer, *size, MSG_WAITALL);
 
@@ -163,14 +166,31 @@ void agregar_a_paquete_string(t_paquete* paquete, char* cadena, int tamanio) {
 
 
 t_pcb* rcv_contexto_ejecucion(int socket_cliente) {
-    
     int size;
     int desplazamiento = 0;
 
     void *buffer = recibir_buffer(&size, socket_cliente);
+    if (buffer == NULL) {
+        return NULL;
+    }
+
+    log_info(logger, "Buffer recibido");
+    // log_info(logger, "Size: %d", size);
 
     t_pcb *pcb = malloc(sizeof(t_pcb));
+    if (pcb == NULL) {
+        perror("Error al asignar memoria para t_pcb");
+        free(buffer);
+        return NULL;
+    }
+
     pcb->registros = malloc(sizeof(t_registro_cpu));
+    if (pcb->registros == NULL) {
+        perror("Error al asignar memoria para t_registro_cpu");
+        free(pcb);
+        free(buffer);
+        return NULL;
+    }
 
     memcpy(&(pcb->pid), buffer + desplazamiento, sizeof(int));
     desplazamiento += sizeof(int);
@@ -207,7 +227,7 @@ t_pcb* rcv_contexto_ejecucion(int socket_cliente) {
 
     memcpy(&(pcb->registros->SI), buffer + desplazamiento, sizeof(uint32_t));
     desplazamiento += sizeof(uint32_t);
-    
+
     memcpy(&(pcb->registros->DI), buffer + desplazamiento, sizeof(uint32_t));
     desplazamiento += sizeof(uint32_t);
 

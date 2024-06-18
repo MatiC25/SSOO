@@ -22,7 +22,7 @@ void* escuchar_peticiones_dispatch() {
     while (1) {
         
         t_tipo_instruccion motivo_desalojo = recibir_operacion(config_kernel->SOCKET_DISPATCH);
-        
+
         //op_code motivo_desalojo;
         //recv(config_kernel->SOCKET_DISPATCH, &motivo_desalojo, sizeof(int), MSG_WAITALL);
 
@@ -39,7 +39,7 @@ void* escuchar_peticiones_dispatch() {
             case FIN_QUANTUM:
                 peticion_fin_quantum();
                 break;
-            case INSTRUCCION_IO:
+            case OPERACION_IO:
                 peticion_IO();
                 break;
             case WAIT:
@@ -310,40 +310,52 @@ t_pcb* recibir_contexto_y_recurso(char** recurso) {
 
 
 void peticion_IO() {
-    
     t_pcb* pcb_bloqueado = rcv_contexto_ejecucion(config_kernel->SOCKET_DISPATCH);
-    
+
     if (!pcb_bloqueado) {
         log_error(logger, "Error al recibir el contexto de ejecución para IO");
         return;
     }
-
-    char* interface_name;
-    rcv_nombre_interfaz_dispatch(&interface_name, config_kernel->SOCKET_DISPATCH);
     
-    interface_io* interface = get_interface_from_dict(interface_name);
+    int response = 1;
+
+    send(config_kernel->SOCKET_DISPATCH, &response, sizeof(int), 0);
+    
+    t_list *interfaz_y_argumentos = recv_interfaz_y_argumentos(config_kernel->SOCKET_DISPATCH);
+    t_list *args = list_get(interfaz_y_argumentos, 2);
+    char *nombre_interfaz = list_get(interfaz_y_argumentos, 1);
+    tipo_operacion operacion = (tipo_operacion) list_get(interfaz_y_argumentos, 0);
+
+
+    log_info(logger, "Nombre de la interfaz:  %s", nombre_interfaz);
+    
+    interface_io* interface = get_interface_from_dict(nombre_interfaz);
     if (!interface) {
         finalizar_por_invalidacion(pcb_bloqueado, "INVALID_INTERFACE");
-        free(interface_name);
+        free(nombre_interfaz);
         return;
     }
 
-    tipo_operacion operacion = recibir_operacion(config_kernel->SOCKET_DISPATCH);
+    // tipo_operacion operacion = recibir_operacion(config_kernel->SOCKET_DISPATCH);
     if (!acepta_operacion_interfaz(interface, operacion)) {
         finalizar_por_invalidacion(pcb_bloqueado, "INVALID_INTERFACE");
-        free(interface_name);
+        free(nombre_interfaz);
         return;
     }
 
-    t_list* args = rcv_argumentos_para_io(interface->tipo, config_kernel->SOCKET_DISPATCH);
+    // t_list* args = rcv_argumentos_para_io(interface->tipo, config_kernel->SOCKET_DISPATCH);
 
-    pthread_mutex_lock(&mutex_estado_block);
-    queue_push(interface->process_blocked, pcb_bloqueado);
-    queue_push(interface->args_process, args);
-    sem_post(&interface->size_blocked);
-    pthread_mutex_unlock(&mutex_estado_block);
+    for(int i = 0; i < list_size(args); i++) {
+        log_info(logger, "Argumento %i: %i", i, list_get(args, i));
+    }
 
-    free(interface_name);
+    // pthread_mutex_lock(&mutex_estado_block);
+    // queue_push(interface->process_blocked, pcb);
+    // queue_push(interface->args_process, args);
+    // sem_post(&interface->size_blocked);
+    // pthread_mutex_unlock(&mutex_estado_block);
+
+    // free(interface_name);
 }
 
 
@@ -396,12 +408,11 @@ int calcular_total_instancias() {
 
 
 void finalizar_por_invalidacion(t_pcb* pcb, const char* tipo_invalidacion) {
-    liberar_recurso_por_exit(pcb);
+    
     log_info(logger, "Finaliza el proceso: %i - Motivo: %s", pcb->pid, tipo_invalidacion);
     informar_a_memoria_liberacion_proceso(pcb->pid);
-
-    free(pcb->registros);
-    free(pcb);
+    liberar_recurso_por_exit(pcb);
+    
 }
 
 
@@ -424,6 +435,24 @@ void liberar_recurso_por_exit(t_pcb* pcb) {
             vector_recursos_pedidos[i].recurso = NULL;
         }
     }
+    free(pcb->registros);
+    free(pcb);
     
     sem_post(&hay_en_estado_ready);
+}
+
+void mostrar_pcb(t_pcb* pcb){
+    log_info(logger,"PID: %i", pcb->pid);
+    log_info(logger,"Program Counter:%i",pcb->program_counter);
+    log_info(logger,"Reg PC:%i",pcb->registros->PC);
+    log_info(logger,"Reg AX:%i",pcb->registros->AX);
+    log_info(logger,"Reg BX:%i",pcb->registros->BX);
+    log_info(logger,"Reg CX:%i",pcb->registros->CX);
+    log_info(logger,"Reg DX:%i",pcb->registros->DX);
+    log_info(logger,"Reg EAX:%i",pcb->registros->EAX);
+    log_info(logger,"Reg EBX:%i",pcb->registros->EBX);
+    log_info(logger,"Reg ECX:%i",pcb->registros->ECX);
+    log_info(logger,"Reg EDX:%i",pcb->registros->EDX);
+    log_info(logger,"Reg SI:%i",pcb->registros->SI);
+    log_info(logger,"Reg DI:%i",pcb->registros->DI);
 }

@@ -3,7 +3,7 @@
 t_interfaz *interfaz = NULL;
 
 int main(int argc, char *argv[]) {
-    char *name_interfaz = "FedeInterfaz";
+    char *name_interfaz = "Interfaz1";
     char *config_path = "./entradasalida.config";
 
     // Inicializamos logger y interfaz:
@@ -12,7 +12,6 @@ int main(int argc, char *argv[]) {
 
     interfaz_generar_conexiones_con(interfaz);
     send_interfaz_a_kernel(interfaz);
-    send_mensaje_a_memoria(interfaz, "Hola memoria de IO");
     interfaz_recibir_peticiones(interfaz);
 
     return 0;

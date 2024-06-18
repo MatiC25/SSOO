@@ -66,6 +66,7 @@ void enviar_paquete(t_paquete* paquete, int socket_cliente);
 void* serializar_paquete(t_paquete* paquete, int bytes);
 void eliminar_paquete(t_paquete* paquete);
 void* recibir_buffer(int* size, int socket_cliente);
+void* recibir_buffer_bytes(int socket_cliente, size_t bytes);
 
 // Funciones para realizar operaciones basicas:
 void enviar_mensaje(char* mensaje, int socket_cliente);
@@ -85,7 +86,8 @@ t_pcb* rcv_contexto_ejecucion(int socket_cliente);
 t_list *recv_list(int socket_cliente);
 void enviar_buffer(void* buffer, size_t tamanio, int socket);
 void recibir_program_counter(int socket_cpu,int *pid,int *program_counter);
-// void recv_archi_pid(int socket_cliente, char **path, int* pid);
+
+
 // Funciones de saludo inicial:
 void generar_handshake(int socket, char *server_name, char *ip, char *puerto);
 void recibir_handshake(int socket);

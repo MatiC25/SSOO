@@ -371,6 +371,7 @@ void* quantum_handler(void* arg) {
 
 
 void enviar_proceso_a_cpu(t_pcb* pcbproceso) {
+    log_info(logger, "Enviando proceso %i a CPU", pcbproceso->pid);
     t_paquete* paquete_cpu = crear_paquete(RECIBIR_PROCESO); // Tipo de paquete que indica envío a CPU
 
     // Agregar información del PCB al paquete

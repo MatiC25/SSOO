@@ -2,6 +2,7 @@
 
 
 int recv_pagina(int socket){
+    op_code cod_op = recibir_operacion(socket);
     int size;
     int valor;
     void* buffer = recibir_buffer(&size, socket);
@@ -13,55 +14,42 @@ int recv_pagina(int socket){
     return valor;
 }
 
-// int recv_pagina(int socket_cliente) {
-//     int tam_pagina;
-//     op_code cod_op = recibir_operacion(socket_cliente);
-    
-//     if (cod_op == HANDSHAKE_PAGINA) {
-//         int size;
-//         recv(socket_cliente, &size, sizeof(int), MSG_WAITALL);
-//         recv(socket_cliente, &tam_pagina, size, MSG_WAITALL);
-//     } else {
-//         log_error(logger, "Código de operación inesperado");
-//         return -1;
-//     }
-
-//     return tam_pagina;
-// }
 
 
-// char* comunicaciones_con_memoria_lectura(t_mmu_cpu* mmu){
-//     char* valor;
-//     while (list_is_empty(mmu->direccionFIsica)){
-//         int direccionFIsicaa = (int)(intptr_t)list_remove(mmu->direccionFIsica,0);
-//         int tamanio = (int)(intptr_t)list_remove(mmu->tamanio, 0);
-//         enviar_a_leer_memoria(pcb->pid,direccionFIsicaa, tamanio); 
-//         valor = recv_leer_memoria(tamanio); 
-//         log_info(logger,"PID: %i -Accion LEER -Direccion Fisica: %i -Valor: %s",pcb->pid,direccionFIsicaa,valor);
-//     }
-//     return valor;
-// }
+char* comunicaciones_con_memoria_lectura(t_mmu_cpu* mmu){
+    char* valor;
+    char* nuevo_valor;
+    while (list_is_empty(mmu->direccionFIsica)){
+        int direccionFIsicaa = (int)(intptr_t)list_remove(mmu->direccionFIsica,0);
+        int tamanio = (int)(intptr_t)list_remove(mmu->tamanio, 0);
+        enviar_a_leer_memoria(pcb->pid,direccionFIsicaa, tamanio); 
+        valor = recv_leer_memoria(tamanio); 
+        log_info(logger,"PID: %i -Accion LEER -Direccion Fisica: %i -Valor: %s",pcb->pid,direccionFIsicaa,valor);
+        strcat(nuevo_valor, valor);
+    }
+    return nuevo_valor;
+}
 
-// int comunicaciones_con_memoria_escritura(t_mmu_cpu* mmu, char* valor){
-//     int verificador;
-//     int desplazamiento = 0;
-//     int valor_lenght = strlen(valor);
-//     while (list_is_empty(mmu->direccionFIsica)){
-//         int direccionFIsicaa = (int)(intptr_t)list_remove(mmu->direccionFIsica,0);
-//         int tamanio = (int)(intptr_t)list_remove(mmu->tamanio, 0);
-//         if (desplazamiento < valor_lenght){
-//             send_escribi_memoria(pcb->pid,direccionFIsicaa, tamanio, valor + desplazamiento);
-//             desplazamiento +=  tamanio;
-//         }
-//         verificador = recv_escribir_memoria();
-//         if (verificador != 1){
-//             log_error(logger,"Error en memoria  direccion fisica :%d", direccionFIsicaa);
-//             return -1;
-//         }
-//         log_info(logger,"PID: %i -Accion ESCRIBIR -Direccion Fisica: %i -Valor: %s",pcb->pid,direccionFIsicaa,valor);
-//     }
-//     return verificador;
-// }
+int comunicaciones_con_memoria_escritura(t_mmu_cpu* mmu, char* valor){
+    int verificador;
+    int desplazamiento = 0;
+    int valor_lenght = strlen(valor);
+    while (list_is_empty(mmu->direccionFIsica)){
+        int direccionFIsicaa = (int)(intptr_t)list_remove(mmu->direccionFIsica,0);
+        int tamanio = (int)(intptr_t)list_remove(mmu->tamanio, 0);
+        if (desplazamiento < valor_lenght){
+            send_escribi_memoria(pcb->pid,direccionFIsicaa, tamanio, valor + desplazamiento);
+            desplazamiento +=  tamanio;
+        }
+        verificador = recv_escribir_memoria();
+        if (verificador != 1){
+            log_error(logger,"Error en memoria  direccion fisica :%d", direccionFIsicaa);
+            return -1;
+        }
+        log_info(logger,"PID: %i -Accion ESCRIBIR -Direccion Fisica: %i -Valor: %s",pcb->pid,direccionFIsicaa,valor);
+    }
+    return verificador;
+}
 
 
 
@@ -170,138 +158,144 @@ t_pcb_cpu* rcv_contexto_ejecucion_cpu(int socket_cliente) {
 }
 
 
-// void enviar_a_leer_memoria(int pid,int direccionFIsica, int tamanio){
-//     t_paquete* solicitud_lectura = crear_paquete(ACCESO_A_LECTURA);
-//     agregar_a_paquete(solicitud_lectura, &pid , sizeof(int));
-//     agregar_a_paquete(solicitud_lectura, &direccionFIsica,sizeof(int));
-//     agregar_a_paquete(solicitud_lectura, &tamanio,sizeof(int));
-//     enviar_paquete(solicitud_lectura, config_cpu->SOCKET_MEMORIA);
-//     eliminar_paquete(solicitud_lectura);
-// }
+void enviar_a_leer_memoria(int pid,int direccionFIsica, int tamanio){
+    t_paquete* solicitud_lectura = crear_paquete(ACCESO_A_LECTURA);
+    agregar_a_paquete(solicitud_lectura, &pid , sizeof(int));
+    agregar_a_paquete(solicitud_lectura, &direccionFIsica,sizeof(int));
+    agregar_a_paquete(solicitud_lectura, &tamanio,sizeof(int));
+    enviar_paquete(solicitud_lectura, config_cpu->SOCKET_MEMORIA);
+    eliminar_paquete(solicitud_lectura);
+}
 
-// char* recv_leer_memoria(int tamanio){
-//     int size;
-//     char* valor;
-//     void* buffer = recibir_buffer(&size, config_cpu->SOCKET_MEMORIA);
-//     if (buffer == NULL) {
-//         log_error(logger, "Error al recibir el buffer del socket");
-//         exit(-1);
-//     }
-//     memcpy(&valor, buffer, tamanio);
-//     return valor;
-// }   
+char* recv_leer_memoria(int tamanio){
+    int size;
+    char* valor;
+    void* buffer = recibir_buffer(&size, config_cpu->SOCKET_MEMORIA);
+    if (buffer == NULL) {
+        log_error(logger, "Error al recibir el buffer del socket");
+        exit(-1);
+    }
+    memcpy(&valor, buffer, tamanio);
+    return valor;
+}   
 
-// void send_escribi_memoria(int pid,int direccionFIsica, int tamanio,char* valor){
-//     t_paquete* solicitud_escritura = crear_paquete(ACCESO_A_ESCRITURA);
-//     agregar_a_paquete(solicitud_escritura, &pid ,sizeof(int));
-//     agregar_a_paquete(solicitud_escritura, &direccionFIsica,sizeof(int));
-//     agregar_a_paquete(solicitud_escritura, &valor, tamanio);
-//     enviar_paquete(solicitud_escritura, config_cpu->SOCKET_MEMORIA);
-//     eliminar_paquete(solicitud_escritura);
-// }
+void send_escribi_memoria(int pid,int direccionFIsica, int tamanio,char* valor){
+    t_paquete* solicitud_escritura = crear_paquete(ACCESO_A_ESCRITURA);
+    agregar_a_paquete(solicitud_escritura, &pid ,sizeof(int));
+    agregar_a_paquete(solicitud_escritura, &direccionFIsica,sizeof(int));
+    agregar_a_paquete(solicitud_escritura, &valor, tamanio);
+    enviar_paquete(solicitud_escritura, config_cpu->SOCKET_MEMORIA);
+    eliminar_paquete(solicitud_escritura);
+}
 
-// int recv_escribir_memoria(){
-//     int valor,size;
-//     void* buffer = recibir_buffer(&size, config_cpu->SOCKET_MEMORIA);
-//     if (buffer == NULL) {
-//         log_error(logger, "Error al recibir el buffer del socket");
-//     }
-//     memcpy(&valor, buffer, sizeof(int));
-//     return valor;
-// }   
+int recv_escribir_memoria(){
+    int valor,size;
+    void* buffer = recibir_buffer(&size, config_cpu->SOCKET_MEMORIA);
+    if (buffer == NULL) {
+        log_error(logger, "Error al recibir el buffer del socket");
+    }
+    memcpy(&valor, buffer, sizeof(int));
+    return valor;
+}   
 
-// void solicitar_tablas_a_memoria(int numero_pagina){
+void solicitar_tablas_a_memoria(int numero_pagina){
 
-//     t_paquete* paquete_tablas = crear_paquete(ACCEDER_TABLA_PAGINAS);
-//     agregar_a_paquete(paquete_tablas,&pcb->pid,sizeof(int));
-//     agregar_a_paquete(paquete_tablas,&numero_pagina,sizeof(int));
+    t_paquete* paquete_tablas = crear_paquete(ACCEDER_TABLA_PAGINAS);
+    agregar_a_paquete(paquete_tablas,&pcb->pid,sizeof(int));
+    agregar_a_paquete(paquete_tablas,&numero_pagina,sizeof(int));
 
-//     enviar_paquete(paquete_tablas, config_cpu->SOCKET_MEMORIA);
+    enviar_paquete(paquete_tablas, config_cpu->SOCKET_MEMORIA);
 
-//     eliminar_paquete(paquete_tablas);
-// }   
+    eliminar_paquete(paquete_tablas);
+}   
 
 
-// t_tabla_de_paginas_cpu* recv_tablas(){
-//     t_tabla_de_paginas_cpu* tabla = (t_tabla_de_paginas_cpu*)malloc(sizeof(t_tabla_de_paginas_cpu));
-//     if(tabla == NULL){
-//         log_error(logger, "Erorr al asignar memoria para la tabla");
-//         free(tabla);
-//         return NULL;
-//     }
+t_tabla_de_paginas_cpu* recv_tablas(){
+    t_tabla_de_paginas_cpu* tabla = (t_tabla_de_paginas_cpu*)malloc(sizeof(t_tabla_de_paginas_cpu));
+    if(tabla == NULL){
+        log_error(logger, "Erorr al asignar memoria para la tabla");
+        free(tabla);
+        return NULL;
+    }
 
-//     int size;
-//     int desplazamiento = 0;
+    int size;
+    int desplazamiento = 0;
     
-//     void* buffer = recibir_buffer(&size, config_cpu->SOCKET_MEMORIA);
-//     if (buffer == NULL) {
-//         log_error(logger, "Error al recibir el buffer del socket");
-//         free(tabla);
-//         return NULL;
-//     }
-//     // memcpy(&tabla->pid, buffer + desplazamiento, sizeof(int));
-//     // desplazamiento += sizeof(int);
+    void* buffer = recibir_buffer(&size, config_cpu->SOCKET_MEMORIA);
+    if (buffer == NULL) {
+        log_error(logger, "Error al recibir el buffer del socket");
+        free(tabla);
+        return NULL;
+    }
+    // memcpy(&tabla->pid, buffer + desplazamiento, sizeof(int));
+    // desplazamiento += sizeof(int);
 
-//     // memcpy(&tabla->nropagina, buffer + desplazamiento, sizeof(int));
-//     // desplazamiento += sizeof(int);
+    // memcpy(&tabla->nropagina, buffer + desplazamiento, sizeof(int));
+    // desplazamiento += sizeof(int);
 
-//     memcpy(&tabla->marco, buffer + desplazamiento, sizeof(int));
-//     desplazamiento += sizeof(int);
+    memcpy(&tabla->marco, buffer + desplazamiento, sizeof(int));
+    desplazamiento += sizeof(int);
 
-//     free(buffer);
-//     return tabla;
-// }
+    free(buffer);
+    return tabla;
+}
 
-// void send_agrandar_memoria (int pid , int tamanio){
-//     t_paquete* paquete_a_agrandar = crear_paquete(AMPLIACION_MEMORIA);
-//     agregar_a_paquete(paquete_a_agrandar, &pid, sizeof(int));
-//     agregar_a_paquete(paquete_a_agrandar, &tamanio, sizeof(int));
-//     enviar_paquete(paquete_a_agrandar,config_cpu->SOCKET_MEMORIA);
-//     eliminar_paquete(paquete_a_agrandar);
-// }
+void send_agrandar_memoria (int pid , int tamanio){
+    t_paquete* paquete_a_agrandar = crear_paquete(MODIFICAR_TAMAÑO_MEMORIA);
+    agregar_a_paquete(paquete_a_agrandar, &pid, sizeof(int));
+    agregar_a_paquete(paquete_a_agrandar, &tamanio, sizeof(int));
+    enviar_paquete(paquete_a_agrandar,config_cpu->SOCKET_MEMORIA);
+    eliminar_paquete(paquete_a_agrandar);
+}
 
-// int recv_agrandar_memoria() {
-//     int size;
-//     int estado = -1;
-//     void* buffer = recibir_buffer(&size, config_cpu->SOCKET_MEMORIA);
-//     if (buffer == NULL) {
-//         log_error(logger, "Error al recibir el buffer del socket en agrandar memoria");
-//     }
-//     memcpy(&estado, buffer, sizeof(int));
-//     return estado;
-// }
+int recv_agrandar_memoria() {
+    int size;
+    int estado = -1;
+    void* buffer = recibir_buffer(&size, config_cpu->SOCKET_MEMORIA);
+    if (buffer == NULL) {
+        log_error(logger, "Error al recibir el buffer del socket en agrandar memoria");
+    }
+    memcpy(&estado, buffer, sizeof(int));
+    return estado;
+}
 
-// void send_escribi_memoria_string(int pid,int direccionFIsica, int tamanio,char* valor){
-//     t_paquete* solicitud_escritura = crear_paquete(ACCESO_A_ESCRITURA);
-//     agregar_a_paquete(solicitud_escritura, &pid ,sizeof(int));
-//     agregar_a_paquete(solicitud_escritura, &direccionFIsica,sizeof(int));
-//     agregar_a_paquete(solicitud_escritura, &tamanio,sizeof(int));
-//     agregar_a_paquete(solicitud_escritura, &valor,sizeof(int));
-//     enviar_paquete(solicitud_escritura, config_cpu->SOCKET_MEMORIA);
-//     eliminar_paquete(solicitud_escritura);
-// }
+void send_escribi_memoria_string(int pid,int direccionFIsica, int tamanio,char* valor){
+    t_paquete* solicitud_escritura = crear_paquete(ACCESO_A_ESCRITURA);
+    agregar_a_paquete(solicitud_escritura, &pid ,sizeof(int));
+    agregar_a_paquete(solicitud_escritura, &direccionFIsica,sizeof(int));
+    agregar_a_paquete(solicitud_escritura, &tamanio,sizeof(int));
+    agregar_a_paquete(solicitud_escritura, &valor,sizeof(int));
+    enviar_paquete(solicitud_escritura, config_cpu->SOCKET_MEMORIA);
+    eliminar_paquete(solicitud_escritura);
+}
 
-// char* recv_escribir_memoria_string(int tamanio){
-//     int size;
-//     char* valor;
-//     void* buffer = recibir_buffer(&size, config_cpu->SOCKET_MEMORIA);
-//     if (buffer == NULL) {
-//         log_error(logger, "Error al recibir el buffer del socket");
-//     }
-//     memcpy(&valor, buffer, tamanio);
-//     return valor;
-// }   
+char* recv_escribir_memoria_string(int tamanio){
+    int size;
+    char* valor;
+    void* buffer = recibir_buffer(&size, config_cpu->SOCKET_MEMORIA);
+    if (buffer == NULL) {
+        log_error(logger, "Error al recibir el buffer del socket");
+    }
+    memcpy(&valor, buffer, tamanio);
+    return valor;
+}   
 
-// void solicitar_a_kernel_std(char* interfaz ,int tamanio, t_list* direcciones_fisicas,t_paquete* solicitar_std){
-//     enviar_pcb_a_kernel(solicitar_std);   
-//     agregar_a_paquete(solicitar_std,&interfaz,strlen(interfaz) * sizeof(char));
-//     agregar_a_paquete(solicitar_std,&tamanio, sizeof(int));
-//     while (list_is_empty(direcciones_fisicas)){
-//         int* direccion_fisica = (int*)list_remove(direcciones_fisicas, 0);
-//         agregar_a_paquete(solicitar_std, direccion_fisica, sizeof(int));
-//         free(direccion_fisica);
-//     }
-// }
+void solicitar_a_kernel_std(char* interfaz ,int tamanio, t_list* direcciones_fisicas,t_paquete* solicitar_std){
+    int respuesta;
+    recv(config_cpu->SOCKET_KERNEL, &respuesta , sizeof(int), MSG_WAITALL);
+    if(respuesta == 1){
+        t_paquete* paquete_std = crear_paquete (STDIN);
+        agregar_a_paquete_string(paquete_std ,interfaz,strlen(interfaz) + 1);
+        agregar_a_paquete(paquete_std, &tamanio, sizeof(int));
+    while (list_is_empty(direcciones_fisicas)){
+        int* direccion_fisica = (int*)list_remove(direcciones_fisicas, 0);
+        agregar_a_paquete(paquete_std, direccion_fisica, sizeof(int));
+        free(direccion_fisica);
+    }
+    enviar_paquete(paquete_std, config_cpu->SOCKET_KERNEL);
+    eliminar_paquete(paquete_std);
+    }else{log_error(logger , "Erro en la respuesta de desalojo de I/O");}
+}
 
 void mostrar_pcb(t_pcb_cpu* pcb){
     log_info(logger,"PID: %i", pcb->pid);

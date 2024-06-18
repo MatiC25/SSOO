@@ -10,6 +10,7 @@ void send_instruccion(int socket_cliente, char *instruccion, t_list *parametros)
 
 
 t_instruccion* recv_instruccion(int socket_cliente){
+    op_code operacion = recibir_operacion(socket_cliente);
     t_list *parametros = list_create();
 
     int size;
@@ -95,7 +96,7 @@ void solicitar_instruccion(int socket_server, int PID, int program_counter) {
 t_tipo_instruccion obtener_tipo_instruccion(char* instruccion) {
      // Usa esa funcion es la comparacion de strings
     //string_equals_ignore_case
-    
+
     if(strcmp(instruccion, "SET") == 0) {
         return SET;
     } else if(strcmp(instruccion, "MOVE_IN") == 0) {

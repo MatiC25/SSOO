@@ -36,6 +36,7 @@ void leer_archivoPseudo(int socket_kernel) {
     int desplazamiento = 0;
     void *buffer = recibir_buffer(&size, socket_kernel);
 
+    // Recibimos el PID:
     memcpy(&pid, buffer + desplazamiento, sizeof(int));
     desplazamiento += sizeof(int);
 
@@ -49,8 +50,9 @@ void leer_archivoPseudo(int socket_kernel) {
     memcpy(archivo_path, buffer + desplazamiento, tam);
     log_info(logger, "Nombre del archivo recibido: %s", archivo_path);
 
-    // Recibimos el PID:
-    
+    //creamos el proceso asignado al PID
+    crear_proceso(pid);
+
     char* path = crear_path_instrucciones(archivo_path);
 
     //Abrimos archivo_path para leer broOOOOoooOoder
@@ -69,12 +71,12 @@ void leer_archivoPseudo(int socket_kernel) {
     size_t len = 0;      // Tamaño del buffer
     ssize_t read;        
     t_list *lista_de_instrucciones = list_create();
-    t_list *parametros_instruccion = list_create();
+    t_list *parametros_instruccion;
 
-    // Estamos leyendo el archivo, y pasandolo a una lista
+    // leemos el archivo y lo pasamos a una lista
     while ((read = getline(&cadena, &len, archivo)) != -1) { // && program_counter != -1
-        parametros = string_split(cadena, " ");
-        parametros_instruccion = list_create();
+        parametros = string_split(cadena, " "); //separamos los parametros
+        parametros_instruccion = list_create(); 
 
         for (int i = 0; parametros[i] != NULL; i++) {
             list_add(parametros_instruccion, strdup(parametros[i])); // Duplicar la cadena

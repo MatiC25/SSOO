@@ -19,6 +19,7 @@
 #include <utils/shared.h>
 #include <utils/logger.h>
 #include "memoria_estructuras_compartidas.h"
+#include "memoria_peticiones.h"
 
 
 extern pthread_mutex_t mutex_instrucciones;

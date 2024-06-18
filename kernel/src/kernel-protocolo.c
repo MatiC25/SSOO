@@ -97,98 +97,144 @@ void rcv_nombre_interfaz_dispatch(char **interface_name, int socket) {
     rcv_nombre_interfaz(interface_name, buffer, &desplazamiento, &tamanio);
 }
 
-t_list *rcv_argumentos_para_io(tipo_interfaz tipo_de_interfaz, int socket) {
+// t_list *rcv_argumentos_para_io(tipo_interfaz tipo_de_interfaz, int socket) {
+//     t_list *args = list_create();
+
+//     switch(tipo_de_interfaz) {
+//         case GENERICA:
+//             rcv_argumentos_para_io_generica(args, socket);
+//             break;
+//         case STDIN:
+//         case STDOUT:
+//             rcv_argumentos_para_io_std(args, socket);
+//             break;
+//         default:
+//             // Manejo de error o caso por defecto
+//             break;
+//     }
+
+//     return args;
+// }
+
+// void rcv_argumentos_para_io_generica(t_list *args, void *buffer, int *desplazamiento, int socket) {
+//     int tiempo_sleep;
+//     memcpy(&tiempo_sleep, buffer + *desplazamiento, sizeof(int));
+//     *desplazamiento += sizeof(int);
+
+//     int *tiempo_sleep_ptr = malloc(sizeof(int));
+//     if (tiempo_sleep_ptr == NULL) {
+//         // Manejo de error si malloc falla
+//         fprintf(stderr, "Error: malloc falló\n");
+//         return;
+//     }
+
+//     *tiempo_sleep_ptr = tiempo_sleep;
+//     list_add(args, tiempo_sleep_ptr);
+// }
+
+// void rcv_argumentos_para_io_std(t_list *args, int socket) {
+//     int size;
+//     int desplazamiento = 0;
+//     int direccion_fisica;
+//     int bytes_a_leer;
+//     void *buffer = recibir_buffer(&size, socket);
+
+//     if (buffer == NULL) {
+//         // Manejo de error si recibir_buffer retorna NULL
+//         fprintf(stderr, "Error: recibir_buffer retornó NULL\n");
+//         return;
+//     }
+
+//     memcpy(&direccion_fisica, buffer + desplazamiento, sizeof(int));
+//     desplazamiento += sizeof(int);
+
+//     memcpy(&bytes_a_leer, buffer + desplazamiento, sizeof(int));
+//     desplazamiento += sizeof(int);
+
+//     // Asignar memoria para los enteros antes de añadirlos a la lista
+//     int *direccion_fisica_ptr = malloc(sizeof(int));
+//     int *bytes_a_leer_ptr = malloc(sizeof(int));
+
+//     if (direccion_fisica_ptr == NULL || bytes_a_leer_ptr == NULL) {
+//         // Manejo de error si malloc falla
+//         fprintf(stderr, "Error: malloc falló\n");
+//         free(direccion_fisica_ptr);
+//         free(bytes_a_leer_ptr);
+//         free(buffer); // Liberar el buffer recibido
+//         return;
+//     }
+
+//     *direccion_fisica_ptr = direccion_fisica;
+//     *bytes_a_leer_ptr = bytes_a_leer;
+
+//     list_add(args, direccion_fisica_ptr);
+//     list_add(args, bytes_a_leer_ptr);
+
+//     // Liberar el buffer recibido
+//     free(buffer);
+// }
+
+t_list * recv_interfaz_y_argumentos(int socket) {
+    char *interface_name;
+    tipo_operacion tipo;
     t_list *args = list_create();
+    t_list *interfaz_y_argumentos = list_create();
 
-    switch(tipo_de_interfaz) {
-        case GENERICA:
-            rcv_argumentos_para_io_generica(args, socket);
-            break;
-        case STDIN:
-        case STDOUT:
-            rcv_argumentos_para_io_std(args, socket);
-            break;
-        default:
-            // Manejo de error o caso por defecto
-            break;
-    }
-
-    return args;
-}
-
-void rcv_argumentos_para_io_generica(t_list *args, int socket) {
     int size;
     int desplazamiento = 0;
-    int tiempo_sleep;
+    int tamanio;
     void *buffer = recibir_buffer(&size, socket);
 
-    if (buffer == NULL) {
-        // Manejo de error si recibir_buffer retorna NULL
-        fprintf(stderr, "Error: recibir_buffer retornó NULL\n");
-        return;
-    }
+    memcpy(&tipo, buffer + desplazamiento, sizeof(tipo_operacion));
+    desplazamiento += sizeof(tipo_operacion);
 
-    memcpy(&tiempo_sleep, buffer + desplazamiento, sizeof(int));
+    // log_info(logger, "Tipo de operación: %d", tipo);
+
+    list_add(interfaz_y_argumentos, &tipo);
+
+    memcpy(&tamanio, buffer + desplazamiento, sizeof(int));
     desplazamiento += sizeof(int);
 
-    // Asignar memoria para el entero antes de añadirlo a la lista
-    int *tiempo_sleep_ptr = malloc(sizeof(int));
-    if (tiempo_sleep_ptr == NULL) {
-        // Manejo de error si malloc falla
-        fprintf(stderr, "Error: malloc falló\n");
-        free(buffer); // Liberar el buffer recibido
-        return;
+    interface_name = malloc(tamanio);
+    memcpy(interface_name, buffer + desplazamiento, tamanio);
+
+    log_info(logger, "Nombre de la interfaz: %s", interface_name);
+
+    list_add(interfaz_y_argumentos, interface_name);
+
+    while(desplazamiento < size) {
+        memcpy(&tamanio, buffer + desplazamiento, sizeof(int));
+        void *argumento = malloc(tamanio);
+        desplazamiento += sizeof(int);
+        memcpy(argumento, buffer + desplazamiento, tamanio);
+        desplazamiento += tamanio;
+
+        list_add(args, argumento);
     }
 
-    *tiempo_sleep_ptr = tiempo_sleep;
-    list_add(args, tiempo_sleep_ptr);
+    list_add(interfaz_y_argumentos, args);
 
-    // Liberar el buffer recibido
-    free(buffer);
+    return interfaz_y_argumentos;
 }
 
-void rcv_argumentos_para_io_std(t_list *args, int socket) {
-    int size;
-    int desplazamiento = 0;
-    int direccion_fisica;
-    int bytes_a_leer;
-    void *buffer = recibir_buffer(&size, socket);
+// t_list *rcv_argumentos_para_io(tipo_interfaz tipo_de_interfaz, void *buffer, int *desplazamiento) {
+//     t_list *args = list_create();
 
-    if (buffer == NULL) {
-        // Manejo de error si recibir_buffer retorna NULL
-        fprintf(stderr, "Error: recibir_buffer retornó NULL\n");
-        return;
-    }
+//     switch(tipo_de_interfaz) {
+//         case GENERICA:
+//             rcv_argumentos_para_io_generica(args, buffer, desplazamiento);
+//             break;
+//         case STDIN:
+//         case STDOUT:
+//             // rcv_argumentos_para_io_std(args, buffer, desplazamiento);
+//             break;
+//         default:
+//             // Manejo de error o caso por defecto
+//             break;
+//     }
 
-    memcpy(&direccion_fisica, buffer + desplazamiento, sizeof(int));
-    desplazamiento += sizeof(int);
-
-    memcpy(&bytes_a_leer, buffer + desplazamiento, sizeof(int));
-    desplazamiento += sizeof(int);
-
-    // Asignar memoria para los enteros antes de añadirlos a la lista
-    int *direccion_fisica_ptr = malloc(sizeof(int));
-    int *bytes_a_leer_ptr = malloc(sizeof(int));
-
-    if (direccion_fisica_ptr == NULL || bytes_a_leer_ptr == NULL) {
-        // Manejo de error si malloc falla
-        fprintf(stderr, "Error: malloc falló\n");
-        free(direccion_fisica_ptr);
-        free(bytes_a_leer_ptr);
-        free(buffer); // Liberar el buffer recibido
-        return;
-    }
-
-    *direccion_fisica_ptr = direccion_fisica;
-    *bytes_a_leer_ptr = bytes_a_leer;
-
-    list_add(args, direccion_fisica_ptr);
-    list_add(args, bytes_a_leer_ptr);
-
-    // Liberar el buffer recibido
-    free(buffer);
-}
-
+//     return args;
+// }
 
 void rcv_nombre_interfaz(char **interface_name, void *buffer, int *desplazamiento, int *size) { 
     // Primero, copiamos el tamaño del nombre de la interfaz desde el buffer al tamaño especificado
