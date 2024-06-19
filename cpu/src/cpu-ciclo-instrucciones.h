@@ -13,6 +13,7 @@
 #include <utils/logger.h>
 #include <utils/instrucciones.h>
 #include <utils/protocolo.h>
+#include <utils/estructuras_compartidas.h>
 #include "cpu.h"
 #include "cpu-estructuras.h"
 #include "comunicaciones.h"
@@ -49,7 +50,10 @@ void ejecutar_IO_FS_TRUNCATE(char* intefaz, char* nombre_archivo, char* registro
 void ejecutar_IO_FD_WRITE(char* intefaz, char* nombre_archivo, char* registro_direccion, char* registro_tamanio, char* puntero_archivo);
 void ejecutar_IO_FS_READ(char* intefaz, char* nombre_archivo, char* registro_direccion, char* registro_tamanio, char* puntero_archivo);
 
-
+void esperar_respuesta_de_kernel(int socket_cliente);
+void send_nombre_interfaz(char *interfazAUsar);
+void send_operacion_a_kernel(int operacion);
+void send_parametro_a_kernel(int parametro);
 
 
 #endif

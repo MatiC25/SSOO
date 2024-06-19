@@ -278,12 +278,40 @@ void ejecutar_IO_GEN_SLEEP(char* interfazAUsar, char* tiempoDeTrabajo){
     log_warning(logger, "Numero de respuesta es %i", respuesta);
 
     if(respuesta == 1){
-        t_paquete* paquete = crear_paquete(IO_GEN_SLEEP);
-        agregar_a_paquete_string(paquete_a_kernel, interfazAUsar, strlen(interfazAUsar) + 1);
+        t_paquete* paquete = crear_paquete(IO_GEN_SLEEP_INT);
         agregar_a_paquete (paquete_a_kernel ,&tiempo, sizeof(int));
+        agregar_a_paquete_string(paquete_a_kernel, interfazAUsar, strlen(interfazAUsar) + 1);
         enviar_paquete(paquete_a_kernel,config_cpu->SOCKET_KERNEL);
         eliminar_paquete(paquete_a_kernel);
-    }else{log_error(logger , "Erro en la respuesta de desalojo de I/O");}
+    }else{log_error(logger , "ErroR en la respuesta de desalojo de I/O");}
+}
+
+
+void esperar_respuesta_de_kernel(int socket_kernel) {
+    int response;
+
+    recv(socket_kernel, &response, sizeof(int), 0);
+
+    if(response == -1)
+        log_error(logger, "Error en la respuesta del kernel");
+}
+
+void send_nombre_interfaz(char *interfazAUsar) {
+    size_t size = strlen(interfazAUsar) + 1;
+
+    log_info(logger, "Enviando interfaz a kernel: %s", interfazAUsar);
+    log_info(logger, "Tamaño de la interfaz: %zu", size);
+
+    send(config_cpu->SOCKET_KERNEL, &size, sizeof(size_t), 0);
+    send(config_cpu->SOCKET_KERNEL, interfazAUsar, size, 0);
+}
+
+void send_operacion_a_kernel(int operacion) {
+    send(config_cpu->SOCKET_KERNEL, &operacion, sizeof(int), 0);
+}
+
+void send_parametro_a_kernel(int parametro) {
+    send(config_cpu->SOCKET_KERNEL, &parametro, sizeof(int), 0);
 }
 
 

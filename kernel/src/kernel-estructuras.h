@@ -50,6 +50,7 @@ extern t_list* cola_new;
 extern t_list* cola_ready; 
 extern t_list* cola_prima_VRR;
 extern t_list* cola_block;
+extern t_list* cola_exec;
 extern t_queue* colas_resource_block[MAX_RECURSOS];
 
 extern t_recursos_pedidos* vector_recursos_pedidos;

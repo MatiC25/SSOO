@@ -14,6 +14,8 @@ void inicializar_lista(){
     cola_new = list_create();
     cola_ready = list_create();
     cola_prima_VRR = list_create();
+    cola_block = list_create();
+    cola_exec = list_create();
 }
 
 void aceptar_interfaces(int socket_servidor) {

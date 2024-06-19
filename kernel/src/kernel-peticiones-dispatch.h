@@ -7,6 +7,7 @@
 #include <errno.h>
 #include <utils/instrucciones.h>
 #include "kernel-config.h"
+#include "kernel-protocolo.h"
 #include "planificacion.h"
 
 void hilo_motivo_de_desalojo();

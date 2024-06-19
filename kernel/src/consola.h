@@ -13,9 +13,9 @@
 #include "planificacion.h"
 #include "kernel-peticiones-dispatch.h"
 
-#define CENTINELA '\n'
-#define MAX_COMMAND_LETTERS 25
-
+#define CENTINELA "\n"
+#define MAX_COMMAND_LETTERS 100
+extern int pid_buscado_global;
 typedef struct {
     char* nombre;
     void* (*funcion)(void*); // Firma de las funciones!
@@ -41,7 +41,7 @@ char *estado_proceso(int estado);
 void *multiprogramacion(void *args);
 void *ejecutar_script(void *args);
 void *finalizar_proceso(void *pid);
-bool es_el_proceso_buscado(void* elemento, void* aux);
+bool es_el_proceso_buscado(void* elemento);
 bool existe_proceso_con_pid_ingresado(t_list* cola_a_buscar_pid, int pid_buscado);
 t_pcb* pcb_encontrado(t_list* cola_a_buscar_pid, int pid_buscado);
 //void *detener_planificacion(void* args);

@@ -162,6 +162,7 @@ void agregar_a_paquete_string(t_paquete* paquete, char* cadena, int tamanio) {
     paquete->buffer->stream = realloc(paquete->buffer->stream, paquete->buffer->size + tamanio);
     memcpy(paquete->buffer->stream + paquete->buffer->size, cadena, tamanio);
     paquete->buffer->size += tamanio;
+   
 }
 
 
@@ -352,6 +353,13 @@ void enviar_buffer(void* buffer, size_t tamanio, int socket){
 	
 }
 
+void rcv_string(char **string, int socket_cliente) {
+    int size;
+
+    recv(socket_cliente, &size, sizeof(int), MSG_WAITALL);
+    *string = malloc(size);
+    recv(socket_cliente, *string, size, MSG_WAITALL);
+}
 
 // void recv_archi_pid(int socket_cliente, char **path, int* pid){ // Se usan punteros xq necesitamos modificar las variables que se pasan por parametro
 // 	int size;

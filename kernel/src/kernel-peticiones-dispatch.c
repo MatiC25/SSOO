@@ -53,7 +53,7 @@ void* escuchar_peticiones_dispatch() {
                 break;
             default:
                 log_error(logger, "El motivo de desalojo no existe!");
-                return;
+                break;
         }
     }
     
@@ -145,10 +145,6 @@ void peticion_exit(const char *tipo_de_exit) {
     
     log_info(logger, "Se manda a Memoria para liberar el Proceso");
     // informar_a_memoria_liberacion_proceso(pcb->pid);
-
-    free(pcb->registros);
-    free(pcb);
-
     log_info(logger, "Aumentamos Grado de Multiprogramacion por EXIT");
     sem_post(&sem_multiprogramacion);
 }
@@ -244,23 +240,25 @@ void peticion_signal() {
 }
 
 
-void mover_a_bloqueado_por_wait(t_pcb* pcb, char* motivo) {
-    log_info(logger, "PID: %i - Bloqueado por: %s", pcb->pid, motivo);
-    int indice_recurso = obtener_indice_recurso(motivo);
+void mover_a_bloqueado_por_wait(t_pcb* pcb, char* recurso) {
+
+    int indice_recurso = obtener_indice_recurso(recurso);
 
     pthread_mutex_lock(&mutex_estado_block);
     pcb->estado = BLOCK;
     queue_push(colas_resource_block[indice_recurso], pcb);
     pthread_mutex_unlock(&mutex_estado_block);
 
-    mover_a_cola_block_general(pcb);
+    mover_a_cola_block_general(pcb, recurso);
 
-    log_info(logger, "PID: %i - Estado Anterior: EXEC - Estado Actual: BLOCK", pcb->pid);
 }
 
 
-void mover_a_cola_block_general(t_pcb* pcb) {
+void mover_a_cola_block_general(t_pcb* pcb, char* motivo) {
+    log_info(logger, "PID: %i - Estado Anterior: EXEC - Estado Actual: BLOCK", pcb->pid);
+
     pthread_mutex_lock(&mutex_cola_block);
+    log_info(logger, "PID: %i - Bloqueado por: %s", pcb->pid, motivo);
     list_add(cola_block, pcb);
     pthread_mutex_unlock(&mutex_cola_block);
 }
@@ -322,41 +320,40 @@ void peticion_IO() {
     send(config_kernel->SOCKET_DISPATCH, &response, sizeof(int), 0);
     
     t_list *interfaz_y_argumentos = recv_interfaz_y_argumentos(config_kernel->SOCKET_DISPATCH);
-    t_list *args = list_get(interfaz_y_argumentos, 2);
-    char *nombre_interfaz = list_get(interfaz_y_argumentos, 1);
-    tipo_operacion operacion = (tipo_operacion) list_get(interfaz_y_argumentos, 0);
 
-
-    log_info(logger, "Nombre de la interfaz:  %s", nombre_interfaz);
+    tipo_operacion *operacion = list_get(interfaz_y_argumentos, 0);
+    t_list *args = list_get(interfaz_y_argumentos, 1);
+    char *nombre_interfaz = list_get(interfaz_y_argumentos, 2);
     
     interface_io* interface = get_interface_from_dict(nombre_interfaz);
+
     if (!interface) {
         finalizar_por_invalidacion(pcb_bloqueado, "INVALID_INTERFACE");
         free(nombre_interfaz);
         return;
     }
 
-    // tipo_operacion operacion = recibir_operacion(config_kernel->SOCKET_DISPATCH);
-    if (!acepta_operacion_interfaz(interface, operacion)) {
+    // // tipo_operacion operacion = recibir_operacion(config_kernel->SOCKET_DISPATCH);
+    if (!acepta_operacion_interfaz(interface, *operacion)) {
         finalizar_por_invalidacion(pcb_bloqueado, "INVALID_INTERFACE");
         free(nombre_interfaz);
         return;
     }
 
-    // t_list* args = rcv_argumentos_para_io(interface->tipo, config_kernel->SOCKET_DISPATCH);
+    // // t_list* args = rcv_argumentos_para_io(interface->tipo, config_kernel->SOCKET_DISPATCH);
 
-    for(int i = 0; i < list_size(args); i++) {
-        log_info(logger, "Argumento %i: %i", i, list_get(args, i));
-    }
+    // for(int i = 0; i < list_size(args); i++) {
+    //     log_info(logger, "Argumento %i: %i", i, list_get(args, i));
+    // }
+    
+    mover_a_cola_block_general(pcb_bloqueado, "INTERFAZ");
 
-    // pthread_mutex_lock(&mutex_estado_block);
-    // queue_push(interface->process_blocked, pcb);
-    // queue_push(interface->args_process, args);
-    // sem_post(&interface->size_blocked);
-    // pthread_mutex_unlock(&mutex_estado_block);
-
+    queue_push(interface->process_blocked, pcb_bloqueado);
+    queue_push(interface->args_process, args);
+    sem_post(&interface->size_blocked);
     // free(interface_name);
 }
+
 
 
 void rcv_nombre_recurso(char** recurso, int socket) {

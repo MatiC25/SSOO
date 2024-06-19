@@ -75,8 +75,11 @@ void consumers_pcbs_blockeds(void *args) {
         // Esto tenemos que cambiarlo, es solo para probar:
         send_message_to_interface(interface, args_pcb, &response, socket_with_interface);
         
-        if(response == 1)
+        if(response == 1) {
+            
+            log_info(logger, "HICE BIEN MI PRODECIMIENTO!");
             mover_procesos_de_bloqueado_a_ready(pcb);
+        }
 
         sem_post(&interface->semaforo_used);
     }

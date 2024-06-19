@@ -175,44 +175,82 @@ void rcv_nombre_interfaz_dispatch(char **interface_name, int socket) {
 // }
 
 t_list * recv_interfaz_y_argumentos(int socket) {
-    char *interface_name;
-    tipo_operacion tipo;
+    int tipo;
     t_list *args = list_create();
     t_list *interfaz_y_argumentos = list_create();
 
+    recv(socket, &tipo, sizeof(int), 0);
+
+    log_info(logger, "Tipo de interfaz: %i", tipo);
+
     int size;
     int desplazamiento = 0;
+    int argumento;
     int tamanio;
     void *buffer = recibir_buffer(&size, socket);
 
-    memcpy(&tipo, buffer + desplazamiento, sizeof(tipo_operacion));
-    desplazamiento += sizeof(tipo_operacion);
+    if (buffer == NULL) {
+        log_error(logger, "Error al recibir el buffer");
+        return;
+    }
 
-    // log_info(logger, "Tipo de operación: %d", tipo);
+    // Deserializar el tipo
+    // Crear una copia de 'tipo' para agregar a la lista
+    int *tipo_copia = malloc(sizeof(int));
+    if (tipo_copia == NULL) {
+        log_error(logger, "Error al asignar memoria para tipo");
+        free(buffer);
+        return;
+    }
+    *tipo_copia = tipo;
 
-    list_add(interfaz_y_argumentos, &tipo);
+    list_add(interfaz_y_argumentos, tipo_copia); // 0
 
+    // log_info(logger, "Tipo de interfaz: %d", tipo);
+
+    // Deserializar el argumento
+    memcpy(&argumento, buffer + desplazamiento, sizeof(int));
+    desplazamiento += sizeof(int);
+
+    // log_info(logger, "Argumento: %d", argumento);
+
+    // Crear una copia de 'argumento' para agregar a la lista
+    int *argumento_copia = malloc(sizeof(int));
+    *argumento_copia = argumento;
+    list_add(args, argumento_copia); 
+    list_add(interfaz_y_argumentos, args); // 1
+    // Deserializar el tamaño del nombre de la interfaz
     memcpy(&tamanio, buffer + desplazamiento, sizeof(int));
     desplazamiento += sizeof(int);
 
-    interface_name = malloc(tamanio);
-    memcpy(interface_name, buffer + desplazamiento, tamanio);
+    log_info(logger, "Tamaño del nombre de la interfaz: %d", tamanio);
 
-    log_info(logger, "Nombre de la interfaz: %s", interface_name);
-
-    list_add(interfaz_y_argumentos, interface_name);
-
-    while(desplazamiento < size) {
-        memcpy(&tamanio, buffer + desplazamiento, sizeof(int));
-        void *argumento = malloc(tamanio);
-        desplazamiento += sizeof(int);
-        memcpy(argumento, buffer + desplazamiento, tamanio);
-        desplazamiento += tamanio;
-
-        list_add(args, argumento);
+    // Verificar y asignar memoria para el nombre de la interfaz
+    char *interface_name = malloc(tamanio);
+    if (interface_name == NULL) {
+        log_error(logger, "Error al asignar memoria para el nombre de la interfaz");
+        free(tipo_copia);
+        free(buffer);
+        return;
     }
+    memcpy(interface_name, buffer + desplazamiento, tamanio);
+    desplazamiento += tamanio;
 
-    list_add(interfaz_y_argumentos, args);
+    // log_info(logger, "Nombre de la interfaz: %s", interface_name);
+    list_add(interfaz_y_argumentos, interface_name); // 2
+    // log_info(logger, "Argumento: %d", argumento);
+
+    // Liberar el buffer después de usarlo
+    free(buffer);
+
+    //     memcpy(&tamanio, buffer + desplazamiento, sizeof(int));
+    //     void *argumento = malloc(tamanio);
+    //     desplazamiento += sizeof(int);
+    //     memcpy(argumento, buffer + desplazamiento, tamanio);
+    //     desplazamiento += tamanio;
+
+    //     list_add(args, argumento);
+    // }
 
     return interfaz_y_argumentos;
 }
