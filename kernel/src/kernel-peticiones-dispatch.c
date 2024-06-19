@@ -35,6 +35,8 @@ void* escuchar_peticiones_dispatch() {
 
         log_info(logger, "Motivo de desalojo: %i", motivo_desalojo);
 
+        puede_ejecutar_otro_proceso();
+
         switch (motivo_desalojo) {
             case FIN_QUANTUM:
                 peticion_fin_quantum();
@@ -55,6 +57,7 @@ void* escuchar_peticiones_dispatch() {
                 log_error(logger, "El motivo de desalojo no existe!");
                 break;
         }
+
     }
     
     return NULL;
@@ -141,7 +144,7 @@ void peticion_exit(const char *tipo_de_exit) {
     log_info(logger, "Finaliza el proceso %i - Motivo: %s", pcb->pid, tipo_de_exit);
 
     // Verificar si el proceso tiene algún recurso asociado
-    liberar_recurso_por_exit(pcb);
+    // liberar_recurso_por_exit(pcb);
     
     log_info(logger, "Se manda a Memoria para liberar el Proceso");
     // informar_a_memoria_liberacion_proceso(pcb->pid);

@@ -54,6 +54,7 @@ void destruir_semaforos();
 void mostrar_lista_de_pids(t_list* lista);
 void mostrar_pid (t_pcb* pcb);
 void ingresar_a_exec(t_pcb* pcb);
+void puede_ejecutar_otro_proceso();
 
 
 #endif

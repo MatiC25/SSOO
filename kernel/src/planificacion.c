@@ -14,7 +14,9 @@ sem_t hay_en_estado_ready;
 sem_t hay_en_estado_new;
 sem_t cortar_sleep;
 sem_t desalojo_proceso;
+sem_t hay_proceso_exec;
 int pid = 0;
+int hay_alguien_esta_ejecutando = 0;
 
 t_pcb* proceso_en_exec = NULL;
 
@@ -42,6 +44,7 @@ void inicializacion_semaforos() {
     sem_init(&sem_multiprogramacion, 0, 0);
     sem_init(&cortar_sleep, 0, 0);
     sem_init(&desalojo_proceso, 0, 0);
+    sem_init(&hay_proceso_exec, 0, 1);
 }
 
 
@@ -81,8 +84,19 @@ void creacion_proceso(char *archivo_de_proceso) {
     pcb->estado = NEW;
     
     log_info(logger, "Se crea el proceso %i en NEW", pcb->pid);
-    agregar_a_cola_estado_new(pcb);
     informar_a_memoria_creacion_proceso(archivo_de_proceso, pcb->pid);
+
+    int response;
+    int socket_memoria = config_kernel->SOCKET_MEMORIA;
+
+    recv(socket_memoria, &response, sizeof(int), 0);
+
+    if(response == 1) {
+        log_info(logger, "Se agregado un nuevo proceso a ready!");
+        agregar_a_cola_estado_new(pcb);
+    } else {
+        log_error(logger, "Error al intentar agregar un nuevo proceso.");
+    }
 } 
 
 
@@ -103,7 +117,7 @@ void* agregar_a_cola_ready() {
         t_pcb* proceso = obtener_siguiente_a_ready();
         pthread_mutex_lock(&mutex_estado_ready);
         list_add(cola_ready, proceso);
-        //log_info(logger, "PID: %i - Estado Anterior: NEW - Estado Actual: READY", proceso->pid);
+        log_info(logger, "PID: %i - Estado Anterior: NEW - Estado Actual: READY", proceso->pid);
         pthread_mutex_unlock(&mutex_estado_ready);
         
         //mostrar_lista_de_pids(cola_ready);
@@ -245,21 +259,35 @@ void hilo_planificador_cortoplazo_VRR() {
 // }
 
 void* planificador_cortoplazo_fifo(void* arg) {
+    sem_wait(&habilitar_corto_plazo);
     while (1) {
         
-        sem_wait(&habilitar_corto_plazo);
+        // Espera hasta que haya un proceso en el estado ready
         sem_wait(&hay_en_estado_ready);
 
+        // Bloquea el acceso a la cola de estado ready
         pthread_mutex_lock(&mutex_estado_ready);
 
+        // Remueve el primer proceso de la cola ready
         proceso_en_exec = list_remove(cola_ready, 0);
 
+        // Desbloquea el acceso a la cola de estado ready
         pthread_mutex_unlock(&mutex_estado_ready);
 
-        ingresar_a_exec(proceso_en_exec);
+        // Indica que hay un proceso en ejecución
+        
+        // Envia el proceso a la CPU
+        sem_wait(&hay_proceso_exec);
+        enviar_proceso_a_cpu(proceso_en_exec);
+        // hay_alguien_esta_ejecutando = 1;
 
+        // Espera hasta que se pueda ejecutar otro proceso
     }
     return NULL;
+}
+
+void puede_ejecutar_otro_proceso() {
+    sem_post(&hay_proceso_exec);
 }
 
 

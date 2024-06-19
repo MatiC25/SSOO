@@ -45,7 +45,7 @@ void* escuchar_peticiones(void* args){
             terminar_proceso(socket_cliente);
             break;
         case INSTRUCCION: 
-            // retardo_pedido(config_memoria -> retardo_respuesta);
+            retardo_pedido(config_memoria -> retardo_respuesta);
             // sem_wait(&enviar_instruc);
             log_info(logger, "Enviando instruccion");
             enviar_instruccion_a_cpu(socket_cliente);
