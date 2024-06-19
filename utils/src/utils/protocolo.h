@@ -18,7 +18,7 @@
 #include <readline/readline.h>
 
 typedef enum { //podemos juntar todos los procesos 
-     MENSAJE,
+    MENSAJE,
     PAQUETE,
     //INTERRUPT,
     RECIBIR_PROCESO,

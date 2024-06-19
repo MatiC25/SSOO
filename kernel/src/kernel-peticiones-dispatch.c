@@ -33,10 +33,6 @@ void* escuchar_peticiones_dispatch() {
 
         const char* tipo_de_exit = transformar_motivos_a_exit(&motivo_desalojo);
 
-        log_info(logger, "Motivo de desalojo: %i", motivo_desalojo);
-
-        puede_ejecutar_otro_proceso();
-
         switch (motivo_desalojo) {
             case FIN_QUANTUM:
                 peticion_fin_quantum();
@@ -57,6 +53,8 @@ void* escuchar_peticiones_dispatch() {
                 log_error(logger, "El motivo de desalojo no existe!");
                 break;
         }
+        
+        puede_ejecutar_otro_proceso();
 
     }
     
@@ -89,30 +87,31 @@ const char* transformar_motivos_a_exit(t_tipo_instruccion* motivo_inicial) {
 void peticion_fin_quantum() {
 
     pthread_mutex_lock(&mutex_proceso_exec);
-    t_pcb* proceso_actual = rcv_contexto_ejecucion(config_kernel->SOCKET_DISPATCH);
+    proceso_en_exec = rcv_contexto_ejecucion(config_kernel->SOCKET_DISPATCH);
     pthread_mutex_unlock(&mutex_proceso_exec);
 
-    if (!proceso_actual) {
+    if (!proceso_en_exec) {
         log_error(logger, "Dispatch acaba de recibir algo inexistente!");
         return;
     }
 
     sem_post(&desalojo_proceso);
+    log_info(logger, "PID: %i - Desalojado por fin de Quantum", proceso_en_exec->pid);
 
-    log_info(logger, "PID: %i - Desalojado por fin de Quantum", proceso_actual->pid);
-
-    // Reinsertar el proceso en la cola de READY
-    pthread_mutex_lock(&mutex_estado_ready);
+    if(proceso_en_exec->pid == 1) {
+        log_info(logger, "El proceso %i no puede ser desalojado", proceso_en_exec->pid);
+    }
 
     pthread_mutex_lock(&mutex_proceso_exec);
-    proceso_actual->quantum = 0;
-    proceso_actual->estado = READY;
+    proceso_en_exec->quantum = 0;
+    proceso_en_exec->estado = READY;
     pthread_mutex_unlock(&mutex_proceso_exec);
 
-    list_add(cola_ready, proceso_actual);
-    log_info(logger, "PID: %i - Estado Anterior: EXEC - Estado Actual: READY", proceso_actual->pid);
-
+    pthread_mutex_lock(&mutex_estado_ready);
+    list_add(cola_ready, proceso_en_exec);
     pthread_mutex_unlock(&mutex_estado_ready);
+
+    log_info(logger, "PID: %i - Estado Anterior: EXEC - Estado Actual: READY \n", proceso_en_exec->pid);
 
     sem_post(&hay_en_estado_ready);
 }
@@ -121,29 +120,15 @@ void peticion_fin_quantum() {
 void peticion_exit(const char *tipo_de_exit) {
 
     t_pcb* pcb = rcv_contexto_ejecucion(config_kernel->SOCKET_DISPATCH);
-    log_info(logger, "PID: %i", pcb->pid);
-    log_info(logger, "Program Counter: %i", pcb->program_counter);
-    log_info(logger, "PC: %i", pcb->registros->PC);
-    log_info(logger, "AX: %i", pcb->registros->AX);
-    log_info(logger, "BX: %i", pcb->registros->BX);
-    log_info(logger, "CX: %i", pcb->registros->CX);
-    log_info(logger, "DX: %i", pcb->registros->DX);
-    log_info(logger, "EAX: %i", pcb->registros->EAX);
-    log_info(logger, "EBX: %i", pcb->registros->EBX);
-    log_info(logger, "ECX: %i", pcb->registros->ECX);
-    log_info(logger, "EDX: %i", pcb->registros->EDX);
-    log_info(logger, "SI: %i", pcb->registros->SI);
-    log_info(logger, "DI: %i", pcb->registros->DI);
+    log_warning(logger, "¡Hay que finalizar proceso!");
+    //mostrar_pcb(pcb);
     if (!pcb) {
         log_error(logger, "Dispatch acaba de recibir algo inexistente!");
         return;
     }
 
-    //const char *tipo_de_exit = transformar_motivos_a_exit(tipo_de_exit);
-
     log_info(logger, "Finaliza el proceso %i - Motivo: %s", pcb->pid, tipo_de_exit);
 
-    // Verificar si el proceso tiene algún recurso asociado
     // liberar_recurso_por_exit(pcb);
     
     log_info(logger, "Se manda a Memoria para liberar el Proceso");
@@ -261,9 +246,11 @@ void mover_a_cola_block_general(t_pcb* pcb, char* motivo) {
     log_info(logger, "PID: %i - Estado Anterior: EXEC - Estado Actual: BLOCK", pcb->pid);
 
     pthread_mutex_lock(&mutex_cola_block);
-    log_info(logger, "PID: %i - Bloqueado por: %s", pcb->pid, motivo);
+    log_info(logger, "PID: %i - Bloqueado por: %s \n", pcb->pid, motivo);
     list_add(cola_block, pcb);
     pthread_mutex_unlock(&mutex_cola_block);
+
+    sem_post(&hay_proceso_en_bloq);
 }
 
 
@@ -312,6 +299,10 @@ t_pcb* recibir_contexto_y_recurso(char** recurso) {
 
 void peticion_IO() {
     t_pcb* pcb_bloqueado = rcv_contexto_ejecucion(config_kernel->SOCKET_DISPATCH);
+
+    sem_post(&desalojo_proceso);
+
+    // log_warning(logger, "¡Llego una IO, desalojemos Proceso!");
 
     if (!pcb_bloqueado) {
         log_error(logger, "Error al recibir el contexto de ejecución para IO");

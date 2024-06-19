@@ -1,15 +1,15 @@
 #include "memoria_peticiones.h"
 
-sem_t enviar_instruc;
+sem_t enviar_instruccion;
 sem_t sem_lectura_archivo;
 
 void inicializar_semaforo() {
-    sem_init(&enviar_instruc, 0, 0);
+    sem_init(&enviar_instruccion, 0, 0);
     sem_init(&sem_lectura_archivo, 0, 1);
 }
-/* Initialize semaphore object SEM to VALUE.  If PSHARED then share it
-   with other processes.  */
-//extern int sem_init (sem_t *__sem, int __pshared, unsigned int __value)
+// void hacer_signal(){
+//     sem_post(&enviar_instruccion);
+// }
 
 void* escuchar_peticiones(void* args){
     int socket_cliente = *(int*) args;
@@ -33,12 +33,12 @@ void* escuchar_peticiones(void* args){
             handshake_desde_memoria(socket_cliente);
             break;
         case INICIAR_PROCESO:
-            //sem_wait(&sem_lectura_archivo);
+            // sem_wait(&sem_lectura_archivo); //semaforo para hacegurar que kernel nos mande un pseudo a la vez
             log_info(logger, "Iniciando proceso");
             retardo_pedido(config_memoria -> retardo_respuesta);
             leer_archivoPseudo(socket_cliente);
+            // sem_post(&sem_lectura_archivo);
             enviar_respuesta_a_kernel(socket_cliente);
-            //sem_post(&enviar_instruc);
             break;
         case FINALIZAR_PROCESO:
             retardo_pedido(config_memoria -> retardo_respuesta);
@@ -46,10 +46,9 @@ void* escuchar_peticiones(void* args){
             break;
         case INSTRUCCION: 
             retardo_pedido(config_memoria -> retardo_respuesta);
-            // sem_wait(&enviar_instruc);
-            log_info(logger, "Enviando instruccion");
+            //sem_wait(&enviar_instruccion);
+            log_info(logger,"Enviando instruccion a CPU");
             enviar_instruccion_a_cpu(socket_cliente);
-            // sem_post(&sem_lectura_archivo);
             break;
         case ACCEDER_TABLA_PAGINAS: 
             retardo_pedido(config_memoria -> retardo_respuesta);

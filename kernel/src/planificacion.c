@@ -15,6 +15,9 @@ sem_t hay_en_estado_new;
 sem_t cortar_sleep;
 sem_t desalojo_proceso;
 sem_t hay_proceso_exec;
+sem_t hay_proceso_en_bloq;
+
+
 int pid = 0;
 int hay_alguien_esta_ejecutando = 0;
 
@@ -45,6 +48,8 @@ void inicializacion_semaforos() {
     sem_init(&cortar_sleep, 0, 0);
     sem_init(&desalojo_proceso, 0, 0);
     sem_init(&hay_proceso_exec, 0, 1);
+    sem_init(&hay_proceso_en_bloq, 0, 0);
+
 }
 
 
@@ -83,7 +88,7 @@ void creacion_proceso(char *archivo_de_proceso) {
     pcb->quantum = 0;
     pcb->estado = NEW;
     
-    log_info(logger, "Se crea el proceso %i en NEW", pcb->pid);
+    log_info(logger, "\n Se crea el proceso %i en NEW \n", pcb->pid);
     informar_a_memoria_creacion_proceso(archivo_de_proceso, pcb->pid);
 
     int response;
@@ -92,7 +97,6 @@ void creacion_proceso(char *archivo_de_proceso) {
     recv(socket_memoria, &response, sizeof(int), 0);
 
     if(response == 1) {
-        log_info(logger, "Se agregado un nuevo proceso a ready!");
         agregar_a_cola_estado_new(pcb);
     } else {
         log_error(logger, "Error al intentar agregar un nuevo proceso.");
@@ -111,13 +115,11 @@ void agregar_a_cola_estado_new(t_pcb* proceso) { //NEW
 
 void* agregar_a_cola_ready() {
     sem_wait(&sem_multiprogramacion);
-    log_warning(logger,"Entro proceso a ready");
     while (1) {
         sem_wait(&hay_en_estado_new);
         t_pcb* proceso = obtener_siguiente_a_ready();
         pthread_mutex_lock(&mutex_estado_ready);
         list_add(cola_ready, proceso);
-        log_info(logger, "PID: %i - Estado Anterior: NEW - Estado Actual: READY", proceso->pid);
         pthread_mutex_unlock(&mutex_estado_ready);
         
         //mostrar_lista_de_pids(cola_ready);
@@ -152,7 +154,8 @@ void* agregar_a_cola_ready() {
 
 
 void mover_procesos_de_bloqueado_a_ready(t_pcb* proceso) {
-    log_info(logger, "Llegue a aca!");
+    sem_wait(&hay_proceso_en_bloq);
+
     pthread_mutex_lock(&mutex_estado_block);
     proceso = list_remove(cola_block, 0);
     pthread_mutex_unlock(&mutex_estado_block);
@@ -311,9 +314,11 @@ void* planificador_corto_plazo_RoundRobin(void* arg) {
     
     while (1) {
         sem_wait(&hay_en_estado_ready);  // Espera hasta que haya procesos en READY
+        
+        sem_wait(&hay_proceso_exec);
 
         pthread_mutex_lock(&mutex_estado_ready);
-        proceso_en_exec = list_remove(cola_ready, 0);  // Extraer el primer proceso en READY
+        proceso_en_exec = list_remove(cola_ready, 0); 
         pthread_mutex_unlock(&mutex_estado_ready);
 
         if (proceso_en_exec) {
@@ -323,19 +328,18 @@ void* planificador_corto_plazo_RoundRobin(void* arg) {
             proceso_en_exec->quantum = 2000;
             pthread_mutex_unlock(&mutex_proceso_exec);
 
-            log_info(logger, "PID: %i - Estado Anterior: READY - Estado Actual: EXEC", proceso_en_exec->pid);
-            
             enviar_proceso_a_cpu(proceso_en_exec);
-              
+            log_info(logger, "Enviando proceso %i a CPU", proceso_en_exec->pid);
+            log_info(logger, "PID: %i - Estado Anterior: READY - Estado Actual: EXEC", proceso_en_exec->pid);
+
             pthread_t hilo_quantum; // Crear un hilo para manejar el quantum
             if (pthread_create(&hilo_quantum, NULL, quantum_handler, (void*)proceso_en_exec) != 0) { //mandarle el contador global
                 log_error(logger, "Error al crear el hilo del quantum para el proceso %d", proceso_en_exec->pid);
             }
 
-            sem_post(&desalojo_proceso); // Signeado por hilo del desalojo
-            pthread_cancel(hilo_quantum); 
+            sem_wait(&desalojo_proceso); // Signeado por hilo del desalojo
+            pthread_cancel(hilo_quantum);
             pthread_join(hilo_quantum, NULL);  // Esperar a que el hilo del quantum termine y liberar sus recursos
-
         } else {
 
             sem_post(&habilitar_corto_plazo);  // Rehabilitar el planificador si no se encontró un proceso
@@ -426,15 +430,15 @@ void* quantum_handler(void* arg) {
     log_info(logger, "En ejecución %d milisegundos...", config_kernel->QUANTUM);
     usleep(proceso->quantum * 1000); // Dormir por el tiempo del quantum
 
-    int pid_aux = proceso->pid;
-    send(config_kernel->SOCKET_INTERRUPT, &pid_aux, sizeof(int), 0); // Enviar interrupción al final del quantum
+    // int pid_aux = proceso->pid;
+    op_code codigo = FINQUANTUM;
+    send(config_kernel->SOCKET_INTERRUPT, &codigo, sizeof(int), 0); // Enviar interrupción al final del quantum
     
     return NULL;
 }
 
 
 void enviar_proceso_a_cpu(t_pcb* pcbproceso) {
-    log_info(logger, "Enviando proceso %i a CPU", pcbproceso->pid);
     t_paquete* paquete_cpu = crear_paquete(RECIBIR_PROCESO); // Tipo de paquete que indica envío a CPU
 
     // Agregar información del PCB al paquete

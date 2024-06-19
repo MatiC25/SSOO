@@ -83,7 +83,8 @@ void leer_archivoPseudo(int socket_kernel) {
         }
         
         list_add(lista_de_instrucciones, parametros_instruccion);   
-
+        //hacer_signal();
+        
         // Liberar la memoria de `parametros`
         for (int i = 0; parametros[i] != NULL; i++) {
             free(parametros[i]);
@@ -93,7 +94,7 @@ void leer_archivoPseudo(int socket_kernel) {
     }
 
     agregar_a_diccionario_instrucciones(pid, lista_de_instrucciones);
-    
+
     free(path);
     free(buffer);
     free(archivo_path);

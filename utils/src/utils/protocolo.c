@@ -42,7 +42,7 @@ void* recibir_buffer(int* size, int socket_cliente) {
 
 	recv(socket_cliente, size, sizeof(int), MSG_WAITALL);
 
-    log_info(logger, "Recibiendo buffer de %d bytes", *size);
+    //log_info(logger, "Recibiendo buffer de %d bytes", *size);
 
 	buffer = malloc(*size);
 	recv(socket_cliente, buffer, *size, MSG_WAITALL);
@@ -174,9 +174,6 @@ t_pcb* rcv_contexto_ejecucion(int socket_cliente) {
     if (buffer == NULL) {
         return NULL;
     }
-
-    log_info(logger, "Buffer recibido");
-    // log_info(logger, "Size: %d", size);
 
     t_pcb *pcb = malloc(sizeof(t_pcb));
     if (pcb == NULL) {

@@ -223,7 +223,7 @@ t_list * recv_interfaz_y_argumentos(int socket) {
     memcpy(&tamanio, buffer + desplazamiento, sizeof(int));
     desplazamiento += sizeof(int);
 
-    log_info(logger, "Tamaño del nombre de la interfaz: %d", tamanio);
+    // log_info(logger, "Tamaño del nombre de la interfaz: %d", tamanio);
 
     // Verificar y asignar memoria para el nombre de la interfaz
     char *interface_name = malloc(tamanio);

@@ -142,12 +142,14 @@ void* server_interrupt(void* args) {
 
         while (1) {
             int cod_op = recibir_operacion(socket_cliente);
+            //log_warning(logger, "Cod op: %i", cod_op);
             switch (cod_op) {
                 case HANDSHAKE:
                     //log_warning(logger,"Haciendo HANDSHAKE");
                     recibir_handshake(socket_cliente);
                     break;
                 case FINQUANTUM:
+                log_info(logger, "Entro a fin de Quantum");
                     atomic_store(&interrupt_flag, 1);
                     break;
                 case -1:

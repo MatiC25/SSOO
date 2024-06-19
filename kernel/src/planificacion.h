@@ -26,6 +26,8 @@ extern sem_t hay_en_estado_ready;
 extern sem_t hay_en_estado_new;
 extern sem_t cortar_sleep;
 extern sem_t desalojo_proceso;
+extern sem_t hay_proceso_en_bloq;
+
 extern t_pcb* proceso_en_exec;
 
 void inicializacion_semaforos();

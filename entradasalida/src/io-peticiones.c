@@ -20,8 +20,6 @@ void ejecutar_operacion_generica(t_interfaz * interfaz) {
         tiempo_espera = recibir_entero(interfaz);
         tiempo_unidad = get_tiempo_unidad(interfaz);
 
-        log_info(logger, "Tiempo de espera: %i", tiempo_espera);
-
         // Realizamos la operacion:
         sleep(tiempo_espera * tiempo_unidad);
 

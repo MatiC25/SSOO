@@ -184,8 +184,6 @@ void* ejecutar_script(void* args) {
     // Concatenar script_path a path_nuevo
     strcat(path_nuevo, script_path);
 
-    log_info(logger, "Ejecutando script: %s", path_nuevo);
-
     FILE* archivo_script = fopen(path_nuevo, "r");
     if (!archivo_script) {
         log_error(logger, "¡Archivo de script erroneo!");
@@ -197,7 +195,6 @@ void* ejecutar_script(void* args) {
     while (fgets(comando, sizeof(comando), archivo_script)) {
         comando[strcspn(comando, CENTINELA)] = '\0';
         ejecutar_comando(comando);
-        log_info(logger, "COMANDO LEIDO: %s", comando);
     }
 
     fclose(archivo_script);
