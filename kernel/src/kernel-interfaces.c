@@ -67,7 +67,7 @@ void consumers_pcbs_blockeds(void *args) {
         // Sacamos el primer proceso de la cola de bloqueados:
         t_pcb *pcb = queue_pop(interface->process_blocked);
         t_list *args_pcb = queue_pop(interface->args_process); // Obtenemos los argumentos del proceso
-
+        log_warning(logger, "Sacando Proceso: %i - Bloqueado por interfaz", pcb->pid);
         // log_info(logger, "Proceso %d desbloqueado de interfaz %s", pcb->pid, interface_name);
 
         // Obtenemos el socket de la interfaz:
@@ -78,7 +78,7 @@ void consumers_pcbs_blockeds(void *args) {
         send_message_to_interface(interface, args_pcb, &response, socket_with_interface);
         
         if(response == 1) {
-            log_warning(logger, "Proceso %d terminado por la interfaz %s", pcb->pid, interface_name);
+            log_warning(logger, "Proceso: %d - Terminado por: %s", pcb->pid, interface_name);
             mover_procesos_de_bloqueado_a_ready(pcb);
         }
 

@@ -23,9 +23,6 @@ void* escuchar_peticiones_dispatch() {
         
         t_tipo_instruccion motivo_desalojo = recibir_operacion(config_kernel->SOCKET_DISPATCH);
 
-        //op_code motivo_desalojo;
-        //recv(config_kernel->SOCKET_DISPATCH, &motivo_desalojo, sizeof(int), MSG_WAITALL);
-
         if (motivo_desalojo < 0) {
             log_error(logger, "Dispatch acaba de recibir un motivo de desalojo inválido!");
             continue;
@@ -53,9 +50,7 @@ void* escuchar_peticiones_dispatch() {
                 log_error(logger, "El motivo de desalojo no existe!");
                 break;
         }
-        
         puede_ejecutar_otro_proceso();
-
     }
     
     return NULL;
@@ -96,11 +91,11 @@ void peticion_fin_quantum() {
     }
 
     sem_post(&desalojo_proceso);
-    log_info(logger, "PID: %i - Desalojado por fin de Quantum", proceso_en_exec->pid);
+    log_warning(logger, "PID: %i - Desalojado por fin de Quantum", proceso_en_exec->pid);
 
-    if(proceso_en_exec->pid == 1) {
-        log_info(logger, "El proceso %i no puede ser desalojado", proceso_en_exec->pid);
-    }
+    // if(proceso_en_exec->pid == 1) {
+    //     log_info(logger, "El proceso %i no puede ser desalojado", proceso_en_exec->pid);
+    // }
 
     pthread_mutex_lock(&mutex_proceso_exec);
     proceso_en_exec->quantum = 0;
@@ -109,9 +104,8 @@ void peticion_fin_quantum() {
 
     pthread_mutex_lock(&mutex_estado_ready);
     list_add(cola_ready, proceso_en_exec);
-    pthread_mutex_unlock(&mutex_estado_ready);
-
     log_info(logger, "PID: %i - Estado Anterior: EXEC - Estado Actual: READY \n", proceso_en_exec->pid);
+    pthread_mutex_unlock(&mutex_estado_ready);
 
     sem_post(&hay_en_estado_ready);
 }
@@ -120,14 +114,13 @@ void peticion_fin_quantum() {
 void peticion_exit(const char *tipo_de_exit) {
 
     t_pcb* pcb = rcv_contexto_ejecucion(config_kernel->SOCKET_DISPATCH);
-    log_warning(logger, "¡Hay que finalizar proceso!");
     //mostrar_pcb(pcb);
     if (!pcb) {
         log_error(logger, "Dispatch acaba de recibir algo inexistente!");
         return;
     }
-
-    log_info(logger, "Finaliza el proceso %i - Motivo: %s", pcb->pid, tipo_de_exit);
+    sem_post(&desalojo_proceso);
+    log_warning(logger, "Finaliza el proceso %i - Motivo: %s", pcb->pid, tipo_de_exit);
 
     // liberar_recurso_por_exit(pcb);
     
@@ -238,7 +231,6 @@ void mover_a_bloqueado_por_wait(t_pcb* pcb, char* recurso) {
     pthread_mutex_unlock(&mutex_estado_block);
 
     mover_a_cola_block_general(pcb, recurso);
-
 }
 
 
@@ -247,6 +239,7 @@ void mover_a_cola_block_general(t_pcb* pcb, char* motivo) {
 
     pthread_mutex_lock(&mutex_cola_block);
     log_info(logger, "PID: %i - Bloqueado por: %s \n", pcb->pid, motivo);
+    pcb->estado = BLOCK;
     list_add(cola_block, pcb);
     pthread_mutex_unlock(&mutex_cola_block);
 
@@ -298,13 +291,15 @@ t_pcb* recibir_contexto_y_recurso(char** recurso) {
 
 
 void peticion_IO() {
-    t_pcb* pcb_bloqueado = rcv_contexto_ejecucion(config_kernel->SOCKET_DISPATCH);
+    
+    pthread_mutex_lock(&mutex_proceso_exec);
+    proceso_en_exec = rcv_contexto_ejecucion(config_kernel->SOCKET_DISPATCH);
+    pthread_mutex_unlock(&mutex_proceso_exec);
 
+    log_warning(logger, "¡Peticion I/O, desalojando Proceso: %i", proceso_en_exec->pid);
     sem_post(&desalojo_proceso);
 
-    // log_warning(logger, "¡Llego una IO, desalojemos Proceso!");
-
-    if (!pcb_bloqueado) {
+    if (!proceso_en_exec) {
         log_error(logger, "Error al recibir el contexto de ejecución para IO");
         return;
     }
@@ -315,6 +310,7 @@ void peticion_IO() {
     
     t_list *interfaz_y_argumentos = recv_interfaz_y_argumentos(config_kernel->SOCKET_DISPATCH);
 
+
     tipo_operacion *operacion = list_get(interfaz_y_argumentos, 0);
     t_list *args = list_get(interfaz_y_argumentos, 1);
     char *nombre_interfaz = list_get(interfaz_y_argumentos, 2);
@@ -322,14 +318,14 @@ void peticion_IO() {
     interface_io* interface = get_interface_from_dict(nombre_interfaz);
 
     if (!interface) {
-        finalizar_por_invalidacion(pcb_bloqueado, "INVALID_INTERFACE");
+        finalizar_por_invalidacion(proceso_en_exec, "INVALID_INTERFACE");
         free(nombre_interfaz);
         return;
     }
 
     // // tipo_operacion operacion = recibir_operacion(config_kernel->SOCKET_DISPATCH);
     if (!acepta_operacion_interfaz(interface, *operacion)) {
-        finalizar_por_invalidacion(pcb_bloqueado, "INVALID_INTERFACE");
+        finalizar_por_invalidacion(proceso_en_exec, "INVALID_INTERFACE");
         free(nombre_interfaz);
         return;
     }
@@ -340,12 +336,14 @@ void peticion_IO() {
     //     log_info(logger, "Argumento %i: %i", i, list_get(args, i));
     // }
     
-    mover_a_cola_block_general(pcb_bloqueado, "INTERFAZ");
+    pthread_mutex_lock(&mutex_proceso_exec);
+    mover_a_cola_block_general(proceso_en_exec, "INTERFAZ");
+    pthread_mutex_unlock(&mutex_proceso_exec);
 
-    queue_push(interface->process_blocked, pcb_bloqueado);
+    queue_push(interface->process_blocked, proceso_en_exec);
     queue_push(interface->args_process, args);
     sem_post(&interface->size_blocked);
-    // free(interface_name);
+
 }
 
 
@@ -401,7 +399,7 @@ int calcular_total_instancias() {
 void finalizar_por_invalidacion(t_pcb* pcb, const char* tipo_invalidacion) {
     
     log_info(logger, "Finaliza el proceso: %i - Motivo: %s", pcb->pid, tipo_invalidacion);
-    informar_a_memoria_liberacion_proceso(pcb->pid);
+    //informar_a_memoria_liberacion_proceso(pcb->pid);
     liberar_recurso_por_exit(pcb);
     
 }
@@ -426,9 +424,11 @@ void liberar_recurso_por_exit(t_pcb* pcb) {
             vector_recursos_pedidos[i].recurso = NULL;
         }
     }
+    pthread_mutex_lock(&mutex_proceso_exec);
     free(pcb->registros);
     free(pcb);
-    
+    pthread_mutex_unlock(&mutex_proceso_exec);
+
     sem_post(&hay_en_estado_ready);
 }
 

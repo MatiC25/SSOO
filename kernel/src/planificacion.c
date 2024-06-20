@@ -53,6 +53,7 @@ void inicializacion_semaforos() {
 }
 
 
+
 int generar_pid_unico() { //Es static para que mantenga su valor luego de terminar la ejecucion, y no reinicializar en 0 siempre
     return pid++;
 }
@@ -88,7 +89,7 @@ void creacion_proceso(char *archivo_de_proceso) {
     pcb->quantum = 0;
     pcb->estado = NEW;
     
-    log_info(logger, "\n Se crea el proceso %i en NEW \n", pcb->pid);
+    log_info(logger, "Se crea el proceso %i en NEW \n", pcb->pid);
     informar_a_memoria_creacion_proceso(archivo_de_proceso, pcb->pid);
 
     int response;
@@ -162,6 +163,7 @@ void mover_procesos_de_bloqueado_a_ready(t_pcb* proceso) {
 
     pthread_mutex_lock(&mutex_estado_ready);
     list_add(cola_ready, proceso);
+    proceso->estado = READY;
     log_info(logger, "PID: %i - Estado Anterior: BLOCK - Estado Actual: READY", proceso->pid);
     pthread_mutex_unlock(&mutex_estado_ready);
 
@@ -173,7 +175,7 @@ t_pcb* obtener_siguiente_a_ready() {
     pthread_mutex_lock(&mutex_estado_new);
     t_pcb* pcb = list_remove(cola_new, 0);
     pcb->estado = READY;
-    log_info(logger, "PID: %i - Estado Anterior: NEW - Estado Actual: READY", pcb->pid);
+    log_info(logger, "\nPID: %i - Estado Anterior: NEW - Estado Actual: READY", pcb->pid);
     pthread_mutex_unlock(&mutex_estado_new);
     return pcb;
 }
@@ -265,56 +267,33 @@ void* planificador_cortoplazo_fifo(void* arg) {
     sem_wait(&habilitar_corto_plazo);
     while (1) {
         
-        // Espera hasta que haya un proceso en el estado ready
         sem_wait(&hay_en_estado_ready);
 
-        // Bloquea el acceso a la cola de estado ready
         pthread_mutex_lock(&mutex_estado_ready);
-
-        // Remueve el primer proceso de la cola ready
         proceso_en_exec = list_remove(cola_ready, 0);
-
-        // Desbloquea el acceso a la cola de estado ready
         pthread_mutex_unlock(&mutex_estado_ready);
-
-        // Indica que hay un proceso en ejecución
         
         // Envia el proceso a la CPU
         sem_wait(&hay_proceso_exec);
         enviar_proceso_a_cpu(proceso_en_exec);
-        // hay_alguien_esta_ejecutando = 1;
 
-        // Espera hasta que se pueda ejecutar otro proceso
     }
     return NULL;
 }
+
 
 void puede_ejecutar_otro_proceso() {
     sem_post(&hay_proceso_exec);
 }
 
 
-void ingresar_a_exec(t_pcb* pcb) {
-    pthread_mutex_lock(&mutex_proceso_exec);
-
-    pthread_mutex_lock(&mutex_estado_exec);
-    proceso_en_exec->estado = EXEC;
-    list_add(cola_exec, pcb);
-    log_info(logger, "PID: %i - Estado Anterior: READY - Estado Actual: EXEC", proceso_en_exec->pid);
-    pthread_mutex_unlock(&mutex_estado_exec);
-
-    enviar_proceso_a_cpu(proceso_en_exec);
-
-    pthread_mutex_unlock(&mutex_proceso_exec);
-}
-
-
 void* planificador_corto_plazo_RoundRobin(void* arg) {
+
     sem_wait(&habilitar_corto_plazo); //Se envia signal en el largo plazo
-    
+
     while (1) {
+
         sem_wait(&hay_en_estado_ready);  // Espera hasta que haya procesos en READY
-        
         sem_wait(&hay_proceso_exec);
 
         pthread_mutex_lock(&mutex_estado_ready);
@@ -340,6 +319,7 @@ void* planificador_corto_plazo_RoundRobin(void* arg) {
             sem_wait(&desalojo_proceso); // Signeado por hilo del desalojo
             pthread_cancel(hilo_quantum);
             pthread_join(hilo_quantum, NULL);  // Esperar a que el hilo del quantum termine y liberar sus recursos
+
         } else {
 
             sem_post(&habilitar_corto_plazo);  // Rehabilitar el planificador si no se encontró un proceso
@@ -420,20 +400,18 @@ void* planificacion_cortoplazo_VRR() {
             proceso_en_exec->quantum=0;
             pthread_mutex_unlock(&mutex_proceso_exec);
         }
-
     }
+    
 }
 
 
 void* quantum_handler(void* arg) {
     t_pcb* proceso = (t_pcb*)arg;
-    log_info(logger, "En ejecución %d milisegundos...", config_kernel->QUANTUM);
+    log_warning(logger, "En ejecución %d milisegundos...", config_kernel->QUANTUM);
     usleep(proceso->quantum * 1000); // Dormir por el tiempo del quantum
-
-    // int pid_aux = proceso->pid;
     op_code codigo = FINQUANTUM;
     send(config_kernel->SOCKET_INTERRUPT, &codigo, sizeof(int), 0); // Enviar interrupción al final del quantum
-    
+
     return NULL;
 }
 

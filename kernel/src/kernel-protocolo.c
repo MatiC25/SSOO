@@ -22,6 +22,7 @@ void send_message_to_interface(interface_io *interface, t_list *args, int *respo
 
 void send_message_to_generic_interface(int socket, t_list *args, int *response) {
     int *tiempo_sleep_ptr = list_get(args, 0);
+    //log_warning(logger, "Timpo: %i", *tiempo_sleep_ptr);
 
     if (tiempo_sleep_ptr == NULL) {
         fprintf(stderr, "Error: list_get retornó NULL\n");
@@ -29,7 +30,7 @@ void send_message_to_generic_interface(int socket, t_list *args, int *response) 
     }
 
     int tiempo_sleep = *tiempo_sleep_ptr;
-
+    //log_warning(logger, "Timpo: %i", tiempo_sleep);
     // Enviar el valor de tiempo_sleep
     if (send(socket, &tiempo_sleep, sizeof(int), 0) == -1) {
         perror("Error al enviar el mensaje");
@@ -41,6 +42,7 @@ void send_message_to_generic_interface(int socket, t_list *args, int *response) 
         perror("Error al recibir la respuesta");
         return;
     }
+    //log_warning(logger, "Timpo: %i", *response);
 }
 
 void send_message_to_std_interface(int socket, t_list *args, int *response) {
@@ -180,6 +182,7 @@ t_list * recv_interfaz_y_argumentos(int socket) {
     t_list *interfaz_y_argumentos = list_create();
 
     recv(socket, &tipo, sizeof(int), 0);
+    //log_info(logger, "Tipo interfaz: %i", tipo);
 
     log_info(logger, "Tipo de interfaz: %i", tipo);
 
@@ -203,14 +206,17 @@ t_list * recv_interfaz_y_argumentos(int socket) {
         return;
     }
     *tipo_copia = tipo;
-
-    list_add(interfaz_y_argumentos, tipo_copia); // 0
+    //log_warning(logger, "Tipo_copia: %i", &tipo_copia);
+    log_info(logger, "Tipo_copia agregado a la lista: %i", *tipo_copia);
+    list_add(interfaz_y_argumentos, tipo_copia);
+    //list_add(interfaz_y_argumentos, tipo_copia); // 0
 
     // log_info(logger, "Tipo de interfaz: %d", tipo);
 
     // Deserializar el argumento
     memcpy(&argumento, buffer + desplazamiento, sizeof(int));
     desplazamiento += sizeof(int);
+    log_info(logger, "Argumento: %i", argumento);
 
     // log_info(logger, "Argumento: %d", argumento);
 
@@ -222,7 +228,7 @@ t_list * recv_interfaz_y_argumentos(int socket) {
     // Deserializar el tamaño del nombre de la interfaz
     memcpy(&tamanio, buffer + desplazamiento, sizeof(int));
     desplazamiento += sizeof(int);
-
+    log_info(logger, "Tamanio: %i", tamanio);
     // log_info(logger, "Tamaño del nombre de la interfaz: %d", tamanio);
 
     // Verificar y asignar memoria para el nombre de la interfaz
