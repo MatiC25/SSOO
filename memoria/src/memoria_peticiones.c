@@ -131,13 +131,18 @@ void terminar_proceso(int socket_cliente){
     }
 
     int cantidad_de_paginas = list_size(tabla_de_paginas);//averiguamos cuantas paginas tiene
-    for(int i=0; i < cantidad_de_paginas; i++){ 
+    for(int i = 0; i < cantidad_de_paginas; i++){ 
+        log_warning(logger, "Se esta borrando la pagina %i", i);
         t_tabla_de_paginas* pag_a_eliminar = list_get(tabla_de_paginas, i); //obtengo la pagina [i]
+        if(pag_a_eliminar == NULL){
+            log_error(logger, "No se encontró la pagina %i", i);
+            exit(-1);
+        }
         bitarray_clean_bit(bitmap, pag_a_eliminar->marco); //marco en el bitmap la pagina [i] como "libre"
         free(pag_a_eliminar); //libero la pagina [i]
     }
     list_destroy(tabla_de_paginas); //destruyo la tabla de paginas
-    log_info(logger,  "PID: %d - Tamaño: %d", pid, cantidad_de_paginas); // Log minimo y obligatorio
+    log_info(logger,  "Destruccion -> PID: %d - Tamaño: %d", pid, cantidad_de_paginas); // Log minimo y obligatorio
     free(buffer);
 }
 
@@ -161,6 +166,7 @@ void resize_proceso(int socket_cliente) {
         t_paquete* paquete = crear_paquete(OUT_OF_MEMORY);
         int tabla_de_pag_no_encontrado = -1;
         agregar_a_paquete(paquete, &tabla_de_pag_no_encontrado , sizeof(int));
+        enviar_paquete(paquete, socket_cliente);
         eliminar_paquete(paquete);
     } // CHEQUEAR ESTO
 
@@ -179,10 +185,11 @@ void resize_proceso(int socket_cliente) {
         t_paquete* paquete = crear_paquete(OUT_OF_MEMORY);
         int fuera_de_memoria = -1;
         agregar_a_paquete(paquete, &fuera_de_memoria , sizeof(int));
+        enviar_paquete(paquete, socket_cliente);
         eliminar_paquete(paquete);
         free(buffer);
         
-        }
+    }
 
         //guardamos espacio de memoria para la nueva pagina
         t_tabla_de_paginas* nueva_pagina = malloc(sizeof(t_tabla_de_paginas));

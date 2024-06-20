@@ -125,7 +125,7 @@ void peticion_exit(const char *tipo_de_exit) {
     // liberar_recurso_por_exit(pcb);
     
     log_info(logger, "Se manda a Memoria para liberar el Proceso");
-    // informar_a_memoria_liberacion_proceso(pcb->pid);
+    informar_a_memoria_liberacion_proceso(pcb->pid);
     log_info(logger, "Aumentamos Grado de Multiprogramacion por EXIT");
     sem_post(&sem_multiprogramacion);
 }
