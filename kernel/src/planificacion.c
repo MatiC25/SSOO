@@ -164,7 +164,8 @@ void mover_procesos_de_bloqueado_a_ready(t_pcb* proceso) {
     pthread_mutex_lock(&mutex_estado_ready);
     list_add(cola_ready, proceso);
     proceso->estado = READY;
-    log_info(logger, "PID: %i - Estado Anterior: BLOCK - Estado Actual: READY", proceso->pid);
+    // log_info(logger, "PID: %i - Estado Anterior: BLOCK - Estado Actual: READY", proceso->pid);
+    log_leo(logger2, "PID: %i - Estado Anterior: BLOCK - Estado Actual: READY", proceso->pid);
     pthread_mutex_unlock(&mutex_estado_ready);
 
     sem_post(&hay_en_estado_ready);
@@ -175,7 +176,8 @@ t_pcb* obtener_siguiente_a_ready() {
     pthread_mutex_lock(&mutex_estado_new);
     t_pcb* pcb = list_remove(cola_new, 0);
     pcb->estado = READY;
-    log_info(logger, "\nPID: %i - Estado Anterior: NEW - Estado Actual: READY", pcb->pid);
+    //log_info(logger, "\nPID: %i - Estado Anterior: NEW - Estado Actual: READY", pcb->pid);
+    log_leo(logger2, "\nPID: %i - Estado Anterior: NEW - Estado Actual: READY", pcb->pid);
     pthread_mutex_unlock(&mutex_estado_new);
     return pcb;
 }
@@ -308,9 +310,10 @@ void* planificador_corto_plazo_RoundRobin(void* arg) {
             pthread_mutex_unlock(&mutex_proceso_exec);
 
             enviar_proceso_a_cpu(proceso_en_exec);
-            log_info(logger, "Enviando proceso %i a CPU", proceso_en_exec->pid);
-            log_info(logger, "PID: %i - Estado Anterior: READY - Estado Actual: EXEC", proceso_en_exec->pid);
-
+            // log_info(logger, "Enviando proceso %i a CPU", proceso_en_exec->pid);
+            log_leo(logger2, "Enviando proceso %i a CPU", proceso_en_exec->pid);
+            // log_info(logger, "PID: %i - Estado Anterior: READY - Estado Actual: EXEC", proceso_en_exec->pid);
+            log_leo(logger2, "PID: %i - Estado Anterior: READY - Estado Actual: EXEC", proceso_en_exec->pid);
             pthread_t hilo_quantum; // Crear un hilo para manejar el quantum
             if (pthread_create(&hilo_quantum, NULL, quantum_handler, (void*)proceso_en_exec) != 0) { //mandarle el contador global
                 log_error(logger, "Error al crear el hilo del quantum para el proceso %d", proceso_en_exec->pid);
@@ -407,7 +410,8 @@ void* planificacion_cortoplazo_VRR() {
 
 void* quantum_handler(void* arg) {
     t_pcb* proceso = (t_pcb*)arg;
-    log_warning(logger, "En ejecución %d milisegundos...", config_kernel->QUANTUM);
+    // log_warning(logger, "En ejecución %d milisegundos...", config_kernel->QUANTUM);
+    log_leo(logger2, "En ejecución %d milisegundos...", config_kernel->QUANTUM);
     usleep(proceso->quantum * 1000); // Dormir por el tiempo del quantum
     op_code codigo = FINQUANTUM;
     send(config_kernel->SOCKET_INTERRUPT, &codigo, sizeof(int), 0); // Enviar interrupción al final del quantum
@@ -489,5 +493,6 @@ void mostrar_lista_de_pids(t_list* lista) {
 
 
 void mostrar_pid (t_pcb* pcb) {
-    log_info(logger, "Cola Ready: %i", pcb->pid);
+    // log_info(logger, "Cola Ready: %i", pcb->pid);
+    log_leo(logger2, "Cola Ready: %i", pcb->pid);
 }

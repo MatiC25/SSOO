@@ -5,7 +5,9 @@
 #include <limits.h>
 #include <stdio.h>
 #include <stdbool.h>
+#include <stdlib.h>
 #include <pthread.h>
+#include <string.h>
 #include <commons/config.h>
 #include <commons/string.h>
 #include <commons/log.h>

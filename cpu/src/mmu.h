@@ -19,6 +19,6 @@ t_mmu_cpu* traducirDireccion(int direccionLogica , int tamanio);
 t_tabla_de_paginas_cpu* buscarEnTLB(t_list* tablasCpu, int num_pagina);
 t_tabla_de_paginas_cpu* actualizar_TLB_por_fifo(t_list* tlb, int numero_pagina);
 t_tabla_de_paginas_cpu* actualizar_Tlb_por_lru(t_list* tlb, int numero_pagina);
-    
+
 
 #endif

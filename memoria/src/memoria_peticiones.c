@@ -16,7 +16,6 @@ void* escuchar_peticiones(void* args){
     inicializar_semaforo(); 
 
     while (1){   
-        
         int cod_op = recibir_operacion(socket_cliente);
         //log_warning(logger,"cod op %i",cod_op);
         switch (cod_op){
@@ -47,7 +46,8 @@ void* escuchar_peticiones(void* args){
         case INSTRUCCION: 
             retardo_pedido(config_memoria -> retardo_respuesta);
             //sem_wait(&enviar_instruccion);
-            log_info(logger,"Enviando instruccion a CPU");
+            // log_info(logger,"Enviando instruccion a CPU");
+            log_facu(logger2,"Enviando instruccion a CPU");
             enviar_instruccion_a_cpu(socket_cliente);
             break;
         case ACCEDER_TABLA_PAGINAS: 
@@ -132,7 +132,6 @@ void terminar_proceso(int socket_cliente){
 
     int cantidad_de_paginas = list_size(tabla_de_paginas);//averiguamos cuantas paginas tiene
     for(int i = 0; i < cantidad_de_paginas; i++){ 
-        log_warning(logger, "Se esta borrando la pagina %i", i);
         t_tabla_de_paginas* pag_a_eliminar = list_get(tabla_de_paginas, i); //obtengo la pagina [i]
         if(pag_a_eliminar == NULL){
             log_error(logger, "No se encontró la pagina %i", i);
@@ -142,7 +141,7 @@ void terminar_proceso(int socket_cliente){
         free(pag_a_eliminar); //libero la pagina [i]
     }
     list_destroy(tabla_de_paginas); //destruyo la tabla de paginas
-    log_info(logger,  "Destruccion -> PID: %d - Tamaño: %d", pid, cantidad_de_paginas); // Log minimo y obligatorio
+    log_facu(logger,  "Destruccion -> PID: %d - Tamaño: %d", pid, cantidad_de_paginas); // Log minimo y obligatorio
     free(buffer);
 }
 
@@ -176,7 +175,8 @@ void resize_proceso(int socket_cliente) {
                                                         
     if (num_paginas > paginas_actuales) { // Si la cantidad de paginas de la tabla actual son menos al calculo del resize -> se amplia 
     // Ajustar el tamaño de la tabla de páginas
-    log_info(logger, "PID: %d - Tamaño Actual: %d - Tamaño a Ampliar: %d ", pid, num_paginas*4 ,tamanio_bytes); // Log minimo y obligatorio
+    // log_fede(logger2, "PID: %d - Tamaño Actual: %d - Tamaño a Ampliar: %d ", pid, num_paginas*4 ,tamanio_bytes);
+    log_mati(logger2, "PID: %d - Tamaño Actual: %d - Tamaño a Ampliar: %d ", pid, num_paginas*4 ,tamanio_bytes); // Log minimo y obligatorio
     for (int i = paginas_actuales; i < num_paginas; i++) {
         int marco_libre = obtener_marco_libre(bitmap);
         if (marco_libre == -1) {
@@ -202,7 +202,7 @@ void resize_proceso(int socket_cliente) {
 
     } else if (num_paginas < paginas_actuales) {
         // Reducir el tamaño del proceso
-        log_info(logger, "PID: %d - Tamaño Actual: %d - Tamaño a Reducir: %d ", pid, num_paginas*4 ,tamanio_bytes); // Log minimo y obligatorio
+        log_fede(logger2, "PID: %d - Tamaño Actual: %d - Tamaño a Reducir: %d ", pid, num_paginas*4 ,tamanio_bytes); // Log minimo y obligatorio
         for (int i = paginas_actuales - 1; i >= num_paginas; i--) {
             t_tabla_de_paginas* pagina_a_eliminar = list_remove(tabla_de_paginas, i);
             liberar_marco(pagina_a_eliminar->marco); // Liberar el marco
@@ -218,6 +218,7 @@ void resize_proceso(int socket_cliente) {
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     int operacion_exitosa = 1;
     agregar_a_paquete(paquete, &operacion_exitosa, sizeof(int));
+    enviar_paquete(paquete, socket_cliente);
     eliminar_paquete(paquete);
     free(buffer);
 }
@@ -240,9 +241,11 @@ void obtener_marco(int socket_cliente){
         log_error(logger, "Error: No se encontró la tabla de páginas para el PID %d\n", pid);
         exit(-1);
     }
+
     t_tabla_de_paginas* entrada = list_get(tabla_de_paginas, pagina);  //Obtenemos la pagina requerida
- 
+
     if(entrada->bit_validez == 1){// si la pagina existe, se la enviamos a cpu
+    
         t_paquete* marco_paquete = crear_paquete(ACCEDER_TABLA_PAGINAS);
         agregar_a_paquete(marco_paquete, &(entrada->marco), sizeof(int));
         enviar_paquete(marco_paquete, socket_cliente);
@@ -260,7 +263,8 @@ void obtener_marco(int socket_cliente){
 
 int obtener_marco_libre(t_bitarray *bitmap){
     for (int i = 0; i < bitarray_get_max_bit(bitmap); i++) {
-        if (!bitarray_test_bit(bitmap, i)) {  // Verifica si el bit está libre (es 0)
+        if (!bitarray_test_bit(bitmap, i)) {
+        //if (bitarray_test_bit(bitmap, i) == 0) {  // Verifica si el bit está libre (es 0)
             bitarray_set_bit(bitmap, i); // Marca el bit como ocupado (pone 1)
             return i;
         }

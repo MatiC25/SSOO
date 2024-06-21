@@ -3,6 +3,8 @@
 
 #include <utils/estructuras_compartidas.h>
 #include <utils/instrucciones.h>
+#include <utils/cositas.h>
+
 
 typedef struct {
     char *IP_MEMORIA;
@@ -21,14 +23,13 @@ typedef struct {
     int pid;
     int program_counter; 
     t_registro_cpu* registros;
-    t_list* tabla_cpu;
 }t_pcb_cpu;
 
 typedef struct {
     int pid;
     int nropagina;
     int marco;
-    int contador; //Para el LRU 
+    int contador; //Para el LRU
 } t_tabla_de_paginas_cpu;
 
 typedef struct {
@@ -38,7 +39,9 @@ typedef struct {
     t_list* tamanio;
 }t_mmu_cpu;
 
+extern t_list* tlb;
 extern t_pcb_cpu* pcb;
+
 //extern t_mmu_cpu* mmu;
 
 #endif

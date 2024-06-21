@@ -10,6 +10,7 @@
 #include <commons/temporal.h>
 #include "kernel-init.h"
 #include <utils/protocolo.h>
+#include <utils/cositas.h>
 
 
 extern pthread_mutex_t mutex_estado_new;

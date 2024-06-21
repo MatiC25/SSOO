@@ -3,6 +3,7 @@
 t_pcb_cpu* pcb;
 int seguir_ejecutando;
 
+
 void iniciar_ciclo_de_ejecucion(int socket_server ,int socket_cliente) {
     //log_info(logger,"socket DS %i", socket_cliente);
     config_cpu->SOCKET_KERNEL = socket_cliente;
@@ -10,7 +11,8 @@ void iniciar_ciclo_de_ejecucion(int socket_server ,int socket_cliente) {
         int codigo_operacion = recibir_operacion(socket_cliente); //Acordarme que lo cambie
         switch(codigo_operacion) {  
             case RECIBIR_PROCESO:
-            log_warning(logger,"Recibiendo la PCB");
+            // log_warning(logger,"Recibiendo la PCB");
+            log_nico(logger2,"Recibiendo la PCB");
             ejecutar_ciclo_instrucciones(socket_cliente, socket_server);
             break;
             case HANDSHAKE:
@@ -44,7 +46,8 @@ void fecth(int socket_server){
     int PID = pcb->pid;
     program_counter = pcb->program_counter++;
     solicitar_instruccion(socket_server,PID, program_counter);
-    log_info(logger,"Fetch Instruccion: PID: %d - FETCH -Programn Counter: %d",PID,program_counter);   
+    //log_info(logger,"Fetch Instruccion: PID: %d - FETCH -Programn Counter: %d",PID,program_counter);  
+    log_nico(logger2,"Fetch Instruccion: PID: %d - FETCH -Programn Counter: %d",PID,program_counter);  
 }
 
 void* obtener_registro (char *registro) {
@@ -76,8 +79,16 @@ void* obtener_registro (char *registro) {
 }
 
 int encontrar_int(void* registro){
-    uint32_t reg = *(uint32_t*)registro;
-    int registro_final = (int) reg;
+    if (registro == NULL){
+        log_warning(logger,"REGISTRO EN NULL");
+        return -1;
+    }
+    uint32_t reg;
+    memcpy(&reg, registro, sizeof(u_int32_t));
+    log_warning("logger", "Valor uint32_t: %u", reg);
+
+    int registro_final = (int)reg;
+     log_warning("logger", "Valor int: %d", registro_final);
     return registro_final;
 }
 
@@ -143,6 +154,7 @@ void ejecutar_instruccion(int socket_cliente) {
         case EXIT:
             mostrar_pcb(pcb);
             log_info(logger,"Instruccion Ejecutada: PID: %i Ejecutando: %s", pcb->pid,instruccion->opcode);
+            log_nico(logger2,"Instruccion Ejecutada: PID: %i Ejecutando: %s", pcb->pid,instruccion->opcode);
             t_paquete* paquete_a_kernel = crear_paquete(EXIT);
             enviar_pcb_a_kernel(paquete_a_kernel);
             enviar_paquete(paquete_a_kernel, config_cpu->SOCKET_KERNEL);
@@ -320,16 +332,25 @@ char* valor = comunicaciones_con_memoria_lectura(mmu_mov_in);
 }
 
 void ejecutar_MOV_OUT(char* Registro_Datos, char* Registro_Direccion){
+    
     void* reg_Direc = obtener_registro(Registro_Direccion);
     void* reg_Datos = obtener_registro(Registro_Datos);
+    //mostrar_pcb(pcb);
+
+    int direccionLogica = encontrar_int(reg_Direc);
+ 
+    int regDAtos = encontrar_int(reg_Datos);
+   
+    char* valorr = string_itoa(regDAtos);
 
    
-    int direccionLogica = encontrar_int(reg_Direc);
-    char* valorr = (char*)reg_Datos;
-    
     int tamanio_registro = espacio_de_registro(Registro_Datos);
+    //log_info(logger,"tamanio:%i", tamanio_registro);
     t_mmu_cpu* mmu_mov_out = traducirDireccion(direccionLogica, tamanio_registro);
-    
+
+//VERIFICADOR DE DIRECCIONES FISICAS
+
+
     //Noc como hacer la verificacion ver despues 
     if(comunicaciones_con_memoria_escritura(mmu_mov_out, valorr) == 1){
         log_info(logger,"Se puedo escribir correctamente");
@@ -338,19 +359,22 @@ void ejecutar_MOV_OUT(char* Registro_Datos, char* Registro_Direccion){
     }
     free(mmu_mov_out);
     tengoAlgunaInterrupcion();
+    free(valorr);
 }
 
 void ejecutar_RESIZE(char* tam){
     int tamanio  = atoi(tam);
     
     send_agrandar_memoria(pcb->pid,tamanio);
-    if(recv_agrandar_memoria()!= -1){
+    int valor = recv_agrandar_memoria();
+    if(valor != -1){
         log_info(logger,"Se pudo agrandar correctamente");
         tengoAlgunaInterrupcion();
     }else{
         log_info(logger,"NO!! se pudo agrandar correctamente");
         t_paquete* paquete_a_kernel = crear_paquete(OUT_OF_MEMORY);
         enviar_pcb_a_kernel(paquete_a_kernel);
+        enviar_paquete(paquete_a_kernel, config_cpu->SOCKET_KERNEL);
         free(paquete_a_kernel);
     }
 }

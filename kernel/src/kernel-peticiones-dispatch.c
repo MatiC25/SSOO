@@ -48,7 +48,7 @@ void* escuchar_peticiones_dispatch() {
                 break;
             default:
                 log_error(logger, "El motivo de desalojo no existe!");
-                break;
+                break;  
         }
         puede_ejecutar_otro_proceso();
     }

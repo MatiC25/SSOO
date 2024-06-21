@@ -16,6 +16,7 @@
 #include <utils/socket.h>
 #include <utils/shared.h>
 #include <utils/logger.h>
+#include <utils/cositas.h>
 
 typedef struct 
 {

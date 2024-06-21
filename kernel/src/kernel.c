@@ -8,6 +8,7 @@ int main(int argc, char *argv[]) {
     
     // Inicializamos logger y cargamos configuracion:
     logger = log_create("kernel.log", "KERNEL", 1, LOG_LEVEL_TRACE);
+    logger2 = log_create2("kernel.log", "KERNEL", 1, LOG_LEVEL_MATI);
     config_kernel = cargar_config_kernel(config_path);
 
     // Generar conexiones con memoria y cpu:

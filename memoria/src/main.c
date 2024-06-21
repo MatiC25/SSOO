@@ -10,6 +10,7 @@ int main()
 {
     //Creando logger
     logger =  log_create("memoria.log","Memoria", 1, LOG_LEVEL_INFO);
+    logger2 = log_create2("memoria.log", "Memoria", 1, LOG_LEVEL_MATI);
 
     if (logger == NULL)
 	{
@@ -33,16 +34,17 @@ int main()
     diccionario_paginas_porPID = dictionary_create();
 
     // memoria de usuario y bitmap
-    int cantidad_marcos = config_memoria->tam_memoria / config_memoria->tam_memoria; //calculamos la cantidad de marcos
+    int cantidad_marcos = config_memoria->tam_memoria / config_memoria->tam_pagina; //calculamos la cantidad de marcos
     espacio_de_usuario = malloc (config_memoria->tam_memoria); // reservamos memoria para el espacio de usuarip
-    void* memoria_usuario_bitmap = malloc (cantidad_marcos/8);// reservamos memoria para el bitmap
-    bitmap = bitarray_create_with_mode (memoria_usuario_bitmap , cantidad_marcos/8, LSB_FIRST);
+    void* memoria_usuario_bitmap = malloc(cantidad_marcos/8);// reservamos memoria para el bitmap
+    bitmap = bitarray_create_with_mode(memoria_usuario_bitmap , cantidad_marcos/8, LSB_FIRST);
 
     //abrimos el servidor
     iniciar_modulo(config_memoria);
     //cerrar_programa(config_memoria,)
 
     return 0;
+
 }
 
 void inicializacion_diccionario() {

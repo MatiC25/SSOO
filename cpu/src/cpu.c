@@ -3,14 +3,17 @@
 //t_pcb_cpu* pcb_cpu;
 t_config_cpu *config_cpu; // La declaro como variable global, y la vez instanciar aca!
 int hay_que_seguir = 1;
+t_list* tlb;
 
 
 int main(void) {
 //Creando logger
+    tlb = list_create();
     int md_cpu_ds = 0;
     int md_cpu_it = 0;
     logger = log_create("CPUlog.log", "CPU", 1, LOG_LEVEL_INFO);
-
+    logger2 = log_create2("CPUlog.log", "CPU", 1, LOG_LEVEL_MATI);
+    
     if (!logger) {
 		perror("No se puedo encontrar el archivo");
 		return EXIT_FAILURE;
