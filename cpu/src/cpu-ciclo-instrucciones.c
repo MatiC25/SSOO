@@ -62,7 +62,6 @@ void* obtener_registro (char *registro) {
     } else if(strncmp(registro, "PC", 2) == 0) {
         return &(pcb->registros->PC);
     } else if(strncmp(registro, "EAX", 3) == 0) {
-        log_info(logger, "Entro EAX");
         return &(pcb->registros->EAX);
     } else if(strncmp(registro, "EBX", 3) == 0) {
         return &(pcb->registros->EBX);
@@ -80,32 +79,32 @@ void* obtener_registro (char *registro) {
 }
 
 int encontrar_int(void* registro, int tamanio){
-    log_info(logger, "COMBIERTIENDO DE VOID* A INT");
-    if (registro == NULL){
-        log_warning(logger,"REGISTRO EN NULL");
+     //log_info(logger, "CONVIRTIENDO DE VOID* A INT");
+    
+    if (registro == NULL) {
+        log_warning(logger, "REGISTRO EN NULL");
         return -1;
     }
-    if (tamanio = 4){
-        log_info(logger, "tamanio 4");
-    uint32_t reg;
-    memcpy(&reg, registro, sizeof(u_int32_t));
-    log_warning("logger", "Valor uint32_t: %u", reg);
+    
+    int registro_final = -1;
 
-    int registro_final = (int)reg;
-     log_warning("logger", "Valor int: %d", registro_final);
-    return registro_final;
+    if (tamanio == sizeof(uint8_t)) {
+        uint8_t reg;
+        memcpy(&reg, registro, sizeof(uint8_t));
+        //log_warning(logger, "Valor uint8_t: %u", reg);
+        registro_final = (int) reg;
+    } else if (tamanio == sizeof(uint32_t)) {
+        uint32_t reg;
+        memcpy(&reg, registro, sizeof(uint32_t));
+        //log_warning(logger, "Valor uint32_t: %u", reg);
+        registro_final = (int) reg;
+    } else {
+        //log_warning(logger, "TAMANO DESCONOCIDO");
+        return -1;
     }
-
-        if (tamanio = 1){
-            log_info(logger, "tamanio 1");
-    uint8_t reg;
-    memcpy(&reg, registro, sizeof(u_int8_t));
-    log_warning("logger", "Valor uint8_t: %u", reg);
-
-    int registro_final = (int)reg;
-     log_warning("logger", "Valor int: %d", registro_final);
+    
+    log_warning("logger", "Valor int: %d", registro_final);
     return registro_final;
-    }
 }
 
 int espacio_de_registro(char* registro){
@@ -349,7 +348,6 @@ void ejecutar_MOV_IN(char* registro_Datos, char* registro_Direccion){
     log_info(logger,"valor : %i", valor);
 
     //operar_con_registros(reg_Datos,NULL,registro_Datos,"set",atoi(valor));
-    free(valor);
     free(mmu_mov_in);
     tengoAlgunaInterrupcion();
 }
@@ -362,6 +360,7 @@ void ejecutar_MOV_OUT(char* Registro_Datos, char* Registro_Direccion){
 
     int tamanio_registro = espacio_de_registro(Registro_Datos); 
     int tamanio_logica = espacio_de_registro(Registro_Direccion);
+
     log_info(logger, "tamanio logica:%i", tamanio_logica);
     log_info(logger, "tamanio_registro:%i", tamanio_registro);
 

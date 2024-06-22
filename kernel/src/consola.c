@@ -172,17 +172,25 @@ void* iniciar_proceso(void* args) {
 // }
 
 void* proceso_estado(void* args) {
-    printf("Listando procesos por estado:\n");
+    printf("\nListando procesos por estado:\n");
 
+    pthread_mutex_lock(&mutex_estado_new);
     imprimir_procesos_en_cola("NEW", cola_new);
+    pthread_mutex_unlock(&mutex_estado_new);
 
+    pthread_mutex_lock(&mutex_estado_ready);
     imprimir_procesos_en_cola("READY", cola_ready);
+    pthread_mutex_unlock(&mutex_estado_ready);
 
     imprimir_proceso_exec();
 
+    pthread_mutex_lock(&mutex_estado_block);
     imprimir_procesos_en_cola("BLOCK", cola_block);
+    pthread_mutex_unlock(&mutex_estado_block);
 
+    pthread_mutex_lock(&mutex_exit);
     imprimir_procesos_en_cola("EXIT", cola_exit);
+    pthread_mutex_unlock(&mutex_exit);
 
     return NULL;
 }
@@ -195,21 +203,21 @@ void imprimir_procesos_en_cola(char* estado, t_list* cola) {
 
     for (int i = 0; i < size_estados_proceso; i++) {
         t_pcb* pcb = list_get(cola, i);
-        log_info(logger, "Proceso %d\n", pcb->pid);
+        log_info(logger, "Proceso/s en %s: %d\n", estado, pcb->pid);
     }
 }
 
 
 void imprimir_proceso_exec() {
     pthread_mutex_lock(&mutex_estado_exec);
-
-    log_info(logger, "Estado EXEC:\n");
-    if (proceso_en_exec) {
-        log_info(logger, "Proceso %d\n", proceso_en_exec->pid);
-    } else {
-        log_info(logger, "No hay proceso en ejecución.\n");
+    if(proceso_en_exec->estado == EXEC) {
+        log_info(logger, "Estado EXEC:\n");
+        if (proceso_en_exec) {
+            log_info(logger, "Proceso en EXEC: %d\n", proceso_en_exec->pid);
+        } else {
+            log_info(logger, "No hay proceso en ejecución.\n");
+        }
     }
-
     pthread_mutex_unlock(&mutex_estado_exec);
 }
 
@@ -267,8 +275,9 @@ void* finalizar_proceso(void* pid) {
     int pid_buscado = atoi((char*)pid);
 
     pthread_mutex_lock(&mutex_estado_exec);
-    if (proceso_en_exec != NULL && pid_buscado == proceso_en_exec->pid) {
+    if (proceso_en_exec != NULL && pid_buscado == proceso_en_exec->pid && proceso_en_exec->estado == EXITT) {
         finalizar_por_invalidacion(proceso_en_exec, "INTERRUPTED_BY_USER");
+        log_info(logger, "Proceso a Finalizar encontrado en EXEC");
         pthread_mutex_unlock(&mutex_estado_exec);
     } else {
         pthread_mutex_unlock(&mutex_estado_exec);
@@ -277,6 +286,7 @@ void* finalizar_proceso(void* pid) {
         t_pcb* pcb = pcb_encontrado(cola_block, pid_buscado);
         if (pcb != NULL) {
             finalizar_por_invalidacion(pcb, "INTERRUPTED_BY_USER");
+            log_info(logger, "Proceso a Finalizar encontrado en BLOCK");
             pthread_mutex_unlock(&mutex_estado_block);
         } else {
             pthread_mutex_unlock(&mutex_estado_block);
@@ -285,6 +295,7 @@ void* finalizar_proceso(void* pid) {
             pcb = pcb_encontrado(cola_ready, pid_buscado);
             if (pcb != NULL) {
                 finalizar_por_invalidacion(pcb, "INTERRUPTED_BY_USER");
+                log_info(logger, "Proceso a Finalizar encontrado en READY");
                 pthread_mutex_unlock(&mutex_estado_ready);
             } else {
                 pthread_mutex_unlock(&mutex_estado_ready);
@@ -293,6 +304,7 @@ void* finalizar_proceso(void* pid) {
                 pcb = pcb_encontrado(cola_prima_VRR, pid_buscado);
                 if (pcb != NULL) {
                     finalizar_por_invalidacion(pcb, "INTERRUPTED_BY_USER");
+                    log_info(logger, "Proceso a Finalizar encontrado en READY_VRR");
                     pthread_mutex_unlock(&mutex_cola_priori_vrr);
                 } else {
                     pthread_mutex_unlock(&mutex_cola_priori_vrr);

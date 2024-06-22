@@ -69,6 +69,8 @@ void* escuchar_peticiones(void* args){
     }
 }
 
+
+
 void handshake_desde_memoria(int socket_cliente) {
     t_paquete* paquete = crear_paquete(HANDSHAKE_PAGINA);
     int tam_pagina = config_memoria ->tam_pagina;
@@ -80,11 +82,15 @@ void handshake_desde_memoria(int socket_cliente) {
     eliminar_paquete(paquete);
 }
 
+
+
 void enviar_respuesta_a_kernel(int socket_cliente) {
     int respuesta = 1;
 
     send(socket_cliente, &respuesta, sizeof(int), 0);
 }
+
+
 
 //Creacion / destruccion de Tabla de Paginas: "PID:" <PID> "- Tamanio:" <CANTIDAD_PAGINAS>
 void crear_proceso(int pid){
@@ -107,6 +113,8 @@ void crear_proceso(int pid){
     // Liberar el buffer recibido
     //free(buffer);  
 }
+
+
 
 void terminar_proceso(int socket_cliente){
     int size;
@@ -139,6 +147,8 @@ void terminar_proceso(int socket_cliente){
     free(buffer);
 }
 
+
+
 //Ampliacion de Proceso: "PID:" <PID> "- Tamanio Actual:" <TAMANIO_ACTUAL> "- Tamanio a Ampliar:" <TAMANIO_A_AMPLIAR>
 //Reduccion de Proceso: "PID:" <PID> "- Tamanio Actual:" <TAMANIO_ACTUAL> "- Tamanio a Reducir:" <TAMANIO_A_REDUCIR>
 void resize_proceso(int socket_cliente) {
@@ -170,6 +180,7 @@ void resize_proceso(int socket_cliente) {
     if (num_paginas > paginas_actuales) { // Si la cantidad de paginas de la tabla actual son menos al calculo del resize -> se amplia 
     // Ajustar el tamaño de la tabla de páginas
     // log_fede(logger2, "PID: %d - Tamaño Actual: %d - Tamaño a Ampliar: %d ", pid, num_paginas*4 ,tamanio_bytes);
+
     log_mati(logger2, "PID: %d - Tamaño Actual: %d - Tamaño a Ampliar: %d ", pid, num_paginas*4 ,tamanio_bytes); // Log minimo y obligatorio
     for (int i = paginas_actuales; i < num_paginas; i++) {
         int marco_libre = obtener_marco_libre(bitmap);
@@ -211,6 +222,8 @@ void resize_proceso(int socket_cliente) {
     free(buffer);
 }
 
+
+
 //Acceso a Tabla de Paginas: "PID:" <PID> "- Pagina:" <PAGINA> "- Marco:" <MARCO>
 void obtener_marco(int socket_cliente){
 
@@ -221,7 +234,7 @@ void obtener_marco(int socket_cliente){
     
 	memcpy(&pid, buffer, sizeof(int));
 	memcpy(&pagina, buffer + sizeof(int), sizeof(int));
-    log_leo(logger2, "La pagina que recibo para obtener el marco es: %i", pagina);
+    log_mati(logger2, "La pagina que recibo para obtener el marco es: %i", pagina);
     // Pasamos el pid a string xq dictionary_get recibe si o si un string
     char* pid_string = string_itoa(pid);
 
@@ -232,7 +245,7 @@ void obtener_marco(int socket_cliente){
     }
 
     t_tabla_de_paginas* entrada = list_get(tabla_de_paginas, pagina);  //Obtenemos la pagina requerida
-    log_leo(logger2, "La entrada (pagina) que recibo para obtener el marco es: %i", entrada->nro_pagina);
+    log_mati(logger2, "La entrada (pagina) que recibo para obtener el marco es: %i", entrada->nro_pagina);
     if(entrada->bit_validez == 1){// si la pagina existe, se la enviamos a cpu
     
         t_paquete* marco_paquete = crear_paquete(ACCEDER_TABLA_PAGINAS);                                                        
@@ -252,6 +265,8 @@ void obtener_marco(int socket_cliente){
     free(buffer);
 }
 
+
+
 int obtener_marco_libre(t_bitarray *bitmap){
     for (int i = 0; i < bitarray_get_max_bit(bitmap); i++) {
         if (!bitarray_test_bit(bitmap, i)) {
@@ -266,6 +281,8 @@ int obtener_marco_libre(t_bitarray *bitmap){
 void liberar_marco(int marco) {
     bitarray_clean_bit(bitmap, marco); // Marca el bit como libre (pone 0)
 }
+
+
 
 //Acceso a espacio de usuario: "PID:" <PID> "- Accion:" <LEER / ESCRIBIR> "- Direccion fisica:" <DIRECCION_FISICA> "- Tamanio" <TAMANIO A LEER / ESCRIBIR>
 void acceso_lectura(int socket_cliente){
@@ -304,6 +321,8 @@ void acceso_lectura(int socket_cliente){
     free(contenido_leer);
     free(buffer);
 }
+
+
 
 void acceso_escritura(int socket_cliente){
     int size;

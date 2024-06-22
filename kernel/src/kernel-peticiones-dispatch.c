@@ -118,25 +118,29 @@ void peticion_fin_quantum() {
 
 void peticion_exit(const char *tipo_de_exit) {
 
-    t_pcb* pcb = rcv_contexto_ejecucion(config_kernel->SOCKET_DISPATCH);
+    pthread_mutex_lock(&mutex_proceso_exec);
+    proceso_en_exec = rcv_contexto_ejecucion(config_kernel->SOCKET_DISPATCH);
     //mostrar_pcb(pcb);
-    if (!pcb) {
+    if (!proceso_en_exec) {
         log_error(logger, "Dispatch acaba de recibir algo inexistente!");
         return;
     }
+    pthread_mutex_unlock(&mutex_proceso_exec);
+
     sem_post(&desalojo_proceso);
 
-    log_warning(logger, "Finaliza el proceso %i - Motivo: %s", pcb->pid, tipo_de_exit);
+    log_warning(logger, "Finaliza el proceso %i - Motivo: %s", proceso_en_exec->pid, tipo_de_exit);
 
     pthread_mutex_lock(&mutex_exit);
-    list_add(cola_exit, pcb);
+    proceso_en_exec->estado = EXITT;
+    list_add(cola_exit, proceso_en_exec);
     pthread_mutex_unlock(&mutex_exit);
 
     log_info(logger, "Se manda a Memoria para liberar el Proceso");
-    informar_a_memoria_liberacion_proceso(pcb->pid);
+    informar_a_memoria_liberacion_proceso(proceso_en_exec->pid);
     log_info(logger, "Aumentamos Grado de Multiprogramacion por EXIT");
 
-    liberar_recurso_por_exit(pcb);
+    liberar_recurso_por_exit(proceso_en_exec);
 
     sem_post(&sem_multiprogramacion);
     puede_ejecutar_otro_proceso();
@@ -421,6 +425,7 @@ void finalizar_por_invalidacion(t_pcb* pcb, const char* tipo_invalidacion) {
     log_info(logger, "Finaliza el proceso: %i - Motivo: %s", pcb->pid, tipo_invalidacion);
 
     pthread_mutex_lock(&mutex_exit);
+    pcb->estado = EXITT;
     list_add(cola_exit, pcb);
     pthread_mutex_unlock(&mutex_exit);
 
@@ -449,11 +454,6 @@ void liberar_recurso_por_exit(t_pcb* pcb) {
             vector_recursos_pedidos[i].recurso = NULL;
         }
     }
-
-    pthread_mutex_lock(&mutex_proceso_exec);
-    free(pcb->registros);
-    free(pcb);
-    pthread_mutex_unlock(&mutex_proceso_exec);
 
     sem_post(&sem_multiprogramacion);
     puede_ejecutar_otro_proceso();

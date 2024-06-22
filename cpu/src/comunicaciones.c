@@ -18,27 +18,35 @@ int recv_pagina(int socket){
 
 int comunicaciones_con_memoria_lectura(t_mmu_cpu* mmu){
 int valor_final;
+int desplazamiento = 0;
+int total_tam = 0;
+int direc;
 
-    while (!list_is_empty(mmu->direccionFIsica)){
-        int* direccionFIsicaa = (int*)list_remove(mmu->direccionFIsica,0);
+   while (!list_is_empty(mmu->direccionFIsica)){
+     int* direccionFIsicaa = (int*)list_remove(mmu->direccionFIsica, 0);
         int* tamanio = (int*)list_remove(mmu->tamanio, 0);
-        int tam  = *tamanio;
-        int direc = *direccionFIsicaa;
-        int desplazamiento = 0;
+        int tam = *tamanio;
+        direc = *direccionFIsicaa;
+
+        // Valores de prueba
         // pcb->pid = 0;
         // direc = 42;
         // tam = 1;
+        // total_tam += tam;
 
-        enviar_a_leer_memoria(pcb->pid,direc, tam); 
-        int* valor = (int*)recv_leer_memoria(tamanio); 
-        int* reconstruccion = malloc(tam);
-        void* valor_puntero = reconstruccion;
+        enviar_a_leer_memoria(pcb->pid, direc, tam);
+        void* valor = recv_leer_memoria(tam);
 
-        memcpy(reconstruccion + desplazamiento, valor, tam);
+        // Concatenar la parte leída al valor final
+        memcpy((unsigned char*)&valor_final + desplazamiento, valor, tam);
         desplazamiento += tam;
-        // cuando hagamos el primer logg, en el caso de que sea un dato que este entre varias paginas, va a printear mal
-        log_info(logger,"PID: %i -Accion LEER -Direccion Fisica: %i -Valor: %s",pcb->pid, direccionFIsicaa, valor_final);
-    }
+        
+        log_info(logger, "PID: %i - Acción LEER - Dirección Física: %i - Valor: 0x%x", pcb->pid, direc, valor_final);
+
+        free(valor);
+        free(direccionFIsicaa);
+        free(tamanio);
+}
     
     return valor_final;
 }
@@ -225,16 +233,16 @@ void* recv_leer_memoria(int tamanio){
     op_code code = recibir_operacion(config_cpu->SOCKET_MEMORIA);
     log_info(logger, "op_code: %i", code);
     int size;
-    void* valor;
+
     void* buffer = recibir_buffer(&size, config_cpu->SOCKET_MEMORIA);
     if (buffer == NULL) {
         log_error(logger, "Error al recibir el buffer del socket");
         exit(-1);
     }   
-    valor = malloc(tamanio);
+    log_info(logger, "size: %i", size);
 
+    void* valor = malloc(tamanio);
     memcpy(valor, buffer, tamanio);
-
     free(buffer);
     return valor;
 }   
