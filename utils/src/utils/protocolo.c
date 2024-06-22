@@ -162,7 +162,6 @@ void agregar_a_paquete_string(t_paquete* paquete, char* cadena, int tamanio) {
     paquete->buffer->stream = realloc(paquete->buffer->stream, paquete->buffer->size + tamanio);
     memcpy(paquete->buffer->stream + paquete->buffer->size, cadena, tamanio);
     paquete->buffer->size += tamanio;
-   
 }
 
 

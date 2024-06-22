@@ -16,6 +16,7 @@
 #include <utils/estructuras_compartidas.h>
 #include <utils/protocolo.h>
 #include <utils/logger.h>
+#include <commons/memory.h>
 #include "memoria_estructuras_compartidas.h"
 #include "memoria_instrucciones.h"
 

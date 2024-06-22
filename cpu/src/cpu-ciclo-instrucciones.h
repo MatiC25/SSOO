@@ -21,7 +21,7 @@
 #include "comunicaciones.h"
 #include "mmu.h"
 
-int encontrar_int(void* registro);
+int encontrar_int(void* registro, int tamanio);
 void iniciar_ciclo_de_ejecucion(int socket_server ,int socket_cliente);
 void* obtener_registro (char *registro);
 void seguir_ciclo();
@@ -36,6 +36,7 @@ void operar_con_registros(void* registro_destino, void* registro_origen, char* r
 void ejecutar_sub(char* registro_origen_char, char* registro_desitino_char);
 void ejecutar_JNZ(char* registro, char* valor);
 void ejecutar_IO_GEN_SLEEP(char* interfazAUsar, char* tiempoDeTrabajo);
+void liberar_pcb();
 
 void ejecutar_MOV_IN(char* registro_Datos, char* registro_Direccion);
 void ejecutar_MOV_OUT(char* Registro_Datos, char* Registro_Direccion);

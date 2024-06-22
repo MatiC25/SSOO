@@ -82,8 +82,7 @@ void leer_archivoPseudo(int socket_kernel) {
             list_add(parametros_instruccion, strdup(parametros[i])); // Duplicar la cadena
         }
         
-        list_add(lista_de_instrucciones, parametros_instruccion);   
-        //hacer_signal();
+        list_add(lista_de_instrucciones, parametros_instruccion);
         
         // Liberar la memoria de `parametros`
         for (int i = 0; parametros[i] != NULL; i++) {
@@ -133,7 +132,6 @@ void enviar_instruccion_a_cpu(int socket_cpu) {
 
     for(int i = 0; i < list_size(parametros); i++){
         char *parametro = list_get(parametros, i);
-
         //log_info(logger, "Enviando parametro: %s", parametro);
         agregar_a_paquete_string(paquete, parametro, strlen(parametro) + 1);
     }

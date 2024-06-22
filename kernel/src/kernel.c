@@ -16,8 +16,8 @@ int main(int argc, char *argv[]) {
 
     // Levantamos servidor:
     int socket_servidor = crear_servidor_kernel();
-
     iniciar_modulo_kernel(socket_servidor);
-
+    iniciar_consola();
+    
     return 0;
 }

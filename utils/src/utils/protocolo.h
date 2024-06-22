@@ -40,7 +40,8 @@ typedef enum { //podemos juntar todos los procesos
     EXITO_CONSULTA,
     ESCRIBIR_MEMORIA,
     LEER_MEMORIA,
-    NEW_INTERFACE
+    NEW_INTERFACE,
+    EXITO
 // ----------------
 } op_code;
 

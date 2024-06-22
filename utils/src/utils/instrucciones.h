@@ -20,7 +20,7 @@ typedef enum {
     INTERRUPTED_BY_USER,
 // CPU
     SET,
-    MOVE_IN,
+    MOV_IN,
     MOV_OUT,
     SUM,
     SUB,

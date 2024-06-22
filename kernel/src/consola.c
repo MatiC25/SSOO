@@ -1,6 +1,13 @@
 #include "consola.h"
 
 int pid_buscado_global;
+int esta_pausada;
+
+pthread_mutex_t reanudar_ds;
+pthread_mutex_t reanudar_plani;
+pthread_mutex_t reanudar_largo;
+pthread_mutex_t reanudar_block;
+
 
 COMMAND comandos[] = {
     {"INICIAR_PROCESO", iniciar_proceso},
@@ -8,14 +15,17 @@ COMMAND comandos[] = {
     {"MULTIPROGRAMACION", multiprogramacion},
     {"EJECUTAR_SCRIPT", ejecutar_script},
     {"FINALIZAR_PROCESO", finalizar_proceso},
-    //{"DETENER_PLANIFICACION", detener_planificacion},
-    //{"INICIAR_PLANIFICACION", iniciar_planificacion},
+    {"DETENER_PLANIFICACION", detener_planificacion},
+    {"INICIAR_PLANIFICACION", iniciar_planif},
     {NULL, NULL}
 };
+
 
 void iniciar_consola() {
     char* linea;
     char* operacion;
+
+    inicializar_mutex_consola();
 
     iniciar_readline();
 
@@ -35,6 +45,7 @@ void iniciar_consola() {
         free(linea);
     }
 }
+
 
 int ejecutar_comando(char* linea) {
     int i = 0;
@@ -69,6 +80,7 @@ int ejecutar_comando(char* linea) {
     return 1;
 }
 
+
 COMMAND* encontrar_comando(char* nombre) {
     for (int i = 0; comandos[i].nombre; i++) {
         if (strcmp(nombre, comandos[i].nombre) == 0)
@@ -78,10 +90,12 @@ COMMAND* encontrar_comando(char* nombre) {
     return NULL;
 }
 
+
 void iniciar_readline() {
     rl_readline_name = "C-Comenta";
     rl_attempted_completion_function = completar_CComenta;
 }
+
 
 char** completar_CComenta(const char* texto, int inicio, int fin) {
     char** matches = NULL;
@@ -91,6 +105,7 @@ char** completar_CComenta(const char* texto, int inicio, int fin) {
 
     return matches;
 }
+
 
 char* generador_de_comandos(const char* texto, int estado) {
     static int lista_index, len;
@@ -111,6 +126,7 @@ char* generador_de_comandos(const char* texto, int estado) {
     return NULL;
 }
 
+
 void* iniciar_proceso(void* args) {
     char *path = (char*) args; // Path del archivo a ejecutar
 
@@ -118,42 +134,85 @@ void* iniciar_proceso(void* args) {
     return NULL;
 }
 
+// void* proceso_estado(void* args) {
+//     int size_estados_proceso;
+//     t_list *estados_procesos[5];
+
+//     agregar_procesos_a_lista(estados_procesos);
+
+//     for (int i = 0; i < 5; i++) {
+//         t_list *estado_aux = estados_procesos[i];
+//         size_estados_proceso = list_size(estado_aux);
+
+//         for (int j = 0; j < size_estados_proceso; j++) {
+//             t_pcb *pcb = list_get(estado_aux, j);
+//             printf("Proceso %d: %s\n", pcb->pid, estado_proceso(i)); // Imprimimos el estado del proceso
+//         }
+//     }
+//     return NULL;
+// }
+
+// void agregar_procesos_a_lista(t_list *estados_procesos[]) {
+//     estados_procesos[0] = cola_new;
+//     estados_procesos[1] = cola_ready;
+//     estados_procesos[2] = cola_exec;
+//     estados_procesos[3] = cola_block;
+//     estados_procesos[4] = cola_exit;
+// }
+
+// char* estado_proceso(int estado) {
+//     switch (estado) {
+//         case 0: return "NEW";
+//         case 1: return "READY";
+//         case 2: return "EXEC";
+//         case 3: return "BLOCK";
+//         case 4: return "EXIT";
+//     }
+//     return NULL;
+// }
+
 void* proceso_estado(void* args) {
-    int size_estados_proceso;
-    t_list *estados_procesos[5];
+    printf("Listando procesos por estado:\n");
 
-    agregar_procesos_a_lista(estados_procesos);
+    imprimir_procesos_en_cola("NEW", cola_new);
 
-    for (int i = 0; i < 5; i++) {
-        t_list *estado_aux = estados_procesos[i];
-        size_estados_proceso = list_size(estado_aux);
+    imprimir_procesos_en_cola("READY", cola_ready);
 
-        for (int j = 0; j < size_estados_proceso; j++) {
-            t_pcb *pcb = list_get(estado_aux, j);
-            printf("Proceso %d: %s\n", pcb->pid, estado_proceso(i)); // Imprimimos el estado del proceso
-        }
-    }
+    imprimir_proceso_exec();
+
+    imprimir_procesos_en_cola("BLOCK", cola_block);
+
+    imprimir_procesos_en_cola("EXIT", cola_exit);
+
     return NULL;
 }
 
-void agregar_procesos_a_lista(t_list *estados_procesos[]) {
-    estados_procesos[0] = cola_new;
-    estados_procesos[1] = cola_ready;
-    // estados_procesos[2] = cola_exec;
-    estados_procesos[3] = cola_block;
-    // estados_procesos[4] = cola_exit;
+
+void imprimir_procesos_en_cola(char* estado, t_list* cola) {
+    int size_estados_proceso = list_size(cola);
+
+    log_info("Estado %s:\n", estado);
+
+    for (int i = 0; i < size_estados_proceso; i++) {
+        t_pcb* pcb = list_get(cola, i);
+        log_info(logger, "Proceso %d\n", pcb->pid);
+    }
 }
 
-char* estado_proceso(int estado) {
-    switch (estado) {
-        case 0: return "NEW";
-        case 1: return "READY";
-        case 2: return "EXEC";
-        case 3: return "BLOCK";
-        case 4: return "EXIT";
+
+void imprimir_proceso_exec() {
+    pthread_mutex_lock(&mutex_estado_exec);
+
+    log_info(logger, "Estado EXEC:\n");
+    if (proceso_en_exec) {
+        log_info(logger, "Proceso %d\n", proceso_en_exec->pid);
+    } else {
+        log_info(logger, "No hay proceso en ejecución.\n");
     }
-    return NULL;
+
+    pthread_mutex_unlock(&mutex_estado_exec);
 }
+
 
 void* multiprogramacion(void* args) {
     char *multiprogramacion = (char*) args;
@@ -163,6 +222,7 @@ void* multiprogramacion(void* args) {
         sem_post(&sem_multiprogramacion);
     return NULL;
 }
+
 
 void* ejecutar_script(void* args) {
     char *script_path = (char*) args;
@@ -201,6 +261,7 @@ void* ejecutar_script(void* args) {
     free(path_nuevo);
     return NULL;
 }
+
 
 void* finalizar_proceso(void* pid) {
     int pid_buscado = atoi((char*)pid);
@@ -243,6 +304,7 @@ void* finalizar_proceso(void* pid) {
     return NULL;
 }
 
+
 t_pcb* pcb_encontrado(t_list* cola_a_buscar_pid, int pid_buscado) {
 
     pid_buscado_global = pid_buscado;
@@ -250,10 +312,12 @@ t_pcb* pcb_encontrado(t_list* cola_a_buscar_pid, int pid_buscado) {
     return resultado;
 }
 
+
 bool existe_proceso_con_pid_ingresado(t_list* cola_a_buscar_pid, int pid_buscado) {
     pid_buscado_global = pid_buscado;
     return list_any_satisfy(cola_a_buscar_pid, es_el_proceso_buscado);
 }
+
 
 bool es_el_proceso_buscado(void* elemento) {
     t_pcb* pcb = (t_pcb*)elemento;
@@ -266,21 +330,44 @@ bool es_el_proceso_buscado(void* elemento) {
 // pausar el manejo de su motivo de desalojo. De la misma forma, los procesos bloqueados van a pausar
 // su transicion a la cola de Ready.
 // Nomenclatura: DETENER_PLANIFICACION*/
-// // void *detener_planificacion(void* args) {
-    
-// }
 
+void *detener_planificacion(void* args) {
+    if(esta_pausada == 1) {
+        log_warning(logger, "La consola ya se encuentra detenida...");
+    }
+    else {
+        pthread_mutex_lock(&reanudar_plani);
+        pthread_mutex_lock(&reanudar_largo);
+        pthread_mutex_lock(&reanudar_ds);
+        pthread_mutex_lock(&reanudar_block);
+        esta_pausada = 1;
+        log_info(logger, "Planificacion pausada!");
+    }
+}
 // Iniciar planificacion: Este mensaje se encargara de retomar (en caso que se encuentre pausada) 
 // la planificacion de corto y largo plazo. En caso que la planificacion no se encuentre pausada, 
 // se debe ignorar el mensaje.
 // Nomenclatura: INICIAR_PLANIFICACION
 
 
-// void *iniciar_planificacion(void* args){
-//     if(la_plani_esta_pausafa){ //tampoco se como ver esta condicion
-//         pthread_mutex_unlock(&planificacion_cortoplazo); //leito, fijate que semaforo es
-//     } else {
-//         log_info(logger, "La planificación ya está en marcha");
-//     }
-// }
+void *iniciar_planif(void* args){
+    if(esta_pausada == 1){
+        pthread_mutex_unlock(&reanudar_plani);
+        pthread_mutex_unlock(&reanudar_largo);
+        pthread_mutex_unlock(&reanudar_ds);
+        pthread_mutex_unlock(&reanudar_block);
+        esta_pausada = 0;
+        log_info(logger, "Planificacion reanudada!");
+    } else {
+        log_info(logger, "La planificación ya está en marcha, ignorando comando ...");
+    }
+}
+
+
+void inicializar_mutex_consola() {
+    pthread_mutex_init(&reanudar_plani, NULL);
+    pthread_mutex_init(&reanudar_largo, NULL);
+    pthread_mutex_init(&reanudar_ds, NULL);
+    pthread_mutex_init(&reanudar_block, NULL);
+}
 

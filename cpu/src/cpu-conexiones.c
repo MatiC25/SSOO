@@ -7,8 +7,7 @@ void* generar_conexion_a_memoria(void* arg) {
     char* puerto_memoria = config_cpu->PUERTO_MEMORIA;
     char* ip_memoria = config_cpu->IP_MEMORIA;
 
-    //log_info(logger, "%s", ip_memoria);
-    //log_info(logger, "%s", puerto_memoria);
+
     
     if (!ip_memoria){
         log_error(logger, "IP_MEMORIA es NULL");

@@ -99,8 +99,8 @@ t_tipo_instruccion obtener_tipo_instruccion(char* instruccion) {
 
     if(strcmp(instruccion, "SET") == 0) {
         return SET;
-    } else if(strcmp(instruccion, "MOVE_IN") == 0) {
-        return MOVE_IN;
+    } else if(strcmp(instruccion, "MOV_IN") == 0) {
+        return MOV_IN;
     } else if(strcmp(instruccion, "MOV_OUT") == 0) {
         return MOV_OUT;
     } else if(strcmp(instruccion, "SUM") == 0) {

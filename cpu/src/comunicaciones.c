@@ -16,60 +16,87 @@ int recv_pagina(int socket){
 
 
 
-char* comunicaciones_con_memoria_lectura(t_mmu_cpu* mmu){
-    char* valor;
-    char* nuevo_valor;
-    while (list_is_empty(mmu->direccionFIsica)){
-        int direccionFIsicaa = (int)(intptr_t)list_remove(mmu->direccionFIsica,0);
-        int tamanio = (int)(intptr_t)list_remove(mmu->tamanio, 0);
-        enviar_a_leer_memoria(pcb->pid,direccionFIsicaa, tamanio); 
-        valor = recv_leer_memoria(tamanio); 
-        log_info(logger,"PID: %i -Accion LEER -Direccion Fisica: %i -Valor: %s",pcb->pid,direccionFIsicaa,valor);
-        strcat(nuevo_valor, valor);
-    }
-    return nuevo_valor;
-}
-
-int comunicaciones_con_memoria_escritura(t_mmu_cpu* mmu, char* valor){
-    int verificador;
-    int desplazamiento = 0;
-    int valor_largo = strlen(valor);
+int comunicaciones_con_memoria_lectura(t_mmu_cpu* mmu){
+int valor_final;
 
     while (!list_is_empty(mmu->direccionFIsica)){
         int* direccionFIsicaa = (int*)list_remove(mmu->direccionFIsica,0);
         int* tamanio = (int*)list_remove(mmu->tamanio, 0);
         int tam  = *tamanio;
         int direc = *direccionFIsicaa;
-        // log_warning(logger, "TAM: %i", tam);
-        // log_warning(logger, "DIrec: %i", direc);
+        int desplazamiento = 0;
+        // pcb->pid = 0;
+        // direc = 42;
+        // tam = 1;
 
-        char* fragmentacion = (char*)malloc(tam + 1);
-        if(fragmentacion == NULL){
-            log_error(logger, "Errro en fragmentacion del string");
-            free(direccionFIsicaa);
-            free(tamanio);
-            return -1;
-        }
+        enviar_a_leer_memoria(pcb->pid,direc, tam); 
+        int* valor = (int*)recv_leer_memoria(tamanio); 
+        int* reconstruccion = malloc(tam);
+        void* valor_puntero = reconstruccion;
 
-        strncpy(fragmentacion, valor + desplazamiento, tam);
-        //log_warning(logger, "valor: %s", fragmentacion);
+        memcpy(reconstruccion + desplazamiento, valor, tam);
+        desplazamiento += tam;
+        // cuando hagamos el primer logg, en el caso de que sea un dato que este entre varias paginas, va a printear mal
+        log_info(logger,"PID: %i -Accion LEER -Direccion Fisica: %i -Valor: %s",pcb->pid, direccionFIsicaa, valor_final);
+    }
+    
+    return valor_final;
+}
+ 
+       
 
-        send_escribi_memoria(pcb->pid,direc, tam  , valor + desplazamiento);
-        desplazamiento += tam ;
+int comunicaciones_con_memoria_escritura(t_mmu_cpu* mmu, int valor){
+    int verificador;
+    int desplazamiento = 0;
+
+//log_warning(logger, "Cantidad de DF: %i", list_size(mmu->direccionFIsica));
+
+    while (!list_is_empty(mmu->direccionFIsica)){
+        int* direccionFIsicaa = (int*)list_remove(mmu->direccionFIsica,0);
+        int* tamanio = (int*)list_remove(mmu->tamanio, 0);
+
+        uint32_t registro_ecx = valor;
+        uint32_t registro_reconstruido = 0;
+        int tam  = *tamanio;
+        int direc = *direccionFIsicaa;
+        int tam1 = tam;
+        int desplazamiento = 0;
+        int des = 0;
+    
+        //reservar memoria para la primera parte del valor
+        void* registro_parte_1 = malloc(tam1); 
+    
+        // creamos los punteros a al registro original y al que reconstruiremos
+        void* registro_puntero = &registro_ecx; 
+        void* registro_reconstruido_puntero = &registro_reconstruido;
+    
+        // copia la parte del valor en la parte de momeria recervada
+        memcpy(registro_parte_1, registro_puntero + desplazamiento, tam1);
+        desplazamiento += tam1;
+    
+        log_info( logger,"El valor de ECX completo es: %d \n", registro_ecx);
+        log_info( logger,"El valor de ECX antes de reconstruirlo: %d \n", registro_reconstruido);
+    
+        // esto ya serai para la parte de leer
+        // reconstruir la primera parte del valor dividido
+        uint16_t* medio_parte_1 = (uint16_t*)registro_parte_1;
+
+        log_info( logger,"El valor de la primer mitad de ECX: %d \n", *medio_parte_1);
         
-
+        send_escribi_memoria(pcb->pid, direc, tam  , *medio_parte_1);
         verificador = recv_escribir_memoria();
-        if (verificador != -1){
+        if (verificador == -1){
             log_error(logger,"Error en memoria  direccion fisica :%d", direc);
             free(direccionFIsicaa);
             free(tamanio);
-            free(fragmentacion);
+
             return -1;
+        }else{
+        log_info(logger,"PID: %i -Accion ESCRIBIR -Direccion Fisica: %i -Valor: %i",pcb->pid,direc, *medio_parte_1);
+        free(registro_parte_1);
         }
-        log_info(logger,"PID: %i -Accion ESCRIBIR -Direccion Fisica: %i -Valor: %s",pcb->pid,direc,valor);
     free(direccionFIsicaa);
     free(tamanio);
-    free(fragmentacion);
     }
 
     return verificador;
@@ -185,29 +212,39 @@ t_pcb_cpu* rcv_contexto_ejecucion_cpu(int socket_cliente) {
 void enviar_a_leer_memoria(int pid,int direccionFIsica, int tamanio){
     t_paquete* solicitud_lectura = crear_paquete(ACCESO_A_LECTURA);
     agregar_a_paquete(solicitud_lectura, &pid , sizeof(int));
+    log_warning(logger, "PID:%i", pid);
     agregar_a_paquete(solicitud_lectura, &direccionFIsica,sizeof(int));
+    log_warning(logger, "DIRECCION FISICA:%i", direccionFIsica);
     agregar_a_paquete(solicitud_lectura, &tamanio,sizeof(int));
+    log_warning(logger, "TAMAÑO DE LECTURA:%i", tamanio);
     enviar_paquete(solicitud_lectura, config_cpu->SOCKET_MEMORIA);
     eliminar_paquete(solicitud_lectura);
 }
 
-char* recv_leer_memoria(int tamanio){
+void* recv_leer_memoria(int tamanio){
+    op_code code = recibir_operacion(config_cpu->SOCKET_MEMORIA);
+    log_info(logger, "op_code: %i", code);
     int size;
-    char* valor;
+    void* valor;
     void* buffer = recibir_buffer(&size, config_cpu->SOCKET_MEMORIA);
     if (buffer == NULL) {
         log_error(logger, "Error al recibir el buffer del socket");
         exit(-1);
-    }
-    memcpy(&valor, buffer, tamanio);
+    }   
+    valor = malloc(tamanio);
+
+    memcpy(valor, buffer, tamanio);
+
+    free(buffer);
     return valor;
 }   
 
-void send_escribi_memoria(int pid,int direccionFIsica, int tamanio,char* valor){
-    t_paquete* solicitud_escritura = crear_paquete(ESCRIBIR_MEMORIA);
+void send_escribi_memoria(int pid, int direccionFIsica, int tamanio, int valor){
+    t_paquete* solicitud_escritura = crear_paquete(ACCESO_A_ESCRITURA);
     agregar_a_paquete(solicitud_escritura, &pid ,sizeof(int));
     agregar_a_paquete(solicitud_escritura, &direccionFIsica,sizeof(int));
-    agregar_a_paquete_string(solicitud_escritura, &valor, tamanio + 1);
+    agregar_a_paquete(solicitud_escritura, &tamanio, sizeof(int));
+    agregar_a_paquete(solicitud_escritura, &valor,sizeof(int));
     enviar_paquete(solicitud_escritura, config_cpu->SOCKET_MEMORIA);
     eliminar_paquete(solicitud_escritura);
 }
@@ -227,8 +264,9 @@ void solicitar_tablas_a_memoria(int numero_pagina){
 
     t_paquete* paquete_tablas = crear_paquete(ACCEDER_TABLA_PAGINAS);
     agregar_a_paquete(paquete_tablas,&pcb->pid,sizeof(int));
+    //log_warning(logger, "PID: %i", pcb->pid);
     agregar_a_paquete(paquete_tablas,&numero_pagina,sizeof(int));
-
+    //log_warning(logger, "Nro PAgina: %i", numero_pagina);
     enviar_paquete(paquete_tablas, config_cpu->SOCKET_MEMORIA);
 
     eliminar_paquete(paquete_tablas);

@@ -10,6 +10,7 @@
 #include "kernel-protocolo.h"
 #include "planificacion.h"
 
+
 void hilo_motivo_de_desalojo();
 void* escuchar_peticiones_dispatch();
 const char* transformar_motivos_a_exit(t_tipo_instruccion* motivo_inicial);

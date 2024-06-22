@@ -7,9 +7,6 @@ void inicializar_semaforo() {
     sem_init(&enviar_instruccion, 0, 0);
     sem_init(&sem_lectura_archivo, 0, 1);
 }
-// void hacer_signal(){
-//     sem_post(&enviar_instruccion);
-// }
 
 void* escuchar_peticiones(void* args){
     int socket_cliente = *(int*) args;
@@ -17,7 +14,7 @@ void* escuchar_peticiones(void* args){
 
     while (1){   
         int cod_op = recibir_operacion(socket_cliente);
-        //log_warning(logger,"cod op %i",cod_op);
+        //log_warning(logger,"cod op = %i/FIN_DE_OP_CODE",cod_op);
         switch (cod_op){
         case HANDSHAKE:
             recibir_handshake(socket_cliente);
@@ -32,11 +29,9 @@ void* escuchar_peticiones(void* args){
             handshake_desde_memoria(socket_cliente);
             break;
         case INICIAR_PROCESO:
-            // sem_wait(&sem_lectura_archivo); //semaforo para hacegurar que kernel nos mande un pseudo a la vez
             log_info(logger, "Iniciando proceso");
             retardo_pedido(config_memoria -> retardo_respuesta);
             leer_archivoPseudo(socket_cliente);
-            // sem_post(&sem_lectura_archivo);
             enviar_respuesta_a_kernel(socket_cliente);
             break;
         case FINALIZAR_PROCESO:
@@ -45,7 +40,6 @@ void* escuchar_peticiones(void* args){
             break;
         case INSTRUCCION: 
             retardo_pedido(config_memoria -> retardo_respuesta);
-            //sem_wait(&enviar_instruccion);
             // log_info(logger,"Enviando instruccion a CPU");
             log_facu(logger2,"Enviando instruccion a CPU");
             enviar_instruccion_a_cpu(socket_cliente);
@@ -209,13 +203,7 @@ void resize_proceso(int socket_cliente) {
             free(pagina_a_eliminar); // Liberar la memoria de la página
         }
     }
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    t_paquete* paquete = crear_paquete(EXITO_CONSULTA);
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    t_paquete* paquete = crear_paquete(EXITO);
     int operacion_exitosa = 1;
     agregar_a_paquete(paquete, &operacion_exitosa, sizeof(int));
     enviar_paquete(paquete, socket_cliente);
@@ -230,9 +218,10 @@ void obtener_marco(int socket_cliente){
 	void* buffer = recibir_buffer(&size, socket_cliente);
     int pid;
 	int pagina;
+    
 	memcpy(&pid, buffer, sizeof(int));
 	memcpy(&pagina, buffer + sizeof(int), sizeof(int));
-
+    log_leo(logger2, "La pagina que recibo para obtener el marco es: %i", pagina);
     // Pasamos el pid a string xq dictionary_get recibe si o si un string
     char* pid_string = string_itoa(pid);
 
@@ -243,19 +232,21 @@ void obtener_marco(int socket_cliente){
     }
 
     t_tabla_de_paginas* entrada = list_get(tabla_de_paginas, pagina);  //Obtenemos la pagina requerida
-
+    log_leo(logger2, "La entrada (pagina) que recibo para obtener el marco es: %i", entrada->nro_pagina);
     if(entrada->bit_validez == 1){// si la pagina existe, se la enviamos a cpu
     
-        t_paquete* marco_paquete = crear_paquete(ACCEDER_TABLA_PAGINAS);
+        t_paquete* marco_paquete = crear_paquete(ACCEDER_TABLA_PAGINAS);                                                        
         agregar_a_paquete(marco_paquete, &(entrada->marco), sizeof(int));
         enviar_paquete(marco_paquete, socket_cliente);
-        log_info(logger, "PID: %c - Pagina: %d PAGINA> - %d <MARCO ,>" , pid, entrada->nro_pagina, entrada->marco);
+        eliminar_paquete(marco_paquete);
+        log_mati(logger2, "PID: %d - Pagina: %d - Marco: %d" , pid, entrada->nro_pagina, entrada->marco);
     } 
     else{ //caso contrario enviamos el mensaje de error
         t_paquete* marco_paquete = crear_paquete(ACCEDER_TABLA_PAGINAS);
         int marco_no_encontrado = -1;
         agregar_a_paquete(marco_paquete, &marco_no_encontrado , sizeof(int));
         enviar_paquete(marco_paquete, socket_cliente);
+        eliminar_paquete(marco_paquete);
         log_error(logger,"La pagina pedida no existe");
     }
     free(buffer);
@@ -285,22 +276,27 @@ void acceso_lectura(int socket_cliente){
     int pid;
     int direc_fisica;
     int tamanio_lectura;
-
+    log_warning(logger, "_______________________acceso_lectura_______________________");
     memcpy(&pid, buffer + desplazamiento, sizeof(int));
     desplazamiento += sizeof(int);
+    log_warning(logger, "Pid : %i", pid);
     memcpy(&direc_fisica, buffer + desplazamiento, sizeof(int));
     desplazamiento += sizeof(int);
+    log_warning(logger, "Direc_fisica : %i", direc_fisica);
     memcpy(&tamanio_lectura, buffer + desplazamiento, sizeof(int));
     desplazamiento += sizeof(int);
+    log_warning(logger, "Tamanio a leer : %i", tamanio_lectura);
 
     // Asignar memoria para el contenido a leer
     void* contenido_leer = malloc(tamanio_lectura);
 
     // Realizar la lectura del espacio de usuario
+    mem_hexdump(espacio_de_usuario + direc_fisica, tamanio_lectura);
     memcpy(contenido_leer, espacio_de_usuario + direc_fisica, tamanio_lectura);
     log_info(logger, "Acceso a espacio de usuario: PID: %d - Accion: LEER - Direccion fisica: %d  - Tamaño: %d", pid, direc_fisica, tamanio_lectura);
+    mem_hexdump(espacio_de_usuario + direc_fisica, tamanio_lectura);
 
-    t_paquete* paquete = crear_paquete(LECTURA_EXITOSA);
+    t_paquete* paquete = crear_paquete(EXITO);
     agregar_a_paquete(paquete, contenido_leer, tamanio_lectura);
     enviar_paquete(paquete, socket_cliente);
 
@@ -317,33 +313,50 @@ void acceso_escritura(int socket_cliente){
     int pid;
     int direc_fisica;
     int tamanio_escritura;
+    int tamanio;
     void* contenido_a_escribir;
 
     memcpy(&pid, buffer + desplazamiento, sizeof(int));
     desplazamiento += sizeof(int);
+    log_warning(logger, "Pid : %i", pid);
     memcpy(&direc_fisica, buffer + desplazamiento, sizeof(int));
     desplazamiento += sizeof(int);
+    log_warning(logger, "Direc_fisica : %i", direc_fisica);
     memcpy(&tamanio_escritura, buffer + desplazamiento, sizeof(int));
     desplazamiento += sizeof(int);
-
-    // Asignar memoria para el contenido a escribir
-    contenido_a_escribir = malloc(tamanio_escritura);
-    // copiamos el contenido a escribir
+    log_warning(logger, "Tamanio a escribir : %i", tamanio_escritura);
+    contenido_a_escribir = malloc(tamanio_escritura); // Asignar memoria para el contenido a escribir
     memcpy(contenido_a_escribir, buffer + desplazamiento, tamanio_escritura);
+    
+    //log_warning(logger, "Contenido a escribir : %s", (int*)contenido_a_escribir);
 
+    
+    int verificacion = 1;
+    
     // Verificar que no se escriba fuera del espacio de usuario
     if (direc_fisica + tamanio_escritura > config_memoria->tam_memoria) {
         log_error(logger, "Error: Se intentó escribir fuera del espacio de usuario\n");
         t_paquete* paquete = crear_paquete(OUT_OF_MEMORY);
+        verificacion = -1;
+        agregar_a_paquete(paquete, &verificacion,sizeof(int));
         enviar_paquete(paquete, socket_cliente);
         eliminar_paquete(paquete);
+        return;
     }
     // se escribe en el espacio usuario el contenido a escribir
-    memcpy(espacio_de_usuario + direc_fisica, contenido_a_escribir, tamanio_escritura);; 
-    log_info(logger, "Acceso a espacio de usuario: PID: %d - Accion: ESCRIBIR - Direccion fisica: %d  - Tamaño: %d", pid, direc_fisica, tamanio_escritura);
 
-    enviar_mensaje("OK", socket_cliente);
+    memcpy(espacio_de_usuario + direc_fisica, contenido_a_escribir, tamanio_escritura);
+
+    mem_hexdump(espacio_de_usuario + direc_fisica, tamanio_escritura);
+
+    log_info(logger, "Acceso a espacio de usuario: PID: %d - Accion: ESCRIBIR - Direccion fisica: %d  - Tamaño: %d", pid, direc_fisica, tamanio_escritura);
+    
+    t_paquete* paquete = crear_paquete(EXITO);
+    agregar_a_paquete(paquete, &verificacion,sizeof(int));
+    enviar_paquete(paquete, socket_cliente);
+    eliminar_paquete(paquete);
 
     free(contenido_a_escribir);
     free(buffer);
+
 }

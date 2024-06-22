@@ -1,5 +1,6 @@
 #include "kernel-peticiones-dispatch.h"
 
+
 void hilo_motivo_de_desalojo() {
     pthread_t hilo_desalojo;
 
@@ -19,8 +20,11 @@ void hilo_motivo_de_desalojo() {
 
 
 void* escuchar_peticiones_dispatch() {
+
     while (1) {
-        
+        pthread_mutex_lock(&reanudar_ds);
+        pthread_mutex_unlock(&reanudar_ds);
+
         t_tipo_instruccion motivo_desalojo = recibir_operacion(config_kernel->SOCKET_DISPATCH);
 
         if (motivo_desalojo < 0) {
@@ -46,14 +50,14 @@ void* escuchar_peticiones_dispatch() {
             case EXIT:
                 peticion_exit(tipo_de_exit);
                 break;
+            case -1:
+                log_error(logger, "El motivo de desalojo no existe!");
+                return NULL;
             default:
                 log_error(logger, "El motivo de desalojo no existe!");
                 break;  
         }
-        puede_ejecutar_otro_proceso();
     }
-    
-    return NULL;
 }
 
 
@@ -108,6 +112,7 @@ void peticion_fin_quantum() {
     pthread_mutex_unlock(&mutex_estado_ready);
 
     sem_post(&hay_en_estado_ready);
+    puede_ejecutar_otro_proceso();
 }
 
 
@@ -120,14 +125,21 @@ void peticion_exit(const char *tipo_de_exit) {
         return;
     }
     sem_post(&desalojo_proceso);
+
     log_warning(logger, "Finaliza el proceso %i - Motivo: %s", pcb->pid, tipo_de_exit);
 
-    // liberar_recurso_por_exit(pcb);
-    
+    pthread_mutex_lock(&mutex_exit);
+    list_add(cola_exit, pcb);
+    pthread_mutex_unlock(&mutex_exit);
+
     log_info(logger, "Se manda a Memoria para liberar el Proceso");
     informar_a_memoria_liberacion_proceso(pcb->pid);
     log_info(logger, "Aumentamos Grado de Multiprogramacion por EXIT");
+
+    liberar_recurso_por_exit(pcb);
+
     sem_post(&sem_multiprogramacion);
+    puede_ejecutar_otro_proceso();
 }
 
 
@@ -137,6 +149,7 @@ void peticion_wait() {
     t_pcb* pcb = recibir_contexto_y_recurso(&recurso);
     if (!pcb) {
         log_error(logger, "Dispatch acaba de recibir algo inexistente!");
+        puede_ejecutar_otro_proceso();
         return;
     }
 
@@ -144,6 +157,7 @@ void peticion_wait() {
         log_error(logger, "El recurso solicitado no existe!");
         finalizar_por_invalidacion(pcb, "INVALID_RESOURCE");
         free(recurso);
+        puede_ejecutar_otro_proceso();
         return;
     }
 
@@ -164,6 +178,7 @@ void peticion_wait() {
         enviar_proceso_a_cpu(pcb);
 
     } else {
+        puede_ejecutar_otro_proceso();
         mover_a_bloqueado_por_wait(pcb, recurso);
         free(recurso);
         return;
@@ -179,6 +194,7 @@ void peticion_signal() {
     t_pcb* pcb = recibir_contexto_y_recurso(&recurso);
     if (!pcb) {
         log_error(logger, "Dispatch acaba de recibir algo inexistente!");
+        puede_ejecutar_otro_proceso();
         return;
     }
 
@@ -186,6 +202,7 @@ void peticion_signal() {
         log_error(logger, "El recurso solicitado no existe!");
         finalizar_por_invalidacion(pcb, "INVALID_RESOURCE");
         free(recurso);
+        puede_ejecutar_otro_proceso();
         return;
     }
 
@@ -199,6 +216,9 @@ void peticion_signal() {
             free(vector_recursos_pedidos[i].recurso);
             vector_recursos_pedidos[i].recurso = NULL;
             break;
+        }
+        else {
+            log_error(logger, "El vector de recursos pedidos encontro una absurdez!");
         }
     }
 
@@ -344,8 +364,8 @@ void peticion_IO() {
     queue_push(interface->args_process, args);
     sem_post(&interface->size_blocked);
 
+    puede_ejecutar_otro_proceso();
 }
-
 
 
 void rcv_nombre_recurso(char** recurso, int socket) {
@@ -399,9 +419,14 @@ int calcular_total_instancias() {
 void finalizar_por_invalidacion(t_pcb* pcb, const char* tipo_invalidacion) {
     
     log_info(logger, "Finaliza el proceso: %i - Motivo: %s", pcb->pid, tipo_invalidacion);
-    //informar_a_memoria_liberacion_proceso(pcb->pid);
+
+    pthread_mutex_lock(&mutex_exit);
+    list_add(cola_exit, pcb);
+    pthread_mutex_unlock(&mutex_exit);
+
+    informar_a_memoria_liberacion_proceso(pcb->pid);
+
     liberar_recurso_por_exit(pcb);
-    
 }
 
 
@@ -424,13 +449,16 @@ void liberar_recurso_por_exit(t_pcb* pcb) {
             vector_recursos_pedidos[i].recurso = NULL;
         }
     }
+
     pthread_mutex_lock(&mutex_proceso_exec);
     free(pcb->registros);
     free(pcb);
     pthread_mutex_unlock(&mutex_proceso_exec);
 
-    sem_post(&hay_en_estado_ready);
+    sem_post(&sem_multiprogramacion);
+    puede_ejecutar_otro_proceso();
 }
+
 
 void mostrar_pcb(t_pcb* pcb){
     log_info(logger,"PID: %i", pcb->pid);

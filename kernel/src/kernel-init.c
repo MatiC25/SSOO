@@ -6,8 +6,6 @@ void iniciar_modulo_kernel(int socket_servidor) {
     aceptar_interfaces(socket_servidor);
     inicializacion_semaforos();
     iniciar_planificacion();
-    iniciar_consola();
-    //manejar_peticion_con_memoria();
 }
 
 void inicializar_lista(){
@@ -16,6 +14,7 @@ void inicializar_lista(){
     cola_prima_VRR = list_create();
     cola_block = list_create();
     cola_exec = list_create();
+    cola_exit = list_create();
 }
 
 void aceptar_interfaces(int socket_servidor) {
@@ -38,9 +37,4 @@ void iniciar_planificacion() {
     pthread_detach(planificacion_corto_plazo_thread);
     pthread_detach(planificacion_largo_plazo_thread);
 }
-
-
-
-
-
 

@@ -10,6 +10,13 @@
     "queue.h": "c",
     "cositas.h": "c",
     "logger.h": "c",
-    "bitarray.h": "c"
+    "bitarray.h": "c",
+    "planificacion.h": "c",
+    "consola.h": "c",
+    "kernel-init.h": "c",
+    "kernel-interfaces.h": "c",
+    "kernel-estructuras.h": "c",
+    "kernel-peticiones-dispatch.h": "c",
+    "kernel-protocolo.h": "c"
   }
 }

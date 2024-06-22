@@ -35,7 +35,7 @@ int main()
 
     // memoria de usuario y bitmap
     int cantidad_marcos = config_memoria->tam_memoria / config_memoria->tam_pagina; //calculamos la cantidad de marcos
-    espacio_de_usuario = malloc (config_memoria->tam_memoria); // reservamos memoria para el espacio de usuarip
+    espacio_de_usuario = malloc (config_memoria->tam_memoria); // reservamos memoria para el espacio de usuario
     void* memoria_usuario_bitmap = malloc(cantidad_marcos/8);// reservamos memoria para el bitmap
     bitmap = bitarray_create_with_mode(memoria_usuario_bitmap , cantidad_marcos/8, LSB_FIRST);
 

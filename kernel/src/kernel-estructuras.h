@@ -51,9 +51,17 @@ extern t_list* cola_ready;
 extern t_list* cola_prima_VRR;
 extern t_list* cola_block;
 extern t_list* cola_exec;
+extern t_list* cola_exit;
 extern t_queue* colas_resource_block[MAX_RECURSOS];
+
+extern pthread_mutex_t reanudar_plani;
+extern pthread_mutex_t reanudar_ds;
+extern pthread_mutex_t reanudar_largo;
+extern pthread_mutex_t reanudar_block;
 
 extern t_recursos_pedidos* vector_recursos_pedidos;
 extern int tam_vector_recursos_pedidos;
+
+extern int esta_pausada;
 
 #endif

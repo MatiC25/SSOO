@@ -12,8 +12,8 @@ t_log2 *logger2;
 static char *enum_names2[LOG_ENUM2_SIZE] = {"MATI", "NICO", "LEO", "FACU", "FEDE"};
 static char *log_colors2[LOG_ENUM2_SIZE] = {
     "\x1B[38;2;222;95;44m", 
-    "\x1B[38;2;108;66;150m", 
-    "\x1B[38;2;200;25;73m", 
+    "\x1B[38;2;222;98;255m", 
+    "\x1B[38;2;200;25;73m",     
     "\x1B[38;2;44;145;222m", 
     "\x1B[38;2;44;222;142m"
 };

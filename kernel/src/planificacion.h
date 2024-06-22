@@ -12,7 +12,6 @@
 #include <utils/protocolo.h>
 #include <utils/cositas.h>
 
-
 extern pthread_mutex_t mutex_estado_new;
 extern pthread_mutex_t mutex_estado_block;
 extern pthread_mutex_t mutex_estado_ready;
@@ -20,6 +19,7 @@ extern pthread_mutex_t mutex_estado_exec;
 extern pthread_mutex_t mutex_cola_priori_vrr;
 extern pthread_mutex_t mutex_proceso_exec;
 extern pthread_mutex_t mutex_cola_block;
+extern pthread_mutex_t mutex_exit;
 extern sem_t sem_proceso_exec;
 extern sem_t sem_multiprogramacion;
 extern sem_t habilitar_corto_plazo;
