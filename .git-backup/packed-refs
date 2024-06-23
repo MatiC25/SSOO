@@ -1,0 +1,14 @@
+# pack-refs with: peeled fully-peeled sorted 
+2992ebc40c3af9dd91140df7a020270f00849636 refs/remotes/origin/Cpu
+80a33b596efce2da6f66497591490c97cb02e750 refs/remotes/origin/FedeVM
+05c39dab816f86d6ccb085bf7606a7120e863e3b refs/remotes/origin/Kernel-IO
+7ad85672efbcc1ea3d9e1ff3f31b394bc1da7dbe refs/remotes/origin/MemCpu
+13a0a71694679dc23fc1041bfade4ade5813815a refs/remotes/origin/Pruebas_CHs
+a81835d65b447864cf73feeb5ecb9f9470f06906 refs/remotes/origin/main
+ed2cc009c11e42842168bb53190e8b0bdbfdebed refs/remotes/origin/memCK3
+ac5a878652b567ec0650c314174cbf9aa084c936 refs/tags/checkpoint-1
+^0d5f0a3d6ae3278e6d29ae4a51fbd59dd21793ef
+87014f48149dbced8ec12c05ae52f305329349b0 refs/tags/checkpoint-{2}
+^321c551a08a3bd20550ab9368d626236c102ab70
+f341ef1594d36940a4d2e5bc23c18af17e0f27ee refs/tags/checkpoint-{3}
+^689cdba831ca4f31fe91e5433e882874fdcdba46

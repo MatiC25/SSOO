@@ -17,10 +17,10 @@ int recv_pagina(int socket){
 
 
 int comunicaciones_con_memoria_lectura(t_mmu_cpu* mmu){
-int valor_final;
-int desplazamiento = 0;
-int total_tam = 0;
-int direc;
+    int valor_final;
+    int desplazamiento = 0;
+    int total_tam = 0;
+    int direc;
 
    while (!list_is_empty(mmu->direccionFIsica)){
      int* direccionFIsicaa = (int*)list_remove(mmu->direccionFIsica, 0);
@@ -28,11 +28,6 @@ int direc;
         int tam = *tamanio;
         direc = *direccionFIsicaa;
 
-        // Valores de prueba
-        // pcb->pid = 0;
-        // direc = 42;
-        // tam = 1;
-        // total_tam += tam;
 
         enviar_a_leer_memoria(pcb->pid, direc, tam);
         void* valor = recv_leer_memoria(tam);
@@ -82,14 +77,14 @@ int comunicaciones_con_memoria_escritura(t_mmu_cpu* mmu, int valor){
         memcpy(registro_parte_1, registro_puntero + desplazamiento, tam1);
         desplazamiento += tam1;
     
-        log_info( logger,"El valor de ECX completo es: %d \n", registro_ecx);
-        log_info( logger,"El valor de ECX antes de reconstruirlo: %d \n", registro_reconstruido);
+        //log_info( logger,"El valor de ECX completo es: %d \n", registro_ecx);
+        //log_info( logger,"El valor de ECX antes de reconstruirlo: %d \n", registro_reconstruido);
     
         // esto ya serai para la parte de leer
         // reconstruir la primera parte del valor dividido
-        uint16_t* medio_parte_1 = (uint16_t*)registro_parte_1;
+        uint32_t* medio_parte_1 = (uint32_t*)registro_parte_1;
 
-        log_info( logger,"El valor de la primer mitad de ECX: %d \n", *medio_parte_1);
+        //log_info( logger,"El valor de la primer mitad de ECX: %d \n", *medio_parte_1);
         
         send_escribi_memoria(pcb->pid, direc, tam  , *medio_parte_1);
         verificador = recv_escribir_memoria();

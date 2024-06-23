@@ -94,8 +94,7 @@ void solicitar_instruccion(int socket_server, int PID, int program_counter) {
 }
 
 t_tipo_instruccion obtener_tipo_instruccion(char* instruccion) {
-     // Usa esa funcion es la comparacion de strings
-    //string_equals_ignore_case
+    //log_warning(logger, "Operacion: %s|", instruccion);
 
     if(strcmp(instruccion, "SET") == 0) {
         return SET;
@@ -112,7 +111,11 @@ t_tipo_instruccion obtener_tipo_instruccion(char* instruccion) {
     } else if(strcmp(instruccion, "RESIZE") == 0) {
         return RESIZE;
     }else if(strcmp(instruccion, "COPY_STRING") == 0) {
-        return COPY_STRING;
+        return COPY_STRING;  
+    }else if(strcmp(instruccion, "WAIT") == 0) {
+        return WAIT; 
+    }else if(strcmp(instruccion, "SIGNAL") == 0) {
+        return SIGNAL; 
     }else if(strcmp(instruccion, "IO_GEN_SLEEP") == 0) {
         return IO_GEN_SLEEP;
     }else if(strcmp(instruccion, "IO_STDIN_READ") == 0) {
@@ -133,11 +136,12 @@ t_tipo_instruccion obtener_tipo_instruccion(char* instruccion) {
         return IO_GEN_SLEEP;
     }else if(strcmp(instruccion, "IO_FS_READ") == 0) {
         return IO_FS_READ;
-    }else if(strcmp(instruccion, "EXIT") == 0) {
-        return EXIT;    
+    }else if(strncmp(instruccion, "EXIT", 4) == 0) {
+        return EXIT;
     }else{
         log_error(logger, "Error en buscar la instruccion");
         return 0;
     }
 }
+
 

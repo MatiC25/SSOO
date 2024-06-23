@@ -150,41 +150,52 @@ void peticion_exit(const char *tipo_de_exit) {
 void peticion_wait() {
 
     char* recurso;
-    t_pcb* pcb = recibir_contexto_y_recurso(&recurso);
-    if (!pcb) {
+    pthread_mutex_lock(&mutex_proceso_exec);
+    proceso_en_exec = recibir_contexto_y_recurso(&recurso);
+    if (!proceso_en_exec) {
         log_error(logger, "Dispatch acaba de recibir algo inexistente!");
         puede_ejecutar_otro_proceso();
         return;
     }
+    pthread_mutex_unlock(&mutex_proceso_exec);
+
+    sem_post(&desalojo_proceso);
 
     if (!recurso_existe(recurso)) {
         log_error(logger, "El recurso solicitado no existe!");
-        finalizar_por_invalidacion(pcb, "INVALID_RESOURCE");
+        finalizar_por_invalidacion(proceso_en_exec, "INVALID_RESOURCE");
         free(recurso);
         puede_ejecutar_otro_proceso();
         return;
     }
-
+    
     int indice_recurso = obtener_indice_recurso(recurso);
-
+    
     if (config_kernel->INST_RECURSOS[indice_recurso] > 0) {
         config_kernel->INST_RECURSOS[indice_recurso]--;
 
         // Guardar el pid y el recurso en el vector
         for (int i = 0; i < tam_vector_recursos_pedidos; i++) {
             if (vector_recursos_pedidos[i].PID == -1) {
-                vector_recursos_pedidos[i].PID = pcb->pid;
+                vector_recursos_pedidos[i].PID = proceso_en_exec->pid;
                 vector_recursos_pedidos[i].recurso = strdup(recurso);
+                log_info(logger, "PID: %i - Asignado: %s", proceso_en_exec->pid, recurso, i);
                 break;
             }
         }
-
-        enviar_proceso_a_cpu(pcb);
+        pthread_mutex_lock(&mutex_proceso_exec);
+        log_info(logger, "¡Devolviendo Proceso por WAIT exitoso!");
+        enviar_proceso_a_cpu(proceso_en_exec);
+        pthread_mutex_unlock(&mutex_proceso_exec);
 
     } else {
-        puede_ejecutar_otro_proceso();
-        mover_a_bloqueado_por_wait(pcb, recurso);
+        log_info(logger, "Recurso no disponible actualmente");
+        log_info(logger, "Moviendo proceso a BLOCK");
+        pthread_mutex_lock(&mutex_proceso_exec);
+        mover_a_bloqueado_por_wait(proceso_en_exec, recurso);
+        pthread_mutex_unlock(&mutex_proceso_exec);
         free(recurso);
+        puede_ejecutar_otro_proceso();
         return;
     }
 
@@ -195,16 +206,20 @@ void peticion_wait() {
 void peticion_signal() {
 
     char* recurso;
-    t_pcb* pcb = recibir_contexto_y_recurso(&recurso);
-    if (!pcb) {
+    pthread_mutex_lock(&mutex_proceso_exec);
+    proceso_en_exec = recibir_contexto_y_recurso(&recurso);
+    if (!proceso_en_exec) {
         log_error(logger, "Dispatch acaba de recibir algo inexistente!");
         puede_ejecutar_otro_proceso();
         return;
     }
+    pthread_mutex_unlock(&mutex_proceso_exec);
+
+    sem_post(&desalojo_proceso);
 
     if (!recurso_existe(recurso)) {
         log_error(logger, "El recurso solicitado no existe!");
-        finalizar_por_invalidacion(pcb, "INVALID_RESOURCE");
+        finalizar_por_invalidacion(proceso_en_exec, "INVALID_RESOURCE");
         free(recurso);
         puede_ejecutar_otro_proceso();
         return;
@@ -215,7 +230,8 @@ void peticion_signal() {
 
     // Liberar el pid y el recurso en el vector
     for (int i = 0; i < tam_vector_recursos_pedidos; i++) {
-        if (vector_recursos_pedidos[i].PID == pcb->pid && strcmp(vector_recursos_pedidos[i].recurso, recurso) == 0) {
+        if (vector_recursos_pedidos[i].PID == proceso_en_exec->pid && strncmp(vector_recursos_pedidos[i].recurso, recurso, 2) == 0) {
+            log_info(logger, "Proceso: %i - Devuelve: %s", proceso_en_exec->pid, recurso);
             vector_recursos_pedidos[i].PID = -1;
             free(vector_recursos_pedidos[i].recurso);
             vector_recursos_pedidos[i].recurso = NULL;
@@ -239,8 +255,8 @@ void peticion_signal() {
         log_info(logger, "PID: %i - Estado Anterior: BLOCK - Estado Actual: READY", pcb_signal->pid);
         sem_post(&hay_en_estado_ready);
     }
-
-    enviar_proceso_a_cpu(pcb);
+    log_info(logger, "¡Devolviendo Proceso por SIGNAL exitoso!");
+    enviar_proceso_a_cpu(proceso_en_exec);
     free(recurso);
 }
 
@@ -271,16 +287,9 @@ void mover_a_cola_block_general(t_pcb* pcb, char* motivo) {
 }
 
 
-void inicializar_colas_bloqueados() {
-    for (int i = 0; i < MAX_RECURSOS; i++) {
-        colas_resource_block[i] = queue_create();
-    }
-}
-
-
 int obtener_indice_recurso(char* recurso) {
     for (int i = 0; i < MAX_RECURSOS; i++) {
-        if (strcmp(config_kernel->RECURSOS[i], recurso) == 0) {
+        if (strncmp(config_kernel->RECURSOS[i], recurso, 2) == 0) { //ACORDATE DE CAMBIARLOOOO!!!
             return i;
         }
     }
@@ -373,30 +382,25 @@ void peticion_IO() {
 
 
 void rcv_nombre_recurso(char** recurso, int socket) {
-    int tamanio;
+    op_code code = recibir_operacion(socket);
+    int desplazamiento = 0;;
+    int size;
+    int tamanio = 0;
 
-    // Recibir el tamaño del nombre del recurso
-    if (recv(socket, &tamanio, sizeof(int), MSG_WAITALL) <= 0) {
-        *recurso = NULL;
-        log_error(logger, "No se recibió el tamaño del nombre del recurso: %s", strerror(errno));
-        return;
-    }
+    void* buffer = recibir_buffer(&size, socket);
+        if(buffer == NULL){
+            log_error(logger, "Error al recibir el bufer en WAIT");
+            return;
+        }
+        
+        memcpy(&tamanio, buffer + desplazamiento, sizeof(int));
+        desplazamiento += sizeof(int);
 
-    // Reservar memoria para el nombre del recurso
-    *recurso = malloc(tamanio);
-    if (*recurso == NULL) {
-        log_error(logger, "Error al reservar memoria para el recurso: %s", strerror(errno));
-        return;
-    }
-
-    // Recibir el nombre del recurso
-    if (recv(socket, *recurso, tamanio, MSG_WAITALL) <= 0) {
-        log_error(logger, "No se recibió el nombre del recurso: %s", strerror(errno));
-        free(*recurso);
-        *recurso = NULL;
-    } else {
-        log_info(logger, "Se recibió el nombre del recurso: %s", *recurso);
-    }
+        *recurso = malloc(tamanio + 1);
+    
+        memcpy(*recurso, buffer + desplazamiento, tamanio);
+        desplazamiento += tamanio + 1;
+          
 }
 
 

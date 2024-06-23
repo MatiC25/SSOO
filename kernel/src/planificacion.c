@@ -125,11 +125,12 @@ void* agregar_a_cola_ready() {
         pthread_mutex_lock(&mutex_estado_ready);
         list_add(cola_ready, proceso);
         pthread_mutex_unlock(&mutex_estado_ready);
-        
+
         //mostrar_lista_de_pids(cola_ready);
 
         sem_post(&habilitar_corto_plazo);
         sem_post(&hay_en_estado_ready);
+
     }
     return NULL;
 }
@@ -268,7 +269,6 @@ void puede_ejecutar_otro_proceso() {
 
 
 void* planificador_corto_plazo_RoundRobin(void* arg) {
-
     sem_wait(&habilitar_corto_plazo); //Se envia signal en el largo plazo
 
     while (1) {
@@ -276,8 +276,10 @@ void* planificador_corto_plazo_RoundRobin(void* arg) {
         pthread_mutex_unlock(&reanudar_plani);
 
         sem_wait(&hay_en_estado_ready);  // Espera hasta que haya procesos en READY
+        log_info(logger, "dea");
         sem_wait(&hay_proceso_exec);
-
+        log_info(logger, "eeeee");
+        
         pthread_mutex_lock(&mutex_estado_ready);
         proceso_en_exec = list_remove(cola_ready, 0); 
         pthread_mutex_unlock(&mutex_estado_ready);

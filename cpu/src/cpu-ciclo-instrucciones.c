@@ -91,27 +91,24 @@ int encontrar_int(void* registro, int tamanio){
     if (tamanio == sizeof(uint8_t)) {
         uint8_t reg;
         memcpy(&reg, registro, sizeof(uint8_t));
-        //log_warning(logger, "Valor uint8_t: %u", reg);
         registro_final = (int) reg;
+
     } else if (tamanio == sizeof(uint32_t)) {
         uint32_t reg;
         memcpy(&reg, registro, sizeof(uint32_t));
-        //log_warning(logger, "Valor uint32_t: %u", reg);
         registro_final = (int) reg;
     } else {
-        //log_warning(logger, "TAMANO DESCONOCIDO");
         return -1;
     }
-    
-    log_warning("logger", "Valor int: %d", registro_final);
+
     return registro_final;
 }
 
 int espacio_de_registro(char* registro){
     if (strncmp(registro, "AX", 2) == 0 || strncmp(registro, "BX", 2) == 0|| strncmp(registro, "CX", 2) == 0|| strncmp(registro, "DX", 2) == 0){
-        return 1; //en bits
+        return sizeof(uint8_t); //en bits
     }else if (strncmp(registro, "PC", 2) == 0 || strncmp(registro, "EAX",3) == 0|| strncmp(registro, "EBX",3) == 0 || strncmp(registro, "ECX",3) == 0 || strncmp(registro, "EDX",3) == 0 || strncmp(registro, "SI",2) == 0|| strncmp(registro, "DI", 2) == 0){
-        return 4; //en bits
+        return sizeof(uint32_t); //en bits
     }else{
         log_error(logger,"Error al calulcar el tamanio del registro");
         return 0;
@@ -149,11 +146,11 @@ void tengoAlgunaInterrupcion(){
     if (atomic_load(&interrupt_flag) == 1){
     //Se recibio una interrupcion
     t_paquete* paquete_a_kernel = crear_paquete(FIN_QUANTUM);
-    log_warning(logger, "FIN DE QUANTUM");
+    log_nico(logger2, "FIN DE QUANTUM");
     atomic_store(&interrupt_flag,0);
     enviar_pcb_a_kernel(paquete_a_kernel);
     enviar_paquete(paquete_a_kernel, config_cpu->SOCKET_KERNEL);
-    log_warning(logger,"PCB ENVIADA");
+    //log_warning(logger,"PCB ENVIADA");
     eliminar_paquete(paquete_a_kernel);
     liberar_pcb();
     return;
@@ -343,9 +340,9 @@ void ejecutar_MOV_IN(char* registro_Datos, char* registro_Direccion){
     //log_info(logger, "(DENTRO DE ejecutar_MOV_IN) tamanio_registro: %i", tamanio_registro);
     t_mmu_cpu* mmu_mov_in = traducirDireccion(direccionLogica, tamanio_registro);
     
-    log_info(logger, "Proximo a problema");
+    //log_info(logger, "Proximo a problema");
     int valor = comunicaciones_con_memoria_lectura(mmu_mov_in);
-    log_info(logger,"valor : %i", valor);
+    log_info(logger,"valor enviada por memoria: %i", valor);
 
     //operar_con_registros(reg_Datos,NULL,registro_Datos,"set",atoi(valor));
     free(mmu_mov_in);
@@ -361,20 +358,20 @@ void ejecutar_MOV_OUT(char* Registro_Datos, char* Registro_Direccion){
     int tamanio_registro = espacio_de_registro(Registro_Datos); 
     int tamanio_logica = espacio_de_registro(Registro_Direccion);
 
-    log_info(logger, "tamanio logica:%i", tamanio_logica);
-    log_info(logger, "tamanio_registro:%i", tamanio_registro);
+    //log_info(logger, "tamanio logica:%i", tamanio_logica);
+    //log_info(logger, "tamanio_registro:%i", tamanio_registro);
 
     int direccionLogica = encontrar_int(reg_Direc, tamanio_logica);
-    log_info(logger, "direccionLogica:%i", direccionLogica);
+    //log_info(logger, "direccionLogica:%i", direccionLogica);
 
     int regDAtos = encontrar_int(reg_Datos, tamanio_registro);   
-    log_info(logger, "regDAtos:%i", regDAtos);
+    //log_info(logger, "regDAtos:%i", regDAtos);
 
     char* valorr = string_itoa(regDAtos);
     
 
     //log_info(logger, "tamanio:%i", tamanio_registro);
-    log_info(logger,"tamanio:%i", tamanio_registro);
+    //log_info(logger,"tamanio:%i", tamanio_registro);
     t_mmu_cpu* mmu_mov_out = traducirDireccion(direccionLogica, tamanio_registro);
 
 //VERIFICADOR DE DIRECCIONES FISICAS
@@ -438,18 +435,28 @@ void ejecutar_COPY_STRING(char* tam){
 void ejecutar_WAIT(char* recurso){
     t_paquete* paquete_a_kernel = crear_paquete(WAIT);
     enviar_pcb_a_kernel(paquete_a_kernel);
-    agregar_a_paquete_string(paquete_a_kernel, recurso, strlen(recurso) + 1);
     enviar_paquete(paquete_a_kernel, config_cpu->SOCKET_KERNEL);
     eliminar_paquete(paquete_a_kernel);
+
+    t_paquete* paquete = crear_paquete(WAIT);
+    agregar_a_paquete_string(paquete, recurso, strlen(recurso) + 1);
+    enviar_paquete(paquete, config_cpu->SOCKET_KERNEL);
+    eliminar_paquete(paquete);
+    //tengoAlgunaInterrupcion();
     liberar_pcb();
 }
 
 void ejecutar_SINGAL(char* recurso){
     t_paquete* paquete_a_kernel = crear_paquete(SIGNAL);
     enviar_pcb_a_kernel(paquete_a_kernel);
-    agregar_a_paquete_string(paquete_a_kernel, recurso, strlen(recurso) + 1);
     enviar_paquete(paquete_a_kernel, config_cpu->SOCKET_KERNEL);
     eliminar_paquete(paquete_a_kernel);
+
+    t_paquete* paquete_signal = crear_paquete(SIGNAL);
+    agregar_a_paquete_string(paquete_signal, recurso, strlen(recurso) + 1);
+    enviar_paquete(paquete_signal, config_cpu->SOCKET_KERNEL);
+    eliminar_paquete(paquete_signal);
+    //tengoAlgunaInterrupcion();
     liberar_pcb();
 }
 
