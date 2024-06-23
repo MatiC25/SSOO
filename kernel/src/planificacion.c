@@ -276,9 +276,7 @@ void* planificador_corto_plazo_RoundRobin(void* arg) {
         pthread_mutex_unlock(&reanudar_plani);
 
         sem_wait(&hay_en_estado_ready);  // Espera hasta que haya procesos en READY
-        log_info(logger, "dea");
         sem_wait(&hay_proceso_exec);
-        log_info(logger, "eeeee");
         
         pthread_mutex_lock(&mutex_estado_ready);
         proceso_en_exec = list_remove(cola_ready, 0); 
@@ -290,7 +288,7 @@ void* planificador_corto_plazo_RoundRobin(void* arg) {
             proceso_en_exec->estado = EXEC;
             proceso_en_exec->quantum = 2000;
             pthread_mutex_unlock(&mutex_proceso_exec);
-
+            
             enviar_proceso_a_cpu(proceso_en_exec);
             log_info(logger2, "Enviando proceso %i a CPU", proceso_en_exec->pid);
             log_info(logger2, "PID: %i - Estado Anterior: READY - Estado Actual: EXEC", proceso_en_exec->pid);
@@ -301,6 +299,7 @@ void* planificador_corto_plazo_RoundRobin(void* arg) {
             }
 
             sem_wait(&desalojo_proceso); // Signeado por hilo del desalojo
+            log_info(logger, "¡Se rompe hilo de Sleep!");
             pthread_cancel(hilo_quantum);
             pthread_join(hilo_quantum, NULL);  // Esperar a que el hilo del quantum termine y liberar sus recursos
 
@@ -341,7 +340,7 @@ void* planificacion_cortoplazo_VRR() {
         }   
 
         sem_wait(&hay_proceso_exec);
-
+    
         pthread_mutex_lock(&mutex_proceso_exec);
         proceso_en_exec->estado = EXEC;
         log_info(logger, "PID: %i - Estado Anterior: READY - Estado Actual: EXEC", proceso_en_exec->pid);

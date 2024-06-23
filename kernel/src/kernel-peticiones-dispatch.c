@@ -88,23 +88,19 @@ void peticion_fin_quantum() {
     pthread_mutex_lock(&mutex_proceso_exec);
     proceso_en_exec = rcv_contexto_ejecucion(config_kernel->SOCKET_DISPATCH);
     pthread_mutex_unlock(&mutex_proceso_exec);
-
+    
     if (!proceso_en_exec) {
         log_error(logger, "Dispatch acaba de recibir algo inexistente!");
         return;
     }
-
     sem_post(&desalojo_proceso);
-    log_warning(logger, "PID: %i - Desalojado por fin de Quantum", proceso_en_exec->pid);
-
-    // if(proceso_en_exec->pid == 1) {
-    //     log_info(logger, "El proceso %i no puede ser desalojado", proceso_en_exec->pid);
-    // }
 
     pthread_mutex_lock(&mutex_proceso_exec);
     proceso_en_exec->quantum = 0;
     proceso_en_exec->estado = READY;
     pthread_mutex_unlock(&mutex_proceso_exec);
+
+    log_warning(logger, "PID: %i - Desalojado por fin de Quantum", proceso_en_exec->pid);
 
     pthread_mutex_lock(&mutex_estado_ready);
     list_add(cola_ready, proceso_en_exec);
@@ -159,8 +155,6 @@ void peticion_wait() {
     }
     pthread_mutex_unlock(&mutex_proceso_exec);
 
-    sem_post(&desalojo_proceso);
-
     if (!recurso_existe(recurso)) {
         log_error(logger, "El recurso solicitado no existe!");
         finalizar_por_invalidacion(proceso_en_exec, "INVALID_RESOURCE");
@@ -172,6 +166,7 @@ void peticion_wait() {
     int indice_recurso = obtener_indice_recurso(recurso);
     
     if (config_kernel->INST_RECURSOS[indice_recurso] > 0) {
+        sem_post(&desalojo_proceso);
         config_kernel->INST_RECURSOS[indice_recurso]--;
 
         // Guardar el pid y el recurso en el vector
@@ -183,19 +178,23 @@ void peticion_wait() {
                 break;
             }
         }
-        pthread_mutex_lock(&mutex_proceso_exec);
-        log_info(logger, "¡Devolviendo Proceso por WAIT exitoso!");
-        enviar_proceso_a_cpu(proceso_en_exec);
-        pthread_mutex_unlock(&mutex_proceso_exec);
+        
+        log_info(logger, "¡WAIT exitoso!");
+        int wait_exitoso = 1;
+        send(config_kernel->SOCKET_DISPATCH, &wait_exitoso, sizeof(int), NULL);
 
     } else {
         log_info(logger, "Recurso no disponible actualmente");
         log_info(logger, "Moviendo proceso a BLOCK");
+
+        int wait_fallido = 0;
+        send(config_kernel->SOCKET_DISPATCH, &wait_fallido, sizeof(int), NULL);
+        puede_ejecutar_otro_proceso();
         pthread_mutex_lock(&mutex_proceso_exec);
         mover_a_bloqueado_por_wait(proceso_en_exec, recurso);
         pthread_mutex_unlock(&mutex_proceso_exec);
+
         free(recurso);
-        puede_ejecutar_otro_proceso();
         return;
     }
 
@@ -210,6 +209,8 @@ void peticion_signal() {
     proceso_en_exec = recibir_contexto_y_recurso(&recurso);
     if (!proceso_en_exec) {
         log_error(logger, "Dispatch acaba de recibir algo inexistente!");
+        int signal_fallido = 0;
+        send(config_kernel->SOCKET_DISPATCH, &signal_fallido, sizeof(int), NULL);
         puede_ejecutar_otro_proceso();
         return;
     }
@@ -220,6 +221,8 @@ void peticion_signal() {
     if (!recurso_existe(recurso)) {
         log_error(logger, "El recurso solicitado no existe!");
         finalizar_por_invalidacion(proceso_en_exec, "INVALID_RESOURCE");
+        int signal_fallido = 0;
+        send(config_kernel->SOCKET_DISPATCH, &signal_fallido, sizeof(int), NULL);
         free(recurso);
         puede_ejecutar_otro_proceso();
         return;
@@ -230,15 +233,12 @@ void peticion_signal() {
 
     // Liberar el pid y el recurso en el vector
     for (int i = 0; i < tam_vector_recursos_pedidos; i++) {
-        if (vector_recursos_pedidos[i].PID == proceso_en_exec->pid && strncmp(vector_recursos_pedidos[i].recurso, recurso, 2) == 0) {
+        if (vector_recursos_pedidos[i].recurso == proceso_en_exec->pid && strncmp(vector_recursos_pedidos[i].recurso, recurso, 2) == 0) {
             log_info(logger, "Proceso: %i - Devuelve: %s", proceso_en_exec->pid, recurso);
             vector_recursos_pedidos[i].PID = -1;
             free(vector_recursos_pedidos[i].recurso);
             vector_recursos_pedidos[i].recurso = NULL;
             break;
-        }
-        else {
-            log_error(logger, "El vector de recursos pedidos encontro una absurdez!");
         }
     }
 
@@ -255,8 +255,10 @@ void peticion_signal() {
         log_info(logger, "PID: %i - Estado Anterior: BLOCK - Estado Actual: READY", pcb_signal->pid);
         sem_post(&hay_en_estado_ready);
     }
-    log_info(logger, "¡Devolviendo Proceso por SIGNAL exitoso!");
-    enviar_proceso_a_cpu(proceso_en_exec);
+
+    log_info(logger, "¡SIGNAL exitoso!");
+    int wait_exitoso = 1;
+    send(config_kernel->SOCKET_DISPATCH, &wait_exitoso, sizeof(int), NULL);
     free(recurso);
 }
 

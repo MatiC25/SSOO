@@ -163,7 +163,7 @@ void resize_proceso(int socket_cliente) {
     char* pid_string = string_itoa(pid);
 
     // Obtener la tabla de páginas del diccionario
-    t_list* tabla_de_paginas = dictionary_get(diccionario_paginas_porPID, pid_string);
+    t_list* tabla_de_paginas = dictionary_get(diccionario_paginas_porPID, pid_string); //obtenemos la tabla de paginas del proceso que vamos a modificar
     if (!tabla_de_paginas) {
         log_error(logger, "Error: No se encontró la tabla de páginas para el PID %d\n", pid);
         t_paquete* paquete = crear_paquete(OUT_OF_MEMORY);
@@ -174,40 +174,43 @@ void resize_proceso(int socket_cliente) {
     } // CHEQUEAR ESTO
 
     // Calcular el número de páginas necesarias
-    int num_paginas = ceil((double)tamanio_bytes / 4); // La funcion ceil redondea hacia arriba
+    int num_paginas = ceil((double)tamanio_bytes / 32); // La funcion ceil redondea hacia arriba
     int paginas_actuales = list_size(tabla_de_paginas); // Calculamos la cantidad de paginas que tiene la tabla
-                                                        
+    log_mati(logger2, "El numero de pagians a ampliar es : %i", num_paginas);                 
     if (num_paginas > paginas_actuales) { // Si la cantidad de paginas de la tabla actual son menos al calculo del resize -> se amplia 
     // Ajustar el tamaño de la tabla de páginas
     // log_fede(logger2, "PID: %d - Tamaño Actual: %d - Tamaño a Ampliar: %d ", pid, num_paginas*4 ,tamanio_bytes);
 
-    log_mati(logger2, "PID: %d - Tamaño Actual: %d - Tamaño a Ampliar: %d ", pid, num_paginas*4 ,tamanio_bytes); // Log minimo y obligatorio
-    for (int i = paginas_actuales; i < num_paginas; i++) {
-        int marco_libre = obtener_marco_libre(bitmap);
-        if (marco_libre == -1) {
-            log_error(logger, "Out of memory (faltan marcos).\n");
-
-        t_paquete* paquete = crear_paquete(OUT_OF_MEMORY);
-        int fuera_de_memoria = -1;
-        agregar_a_paquete(paquete, &fuera_de_memoria , sizeof(int));
-        enviar_paquete(paquete, socket_cliente);
-        eliminar_paquete(paquete);
-        free(buffer);
+        log_mati(logger2, "PID: %d - Tamaño Actual: %d - Tamaño a Ampliar: %d ", pid, paginas_actuales*4 ,tamanio_bytes); // Log minimo y obligatorio
+        for (int i = paginas_actuales; i <= num_paginas; i++) { //buscamos si hay suficientes marco libre
+            int marco_libre = obtener_marco_libre(bitmap);
+        // log_mati(logger2, "Agregando pagina... : %i", i);
         
-    }
+            if (marco_libre == -1) {    // si no se encuentra un marco libre, tira OUT_OF_MEMORY y muere
+                log_error(logger, "Out of memory (faltan marcos).\n");
+            
+                t_paquete* paquete = crear_paquete(OUT_OF_MEMORY);
+                int fuera_de_memoria = -1;
+                agregar_a_paquete(paquete, &fuera_de_memoria , sizeof(int));
+                enviar_paquete(paquete, socket_cliente);
+                eliminar_paquete(paquete);
+                free(buffer);
+                exit(-1);  
+            }
+            //guardamos espacio de memoria para la nueva pagina
+            t_tabla_de_paginas* nueva_pagina = malloc(sizeof(t_tabla_de_paginas));
+            nueva_pagina->nro_pagina = i;
+            nueva_pagina->marco = marco_libre;
+            nueva_pagina->bit_validez = 1;
 
-        //guardamos espacio de memoria para la nueva pagina
-        t_tabla_de_paginas* nueva_pagina = malloc(sizeof(t_tabla_de_paginas));
-        nueva_pagina->nro_pagina = i;
-        nueva_pagina->marco = marco_libre;
-        nueva_pagina->bit_validez = 1;
-
-        list_add(tabla_de_paginas, nueva_pagina);
+            list_add(tabla_de_paginas, nueva_pagina);
+            log_mati(logger2, "Se agrego la pagina %i", nueva_pagina->nro_pagina);
+        
         }
 
     } else if (num_paginas < paginas_actuales) {
         // Reducir el tamaño del proceso
-        log_fede(logger2, "PID: %d - Tamaño Actual: %d - Tamaño a Reducir: %d ", pid, num_paginas*4 ,tamanio_bytes); // Log minimo y obligatorio
+        log_fede(logger2, "PID: %d - Tamaño Actual: %d - Tamaño a Reducir: %d ", pid, paginas_actuales*4 ,tamanio_bytes); // Log minimo y obligatorio
         for (int i = paginas_actuales - 1; i >= num_paginas; i--) {
             t_tabla_de_paginas* pagina_a_eliminar = list_remove(tabla_de_paginas, i);
             liberar_marco(pagina_a_eliminar->marco); // Liberar el marco

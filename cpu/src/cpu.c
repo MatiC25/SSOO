@@ -8,6 +8,7 @@ t_list* tlb;
 
 int main(void) {
 //Creando logger
+    atomic_store(&interrupt_flag, 0);
     tlb = list_create();
     int md_cpu_ds = 0;
     int md_cpu_it = 0;

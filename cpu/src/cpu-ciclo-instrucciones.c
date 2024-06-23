@@ -12,7 +12,7 @@ void iniciar_ciclo_de_ejecucion(int socket_server ,int socket_cliente) {
         switch(codigo_operacion) {  
             case RECIBIR_PROCESO:
             // log_warning(logger,"Recibiendo la PCB");
-            log_nico(logger2,"Recibiendo la PCB");
+            log_warning(logger,"Recibiendo la PCB");
             ejecutar_ciclo_instrucciones(socket_cliente, socket_server);
             break;
             case HANDSHAKE:
@@ -146,7 +146,7 @@ void tengoAlgunaInterrupcion(){
     if (atomic_load(&interrupt_flag) == 1){
     //Se recibio una interrupcion
     t_paquete* paquete_a_kernel = crear_paquete(FIN_QUANTUM);
-    log_nico(logger2, "FIN DE QUANTUM");
+    log_warning(logger, "FIN DE QUANTUM");
     atomic_store(&interrupt_flag,0);
     enviar_pcb_a_kernel(paquete_a_kernel);
     enviar_paquete(paquete_a_kernel, config_cpu->SOCKET_KERNEL);
@@ -173,6 +173,7 @@ void ejecutar_instruccion(int socket_cliente) {
             enviar_paquete(paquete_a_kernel, config_cpu->SOCKET_KERNEL);
             eliminar_paquete(paquete_a_kernel);
             liberar_pcb();
+
             return; 
         case SET:
             log_info(logger,"Instruccion Ejecutada: PID: %d- Ejecutando: %s -%s %s", pcb->pid,instruccion->opcode,instruccion->parametro1,instruccion->parametro2);
@@ -436,28 +437,49 @@ void ejecutar_WAIT(char* recurso){
     t_paquete* paquete_a_kernel = crear_paquete(WAIT);
     enviar_pcb_a_kernel(paquete_a_kernel);
     enviar_paquete(paquete_a_kernel, config_cpu->SOCKET_KERNEL);
+    //log_warning(logger,"PCB ENVIADA");
     eliminar_paquete(paquete_a_kernel);
 
     t_paquete* paquete = crear_paquete(WAIT);
     agregar_a_paquete_string(paquete, recurso, strlen(recurso) + 1);
     enviar_paquete(paquete, config_cpu->SOCKET_KERNEL);
     eliminar_paquete(paquete);
-    //tengoAlgunaInterrupcion();
-    liberar_pcb();
+
+    int respuesta = 1;
+    recv(config_cpu->SOCKET_KERNEL, &respuesta , sizeof(int), MSG_WAITALL);
+    log_leo(logger2,"NUMERO : %i" ,respuesta);
+    if (respuesta == 1){
+        tengoAlgunaInterrupcion();
+    }else{
+        liberar_pcb();
+        return;
+    }
+       
+
 }
 
 void ejecutar_SINGAL(char* recurso){
     t_paquete* paquete_a_kernel = crear_paquete(SIGNAL);
     enviar_pcb_a_kernel(paquete_a_kernel);
     enviar_paquete(paquete_a_kernel, config_cpu->SOCKET_KERNEL);
+    //log_warning(logger,"PCB ENVIADA");
     eliminar_paquete(paquete_a_kernel);
 
     t_paquete* paquete_signal = crear_paquete(SIGNAL);
     agregar_a_paquete_string(paquete_signal, recurso, strlen(recurso) + 1);
     enviar_paquete(paquete_signal, config_cpu->SOCKET_KERNEL);
     eliminar_paquete(paquete_signal);
-    //tengoAlgunaInterrupcion();
-    liberar_pcb();
+
+    int respuesta = 1;
+    recv(config_cpu->SOCKET_KERNEL, &respuesta , sizeof(int), MSG_WAITALL);
+    log_leo(logger2,"NUMEOR : %i", respuesta);
+    if (respuesta == 1){
+        tengoAlgunaInterrupcion();
+    }else{
+        liberar_pcb();
+        return;
+    }
+    
 }
 
 
@@ -639,4 +661,5 @@ void liberar_pcb(){
         }
         free(pcb); // Liberar la estructura PCB
     }
+    //atomic_store(&interrupt_flag, 0);
 }
