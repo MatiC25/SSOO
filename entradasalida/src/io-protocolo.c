@@ -34,6 +34,8 @@ t_list *recibir_arguementos(t_interfaz * interfaz, tipo_operacion tipo) {
     int desplazamiento = 0;
     int socket_kernel = get_socket_kernel(interfaz);
 
+    t_list *argumentos = list_create();
+
     // Recibimos el buffer:
     void *buffer = recibir_buffer(&size, socket_kernel);
     

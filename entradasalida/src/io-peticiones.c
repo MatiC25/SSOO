@@ -81,35 +81,38 @@ void ejecutar_operacion_stdout(t_interfaz *interfaz) {
 void ejecutar_operaciones_dialFS(t_interfaz *interfaz) {
     // Inicializamos las variables:
     int tiempo_respuesta_retardo = get_tiempo_unidad(interfaz);
+    int socket_kernel = get_socket_kernel(interfaz);
 
     // Inicializamos bloques:
     FILE *bloques = iniciar_archivo_bloques(interfaz);
 
     // Inicializamos bitmap:
     t_bitarray *bitmap = iniciar_bitmap(interfaz);
-    inicializar_bloques_vacios(bitmap); // Inicializamos los bloques vacios
+    inicializar_bloques_vacios(bitmap, interfaz); // Inicializamos los bloques vacios
 
     while(1) {
-        tipo_operacion operacion = recibir_operacion(interfaz);
-        t_list *parametros = recibir_parametros(interfaz);
+        tipo_operacion operacion = recibir_operacion(socket_kernel);
+        t_list *argumentos = recibir_arguementos(interfaz, operacion);
 
         switch(operacion) {
             case IO_FS_CREATE_INT:
-                operacion_create_file(bitmap, parametros);
+                operacion_create_file(interfaz, bitmap, argumentos);
                 send_respuesta_a_kernel(1, interfaz);
                 break;
             case IO_FS_READ_INT:
-                operacion_read_file(bitmap, bloques, parametros);
+                operacion_read_file(interfaz, bloques, argumentos);
                 send_respuesta_a_kernel(1, interfaz);
                 break;
             case IO_FS_DELETE_INT:
-                operacion_delete_file(bitmap, parametros);
+                operacion_delete_file(interfaz, bitmap, argumentos);
                 send_respuesta_a_kernel(1, interfaz);
                 break;
             case IO_FS_WRITE_INT:
-                operacion_write_file(bitmap, bloques, parametros);
+                operacion_write_file(interfaz, bloques, argumentos);
                 send_respuesta_a_kernel(1, interfaz);
                 break;
+            default:
+                log_error(logger, "Operacion desconocida");
         }
     }
 }

@@ -3,7 +3,7 @@
 
 #include <commons/collections/list.h>
 #include <commons/config.h>
-#include <commons/bitarray.h"
+#include <commons/bitarray.h>
 #include <commons/string.h>
 #include <utils/logger.h>
 #include <utils/shared.h>
@@ -35,7 +35,7 @@ FILE *iniciar_archivo(t_interfaz *interfaz, char *name_file);
 char *build_full_path(t_interfaz *interfaz, const char *name_file);
 int get_bloque_inicial(t_config *archivo_metadata);
 int get_tamanio_archivo(t_config *archivo_metadata);
-t_config *get_archivo_config_from_args(interface_io *interfaz, t_list *argumentos);
+t_config *get_archivo_config_from_args(t_interfaz *interfaz, t_list *argumentos);
 int es_un_archivo_valido(t_config *archivo_metada);
 
 #endif // IO_UTILS_DIAL_FS_H

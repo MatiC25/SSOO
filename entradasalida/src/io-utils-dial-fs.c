@@ -1,4 +1,4 @@
-#include "io-dials-fs.h"
+#include "io-utils-dial-fs.h"
 
 // 1. Inicialización y configuración de archivos
 FILE *iniciar_archivo(t_interfaz *interfaz, char *name_file) {
@@ -6,7 +6,7 @@ FILE *iniciar_archivo(t_interfaz *interfaz, char *name_file) {
     FILE *file = fopen(path, "rb+");
 
     if(!file)
-        logger_error("No se pudo abrir el archivo %s", path);
+        log_error(logger, "No se pudo abrir el archivo %s", path);
         
     return file;
 }
@@ -24,7 +24,7 @@ t_config *iniciar_archivo_config(t_interfaz *interfaz, char *name_file) {
     t_config *archivo_config = config_create(path);
 
     if(!archivo_config)
-        logger_error("No se pudo abrir el archivo %s", path);
+        log_error(logger, "No se pudo abrir el archivo %s", path);
 
     return archivo_config;
 }
@@ -34,7 +34,7 @@ t_config *iniciar_archivo_metadata(t_interfaz *interfaz, char *name_file) {
 
     config_set_value(archivo_metadata, "TAMANIO_ARCHIVO", "0");
 
-    return archivo_metada;
+    return archivo_metadata;
 }
 
 t_bitarray *iniciar_bitmap(t_interfaz *interfaz) {
@@ -44,7 +44,7 @@ t_bitarray *iniciar_bitmap(t_interfaz *interfaz) {
     void *bitmap = mmap(NULL, size, PROT_READ | PROT_WRITE, MAP_SHARED, fileno(bitmap_archivo), 0);
 
     if(bitmap == MAP_FAILED) {
-        logger_error("No se pudo mapear el archivo bitmap");
+        log_info(logger, "No se pudo mapear el archivo bitmap");
         return NULL;
     }
 
@@ -63,7 +63,7 @@ void setear_bloque_ocupado(t_bitarray *bitmap, int bloque_libre) {
 }
 
 int buscar_bloque_libre(t_bitarray *bitmap, t_interfaz *interfaz) {
-    int cantidad_bloques = get_blocks_count(interfaz);
+    int cantidad_bloques = get_block_count(interfaz);
     int tamanio_bloque = get_block_size(interfaz);
     int bits_por_bloque = tamanio_bloque * 8;
     int bits_libres;
@@ -94,7 +94,7 @@ void liberar_bloques_usados(t_bitarray *bitmap, int bloque_inicial, int tam_arch
 }
 
 void inicializar_bloques_vacios(t_bitarray *bitmap, t_interfaz *interfaz) {
-    int cantidad_bloques = get_blocks_count(interfaz);
+    int cantidad_bloques = get_block_count(interfaz);
     int tamanio_bloque = get_block_size(interfaz); 
     int bits_por_bloque = tamanio_bloque * 8; 
 
@@ -153,7 +153,7 @@ void escribir_contenido_en_bloques(FILE *bloques, int bloque_inicial, int offset
 }
 
 // 5. Utilidades
-t_config *get_archivo_config_from_args(interface_io *interfaz, t_list *argumentos) {
+t_config *get_archivo_config_from_args(t_interfaz *interfaz, t_list *argumentos) {
     char *name_file = list_get(argumentos, 0);
 
     return iniciar_archivo_config(interfaz, name_file);
@@ -184,5 +184,5 @@ int es_un_archivo_valido(t_config *archivo_metada) {
         NULL
     };
 
-    return tiene_todas_las_configuraciones(propiedades, archivo_metada);
+    return tiene_todas_las_configuraciones(archivo_metada, propiedades);
 }

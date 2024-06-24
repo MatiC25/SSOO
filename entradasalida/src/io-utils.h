@@ -32,4 +32,10 @@ int get_tiempo_unidad(t_interfaz * interfaz);
 //Devuelve el path de una interfaz
 char *get_path_dial_fs(t_interfaz * interfaz);
 
+size_t get_tamanio_bitmap(t_interfaz *interfaz);
+
+int get_block_count(t_interfaz *interfaz);
+
+int get_block_size(t_interfaz *interfaz);
+
 #endif // IO_UTILS_H
