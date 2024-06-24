@@ -1,10 +1,7 @@
 #ifndef IO_ESTRUCTURAS_H
 #define IO_ESTRUCTURAS_H
 
-
-//#include "io.h"
-// Incluye las estructuras necesarias:
-#include "io-config.h"
+#include <utils/estructuras_compartidas.h>
 
 typedef struct {
     int TIEMPO_UNIDAD_TRABAJO;

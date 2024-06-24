@@ -7,10 +7,10 @@ void operacion_create_file(t_interfaz *interfaz, t_bitarray *bitmap, t_list *arg
     t_config *archivo_metadata = iniciar_archivo_metadata(interfaz, name_file);
 
     // Buscamos un bloque libre:
-    int bloque_libre = buscar_bloque_libre(bitmap);
+    int bloque_libre = buscar_bloque_libre(bitmap, interfaz);
 
     if(bloque_libre == -1) {
-        logger_error(logger, "No hay bloques libres");
+        log_error(logger, "No hay bloques libres");
         return;
     }
 
@@ -28,7 +28,9 @@ void operacion_read_file(t_interfaz *interfaz, FILE *bloques, t_list *argumentos
 
     // Validamos que el archivo haya sido creado:
     if(!es_un_archivo_valido(archivo_metadata)) {
-        logger_error(logger, "El archivo %s no existe", name_file);
+        char *name_file = list_get(argumentos, 0);
+
+        log_error(logger, "El archivo %s no existe", name_file);
         return;
     }
 
@@ -43,7 +45,7 @@ void operacion_read_file(t_interfaz *interfaz, FILE *bloques, t_list *argumentos
     procesar_operacio_de_lectura_o_escritura(archivo_metadata, argumentos, &bloque_inicial, &tamanio_archivo, &bytes_a_leer, &offset, &dirreccion_fisica);
 
     if(bytes_a_leer > tamanio_archivo) {
-        logger_error(logger, "No se pueden leer %d bytes de un archivo de %d bytes", bytes_a_leer, tamanio_archivo);
+        log_error(logger, "No se pueden leer %d bytes de un archivo de %d bytes", bytes_a_leer, tamanio_archivo);
         return;
     }
 
@@ -63,7 +65,9 @@ void operacion_write_file(t_interfaz *interfaz, FILE *bloques, t_list *argumento
 
     // Validamos que el archivo haya sido creado:
     if(!es_un_archivo_valido(archivo_metadata)) {
-        logger_error(logger, "El archivo %s no existe", name_file);
+        char *name_file = list_get(argumentos, 0);
+
+        log_error(logger, "El archivo %s no existe", name_file);
         return;
     }
 
@@ -96,7 +100,7 @@ void operacion_delete_file(t_interfaz *interfaz, t_bitarray *bitmap, t_list *arg
 
     // Validamos que el archivo haya sido creado:
     if(!es_un_archivo_valido(archivo_metadata)) {
-        logger_error(logger, "El archivo %s no existe", name_file);
+        log_error(logger, "El archivo %s no existe", name_file);
         return;
     }
 
@@ -105,6 +109,6 @@ void operacion_delete_file(t_interfaz *interfaz, t_bitarray *bitmap, t_list *arg
     int tamanio_archivo = get_tamanio_archivo(archivo_metadata);
 
     // Liberamos el bloque en el bitmap:
-    liberar_bloque(bitmap, bloque_inicial);
+    liberar_bloques_usados(bitmap, bloque_inicial, tamanio_archivo);
 }
 
