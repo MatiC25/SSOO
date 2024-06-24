@@ -345,11 +345,9 @@ void peticion_IO() {
     
     t_list *interfaz_y_argumentos = recv_interfaz_y_argumentos(config_kernel->SOCKET_DISPATCH);
 
-
     tipo_operacion *operacion = list_get(interfaz_y_argumentos, 0);
     t_list *args = list_get(interfaz_y_argumentos, 1);
     char *nombre_interfaz = list_get(interfaz_y_argumentos, 2);
-    
     interface_io* interface = get_interface_from_dict(nombre_interfaz);
 
     if (!interface) {
@@ -365,12 +363,6 @@ void peticion_IO() {
         return;
     }
 
-    // // t_list* args = rcv_argumentos_para_io(interface->tipo, config_kernel->SOCKET_DISPATCH);
-
-    // for(int i = 0; i < list_size(args); i++) {
-    //     log_info(logger, "Argumento %i: %i", i, list_get(args, i));
-    // }
-    
     pthread_mutex_lock(&mutex_proceso_exec);
     mover_a_cola_block_general(proceso_en_exec, "INTERFAZ");
     pthread_mutex_unlock(&mutex_proceso_exec);

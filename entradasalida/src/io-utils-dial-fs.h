@@ -1,6 +1,8 @@
 #ifndef IO_UTILS_DIAL_FS_H
 #define IO_UTILS_DIAL_FS_H
 
+#include <stdio.h>
+#include <sys/mman.h>
 #include <commons/collections/list.h>
 #include <commons/config.h>
 #include <commons/bitarray.h"
