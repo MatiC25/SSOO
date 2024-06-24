@@ -176,13 +176,13 @@ void resize_proceso(int socket_cliente) {
     // Calcular el número de páginas necesarias
     int num_paginas = ceil((double)tamanio_bytes / 32); // La funcion ceil redondea hacia arriba
     int paginas_actuales = list_size(tabla_de_paginas); // Calculamos la cantidad de paginas que tiene la tabla
-    log_mati(logger2, "El numero de pagians a ampliar es : %i", num_paginas);                 
+    log_mati(logger2, "El numero de pagians a ampliar es : %i", num_paginas);               
     if (num_paginas > paginas_actuales) { // Si la cantidad de paginas de la tabla actual son menos al calculo del resize -> se amplia 
     // Ajustar el tamaño de la tabla de páginas
     // log_fede(logger2, "PID: %d - Tamaño Actual: %d - Tamaño a Ampliar: %d ", pid, num_paginas*4 ,tamanio_bytes);
 
         log_mati(logger2, "PID: %d - Tamaño Actual: %d - Tamaño a Ampliar: %d ", pid, paginas_actuales*4 ,tamanio_bytes); // Log minimo y obligatorio
-        for (int i = paginas_actuales; i <= num_paginas; i++) { //buscamos si hay suficientes marco libre
+        for (int i = paginas_actuales; i < num_paginas; i++) { //buscamos si hay suficientes marco libre
             int marco_libre = obtener_marco_libre(bitmap);
         // log_mati(logger2, "Agregando pagina... : %i", i);
         
@@ -195,7 +195,7 @@ void resize_proceso(int socket_cliente) {
                 enviar_paquete(paquete, socket_cliente);
                 eliminar_paquete(paquete);
                 free(buffer);
-                exit(-1);  
+                return;
             }
             //guardamos espacio de memoria para la nueva pagina
             t_tabla_de_paginas* nueva_pagina = malloc(sizeof(t_tabla_de_paginas));
@@ -247,18 +247,20 @@ void obtener_marco(int socket_cliente){
         exit(-1);
     }
 
-    t_tabla_de_paginas* entrada = list_get(tabla_de_paginas, pagina);  //Obtenemos la pagina requerida
-    log_mati(logger2, "La entrada (pagina) que recibo para obtener el marco es: %i", entrada->nro_pagina);
-    if(entrada->bit_validez == 1){// si la pagina existe, se la enviamos a cpu
+    if(list_size(tabla_de_paginas) > pagina){
+        t_tabla_de_paginas* entrada = list_get(tabla_de_paginas, pagina);  //Obtenemos la pagina requerida
+        log_mati(logger2, "La entrada (pagina) que recibo para obtener el marco es: %i", entrada->nro_pagina);
+        if(entrada->bit_validez == 1){// si la pagina existe, se la enviamos a cpu
     
-        t_paquete* marco_paquete = crear_paquete(ACCEDER_TABLA_PAGINAS);                                                        
-        agregar_a_paquete(marco_paquete, &(entrada->marco), sizeof(int));
-        enviar_paquete(marco_paquete, socket_cliente);
-        eliminar_paquete(marco_paquete);
-        log_mati(logger2, "PID: %d - Pagina: %d - Marco: %d" , pid, entrada->nro_pagina, entrada->marco);
-    } 
+            t_paquete* marco_paquete = crear_paquete(ACCEDER_TABLA_PAGINAS);                                                        
+            agregar_a_paquete(marco_paquete, &(entrada->marco), sizeof(int));
+            enviar_paquete(marco_paquete, socket_cliente);
+            eliminar_paquete(marco_paquete);
+            log_mati(logger2, "PID: %d - Pagina: %d - Marco: %d" , pid, entrada->nro_pagina, entrada->marco);
+        } 
+    }
     else{ //caso contrario enviamos el mensaje de error
-        t_paquete* marco_paquete = crear_paquete(ACCEDER_TABLA_PAGINAS);
+        t_paquete* marco_paquete = crear_paquete(OUT_OF_MEMORY);
         int marco_no_encontrado = -1;
         agregar_a_paquete(marco_paquete, &marco_no_encontrado , sizeof(int));
         enviar_paquete(marco_paquete, socket_cliente);
@@ -310,6 +312,27 @@ void acceso_lectura(int socket_cliente){
     // Asignar memoria para el contenido a leer
     void* contenido_leer = malloc(tamanio_lectura);
 
+    if((direc_fisica+tamanio_lectura) > config_memoria->tam_memoria){
+        log_error(logger, "Quisieron leer fuera del espacio de memoria");
+        t_paquete* paquete = crear_paquete(OUT_OF_MEMORY);
+        int fuera_de_memoria = -1;
+        agregar_a_paquete(paquete, &fuera_de_memoria , sizeof(int));
+        enviar_paquete(paquete, socket_cliente);
+        eliminar_paquete(paquete);
+        free(buffer);
+        return;
+    }
+
+    // Verificar que no se lea fuera del espacio de usuario
+    if ((direc_fisica + tamanio_lectura) > config_memoria->tam_memoria) {
+        log_error(logger, "Error: Se intentó leer fuera del espacio de usuario\n");
+        t_paquete* paquete = crear_paquete(OUT_OF_MEMORY);
+        int verificacion = -1;
+        agregar_a_paquete(paquete, &verificacion,sizeof(int));
+        enviar_paquete(paquete, socket_cliente);
+        eliminar_paquete(paquete);
+        return;
+    }
     // Realizar la lectura del espacio de usuario
     mem_hexdump(espacio_de_usuario + direc_fisica, tamanio_lectura);
     memcpy(contenido_leer, espacio_de_usuario + direc_fisica, tamanio_lectura);
@@ -356,7 +379,7 @@ void acceso_escritura(int socket_cliente){
     int verificacion = 1;
     
     // Verificar que no se escriba fuera del espacio de usuario
-    if (direc_fisica + tamanio_escritura > config_memoria->tam_memoria) {
+    if ((direc_fisica + tamanio_escritura) > config_memoria->tam_memoria) {
         log_error(logger, "Error: Se intentó escribir fuera del espacio de usuario\n");
         t_paquete* paquete = crear_paquete(OUT_OF_MEMORY);
         verificacion = -1;
@@ -368,9 +391,7 @@ void acceso_escritura(int socket_cliente){
     // se escribe en el espacio usuario el contenido a escribir
 
     memcpy(espacio_de_usuario + direc_fisica, contenido_a_escribir, tamanio_escritura);
-
     mem_hexdump(espacio_de_usuario + direc_fisica, tamanio_escritura);
-
     log_info(logger, "Acceso a espacio de usuario: PID: %d - Accion: ESCRIBIR - Direccion fisica: %d  - Tamaño: %d", pid, direc_fisica, tamanio_escritura);
     
     t_paquete* paquete = crear_paquete(EXITO);

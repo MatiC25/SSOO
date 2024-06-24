@@ -41,8 +41,16 @@ int comunicaciones_con_memoria_lectura(t_mmu_cpu* mmu){
         free(valor);
         free(direccionFIsicaa);
         free(tamanio);
-}
-    
+
+        int verificador = recv_escribir_memoria();
+        if (verificador = -1){
+        t_paquete* paquete_a_kernel = crear_paquete(OUT_OF_MEMORY);
+        enviar_pcb_a_kernel(paquete_a_kernel);
+        enviar_paquete(paquete_a_kernel, config_cpu->SOCKET_KERNEL);
+        eliminar_paquete(paquete_a_kernel);
+        }
+        
+   }
     return valor_final;
 }
  
@@ -51,15 +59,14 @@ int comunicaciones_con_memoria_lectura(t_mmu_cpu* mmu){
 int comunicaciones_con_memoria_escritura(t_mmu_cpu* mmu, int valor){
     int verificador;
     int desplazamiento = 0;
-
+    uint32_t registro_reconstruido = 0; 
 //log_warning(logger, "Cantidad de DF: %i", list_size(mmu->direccionFIsica));
-
+    //log_info(logger,"VALOR INICIAL: %i" , valor);
     while (!list_is_empty(mmu->direccionFIsica)){
         int* direccionFIsicaa = (int*)list_remove(mmu->direccionFIsica,0);
         int* tamanio = (int*)list_remove(mmu->tamanio, 0);
 
         uint32_t registro_ecx = valor;
-        uint32_t registro_reconstruido = 0;
         int tam  = *tamanio;
         int direc = *direccionFIsicaa;
         int tam1 = tam;
@@ -85,14 +92,21 @@ int comunicaciones_con_memoria_escritura(t_mmu_cpu* mmu, int valor){
         uint32_t* medio_parte_1 = (uint32_t*)registro_parte_1;
 
         //log_info( logger,"El valor de la primer mitad de ECX: %d \n", *medio_parte_1);
-        
+        memcpy(registro_reconstruido_puntero +des, registro_parte_1, tam);
+        des += tam;
+
+
         send_escribi_memoria(pcb->pid, direc, tam  , *medio_parte_1);
         verificador = recv_escribir_memoria();
         if (verificador == -1){
-            log_error(logger,"Error en memoria  direccion fisica :%d", direc);
+            log_error(logger,"Error en  escritura memoria  direccion fisica :%d", direc);
+            //log_info(logger,"la pagina que busco no existe");
+            t_paquete* paquete_a_kernel = crear_paquete(OUT_OF_MEMORY);
+            enviar_pcb_a_kernel(paquete_a_kernel);
+            enviar_paquete(paquete_a_kernel, config_cpu->SOCKET_KERNEL);
+            eliminar_paquete(paquete_a_kernel);
             free(direccionFIsicaa);
             free(tamanio);
-
             return -1;
         }else{
         log_info(logger,"PID: %i -Accion ESCRIBIR -Direccion Fisica: %i -Valor: %i",pcb->pid,direc, *medio_parte_1);
@@ -101,6 +115,7 @@ int comunicaciones_con_memoria_escritura(t_mmu_cpu* mmu, int valor){
     free(direccionFIsicaa);
     free(tamanio);
     }
+    log_info(logger,"VALOR RECONSTRUIDO: %i" , registro_reconstruido);
 
     return verificador;
 }

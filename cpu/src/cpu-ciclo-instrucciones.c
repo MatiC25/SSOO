@@ -47,7 +47,7 @@ void fecth(int socket_server){
     program_counter = pcb->program_counter++;
     solicitar_instruccion(socket_server,PID, program_counter);
     //log_info(logger,"Fetch Instruccion: PID: %d - FETCH -Programn Counter: %d",PID,program_counter);  
-    log_nico(logger2,"Fetch Instruccion: PID: %d - FETCH -Programn Counter: %d",PID,program_counter);  
+    log_info(logger,"Fetch Instruccion: PID: %d - FETCH -Programn Counter: %d",PID,program_counter);  
 }
 
 void* obtener_registro (char *registro) {
@@ -263,7 +263,7 @@ void ejecutar_set (char* registro, char* valor){
 
 }
 
-void ejecutar_sum (char* registro_origen_char, char* registro_desitino_char) {
+void ejecutar_sum (char* registro_desitino_char ,char* registro_origen_char) {
     void* registro_origen = obtener_registro(registro_origen_char);
     void* registro_destino = obtener_registro(registro_desitino_char);
 
@@ -327,7 +327,7 @@ void ejecutar_IO_GEN_SLEEP(char* interfazAUsar, char* tiempoDeTrabajo){
 }
 
 
-void ejecutar_MOV_IN(char* registro_Datos, char* registro_Direccion){
+void ejecutar_MOV_IN(char* registro_Direccion, char* registro_Datos){
     void* reg_Direccion = obtener_registro(registro_Direccion);
     void* reg_Datos   = obtener_registro(registro_Datos);
 
@@ -345,12 +345,13 @@ void ejecutar_MOV_IN(char* registro_Datos, char* registro_Direccion){
     int valor = comunicaciones_con_memoria_lectura(mmu_mov_in);
     log_info(logger,"valor enviada por memoria: %i", valor);
 
-    //operar_con_registros(reg_Datos,NULL,registro_Datos,"set",atoi(valor));
+
+    operar_con_registros(reg_Datos,NULL,registro_Datos,"set",valor);
     free(mmu_mov_in);
     tengoAlgunaInterrupcion();
 }
 
-void ejecutar_MOV_OUT(char* Registro_Datos, char* Registro_Direccion){
+void ejecutar_MOV_OUT(char* Registro_Direccion, char* Registro_Datos){
     
     void* reg_Direc = obtener_registro(Registro_Direccion);
     void* reg_Datos = obtener_registro(Registro_Datos);
@@ -366,7 +367,7 @@ void ejecutar_MOV_OUT(char* Registro_Datos, char* Registro_Direccion){
     //log_info(logger, "direccionLogica:%i", direccionLogica);
 
     int regDAtos = encontrar_int(reg_Datos, tamanio_registro);   
-    //log_info(logger, "regDAtos:%i", regDAtos);
+    log_info(logger, "regDAtos:%i", regDAtos);
 
     char* valorr = string_itoa(regDAtos);
     
