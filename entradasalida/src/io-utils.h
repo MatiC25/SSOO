@@ -29,4 +29,7 @@ char *get_interfaz_name(t_interfaz * interfaz);
 //Devuelve el tiempo de una interfaz
 int get_tiempo_unidad(t_interfaz * interfaz);
 
+//Devuelve el path de una interfaz
+char *get_path_dial_fs(t_interfaz * interfaz);
+
 #endif // IO_UTILS_H

@@ -35,4 +35,21 @@ int get_tiempo_unidad(t_interfaz* interfaz){
 }
 
 
+char *get_path_dial_fs(t_interfaz *interfaz) {
+    return interfaz->config->PATH_BASE_DIALFS;
+}
 
+size_t get_tamanio_bitmap(t_interfaz *interfaz) {
+    int cantidad_bloques = get_block_count(interfaz);
+    int tamanio_bloque = get_block_size(interfaz);
+
+    return cantidad_bloques * tamanio_bloque;
+}
+
+int get_block_count(t_interfaz *interfaz) {
+    return interfaz->config->BLOCK_COUNT;
+}
+
+int get_block_size(t_interfaz *interfaz) {
+    return interfaz->config->BLOCK_SIZE;
+}
