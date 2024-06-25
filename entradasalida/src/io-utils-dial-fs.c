@@ -62,6 +62,17 @@ void setear_bloque_ocupado(t_bitarray *bitmap, int bloque_libre) {
         bitarray_set_bit(bitmap, bloque_libre * bits_por_bloque + i);
 }
 
+int preguntar_si_bloque_esta_ocupado(t_bitarray *bitmap, int bloque_a_consultar) {
+    int tamanio_bloque = get_block_size(interfaz);
+    int bits_por_bloque = tamanio_bloque * 8;
+
+    for(int i = 0; i < bits_por_bloque; i++) 
+        if(!bitarray_test_bit(bitmap, bloque_a_consultar * bits_por_bloque + i))
+            return 0; // Si alguno de los bits esta ocupado, devolvemos 0
+
+    return 1; // Si todos los bits estan libres, devolvemos 1
+}
+
 int buscar_bloque_libre(t_bitarray *bitmap, t_interfaz *interfaz) {
     int cantidad_bloques = get_block_count(interfaz);
     int tamanio_bloque = get_block_size(interfaz);
@@ -85,12 +96,17 @@ int buscar_bloque_libre(t_bitarray *bitmap, t_interfaz *interfaz) {
 void liberar_bloques_usados(t_bitarray *bitmap, int bloque_inicial, int tam_archivo) {
     int tamanio_bloque = get_block_size(interfaz);
     int bits_por_bloque = tamanio_bloque * 8;
-    int cantidad_bloques = tam_archivo / tamanio_bloque + 1;
+    int cantidad_bloques = tam_archivo / tamanio_bloque + (tam_archivo % tamanio_bloque != 0 ? 1 : 0); // Redondeamos hacia arriba
 
     for(int i = 0; i < cantidad_bloques; i++) {
-        for(int j = 0; j < bits_por_bloque; j++)
-            bitarray_clean_bit(bitmap, (bloque_inicial + i) * bits_por_bloque + j);
-    }    
+        for(int j = 0; j < bits_por_bloque; j++) {
+            // Calculamos el índice del bit:
+            int bit_index = (bloque_inicial + i) * bits_por_bloque + j;
+
+            if(bit_index < tam_archivo * 8) 
+                bitarray_clean_bit(bitmap, bit_index);
+        }
+    } 
 }
 
 void inicializar_bloques_vacios(t_bitarray *bitmap, t_interfaz *interfaz) {
@@ -104,7 +120,91 @@ void inicializar_bloques_vacios(t_bitarray *bitmap, t_interfaz *interfaz) {
     }
 }
 
+int hay_bloques_suficientes(t_bitarray *bitmap, t_interfaz *interfaz, int cantidad_de_bloques_nuevos_necesarios) {
+    int cantidad_bloques = get_block_count(interfaz);
+    int bloques_libres = contar_bloques_libres_hasta(bitmap, 0, cantidad_bloques);
+
+    return bloques_libres >= cantidad_de_bloques_nuevos_necesarios;
+}
+
+int hay_bloques_contiguos(t_bitarray *bitmap, t_interfaz *interfaz, t_config *archivo_metadata, int cantidad_de_bloques_nuevos_necesarios) {
+    // Determinamos el bloque final:
+    int bloque_final = calcular_bloque_final(interfaz, archivo_metadata);
+    int cantidad_bloques = get_block_count(interfaz);
+
+    // Nos paramos en el siguiente bloque del bloque final:
+    int siguiente_bloque = bloque_final + 1; 
+    int bloques_contiguos = contar_bloques_libres_hasta(bitmap, siguiente_bloque, cantidad_bloques);
+
+    return bloques_contiguos >= cantidad_de_bloques_nuevos_necesarios;
+}
+
+void asignar_bloques_nuevos(t_bitarray *bitmap, t_interfaz *interfaz, t_config *archivo_metadata, int cantidad_de_bloques_nuevos_necesarios) {
+
+    // Determinamos el bloque final:
+    int bloque_final = calcular_bloque_final(interfaz, archivo_metadata);
+    int cantidad_bloques = get_block_count(interfaz);
+
+    // Nos paramos en el siguiente bloque del bloque final:
+    int siguiente_bloque = bloque_final + 1; 
+
+    while(siguiente_bloque >= cantidad_bloques && cantidad_de_bloques_nuevos_necesarios > 0) {
+        // Asignamos el bloque:
+        setear_bloque_ocupado(bitmap, siguiente_bloque);
+
+        // Nos movemos al siguiente bloque:
+        siguiente_bloque++;
+
+        // Disminuimos la cantidad de bloques necesarios:
+        cantidad_de_bloques_nuevos_necesarios--;
+    }
+}
+
+int contar_bloques_libres_hasta(t_bitarray *bitmap, int desde_bloque, int hasta_bloque) {
+    int bloques_libres = 0;
+
+    for(int i = desde_bloque; i <= hasta_bloque; i++)   
+        if(preguntar_si_bloque_esta_ocupado(bitmap, i))
+            bloques_libres++;
+
+    return bloques_libres;
+}
+
+int calcular_bloque_final(t_interfaz *interfaz, t_archivo_metadata *archivo_metadata) {
+    int cantidad_bloques = get_block_count(interfaz);
+    int tamanio_bloque = get_block_size(interfaz);
+
+    // Obtenemos los datos del archivo:
+    int bloque_inicial = get_bloque_inicial(archivo_metadata);
+    int tamanio_archivo = get_tamanio_archivo(archivo_metadata);
+
+    // Calculamos la cantidad de bloques del archivo:
+    int cantidad_de_bloques_del_archivo = (tamanio_archivo + tamanio_bloque - 1) / tamanio_bloque;
+
+    // Determinamos y retornamos el bloque final:
+    return bloque_inicial + cantidad_de_bloques_del_archivo - 1;
+}
+
+int calcular_cantidad_bloques_necesarios(t_interfaz *interfaz, int tam_a_establecer) {
+    int tamanio_bloque = get_block_size(interfaz);
+    return tam_a_establecer / tamanio_bloque + (tam_a_establecer % tamanio_bloque != 0 ? 1 : 0);
+}
+
 // 3. Operaciones con archivos de configuración:
+void set_tamanio_archivo(t_config *archivo_metadata, int tam_a_establecer) {
+    char *tamanio_archivo_str = string_itoa(tam_a_establecer);
+
+    config_set_value(archivo_metadata, "TAMANIO_ARCHIVO", tamanio_archivo_str);
+    free(tamanio_archivo_str);
+}
+
+void set_bloque_inicial_archivo_metadata(t_config *archivo_metadata, int bloque_inicial) {
+    char *bloque_inicial_str = string_itoa(bloque_inicial);
+
+    config_set_value(archivo_metadata, "BLOQUE_INICIAL", bloque_inicial_str);
+    free(bloque_inicial_str);
+}
+
 int get_bloque_inicial(t_config *archivo_metadata) {
     return config_get_int_value(archivo_metadata, "BLOQUE_INICIAL");
 }
@@ -118,6 +218,23 @@ void set_bloque_libre_archivo_metadata(t_config *archivo_metadata, int bloque_li
 
     config_set_value(archivo_metadata, "BLOQUE_INICIAL", bloque_libre_str);
     free(bloque_libre_str);
+}
+
+void liberar_recuros_archivo(t_bitarray* bitmap, t_archivo_metadata* archivo_metadata, int tam_a_establecer, int tamanio_archivo) {
+
+    // Obtenemos los datos del archivo:
+    int bloque_inicial = get_bloque_inicial(archivo_metadata);
+
+    // Liberamos los bloques usados:
+    liberar_bloques_usados(bitmap, bloque_inicial, tamanio_archivo);
+    set_tamanio_archivo(archivo_metadata, tam_a_establecer);
+
+    // Si el tamaño a establecer es distinto de 0, establecemos el bloque inicial nuevo:
+    if (!tam_a_establecer) {
+        int bloque_inicial_nuevo = calcular_cantidad_bloques_necesarios(interfaz, tam_a_establecer);
+        set_bloque_inicial_archivo_metadata(archivo_metadata, bloque_inicial_nuevo);
+    } else
+        set_bloque_inicial_archivo_metadata(archivo_metadata, -1); // Indicamos que no hay bloques asignados
 }
 
 // 4. Operaciones de lectura y escritura:

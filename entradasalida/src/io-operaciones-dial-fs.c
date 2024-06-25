@@ -98,17 +98,59 @@ void operacion_delete_file(t_interfaz *interfaz, t_bitarray *bitmap, t_list *arg
     char *name_file = list_get(argumentos, 0);
     t_config *archivo_metadata = iniciar_archivo_config(interfaz, name_file);
 
+    // Obtenemos el tamaño del archivo:
+    int tam_archivo = get_tamanio_archivo(archivo_metadata);
+
     // Validamos que el archivo haya sido creado:
     if(!es_un_archivo_valido(archivo_metadata)) {
         log_error(logger, "El archivo %s no existe", name_file);
         return;
     }
 
-    // Obtenemos el bloque inicial y el tamaño del archivo:
-    int bloque_inicial = get_bloque_inicial(archivo_metadata);
-    int tamanio_archivo = get_tamanio_archivo(archivo_metadata);
-
-    // Liberamos el bloque en el bitmap:
-    liberar_bloques_usados(bitmap, bloque_inicial, tamanio_archivo);
+    // Liberamos los recursos del archivo:
+    liberar_recuros_archivo(bitmap, archivo_metadata, 0, tam_archivo);
 }
 
+void operacion_truncate_file(t_interfaz *interfaz, FILE *bloques, t_bitarray *bitmap, t_list *argumentos) {
+    
+    // Obtenemos el archivo metadata:
+    t_confi *archivo_metada = get_archivo_config_from_args(interfaz, argumentos);
+
+    // Validamos que el archivo haya sido creado:
+    if(!es_un_archivo_valido(archivo_metadata)) {
+        char *name_file = list_get(argumentos, 0);
+
+        log_error(logger, "El archivo %s no existe", name_file);
+        return;
+    }
+
+    int nuevo_tamanio = list_get(argumentos, 1);
+    int tamanio_archivo = get_tamanio_archivo(archivo_metadata);
+
+    // Vamos a reducir el tamaño, entonces vamos a liberar bloques:
+    if(nuevo_tamanio < tamanio_archivo && nuevo_tamanio > 0) {
+        int tam_restante = tamanio_archivo - nuevo_tamanio; // Calculamos el tamaño restante:
+        liberar_recursos_archivo(bitmap, archivo_metadata, tam_restante, tamanio_archivo);
+
+        return 
+    } else if (nuevo_tamanio > tamanio_archivo) { // Vamos a aumentar el tamaño, entonces vamos asignar bloques:
+        int cantidad_de_bloques_nuevos_necesarios = calcular_cantidad_bloques_necesarios(interfaz, nuevo_tamanio);
+        int tam_incrementado = nuevo_tamanio + tamanio_archivo; 
+
+        // Compruebo si tengo bloques suficientes:
+        if(hay_bloques_suficientes(bitmap, interfaz, cantidad_de_bloques_nuevos_necesarios)) {
+            log_error(logger, "No hay bloques suficientes");
+            return;
+        }
+
+        // Compruebo si los bloques necesarios están contiguos:
+        if(!hay_bloques_contiguos(bitmap, interfaz, archivo_metada, cantidad_de_bloques_nuevos_necesarios)) {
+
+            // Aca deberiamos de iniciar el proceso de compactación:
+
+        } else {
+            asignar_bloques_nuevos(bitmap, interfaz, archivo_metada, cantidad_de_bloques_nuevos_necesarios);
+            set_tamanio_archivo(archivo_metadata, tam_incrementado);
+        }
+    }
+}

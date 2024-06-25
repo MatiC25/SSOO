@@ -18,9 +18,9 @@ void ejecutar_operacion_generica(t_interfaz * interfaz) {
 
     while(1) {
         tiempo_espera = recibir_entero(interfaz);
-        tiempo_unidad = get_tiempo_unidad(interfaz);
+        tiempo_unidad = get_tiempo_unidad(interfa);
 
-        log_warning(logger, "Durmiendo %i ...", (tiempo_espera * tiempo_unidad));
+
         sleep(tiempo_espera * tiempo_unidad);
         // Enviamos la respuesta:
         send_respuesta_a_kernel(1, interfaz);
@@ -109,6 +109,10 @@ void ejecutar_operaciones_dialFS(t_interfaz *interfaz) {
                 break;
             case IO_FS_WRITE_INT:
                 operacion_write_file(interfaz, bloques, argumentos);
+                send_respuesta_a_kernel(1, interfaz);
+                break;
+            case IO_FS_TRUNCATE_INT:
+                operacion_truncate_file(interfaz, bloques, argumentos);
                 send_respuesta_a_kernel(1, interfaz);
                 break;
             default:
