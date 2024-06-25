@@ -317,9 +317,9 @@ void ejecutar_IO_GEN_SLEEP(char* interfazAUsar, char* tiempoDeTrabajo){
     if(respuesta == 1){
         t_paquete* paquete = crear_paquete(IO_GEN_SLEEP_INT);
         log_warning(logger, "OP: %i", IO_GEN_SLEEP_INT);
-        agregar_a_paquete (paquete ,&tiempo, sizeof(int));
         log_warning(logger, "Tiempo: %i", tiempo);
         agregar_a_paquete_string(paquete, interfazAUsar, strlen(interfazAUsar) + 1);
+        agregar_a_paquete (paquete ,&tiempo, sizeof(int));
         enviar_paquete(paquete,config_cpu->SOCKET_KERNEL);
         eliminar_paquete(paquete);
         liberar_pcb();

@@ -345,18 +345,12 @@ void peticion_IO() {
     
     t_list *interfaz_y_argumentos = recv_interfaz_y_argumentos(config_kernel->SOCKET_DISPATCH);
 
-    tipo_operacion *operacion = list_get(interfaz_y_argumentos, 0);
-    t_list *args = list_get(interfaz_y_argumentos, 1);
-    char *nombre_interfaz = list_get(interfaz_y_argumentos, 2);
-    interface_io* interface = get_interface_from_dict(nombre_interfaz);
-
     if (!interface) {
         finalizar_por_invalidacion(proceso_en_exec, "INVALID_INTERFACE");
         free(nombre_interfaz);
         return;
     }
 
-    // // tipo_operacion operacion = recibir_operacion(config_kernel->SOCKET_DISPATCH);
     if (!acepta_operacion_interfaz(interface, *operacion)) {
         finalizar_por_invalidacion(proceso_en_exec, "INVALID_INTERFACE");
         free(nombre_interfaz);

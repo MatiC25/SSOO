@@ -51,6 +51,8 @@ int acepta_operacion_interfaz(interface_io *interface, tipo_operacion operacion)
     };
 
     tipo_interfaz tipo = interface->tipo;
+
+    log_info(logger, "Valor de: %i", operacion);
     
     if(tipo == GENERICA)
         return operacion == operaciones[0];

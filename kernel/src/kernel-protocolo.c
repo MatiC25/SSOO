@@ -78,7 +78,7 @@ void send_message_to_dialfs_interface(int socket, t_list *args, int *response) {
             break;
         case IO_FS_READ_INT:
         case IO_FS_WRITE_INT:
-            send_message_to_dialfs_read_o_write(socket, args, response);
+            send_message_to_dialfs_read_o_write(socket, args, response, operacion_a_realizar);
             break;
         case IO_FS_TRUNCATE_INT:
             send_message_to_dialfs_truncate(socket, args, response);
@@ -151,13 +151,14 @@ void rcv_nombre_interfaz_dispatch(char **interface_name, int socket) {
 t_list * recv_interfaz_y_argumentos(int socket) {
     int size;
     int desplazamiento = 0;
-    void *buffer = recibir_buffer(&size, socket);
     t_list *interfaz_y_argumentos = list_create();
 
-    int operacion_a_realizar = parsear_int(buffer, &desplazamiento);
+    int operacion_a_realizar = recibir_operacion(socket);
     int *operacion_a_realizar_ptr = malloc(sizeof(int));
     *operacion_a_realizar_ptr = operacion_a_realizar;
     list_add(interfaz_y_argumentos, operacion_a_realizar_ptr);
+
+    void *buffer = recibir_buffer(&size, socket);
 
     char *nombre_interfaz = parsear_string(buffer, &desplazamiento);
     list_add(interfaz_y_argumentos, nombre_interfaz);
@@ -193,7 +194,7 @@ char *parsear_string(void *buffer, int *desplazamiento) {
     }
 
     memcpy(string, buffer + *desplazamiento, tamanio);
-    *desplazamiento += tamanio;
+    *desplazamiento += tamanio + 1;
 
     return string;
 }
