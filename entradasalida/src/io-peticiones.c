@@ -79,6 +79,7 @@ void ejecutar_operacion_stdout(t_interfaz *interfaz) {
 }
 
 void ejecutar_operaciones_dialFS(t_interfaz *interfaz) {
+
     // Inicializamos las variables:
     int tiempo_respuesta_retardo = get_tiempo_unidad(interfaz);
     int socket_kernel = get_socket_kernel(interfaz);
@@ -88,7 +89,12 @@ void ejecutar_operaciones_dialFS(t_interfaz *interfaz) {
 
     // Inicializamos bitmap:
     t_bitarray *bitmap = iniciar_bitmap(interfaz);
-    inicializar_bloques_vacios(bitmap, interfaz); // Inicializamos los bloques vacios
+
+    // Traemos archivos persistidos:
+    t_list *archivos_abiertos = traer_archivos_abiertos(interfaz);
+
+    if (!archivos) // Si no hay archivos abiertos, inicializamos el bitmap
+        inicializar_bloques_vacios(bitmap, interfaz); // Inicializamos los bloques vacios
 
     while(1) {
         tipo_operacion operacion = recibir_operacion(socket_kernel);
@@ -96,23 +102,23 @@ void ejecutar_operaciones_dialFS(t_interfaz *interfaz) {
 
         switch(operacion) {
             case IO_FS_CREATE_INT:
-                operacion_create_file(interfaz, bitmap, argumentos);
+                operacion_create_file(interfaz, bitmap, argumentos, archivos_abiertos);
                 send_respuesta_a_kernel(1, interfaz);
                 break;
             case IO_FS_READ_INT:
-                operacion_read_file(interfaz, bloques, argumentos);
+                operacion_read_file(interfaz, bloques, argumentos, archivos_abiertos);
                 send_respuesta_a_kernel(1, interfaz);
                 break;
             case IO_FS_DELETE_INT:
-                operacion_delete_file(interfaz, bitmap, argumentos);
+                operacion_delete_file(interfaz, bitmap, argumentos, archivos_abiertos);
                 send_respuesta_a_kernel(1, interfaz);
                 break;
             case IO_FS_WRITE_INT:
-                operacion_write_file(interfaz, bloques, argumentos);
+                operacion_write_file(interfaz, bloques, argumentos, archivos_abiertos);
                 send_respuesta_a_kernel(1, interfaz);
                 break;
             case IO_FS_TRUNCATE_INT:
-                operacion_truncate_file(interfaz, bloques, argumentos);
+                operacion_truncate_file(interfaz, bloques, argumentos, archivos_abiertos);
                 send_respuesta_a_kernel(1, interfaz);
                 break;
             default:

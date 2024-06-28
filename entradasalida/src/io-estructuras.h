@@ -23,6 +23,11 @@ typedef struct {
     t_config_io *config;
 } t_interfaz;
 
+typedef struct {
+    t_config *archivo_metadata;
+    char *name_file;
+} t_archivo_abierto;
+
 extern t_config_io* config_io;
 extern t_interfaz *interfaz;
 

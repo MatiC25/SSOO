@@ -30,7 +30,8 @@ void liberar_bloques_usados(t_bitarray *bitmap, int bloque_inicial, int tam_arch
 void inicializar_bloques_vacios(t_bitarray *bitmap, t_interfaz *interfaz);
 int hay_bloques_suficientes(t_bitarray *bitmap, t_interfaz *interfaz, int cantidad_de_bloques_nuevos_necesarios);
 int hay_bloques_contiguos(t_bitarray *bitmap, t_interfaz *interfaz, t_config *archivo_metadata, int cantidad_de_bloques_nuevos_necesarios);
-void asignar_bloques_nuevos(t_bitarray *bitmap, t_interfaz *interfaz, t_config *archivo_metadata, int cantidad_de_bloques_nuevos_necesarios);
+void asignar_nuevos_bloques_desde_final(t_bitarray *bitmap, t_interfaz *interfaz, t_config *archivo_metadata, int cantidad_de_bloques_nuevos_necesarios);
+void asignar_bloques_nuevos_desde_inicio(t_bitarray *bitmap, t_interfaz *interfaz, t_config *archivo_metadata, int cantidad_de_bloques_nuevos_necesarios);
 int contar_bloques_libres_hasta(t_bitarray *bitmap, int desde_bloque, int hasta_bloque);
 int calcular_bloque_final(t_interfaz *interfaz, t_archivo_metadata *archivo_metadata);
 int calcular_cantidad_bloques_necesarios(t_interfaz *interfaz, int tam_a_establecer);
@@ -41,8 +42,19 @@ int get_bloque_inicial(t_config *archivo_metadata);
 t_config *get_archivo_config_from_args(t_interfaz *interfaz, t_list *argumentos);
 void set_tamanio_archivo(t_config *archivo_metadata, int tam_a_establecer);
 void set_bloque_inicial_archivo_metadata(t_config *archivo_metadata, int bloque_inicial);
-void liberar_recuros_archivo(t_bitarray* bitmap, t_archivo_metadata* archivo_metadata, int tam_a_establecer, int tamanio_archivo);
 int es_un_archivo_valido(t_config *archivo_metada);
+void eliminar_metadata_archivo(t_config *archivo_metadata);
+void crear_archivo(t_config *archivo_metada, t_interfaz *interfaz, char *name_file);
+void get_archivo_metadata(t_archivo_abierto *archivo_abierto);
+void eliminar_archivo_de_archivos_abiertos(t_list *archivos_abiertos, char *name_file);
+t_archivo_abierto *get_archivo_abierto(t_list *archivos_abiertos, char *name_file);
+void agregar_a_archivos_abiertos(t_list *archivos_abiertos, t_config *archivo_metadata);
+void set_bloque_inicial_en_archivo_abierto(int bloque_inicial, t_archivo_abierto *archivo_abierto);
+void set_name_file_en_archivo_abierto(t_archivo_abierto *archivo_abierto, char *name_file);
+void set_archivo_metada_en_archivo_abierto(t_archivo_abierto *archivo_abierto, t_config *archivo_metadata);
+void agregar_a_archivos_abiertos(t_list *archivos_abiertos, t_config *archivo_metadata, char *name_file, int bloque_inicial);
+int existe_archivo_abierto(t_list *archivos_abiertos, char *name_file);
+t_list *traer_archivos_abiertos(t_interfaz *interfaz);
 
 // Funciones de lectura y escritura
 void procesar_operacio_de_lectura_o_escritura(t_config *archivo_metadata, t_list *argumentos, int *bloque_inicial, int *tamanio_archivo, int *bytes_a_leer, int *offset, int *dirreccion_fisica);
@@ -51,5 +63,6 @@ void escribir_contenido_en_bloques(FILE *bloques, int bloque_inicial, int offset
 
 // Funciones de utilidad
 char *build_full_path(t_interfaz *interfaz, const char *name_file);
+ordenar_por_bloque_inicial(t_archivo_abierto *archivo_abierto, t_archivo_abierto *otro_archivo_abierto);
 
 #endif // IO_UTILS_DIAL_FS_H

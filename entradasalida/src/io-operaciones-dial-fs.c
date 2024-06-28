@@ -1,9 +1,15 @@
 #include "io-operaciones-dial-fs.h"
 
-void operacion_create_file(t_interfaz *interfaz, t_bitarray *bitmap, t_list *argumentos) {
+void operacion_create_file(t_interfaz *interfaz, t_bitarray *bitmap, t_list *argumentos, t_list *archivos_abiertos) {
 
     // Obtenemos el path del archivo:
     char *name_file = list_get(argumentos, 0);
+
+    if(existe_archivo_abierto(archivos_abiertos, name_file)) {
+        log_error(logger, "El archivo %s ya se encuentra abierto", name_file);
+        return;
+    }
+
     t_config *archivo_metadata = iniciar_archivo_metadata(interfaz, name_file);
 
     // Buscamos un bloque libre:
@@ -19,20 +25,27 @@ void operacion_create_file(t_interfaz *interfaz, t_bitarray *bitmap, t_list *arg
 
     // Seteamos el bloque libre en el archivo de metadata:
     set_bloque_libre_archivo_metadata(archivo_metadata, bloque_libre);
+
+    // agregamos el archivo a la lista de archivos abiertos:
+    agregar_a_archivos_abiertos(archivos_abiertos, archivo_metadata, name_file, bloque_libre);
+
+    // Creamos el archivo:
+    crear_archivo(archivo_metadata, interfaz, name_file);
+     
 }
 
-void operacion_read_file(t_interfaz *interfaz, FILE *bloques, t_list *argumentos) {
+void operacion_read_file(t_interfaz *interfaz, FILE *bloques, t_list *argumentos, t_list *archivos_abiertos) {
 
-    // Obtenemos el archivo metadata:
-    t_config *archivo_metadata = get_archivo_config_from_args(interfaz, argumentos);
+    // Obtenemos el archivo:
+    char *name_file = list_get(argumentos, 0);
+    t_archivo_abierto *archivo_abierto = get_archivo_abierto(archivos_abiertos, name_file);
 
-    // Validamos que el archivo haya sido creado:
-    if(!es_un_archivo_valido(archivo_metadata)) {
-        char *name_file = list_get(argumentos, 0);
-
-        log_error(logger, "El archivo %s no existe", name_file);
+    if(!archivo_abierto) {
+        log_error(logger, "El archivo %s no se encuentra abierto", name_file);
         return;
     }
+
+    t_config *archivo_metada = get_archivo_metadata(archivo_abierto);
 
     // Obtenemos los argumentos necesarios para la operación de lectura:
     int bloque_inicial;
@@ -61,15 +74,17 @@ void operacion_read_file(t_interfaz *interfaz, FILE *bloques, t_list *argumentos
 void operacion_write_file(t_interfaz *interfaz, FILE *bloques, t_list *argumentos) {
 
     // Obtenemos el archivo metadata:
-    t_config *archivo_metadata = get_archivo_config_from_args(interfaz, argumentos);
+    char *name_file = list_get(argumentos, 0);
+    t_archivo_abierto *archivo_abierto = get_archivo_abierto(archivos_abiertos, name_file);
 
     // Validamos que el archivo haya sido creado:
-    if(!es_un_archivo_valido(archivo_metadata)) {
-        char *name_file = list_get(argumentos, 0);
-
+    if(!archivo_abierto) {
         log_error(logger, "El archivo %s no existe", name_file);
+
         return;
     }
+
+    t_config *archivo_metada = get_archivo_metadata(archivo_abierto);
 
     // Obtenemos los argumentos necesarios para la operación de lectura:
     int bloque_inicial;
@@ -92,48 +107,42 @@ void operacion_write_file(t_interfaz *interfaz, FILE *bloques, t_list *argumento
 }
 
 
-void operacion_delete_file(t_interfaz *interfaz, t_bitarray *bitmap, t_list *argumentos) {
+void operacion_delete_file(t_interfaz *interfaz, t_bitarray *bitmap, t_list *argumentos, t_list *archivos_abiertos) {
 
     // Obtenemos el archivo metadata:
     char *name_file = list_get(argumentos, 0);
-    t_config *archivo_metadata = iniciar_archivo_config(interfaz, name_file);
+    t_archivo_abierto *archivo_abierto = get_archivo_abierto(archivos_abiertos, name_file);
 
-    // Obtenemos el tamaño del archivo:
-    int tam_archivo = get_tamanio_archivo(archivo_metadata);
-
-    // Validamos que el archivo haya sido creado:
-    if(!es_un_archivo_valido(archivo_metadata)) {
-        log_error(logger, "El archivo %s no existe", name_file);
-        return;
-    }
+    t_config *archivo_metadata = get_archivo_metadata(archivo_abierto);
 
     // Liberamos los recursos del archivo:
-    liberar_recuros_archivo(bitmap, archivo_metadata, 0, tam_archivo);
+    liberar_recuros_archivo(bitmap, archivo_metadata);
+
+    // Eliminamos el archivo de la lista de archivos abiertos:
+    eliminar_archivo_de_archivos_abiertos(archivos_abiertos, name_file);
+
+    // Eliminamos el metadata del archivo:
+    eliminar_metadata_archivo(archivo_metadata);
 }
 
-void operacion_truncate_file(t_interfaz *interfaz, FILE *bloques, t_bitarray *bitmap, t_list *argumentos) {
+void operacion_truncate_file(t_interfaz *interfaz, FILE *bloques, t_bitarray *bitmap, t_list *argumentos, t_list *archivos_abiertos) {
     
     // Obtenemos el archivo metadata:
-    t_confi *archivo_metada = get_archivo_config_from_args(interfaz, argumentos);
+   char *name_file = list_get(argumentos, 0);
+    t_archivo_abierto *archivo_abierto = get_archivo_abierto(archivos_abiertos, name_file);
 
-    // Validamos que el archivo haya sido creado:
-    if(!es_un_archivo_valido(archivo_metadata)) {
-        char *name_file = list_get(argumentos, 0);
-
+    if(!archivo_abierto) {
         log_error(logger, "El archivo %s no existe", name_file);
         return;
     }
+
+    t_config *archivo_metadata = get_archivo_metadata(archivo_abierto);
 
     int nuevo_tamanio = list_get(argumentos, 1);
     int tamanio_archivo = get_tamanio_archivo(archivo_metadata);
 
-    // Vamos a reducir el tamaño, entonces vamos a liberar bloques:
-    if(nuevo_tamanio < tamanio_archivo && nuevo_tamanio > 0) {
-        int tam_restante = tamanio_archivo - nuevo_tamanio; // Calculamos el tamaño restante:
-        liberar_recursos_archivo(bitmap, archivo_metadata, tam_restante, tamanio_archivo);
-
-        return 
-    } else if (nuevo_tamanio > tamanio_archivo) { // Vamos a aumentar el tamaño, entonces vamos asignar bloques:
+    // Vamos a aumentar el tamaño, entonces vamos asignar bloques:
+    if (nuevo_tamanio > tamanio_archivo) { 
         int cantidad_de_bloques_nuevos_necesarios = calcular_cantidad_bloques_necesarios(interfaz, nuevo_tamanio);
         int tam_incrementado = nuevo_tamanio + tamanio_archivo; 
 
@@ -145,9 +154,9 @@ void operacion_truncate_file(t_interfaz *interfaz, FILE *bloques, t_bitarray *bi
 
         // Compruebo si los bloques necesarios están contiguos:
         if(!hay_bloques_contiguos(bitmap, interfaz, archivo_metada, cantidad_de_bloques_nuevos_necesarios)) {
-
-            // Aca deberiamos de iniciar el proceso de compactación:
-
+            log_info(logger, "“PID: <%i> - Inicio Compactación.");
+            compactar_archivos(bitmap, bloques, interfaz, archivos_abiertos, archivo_abierto, archivo_metada, cantidad_de_bloques_nuevos_necesarios);
+            log_info(logger, "“PID: <%i> - Fin Compactación.");
         } else {
             asignar_bloques_nuevos(bitmap, interfaz, archivo_metada, cantidad_de_bloques_nuevos_necesarios);
             set_tamanio_archivo(archivo_metadata, tam_incrementado);

@@ -8,9 +8,9 @@
 #include <utils/logger.h>
 
 // Incluye las bibliotecas internas necesarias:
-// #include "io-estructuras.h"
 #include "io-utils-dial-fs.h"
 #include "io-protocolo.h"
+#include "io-compactacion.h"
 
 // Operaciones de DIAL-FS:
 void operacion_create_file(t_interfaz *interfaz, t_bitarray *bitmap, t_list *argumentos);

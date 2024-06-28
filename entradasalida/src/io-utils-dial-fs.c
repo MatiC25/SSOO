@@ -37,6 +37,7 @@ t_config *iniciar_archivo_metadata(t_interfaz *interfaz, char *name_file) {
     return archivo_metadata;
 }
 
+
 t_bitarray *iniciar_bitmap(t_interfaz *interfaz) {
     FILE *bitmap_archivo = iniciar_archivo_bitmap(interfaz);
 
@@ -51,6 +52,127 @@ t_bitarray *iniciar_bitmap(t_interfaz *interfaz) {
     t_bitarray *bitarray = bitarray_create_with_mode(bitmap, size, MSB_FIRST);
 
     return bitarray;
+}
+
+t_list *traer_archivos_abiertos(t_interfaz *interfaz) {
+
+    // Obtenemos el directorio: 
+    char *path_directorio = get_path_dial_fs(interfaz);
+    DIR *directorio = opendir(path_directorio);
+
+    if(!directorio) {
+        log_error(logger, "No se pudo abrir el directorio %s", path_directorio);
+        return NULL;
+    }
+
+    // Inicializamos la lista de archivos:
+    t_list *archivos_abiertos = list_create();
+
+    // Iteramos sobre los archivos del directorio:
+    struct dirent *archivo;
+    while(archivo = readdir(directorio)) {
+        if(archivo->d_type == DT_REG) { // Si es un archivo regular
+            char *name_file = archivo->d_name;
+            t_config *archivo_metadata = iniciar_archivo_config(interfaz, name_file);
+            t_archivo_abierto *archivo_abierto = malloc(sizeof(t_archivo_abierto));
+            
+            // Seteamos los datos del archivo abierto:
+            set_archivo_metada_en_archivo_abierto(archivo_abierto, archivo_metadata);
+            set_name_file_en_archivo_abierto(archivo_abierto, name_file);
+
+            if(es_un_archivo_valido(archivo_metadata))
+                list_add(archivos_abiertos, archivo_abierto);
+            else
+                config_destroy(archivo_metadata);
+        }
+    }
+
+    closedir(directorio);
+
+    return archivos_abiertos;
+}
+
+int existe_archivo_abierto(t_list *archivos_abiertos, char *name_file) {
+
+    // Iteramos sobre los archivos abiertos:
+    for(int i = 0; i < list_size(archivos_abiertos); i++) {
+        t_archivo_abierto *archivos_abierto = list_get(archivos_abiertos, i);
+        char *name_file_abierto = get_name_file(archivos_abierto);
+
+        if(strcmp(name_file, name_file_abierto) == 0)
+            return 1;
+    }
+
+    return 0;
+}
+
+void agregar_a_archivos_abiertos(t_list *archivos_abiertos, t_config *archivo_metadata, char *name_file, int bloque_inicial) {
+    t_archivo_abierto *archivo_abierto = malloc(sizeof(t_archivo_abierto));
+
+    set_archivo_metada_en_archivo_abierto(archivo_abierto, archivo_metadata);
+    set_name_file_en_archivo_abierto(archivo_abierto, name_file);
+    set_bloque_inicial_en_archivo_abierto(archivo_abierto, bloque_inicials);
+
+    list_add(archivos_abiertos, archivo_abierto);
+}
+
+void set_archivo_metada_en_archivo_abierto(t_archivo_abierto *archivo_abierto, t_config *archivo_metadata) {
+    archivo_abierto->archivo_metadata = archivo_metadata;
+}
+
+void set_name_file_en_archivo_abierto(t_archivo_abierto *archivo_abierto, char *name_file) {
+    archivo_abierto->name_file = name_file;
+}
+
+void set_bloque_inicial_en_archivo_abierto(int bloque_inicial, t_archivo_abierto *archivo_abierto) {
+    archivo_abierto->bloque_inicial = bloque_inicial;
+}
+
+void agregar_a_archivos_abiertos(t_list *archivos_abiertos, t_config *archivo_metadata) {
+    list_add(archivos_abiertos, archivo_metadata);
+}
+
+char *get_name_file(t_archivo_abierto *archivo_abierto) {
+    return archivo_abierto->name_file;
+}
+
+t_archivo_abierto *get_archivo_abierto(t_list *archivos_abiertos, char *name_file) {
+
+    // Iteramos sobre los archivos abiertos:
+    for(int i = 0; i < list_size(archivos_abiertos); i++) {
+        t_archivo_abierto *archivo_abierto = list_get(archivos_abiertos, i);
+        char *name_file_abierto = get_name_file(archivo_abierto);
+
+        if(strcmp(name_file, name_file_abierto) == 0)
+            return archivo_abierto;
+    }
+
+    return NULL;
+}
+
+void eliminar_metadata_archivo(t_config *archivo_metadata) {
+    remove(archivo_metadata->path);
+    config_destroy(archivo_metadata);
+}
+
+void crear_archivo(t_config *archivo_metada, t_interfaz *interfaz, char *name_file) {
+    char *path_completo = build_full_path(interfaz, name_file);
+    config_save_in_file(archivo_metada, path_completo); // Guardamos el archivo
+}
+
+void get_archivo_metadata(t_archivo_abierto *archivo_abierto) {
+    return archivo_abierto->archivo_metadata;
+}
+
+void eliminar_archivo_de_archivos_abiertos(t_list *archivos_abiertos, char *name_file) {
+    int index = 0;
+    int size = list_size(archivos_abiertos);
+
+    while(index > size && strcmp(get_name_file(list_get(archivos_abiertos, index)), name_file) != 0)
+        index++;
+
+    if(index < size) 
+        list_remove(archivos_abiertos, index);
 }
 
 // 2. Operaciones con bitmaps
@@ -139,7 +261,8 @@ int hay_bloques_contiguos(t_bitarray *bitmap, t_interfaz *interfaz, t_config *ar
     return bloques_contiguos >= cantidad_de_bloques_nuevos_necesarios;
 }
 
-void asignar_bloques_nuevos(t_bitarray *bitmap, t_interfaz *interfaz, t_config *archivo_metadata, int cantidad_de_bloques_nuevos_necesarios) {
+
+void asignar_nuevos_bloques_desde_final(t_bitarray *bitmap, t_interfaz *interfaz, t_config *archivo_metadata, int cantidad_de_bloques_nuevos_necesarios) {
 
     // Determinamos el bloque final:
     int bloque_final = calcular_bloque_final(interfaz, archivo_metadata);
@@ -157,6 +280,17 @@ void asignar_bloques_nuevos(t_bitarray *bitmap, t_interfaz *interfaz, t_config *
 
         // Disminuimos la cantidad de bloques necesarios:
         cantidad_de_bloques_nuevos_necesarios--;
+    }
+}
+
+void asignar_bloques_nuevos_desde_inicio(t_bitarray *bitmap, t_interfaz *interfaz, t_config *archivo_metadata, int cantidad_de_bloques_nuevos_necesarios) {
+    int cantidad_bloques = get_block_count(interfaz);
+    int tamanio_bloque = get_block_size(interfaz);
+    int bloque_inicial = get_bloque_inicial(archivo_metadata);
+
+    for(int i = 0; i < cantidad_de_bloques_necesarios; i++) {
+        // Asignamos el bloque:
+        setear_bloque_ocupado(bitmap, bloque_inicial + i);
     }
 }
 
@@ -220,21 +354,21 @@ void set_bloque_libre_archivo_metadata(t_config *archivo_metadata, int bloque_li
     free(bloque_libre_str);
 }
 
-void liberar_recuros_archivo(t_bitarray* bitmap, t_archivo_metadata* archivo_metadata, int tam_a_establecer, int tamanio_archivo) {
+void liberar_recuros_archivo(t_bitarray* bitmap, t_config* archivo_metadata) {
 
     // Obtenemos los datos del archivo:
     int bloque_inicial = get_bloque_inicial(archivo_metadata);
+    int tamanio_archivo = get_tamanio_archivo(archivo_metadata);
 
     // Liberamos los bloques usados:
     liberar_bloques_usados(bitmap, bloque_inicial, tamanio_archivo);
-    set_tamanio_archivo(archivo_metadata, tam_a_establecer);
+}
 
-    // Si el tamaño a establecer es distinto de 0, establecemos el bloque inicial nuevo:
-    if (!tam_a_establecer) {
-        int bloque_inicial_nuevo = calcular_cantidad_bloques_necesarios(interfaz, tam_a_establecer);
-        set_bloque_inicial_archivo_metadata(archivo_metadata, bloque_inicial_nuevo);
-    } else
-        set_bloque_inicial_archivo_metadata(archivo_metadata, -1); // Indicamos que no hay bloques asignados
+int calcular_cantidad_de_bloques_asignados(t_interfaz *interfaz, t_archivo_metadata *archivo_metadata) {
+    int tamanio_archivo = get_tamanio_archivo(archivo_metadata);
+    int tamanio_bloque = get_block_size(interfaz);
+
+    return (tamanio_archivo + tamanio_bloque - 1) / tamanio_bloque;
 }
 
 // 4. Operaciones de lectura y escritura:
@@ -302,4 +436,17 @@ int es_un_archivo_valido(t_config *archivo_metada) {
     };
 
     return tiene_todas_las_configuraciones(archivo_metada, propiedades);
+}
+
+void ordenar_por_bloque_inicial(t_archivo_abierto *archivo_abierto, t_archivo_abierto *otro_archivo_abierto) {
+    return get_bloque_inicial(archivo_abierto) - get_bloque_inicial(otro_archivo_abierto);
+}
+
+void escribir_buffers_en_bloques(FILE *bloques, t_list *buffers) {
+    int cantidad_buffers = list_size(buffers);
+
+    unsigned char *buffer_primero = list_get(buffers, 0); 
+    int tamanio_buffer = sizeof(buffer_primero);
+
+    fseek
 }
