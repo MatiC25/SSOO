@@ -134,42 +134,6 @@ void* iniciar_proceso(void* args) {
     return NULL;
 }
 
-// void* proceso_estado(void* args) {
-//     int size_estados_proceso;
-//     t_list *estados_procesos[5];
-
-//     agregar_procesos_a_lista(estados_procesos);
-
-//     for (int i = 0; i < 5; i++) {
-//         t_list *estado_aux = estados_procesos[i];
-//         size_estados_proceso = list_size(estado_aux);
-
-//         for (int j = 0; j < size_estados_proceso; j++) {
-//             t_pcb *pcb = list_get(estado_aux, j);
-//             printf("Proceso %d: %s\n", pcb->pid, estado_proceso(i)); // Imprimimos el estado del proceso
-//         }
-//     }
-//     return NULL;
-// }
-
-// void agregar_procesos_a_lista(t_list *estados_procesos[]) {
-//     estados_procesos[0] = cola_new;
-//     estados_procesos[1] = cola_ready;
-//     estados_procesos[2] = cola_exec;
-//     estados_procesos[3] = cola_block;
-//     estados_procesos[4] = cola_exit;
-// }
-
-// char* estado_proceso(int estado) {
-//     switch (estado) {
-//         case 0: return "NEW";
-//         case 1: return "READY";
-//         case 2: return "EXEC";
-//         case 3: return "BLOCK";
-//         case 4: return "EXIT";
-//     }
-//     return NULL;
-// }
 
 void* proceso_estado(void* args) {
     printf("\nListando procesos por estado:\n");
@@ -234,7 +198,7 @@ void* multiprogramacion(void* args) {
 
 void* ejecutar_script(void* args) {
     char *script_path = (char*) args;
-    char *path_inicial = "/home/utnso/c-comenta-pruebas-main/scripts_kernel/";
+    char *path_inicial = "/home/utnso/c-comenta-pruebas-main/preliminares/";
 
     // Calcular el tamaño necesario para path_nuevo
     size_t len_path_nuevo = strlen(path_inicial) + strlen(script_path) + 1;

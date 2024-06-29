@@ -95,11 +95,6 @@ void peticion_fin_quantum() {
     }
     sem_post(&desalojo_proceso);
 
-    pthread_mutex_lock(&mutex_proceso_exec);
-    proceso_en_exec->quantum = 0;
-    proceso_en_exec->estado = READY;
-    pthread_mutex_unlock(&mutex_proceso_exec);
-
     log_warning(logger, "PID: %i - Desalojado por fin de Quantum", proceso_en_exec->pid);
 
     pthread_mutex_lock(&mutex_estado_ready);

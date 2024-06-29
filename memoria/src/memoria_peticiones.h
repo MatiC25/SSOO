@@ -35,6 +35,6 @@ void acceso_lectura(int socket_cliente);
 void acceso_escritura(int socket_cliente);
 int obtener_marco_libre(t_bitarray* bitmap);
 void liberar_marco(int marco);
-
+void enviar_respuesta_a_kernel(int socket_cliente);
 
 #endif //MEMORIA_PETICIONES_H

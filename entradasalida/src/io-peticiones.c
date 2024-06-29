@@ -13,8 +13,8 @@ void interfaz_recibir_peticiones(t_interfaz * interfaz) {
 
 void ejecutar_operacion_generica(t_interfaz * interfaz) {
     // Inicializamos las variables:
-    int tiempo_espera;
-    int tiempo_unidad;
+    int tiempo_espera = 0;
+    int tiempo_unidad = 0;
 
     while(1) {
         tiempo_espera = recibir_entero(interfaz);

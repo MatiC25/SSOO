@@ -320,16 +320,19 @@ void* planificacion_cortoplazo_VRR() {
         pthread_mutex_unlock(&reanudar_plani);
 
         sem_wait(&hay_en_estado_ready);
+        sem_wait(&hay_proceso_exec);
 
         if (!list_is_empty(cola_prima_VRR)) {
             pthread_mutex_lock(&mutex_cola_priori_vrr);
             proceso_en_exec = list_remove(cola_prima_VRR, 0); 
             pthread_mutex_unlock(&mutex_cola_priori_vrr);
+            log_facu(logger, "¡Se encontró un proceso en Cola Prima!");
 
         } else if (!list_is_empty(cola_ready)) {
             pthread_mutex_lock(&mutex_estado_ready);    
             proceso_en_exec = list_remove(cola_ready, 0);
             pthread_mutex_unlock(&mutex_estado_ready);
+            log_facu(logger, "¡Se encontró un proceso en Cola Normal!");
 
         } else {
             log_error(logger, "No hay ningun proceso en la cola READY o PRIMA");
@@ -338,8 +341,6 @@ void* planificacion_cortoplazo_VRR() {
         if (!proceso_en_exec) {
             log_error(logger, "Error al obtener un proceso de las colas");
         }   
-
-        sem_wait(&hay_proceso_exec);
     
         pthread_mutex_lock(&mutex_proceso_exec);
         proceso_en_exec->estado = EXEC;
@@ -369,9 +370,10 @@ void* planificacion_cortoplazo_VRR() {
         int64_t tiempo_ejecutado = temporal_gettime(tiempo_de_ejecucion) - tiempo_inicial_de_exec;
 
         temporal_destroy(tiempo_de_ejecucion);
+        int64_t quantum_restante = config_kernel->QUANTUM - tiempo_ejecutado;
 
         pthread_mutex_lock(&mutex_proceso_exec);
-        int64_t quantum_restante = proceso_en_exec->quantum - tiempo_ejecutado; 
+        proceso_en_exec->quantum = quantum_restante;
         pthread_mutex_unlock(&mutex_proceso_exec);
 
         pthread_mutex_lock(&mutex_proceso_exec);
@@ -395,7 +397,7 @@ void* planificacion_cortoplazo_VRR() {
 void* quantum_handler(void* arg) {
     t_pcb* proceso = (t_pcb*)arg;
     // log_warning(logger, "En ejecución %d milisegundos...", config_kernel->QUANTUM);
-    log_info(logger2, "En ejecución %d milisegundos...", config_kernel->QUANTUM);
+    log_info(logger2, "En ejecución %d milisegundos...", proceso->quantum);
     usleep(proceso->quantum * 1000); // Dormir por el tiempo del quantum
     op_code codigo = FINQUANTUM;
     send(config_kernel->SOCKET_INTERRUPT, &codigo, sizeof(int), 0); // Enviar interrupción al final del quantum

@@ -146,7 +146,7 @@ void tengoAlgunaInterrupcion(){
     if (atomic_load(&interrupt_flag) == 1){
     //Se recibio una interrupcion
     t_paquete* paquete_a_kernel = crear_paquete(FIN_QUANTUM);
-    log_warning(logger, "FIN DE QUANTUM");
+    log_warning(logger, "ESTOY DESALOJANDO");
     atomic_store(&interrupt_flag,0);
     enviar_pcb_a_kernel(paquete_a_kernel);
     enviar_paquete(paquete_a_kernel, config_cpu->SOCKET_KERNEL);
@@ -173,7 +173,7 @@ void ejecutar_instruccion(int socket_cliente) {
             enviar_paquete(paquete_a_kernel, config_cpu->SOCKET_KERNEL);
             eliminar_paquete(paquete_a_kernel);
             liberar_pcb();
-
+            atomic_store(&interrupt_flag, 0); //Para no acumular un desalojo que no este acorde al proceso
             return; 
         case SET:
             log_info(logger,"Instruccion Ejecutada: PID: %d- Ejecutando: %s -%s %s", pcb->pid,instruccion->opcode,instruccion->parametro1,instruccion->parametro2);
@@ -295,9 +295,9 @@ void ejecutar_JNZ(char* registro, char* valor){
     uint32_t regg = *(uint32_t*)reg;
     if (regg == 0){
         pcb->program_counter += atoi(valor);
-    }else{
-        log_error(logger,"Error al obtener el JNZ");
+        tengoAlgunaInterrupcion();
     }
+
     tengoAlgunaInterrupcion();
 }
 
@@ -316,9 +316,9 @@ void ejecutar_IO_GEN_SLEEP(char* interfazAUsar, char* tiempoDeTrabajo){
 
     if(respuesta == 1){
         t_paquete* paquete = crear_paquete(IO_GEN_SLEEP_INT);
-        log_warning(logger, "OP: %i", IO_GEN_SLEEP_INT);
+        //log_warning(logger, "OP: %i", IO_GEN_SLEEP_INT);
         agregar_a_paquete (paquete ,&tiempo, sizeof(int));
-        log_warning(logger, "Tiempo: %i", tiempo);
+        //log_warning(logger, "Tiempo: %i", tiempo);
         agregar_a_paquete_string(paquete, interfazAUsar, strlen(interfazAUsar) + 1);
         enviar_paquete(paquete,config_cpu->SOCKET_KERNEL);
         eliminar_paquete(paquete);
@@ -367,7 +367,7 @@ void ejecutar_MOV_OUT(char* Registro_Direccion, char* Registro_Datos){
     //log_info(logger, "direccionLogica:%i", direccionLogica);
 
     int regDAtos = encontrar_int(reg_Datos, tamanio_registro);   
-    log_info(logger, "regDAtos:%i", regDAtos);
+    //log_info(logger, "regDAtos:%i", regDAtos);
 
     char* valorr = string_itoa(regDAtos);
     
@@ -448,7 +448,7 @@ void ejecutar_WAIT(char* recurso){
 
     int respuesta = 1;
     recv(config_cpu->SOCKET_KERNEL, &respuesta , sizeof(int), MSG_WAITALL);
-    log_leo(logger2,"NUMERO : %i" ,respuesta);
+    //log_leo(logger2,"NUMERO : %i" ,respuesta);
     if (respuesta == 1){
         tengoAlgunaInterrupcion();
     }else{
@@ -473,7 +473,7 @@ void ejecutar_SINGAL(char* recurso){
 
     int respuesta = 1;
     recv(config_cpu->SOCKET_KERNEL, &respuesta , sizeof(int), MSG_WAITALL);
-    log_leo(logger2,"NUMEOR : %i", respuesta);
+    //log_leo(logger2,"NUMEOR : %i", respuesta);
     if (respuesta == 1){
         tengoAlgunaInterrupcion();
     }else{
@@ -662,5 +662,4 @@ void liberar_pcb(){
         }
         free(pcb); // Liberar la estructura PCB
     }
-    //atomic_store(&interrupt_flag, 0);
 }
