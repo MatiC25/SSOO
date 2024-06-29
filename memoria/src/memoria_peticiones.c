@@ -69,14 +69,10 @@ void* escuchar_peticiones(void* args){
     }
 }
 
-
-
 void handshake_desde_memoria(int socket_cliente) {
     t_paquete* paquete = crear_paquete(HANDSHAKE_PAGINA);
     int tam_pagina = config_memoria ->tam_pagina;
-
-    // send(socket_cliente, &tam_pagina, sizeof(int), 0);
-    
+    // send(socket_cliente, &tam_pagina, sizeof(int), 0);    
     agregar_a_paquete(paquete, &tam_pagina, sizeof(int));
     enviar_paquete(paquete, socket_cliente);
     eliminar_paquete(paquete);
@@ -287,8 +283,6 @@ void liberar_marco(int marco) {
     bitarray_clean_bit(bitmap, marco); // Marca el bit como libre (pone 0)
 }
 
-
-
 //Acceso a espacio de usuario: "PID:" <PID> "- Accion:" <LEER / ESCRIBIR> "- Direccion fisica:" <DIRECCION_FISICA> "- Tamanio" <TAMANIO A LEER / ESCRIBIR>
 void acceso_lectura(int socket_cliente){
     int size;
@@ -347,8 +341,6 @@ void acceso_lectura(int socket_cliente){
     free(contenido_leer);
     free(buffer);
 }
-
-
 
 void acceso_escritura(int socket_cliente){
     int size;

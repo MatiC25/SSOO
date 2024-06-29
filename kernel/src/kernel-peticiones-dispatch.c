@@ -98,8 +98,10 @@ void peticion_fin_quantum() {
     log_warning(logger, "PID: %i - Desalojado por fin de Quantum", proceso_en_exec->pid);
 
     pthread_mutex_lock(&mutex_estado_ready);
+    pthread_mutex_lock(&mutex_proceso_exec);
     list_add(cola_ready, proceso_en_exec);
     log_info(logger, "PID: %i - Estado Anterior: EXEC - Estado Actual: READY \n", proceso_en_exec->pid);
+    pthread_mutex_unlock(&mutex_proceso_exec);
     pthread_mutex_unlock(&mutex_estado_ready);
 
     sem_post(&hay_en_estado_ready);
@@ -122,19 +124,21 @@ void peticion_exit(const char *tipo_de_exit) {
 
     log_warning(logger, "Finaliza el proceso %i - Motivo: %s", proceso_en_exec->pid, tipo_de_exit);
 
-    pthread_mutex_lock(&mutex_exit);
+    pthread_mutex_lock(&mutex_proceso_exec);
     proceso_en_exec->estado = EXITT;
+    pthread_mutex_unlock(&mutex_proceso_exec);
+
+    pthread_mutex_lock(&mutex_exit);
     list_add(cola_exit, proceso_en_exec);
     pthread_mutex_unlock(&mutex_exit);
 
     log_info(logger, "Se manda a Memoria para liberar el Proceso");
     informar_a_memoria_liberacion_proceso(proceso_en_exec->pid);
-    log_info(logger, "Aumentamos Grado de Multiprogramacion por EXIT");
+    log_info(logger, "Aumentamos Grado de Multiprogramacion por EXIT \n");
 
+    pthread_mutex_lock(&mutex_proceso_exec);
     liberar_recurso_por_exit(proceso_en_exec);
-
-    sem_post(&sem_multiprogramacion);
-    puede_ejecutar_otro_proceso();
+    pthread_mutex_unlock(&mutex_proceso_exec);
 }
 
 
@@ -455,9 +459,8 @@ void liberar_recurso_por_exit(t_pcb* pcb) {
             vector_recursos_pedidos[i].recurso = NULL;
         }
     }
-
-    sem_post(&sem_multiprogramacion);
     puede_ejecutar_otro_proceso();
+    sem_post(&sem_multiprogramacion);
 }
 
 
