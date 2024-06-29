@@ -18,7 +18,7 @@ void ejecutar_operacion_generica(t_interfaz * interfaz) {
 
     while(1) {
         tiempo_espera = recibir_entero(interfaz);
-        tiempo_unidad = get_tiempo_unidad(interfa);
+        tiempo_unidad = get_tiempo_unidad(interfaz);
 
 
         sleep(tiempo_espera * tiempo_unidad);
@@ -93,7 +93,7 @@ void ejecutar_operaciones_dialFS(t_interfaz *interfaz) {
     // Traemos archivos persistidos:
     t_list *archivos_abiertos = traer_archivos_abiertos(interfaz);
 
-    if (!archivos) // Si no hay archivos abiertos, inicializamos el bitmap
+    if (!archivos_abiertos) // Si no hay archivos abiertos, inicializamos el bitmap
         inicializar_bloques_vacios(bitmap, interfaz); // Inicializamos los bloques vacios
 
     while(1) {
@@ -118,7 +118,7 @@ void ejecutar_operaciones_dialFS(t_interfaz *interfaz) {
                 send_respuesta_a_kernel(1, interfaz);
                 break;
             case IO_FS_TRUNCATE_INT:
-                operacion_truncate_file(interfaz, bloques, argumentos, archivos_abiertos);
+                operacion_truncate_file(interfaz, bloques, bitmap, argumentos, archivos_abiertos);
                 send_respuesta_a_kernel(1, interfaz);
                 break;
             default:

@@ -45,7 +45,7 @@ void operacion_read_file(t_interfaz *interfaz, FILE *bloques, t_list *argumentos
         return;
     }
 
-    t_config *archivo_metada = get_archivo_metadata(archivo_abierto);
+    t_config *archivo_metadata = get_archivo_metadata(archivo_abierto);
 
     // Obtenemos los argumentos necesarios para la operación de lectura:
     int bloque_inicial;
@@ -71,7 +71,7 @@ void operacion_read_file(t_interfaz *interfaz, FILE *bloques, t_list *argumentos
     // Falta implementar como enviamos a memoria:
 }
 
-void operacion_write_file(t_interfaz *interfaz, FILE *bloques, t_list *argumentos) {
+void operacion_write_file(t_interfaz *interfaz, FILE *bloques, t_list *argumentos, t_list *archivos_abiertos) {
 
     // Obtenemos el archivo metadata:
     char *name_file = list_get(argumentos, 0);
@@ -84,7 +84,7 @@ void operacion_write_file(t_interfaz *interfaz, FILE *bloques, t_list *argumento
         return;
     }
 
-    t_config *archivo_metada = get_archivo_metadata(archivo_abierto);
+    t_config *archivo_metadata = get_archivo_metadata(archivo_abierto);
 
     // Obtenemos los argumentos necesarios para la operación de lectura:
     int bloque_inicial;
@@ -153,12 +153,12 @@ void operacion_truncate_file(t_interfaz *interfaz, FILE *bloques, t_bitarray *bi
         }
 
         // Compruebo si los bloques necesarios están contiguos:
-        if(!hay_bloques_contiguos(bitmap, interfaz, archivo_metada, cantidad_de_bloques_nuevos_necesarios)) {
-            log_info(logger, "“PID: <%i> - Inicio Compactación.");
-            compactar_archivos(bitmap, bloques, interfaz, archivos_abiertos, archivo_abierto, archivo_metada, cantidad_de_bloques_nuevos_necesarios);
-            log_info(logger, "“PID: <%i> - Fin Compactación.");
+        if(!hay_bloques_contiguos(bitmap, interfaz, archivo_metadata, cantidad_de_bloques_nuevos_necesarios)) {
+            // log_info(logger, "“PID: <%i> - Inicio Compactación.");
+            compactar_archivos(bitmap, bloques, interfaz, archivos_abiertos, archivo_metadata, cantidad_de_bloques_nuevos_necesarios);
+            // log_info(logger, "“PID: <%i> - Fin Compactación.");
         } else {
-            asignar_bloques_nuevos(bitmap, interfaz, archivo_metada, cantidad_de_bloques_nuevos_necesarios);
+            asignar_nuevos_bloques_desde_final(bitmap, interfaz, archivo_metadata, cantidad_de_bloques_nuevos_necesarios);
             set_tamanio_archivo(archivo_metadata, tam_incrementado);
         }
     }

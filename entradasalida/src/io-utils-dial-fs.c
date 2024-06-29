@@ -111,7 +111,7 @@ void agregar_a_archivos_abiertos(t_list *archivos_abiertos, t_config *archivo_me
 
     set_archivo_metada_en_archivo_abierto(archivo_abierto, archivo_metadata);
     set_name_file_en_archivo_abierto(archivo_abierto, name_file);
-    set_bloque_inicial_en_archivo_abierto(archivo_abierto, bloque_inicials);
+    set_bloque_inicial_en_archivo_abierto(archivo_abierto, bloque_inicial);
 
     list_add(archivos_abiertos, archivo_abierto);
 }
@@ -125,11 +125,8 @@ void set_name_file_en_archivo_abierto(t_archivo_abierto *archivo_abierto, char *
 }
 
 void set_bloque_inicial_en_archivo_abierto(int bloque_inicial, t_archivo_abierto *archivo_abierto) {
-    archivo_abierto->bloque_inicial = bloque_inicial;
-}
-
-void agregar_a_archivos_abiertos(t_list *archivos_abiertos, t_config *archivo_metadata) {
-    list_add(archivos_abiertos, archivo_metadata);
+    t_config *archivo_metadata = get_archivo_metadata(archivo_abierto);
+    set_bloque_inicial_archivo_metadata(archivo_metadata, bloque_inicial);
 }
 
 char *get_name_file(t_archivo_abierto *archivo_abierto) {
@@ -160,7 +157,7 @@ void crear_archivo(t_config *archivo_metada, t_interfaz *interfaz, char *name_fi
     config_save_in_file(archivo_metada, path_completo); // Guardamos el archivo
 }
 
-void get_archivo_metadata(t_archivo_abierto *archivo_abierto) {
+t_config *get_archivo_metadata(t_archivo_abierto *archivo_abierto) {
     return archivo_abierto->archivo_metadata;
 }
 
@@ -288,7 +285,7 @@ void asignar_bloques_nuevos_desde_inicio(t_bitarray *bitmap, t_interfaz *interfa
     int tamanio_bloque = get_block_size(interfaz);
     int bloque_inicial = get_bloque_inicial(archivo_metadata);
 
-    for(int i = 0; i < cantidad_de_bloques_necesarios; i++) {
+    for(int i = 0; i < cantidad_de_bloques_nuevos_necesarios; i++) {
         // Asignamos el bloque:
         setear_bloque_ocupado(bitmap, bloque_inicial + i);
     }
@@ -304,7 +301,7 @@ int contar_bloques_libres_hasta(t_bitarray *bitmap, int desde_bloque, int hasta_
     return bloques_libres;
 }
 
-int calcular_bloque_final(t_interfaz *interfaz, t_archivo_metadata *archivo_metadata) {
+int calcular_bloque_final(t_interfaz *interfaz, t_config *archivo_metadata) {
     int cantidad_bloques = get_block_count(interfaz);
     int tamanio_bloque = get_block_size(interfaz);
 
@@ -364,7 +361,7 @@ void liberar_recuros_archivo(t_bitarray* bitmap, t_config* archivo_metadata) {
     liberar_bloques_usados(bitmap, bloque_inicial, tamanio_archivo);
 }
 
-int calcular_cantidad_de_bloques_asignados(t_interfaz *interfaz, t_archivo_metadata *archivo_metadata) {
+int calcular_cantidad_de_bloques_asignados(t_interfaz *interfaz, t_config *archivo_metadata) {
     int tamanio_archivo = get_tamanio_archivo(archivo_metadata);
     int tamanio_bloque = get_block_size(interfaz);
 
@@ -438,8 +435,11 @@ int es_un_archivo_valido(t_config *archivo_metada) {
     return tiene_todas_las_configuraciones(archivo_metada, propiedades);
 }
 
-void ordenar_por_bloque_inicial(t_archivo_abierto *archivo_abierto, t_archivo_abierto *otro_archivo_abierto) {
-    return get_bloque_inicial(archivo_abierto) - get_bloque_inicial(otro_archivo_abierto);
+int ordenar_por_bloque_inicial(t_archivo_abierto *archivo_abierto, t_archivo_abierto *otro_archivo_abierto) {
+    t_config *archivo_metadata = get_archivo_metadata(archivo_abierto);
+    t_config *otro_archivo_metadata = get_archivo_metadata(otro_archivo_abierto);
+
+    return get_bloque_inicial(archivo_metadata) - get_bloque_inicial(otro_archivo_metadata);
 }
 
 void escribir_buffers_en_bloques(FILE *bloques, t_list *buffers) {
@@ -447,6 +447,4 @@ void escribir_buffers_en_bloques(FILE *bloques, t_list *buffers) {
 
     unsigned char *buffer_primero = list_get(buffers, 0); 
     int tamanio_buffer = sizeof(buffer_primero);
-
-    fseek
 }

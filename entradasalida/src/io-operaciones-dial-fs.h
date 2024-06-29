@@ -13,9 +13,10 @@
 #include "io-compactacion.h"
 
 // Operaciones de DIAL-FS:
-void operacion_create_file(t_interfaz *interfaz, t_bitarray *bitmap, t_list *argumentos);
-void operacion_read_file(t_interfaz *interfaz, FILE *bloques, t_list *argumentos);
-void operacion_write_file(t_interfaz *interfaz, FILE *bloques, t_list *argumentos);
-void operacion_delete_file(t_interfaz *interfaz, t_bitarray *bitmap, t_list *argumentos);
+void operacion_create_file(t_interfaz *interfaz, t_bitarray *bitmap, t_list *argumentos, t_list *archivos_abiertos);
+void operacion_read_file(t_interfaz *interfaz, FILE *bloques, t_list *argumentos, t_list *archivos_abiertos);
+void operacion_write_file(t_interfaz *interfaz, FILE *bloques, t_list *argumentos, t_list *archivos_abiertos);
+void operacion_delete_file(t_interfaz *interfaz, t_bitarray *bitmap, t_list *argumentos, t_list *archivos_abiertos) ;
+void operacion_truncate_file(t_interfaz *interfaz, FILE *bloques, t_bitarray *bitmap, t_list *argumentos, t_list *archivos_abiertos);
 
 #endif // IO_DIALS_FS_H
