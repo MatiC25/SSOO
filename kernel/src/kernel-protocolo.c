@@ -1,6 +1,6 @@
 #include "kernel-protocolo.h"
 
-// Funciones para enviar mensajes a interfaces:
+// 1. Funciones para enviar mensajes a interfaces:
 
 void send_message_to_interface(interface_io *interface, t_list *args, int *response, int socket) {
     switch(interface->tipo) {
@@ -9,10 +9,10 @@ void send_message_to_interface(interface_io *interface, t_list *args, int *respo
             break;
         case STDIN:
         case STDOUT:
-            // send_message_to_std_interface(get_socket_interface(interface), args, response);
+            send_message_to_std_interface(get_socket_interface(interface), args, response);
             break;
         case DIALFS:
-            // send_message_to_dialfs_interface(get_socket_interface(interface), args, response);
+            send_message_to_dialfs_interface(get_socket_interface(interface), args, response);
             break;
         default:
             // Manejo de error o caso por defecto
@@ -22,7 +22,6 @@ void send_message_to_interface(interface_io *interface, t_list *args, int *respo
 
 void send_message_to_generic_interface(int socket, t_list *args, int *response) {
     int *tiempo_sleep_ptr = list_get(args, 0);
-    //log_warning(logger, "Timpo: %i", *tiempo_sleep_ptr);
 
     if (tiempo_sleep_ptr == NULL) {
         fprintf(stderr, "Error: list_get retornó NULL\n");
@@ -30,19 +29,15 @@ void send_message_to_generic_interface(int socket, t_list *args, int *response) 
     }
 
     int tiempo_sleep = *tiempo_sleep_ptr;
-    //log_warning(logger, "Timpo: %i", tiempo_sleep);
-    // Enviar el valor de tiempo_sleep
     if (send(socket, &tiempo_sleep, sizeof(int), 0) == -1) {
         perror("Error al enviar el mensaje");
         return;
     }
 
-    // Recibir la respuesta
     if (recv(socket, response, sizeof(int), 0) == -1) {
         perror("Error al recibir la respuesta");
         return;
     }
-    //log_warning(logger, "Timpo: %i", *response);
 }
 
 void send_message_to_std_interface(int socket, t_list *args, int *response) {
@@ -57,36 +52,90 @@ void send_message_to_std_interface(int socket, t_list *args, int *response) {
     int direccion_fisica = *direccion_fisica_ptr;
     int bytes_a_leer = *bytes_a_leer_ptr;
 
-    // Enviar el valor de direccion_fisica
     if (send(socket, &direccion_fisica, sizeof(int), 0) == -1) {
         perror("Error al enviar direccion_fisica");
         return;
     }
 
-    // Enviar el valor de bytes_a_leer
     if (send(socket, &bytes_a_leer, sizeof(int), 0) == -1) {
         perror("Error al enviar bytes_a_leer");
         return;
     }
 
-    // Recibir la respuesta
     if (recv(socket, response, sizeof(int), 0) == -1) {
         perror("Error al recibir la respuesta");
         return;
     }
 }
 
-// Funciones para recibir mensajes de interfaces:
+void send_message_to_dialfs_interface(int socket, t_list *args, int *response) {
+    int *operacion_a_realizar = list_get(args, 0);
+
+    switch(*operacion_a_realizar) {
+        case IO_FS_CREATE_INT:
+        case IO_FS_DELETE_INT:
+            send_message_to_dialfs_create_o_delete(socket, args, response, operacion_a_realizar);
+            break;
+        case IO_FS_READ_INT:
+        case IO_FS_WRITE_INT:
+            send_message_to_dialfs_read_o_write(socket, args, response, operacion_a_realizar);
+            break;
+        case IO_FS_TRUNCATE_INT:
+            send_message_to_dialfs_truncate(socket, args, response);
+            break;
+        default:
+            // Manejo de error o caso por defecto
+            break;
+    }
+}
+
+void send_message_to_dialfs_create_o_delete(int socket, t_list *args, int *response, int *operacion_a_realizar) {
+    char *nombre_archivo = list_get(args, 1);
+
+    t_paquete *paquete = crear_paquete(*operacion_a_realizar);
+    agregar_a_paquete_string(paquete, nombre_archivo, strlen(nombre_archivo) + 1);
+    enviar_paquete(paquete, socket);
+
+    eliminar_paquete(paquete);
+}
+
+void send_message_to_dialfs_read_o_write(int socket, t_list *args, int *response, int *operacion_a_realizar) {
+    char *nombre_archivo = list_get(args, 1);
+    int *offset = list_get(args, 2);
+    int *bytes_a_leer_o_escribir = list_get(args, 3);
+
+    t_paquete *paquete = crear_paquete(*operacion_a_realizar);
+    agregar_a_paquete_string(paquete, nombre_archivo, strlen(nombre_archivo) + 1);
+    agregar_a_paquete(paquete, bytes_a_leer_o_escribir, sizeof(int));
+    agregar_a_paquete(paquete, offset, sizeof(int));
+    enviar_paquete(paquete, socket);
+
+    eliminar_paquete(paquete);
+}
+
+void send_message_to_dialfs_truncate(int socket, t_list *args, int *response) {
+    char *nombre_archivo = list_get(args, 1);
+    int *tamanio = list_get(args, 2);
+
+    t_paquete *paquete = crear_paquete(IO_FS_TRUNCATE_INT);
+    agregar_a_paquete_string(paquete, nombre_archivo, strlen(nombre_archivo) + 1);
+    agregar_a_paquete(paquete, tamanio, sizeof(int));
+    enviar_paquete(paquete, socket);
+
+    eliminar_paquete(paquete);
+}
+
+// 2. Funciones para recibir mensajes de interfaces:
 
 void rcv_interfaz(char **interface_name, tipo_interfaz *tipo, int socket) {
     int size = 0;
     int desplazamiento = 0;
     int tamanio;
     void *buffer = recibir_buffer(&size, socket);
-    
+
     memcpy(tipo, buffer + desplazamiento, sizeof(tipo_interfaz));
     desplazamiento += sizeof(tipo_interfaz);
-    
+
     rcv_nombre_interfaz(interface_name, buffer, &desplazamiento, &tamanio);
 }
 
@@ -95,222 +144,163 @@ void rcv_nombre_interfaz_dispatch(char **interface_name, int socket) {
     int desplazamiento = 0;
     int size = 0;
     void *buffer = recibir_buffer(&size, socket);
-    
+
     rcv_nombre_interfaz(interface_name, buffer, &desplazamiento, &tamanio);
 }
 
-// t_list *rcv_argumentos_para_io(tipo_interfaz tipo_de_interfaz, int socket) {
-//     t_list *args = list_create();
-
-//     switch(tipo_de_interfaz) {
-//         case GENERICA:
-//             rcv_argumentos_para_io_generica(args, socket);
-//             break;
-//         case STDIN:
-//         case STDOUT:
-//             rcv_argumentos_para_io_std(args, socket);
-//             break;
-//         default:
-//             // Manejo de error o caso por defecto
-//             break;
-//     }
-
-//     return args;
-// }
-
-// void rcv_argumentos_para_io_generica(t_list *args, void *buffer, int *desplazamiento, int socket) {
-//     int tiempo_sleep;
-//     memcpy(&tiempo_sleep, buffer + *desplazamiento, sizeof(int));
-//     *desplazamiento += sizeof(int);
-
-//     int *tiempo_sleep_ptr = malloc(sizeof(int));
-//     if (tiempo_sleep_ptr == NULL) {
-//         // Manejo de error si malloc falla
-//         fprintf(stderr, "Error: malloc falló\n");
-//         return;
-//     }
-
-//     *tiempo_sleep_ptr = tiempo_sleep;
-//     list_add(args, tiempo_sleep_ptr);
-// }
-
-// void rcv_argumentos_para_io_std(t_list *args, int socket) {
-//     int size;
-//     int desplazamiento = 0;
-//     int direccion_fisica;
-//     int bytes_a_leer;
-//     void *buffer = recibir_buffer(&size, socket);
-
-//     if (buffer == NULL) {
-//         // Manejo de error si recibir_buffer retorna NULL
-//         fprintf(stderr, "Error: recibir_buffer retornó NULL\n");
-//         return;
-//     }
-
-//     memcpy(&direccion_fisica, buffer + desplazamiento, sizeof(int));
-//     desplazamiento += sizeof(int);
-
-//     memcpy(&bytes_a_leer, buffer + desplazamiento, sizeof(int));
-//     desplazamiento += sizeof(int);
-
-//     // Asignar memoria para los enteros antes de añadirlos a la lista
-//     int *direccion_fisica_ptr = malloc(sizeof(int));
-//     int *bytes_a_leer_ptr = malloc(sizeof(int));
-
-//     if (direccion_fisica_ptr == NULL || bytes_a_leer_ptr == NULL) {
-//         // Manejo de error si malloc falla
-//         fprintf(stderr, "Error: malloc falló\n");
-//         free(direccion_fisica_ptr);
-//         free(bytes_a_leer_ptr);
-//         free(buffer); // Liberar el buffer recibido
-//         return;
-//     }
-
-//     *direccion_fisica_ptr = direccion_fisica;
-//     *bytes_a_leer_ptr = bytes_a_leer;
-
-//     list_add(args, direccion_fisica_ptr);
-//     list_add(args, bytes_a_leer_ptr);
-
-//     // Liberar el buffer recibido
-//     free(buffer);
-// }
-
 t_list * recv_interfaz_y_argumentos(int socket) {
-    int tipo;
-    t_list *args = list_create();
-    t_list *interfaz_y_argumentos = list_create();
-
-    recv(socket, &tipo, sizeof(int), 0);
-    //log_info(logger, "Tipo interfaz: %i", tipo);
-
-    log_info(logger, "Tipo de interfaz: %i", tipo);
-
     int size;
     int desplazamiento = 0;
-    int argumento;
-    int tamanio;
+    t_list *interfaz_y_argumentos = list_create();
+
+    int operacion_a_realizar = recibir_operacion(socket);
+    int *operacion_a_realizar_ptr = malloc(sizeof(int));
+    *operacion_a_realizar_ptr = operacion_a_realizar;
+    list_add(interfaz_y_argumentos, operacion_a_realizar_ptr);
+
     void *buffer = recibir_buffer(&size, socket);
 
-    if (buffer == NULL) {
-        log_error(logger, "Error al recibir el buffer");
-        return;
-    }
+    char *nombre_interfaz = parsear_string(buffer, &desplazamiento);
+    list_add(interfaz_y_argumentos, nombre_interfaz);
 
-    // Deserializar el tipo
-    // Crear una copia de 'tipo' para agregar a la lista
-    int *tipo_copia = malloc(sizeof(int));
-    if (tipo_copia == NULL) {
-        log_error(logger, "Error al asignar memoria para tipo");
-        free(buffer);
-        return;
-    }
-    *tipo_copia = tipo;
-    //log_warning(logger, "Tipo_copia: %i", &tipo_copia);
-    log_info(logger, "Tipo_copia agregado a la lista: %i", *tipo_copia);
-    list_add(interfaz_y_argumentos, tipo_copia);
-    //list_add(interfaz_y_argumentos, tipo_copia); // 0
-
-    // log_info(logger, "Tipo de interfaz: %d", tipo);
-
-    // Deserializar el argumento
-    memcpy(&argumento, buffer + desplazamiento, sizeof(int));
-    desplazamiento += sizeof(int);
-    log_info(logger, "Argumento: %i", argumento);
-
-    // log_info(logger, "Argumento: %d", argumento);
-
-    // Crear una copia de 'argumento' para agregar a la lista
-    int *argumento_copia = malloc(sizeof(int));
-    *argumento_copia = argumento;
-    list_add(args, argumento_copia); 
-    list_add(interfaz_y_argumentos, args); // 1
-    // Deserializar el tamaño del nombre de la interfaz
-    memcpy(&tamanio, buffer + desplazamiento, sizeof(int));
-    desplazamiento += sizeof(int);
-    log_info(logger, "Tamanio: %i", tamanio);
-    // log_info(logger, "Tamaño del nombre de la interfaz: %d", tamanio);
-
-    // Verificar y asignar memoria para el nombre de la interfaz
-    char *interface_name = malloc(tamanio);
-    if (interface_name == NULL) {
-        log_error(logger, "Error al asignar memoria para el nombre de la interfaz");
-        free(tipo_copia);
-        free(buffer);
-        return;
-    }
-    memcpy(interface_name, buffer + desplazamiento, tamanio);
-    desplazamiento += tamanio;
-
-    // log_info(logger, "Nombre de la interfaz: %s", interface_name);
-    list_add(interfaz_y_argumentos, interface_name); // 2
-    // log_info(logger, "Argumento: %d", argumento);
-
-    // Liberar el buffer después de usarlo
-    free(buffer);
-
-    //     memcpy(&tamanio, buffer + desplazamiento, sizeof(int));
-    //     void *argumento = malloc(tamanio);
-    //     desplazamiento += sizeof(int);
-    //     memcpy(argumento, buffer + desplazamiento, tamanio);
-    //     desplazamiento += tamanio;
-
-    //     list_add(args, argumento);
-    // }
+    t_list *argumentos = obtener_argumentos(buffer, &desplazamiento, operacion_a_realizar);
+    list_add(interfaz_y_argumentos, argumentos);
 
     return interfaz_y_argumentos;
 }
 
-// t_list *rcv_argumentos_para_io(tipo_interfaz tipo_de_interfaz, void *buffer, int *desplazamiento) {
-//     t_list *args = list_create();
+// 3. Funciones auxiliares:
 
-//     switch(tipo_de_interfaz) {
-//         case GENERICA:
-//             rcv_argumentos_para_io_generica(args, buffer, desplazamiento);
-//             break;
-//         case STDIN:
-//         case STDOUT:
-//             // rcv_argumentos_para_io_std(args, buffer, desplazamiento);
-//             break;
-//         default:
-//             // Manejo de error o caso por defecto
-//             break;
-//     }
+int parsear_int(void *buffer, int *desplazamiento) {
+    int dato;
 
-//     return args;
-// }
-
-void rcv_nombre_interfaz(char **interface_name, void *buffer, int *desplazamiento, int *size) { 
-    // Primero, copiamos el tamaño del nombre de la interfaz desde el buffer al tamaño especificado
-    memcpy(size, buffer + *desplazamiento, sizeof(int));
+    memcpy(&dato, buffer + *desplazamiento, sizeof(int));
     *desplazamiento += sizeof(int);
 
-    // Reservamos memoria para el nombre de la interfaz, asegurándonos de que no sea NULL
+    return dato;
+}
+
+char *parsear_string(void *buffer, int *desplazamiento) {
+    int tamanio;
+    char *string;
+
+    memcpy(&tamanio, buffer + *desplazamiento, sizeof(int));
+    *desplazamiento += sizeof(int);
+
+    string = malloc(tamanio);
+    if (string == NULL) {
+        log_error(logger, "Error al reservar memoria para el string");
+        return NULL;
+    }
+
+    memcpy(string, buffer + *desplazamiento, tamanio);
+    *desplazamiento += tamanio + 1;
+
+    return string;
+}
+
+t_list *obtener_argumentos(void *buffer, int *desplazamiento, int operacion_a_realizar) {
+
+    t_list *argumentos = list_create();
+
+    switch(operacion_a_realizar) {
+        case IO_GEN_SLEEP_INT:
+            obtener_argumentos_generica(argumentos, buffer, desplazamiento);
+            break;
+        case IO_STDIN_READ_INT:
+        case IO_STDOUT_WRITE_INT:
+            obtener_argumentos_std(argumentos, buffer, desplazamiento);
+            break;
+        case IO_FS_CREATE_INT:
+        case IO_FS_DELETE_INT:
+            obtener_argumentos_dialfs_create_o_delete(argumentos, buffer, desplazamiento, operacion_a_realizar);
+            break;
+        case IO_FS_READ_INT:
+        case IO_FS_WRITE_INT:
+            obtener_argumentos_dialfs_read_o_write(argumentos, buffer, desplazamiento, operacion_a_realizar);
+            break;
+        case IO_FS_TRUNCATE_INT:
+            obtener_argumentos_dialfs_truncate(argumentos, buffer, desplazamiento, operacion_a_realizar);
+            break;
+        default:
+            // Manejo de error o caso por defecto
+            break;
+    }
+
+    return argumentos;
+}
+
+void obtener_argumentos_generica(t_list *argumentos, void *buffer, int *desplazamiento) {
+    int *tiempo_sleep = malloc(sizeof(int));
+    *tiempo_sleep = parsear_int(buffer, desplazamiento);
+
+    list_add(argumentos, tiempo_sleep);
+}
+
+void obtener_argumentos_std(t_list *argumentos, void *buffer, int *desplazamiento) {
+    int *direccion_fisica = malloc(sizeof(int));
+    int *bytes_a_leer = malloc(sizeof(int));
+
+    *direccion_fisica = parsear_int(buffer, desplazamiento);
+    *bytes_a_leer = parsear_int(buffer, desplazamiento);
+
+    list_add(argumentos, direccion_fisica);
+    list_add(argumentos, bytes_a_leer);
+}
+
+void obtener_argumentos_dialfs_create_o_delete(t_list *argumentos, void *buffer, int *desplazamiento, int operacion_a_realizar) {
+    char *nombre_archivo = parsear_string(buffer, desplazamiento);
+
+    int *operacion_a_realizar_ptr = malloc(sizeof(int));
+    *operacion_a_realizar_ptr = operacion_a_realizar;
+
+    list_add(argumentos, operacion_a_realizar_ptr);
+    list_add(argumentos, nombre_archivo);
+}
+
+void obtener_argumentos_dialfs_read_o_write(t_list *argumentos, void *buffer, int *desplazamiento, int operacion_a_realizar) {
+    char *nombre_archivo = parsear_string(buffer, desplazamiento);
+    int *bytes_a_leer_o_escribir = malloc(sizeof(int));
+    int *offset = malloc(sizeof(int));
+
+    *bytes_a_leer_o_escribir = parsear_int(buffer, desplazamiento);
+    *offset = parsear_int(buffer, desplazamiento);
+
+    int *operacion_a_realizar_ptr = malloc(sizeof(int));
+    *operacion_a_realizar_ptr = operacion_a_realizar;
+
+    list_add(argumentos, operacion_a_realizar_ptr);
+    list_add(argumentos, nombre_archivo);
+    list_add(argumentos, bytes_a_leer_o_escribir);
+    list_add(argumentos, offset);
+}
+
+void obtener_argumentos_dialfs_truncate(t_list *argumentos, void *buffer, int *desplazamiento, int operacion_a_realizar) {
+    char *nombre_archivo = parsear_string(buffer, desplazamiento);
+    int *tamanio = malloc(sizeof(int));
+
+    *tamanio = parsear_int(buffer, desplazamiento);
+
+    int *operacion_a_realizar_ptr = malloc(sizeof(int));
+    *operacion_a_realizar_ptr = operacion_a_realizar;
+
+    list_add(argumentos, operacion_a_realizar_ptr);
+    list_add(argumentos, nombre_archivo);
+    list_add(argumentos, tamanio);
+}
+
+void rcv_nombre_interfaz(char **interface_name, void *buffer, int *desplazamiento, int *size) { 
+
+    memcpy(size, buffer + *desplazamiento, sizeof(int));
+
+    *desplazamiento += sizeof(int);
     *interface_name = malloc(*size);
+
     if (*interface_name == NULL) {
         log_error(logger, "Error al reservar memoria para el nombre de la interfaz");
         return;
     }
 
-    // Copiamos el nombre de la interfaz desde el buffer a la memoria reservada
-    memcpy(*interface_name, buffer + *desplazamiento, *size);
+    memcpy(*interface_name, buffer + *desplazamiento, *size);    
     *desplazamiento += *size;
-}
-
-tipo_operacion operacion_a_realizar(int socket) {
-    tipo_operacion operacion;
-
-    // Recibimos operacion a realizar desde el CPU:
-    recv(socket, &operacion, sizeof(tipo_operacion), 0);
-
-    return operacion;
-}
-
-tipo_interfaz recibir_tipo_interfaz(int socket) {
-    tipo_interfaz tipo;
-    
-    // Recibimos tipo de interfaz desde el CPU:
-    recv(socket, &tipo, sizeof(tipo_interfaz), 0);
-
-    return tipo;
 }
