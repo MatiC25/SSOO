@@ -24,6 +24,11 @@ typedef struct {
 } t_interfaz;
 
 typedef struct {
+    int direccion_fisica;
+    int tamanio;
+} t_direccion_fisica;
+
+typedef struct {
     t_config *archivo_metadata;
     char *name_file;
 } t_archivo_abierto;

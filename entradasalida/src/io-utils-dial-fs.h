@@ -15,12 +15,12 @@
 #include "io-utils.h"
 
 // Funciones de inicialización
-FILE *iniciar_archivo_bloques(t_interfaz *interfaz);
-FILE *iniciar_archivo_bitmap(t_interfaz *interfaz);
+FILE *iniciar_archivo_bloques(t_interfaz *interfaz, char *modo_de_apertura);
+FILE *iniciar_archivo_bitmap(t_interfaz *interfaz, char *modo_de_apertura);
 t_config *iniciar_archivo_config(t_interfaz *interfaz, char *name_file);
-t_bitarray *iniciar_bitmap(t_interfaz *interfaz);
+t_bitarray *iniciar_bitmap(t_interfaz *interfaz, char *modo_de_apertura);
 t_config *iniciar_archivo_metadata(t_interfaz *interfaz, char *name_file);
-FILE *iniciar_archivo(t_interfaz *interfaz, char *name_file);
+FILE *iniciar_archivo(t_interfaz *interfaz, char *name_file, char *modo_de_apertura);
 
 // Funciones de manipulación de bloques y bitmap
 void set_bloque_libre_archivo_metadata(t_config *archivo_metadata, int bloque_libre);
@@ -66,7 +66,7 @@ void escribir_contenido_en_bloques(FILE *bloques, int bloque_inicial, int offset
 // Funciones de utilidad
 char *build_full_path(t_interfaz *interfaz, const char *name_file);
 int ordenar_por_bloque_inicial(t_archivo_abierto *archivo_abierto, t_archivo_abierto *otro_archivo_abierto);
-
 char *get_name_file(t_archivo_abierto *archivo_abierto);
+char *get_modo_de_apertura(t_list *archivos_abiertos);
 
 #endif // IO_UTILS_DIAL_FS_H

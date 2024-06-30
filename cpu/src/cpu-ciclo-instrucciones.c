@@ -501,7 +501,7 @@ void ejecutar_IO_STDIN_READ(char* interfaz, char* registro_direccion, char* regi
     eliminar_paquete(paquete_std );
 
     t_paquete* paquete_stdin = crear_paquete(STDIN);
-    solicitar_a_kernel_std(interfaz,reg_Tamanio, mmu_io_stdin_read->direccionFIsica,paquete_stdin);  ;
+    solicitar_a_kernel_std(interfaz,mmu_io_stdin_read ,paquete_stdin);
     free(mmu_io_stdin_read);
     liberar_pcb();
 }

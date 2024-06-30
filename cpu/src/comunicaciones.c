@@ -363,20 +363,22 @@ char* recv_escribir_memoria_string(int tamanio){
     return valor;
 }   
 
-void solicitar_a_kernel_std(char* interfaz ,int tamanio, t_list* direcciones_fisicas,t_paquete* solicitar_std){
+void solicitar_a_kernel_std(char* interfaz , t_list* mmu ,t_paquete* solicitar_std){
     int respuesta;
     recv(config_cpu->SOCKET_KERNEL, &respuesta , sizeof(int), MSG_WAITALL);
     if(respuesta == 1){
-        t_paquete* paquete_std = crear_paquete (STDIN);
-        agregar_a_paquete_string(paquete_std ,interfaz,strlen(interfaz) + 1);
-        agregar_a_paquete(paquete_std, &tamanio, sizeof(int));
-    while (list_is_empty(direcciones_fisicas)){
-        int* direccion_fisica = (int*)list_remove(direcciones_fisicas, 0);
-        agregar_a_paquete(paquete_std, direccion_fisica, sizeof(int));
+        agregar_a_paquete_string(solicitar_std ,interfaz,strlen(interfaz) + 1);
+    while (!list_is_empty(mmu->direccionFIsica)){
+        int* direccion_fisica = (int*)list_remove(mmu->direccionFIsica, 0);
+        int* ptr_tamanio = (int*)list_remove(mmu->tamanio);
+        int tamanio = *ptr_tamanio;
+        int direc_fisica = *direc_fisica;
+        agregar_a_paquete(solicitar_std, &direc_fisica, sizeof(int));
+        agregar_a_paquete(solicitar_std, &tamanio, sizeof(int));
         free(direccion_fisica);
-    }
-    enviar_paquete(paquete_std, config_cpu->SOCKET_KERNEL);
-    eliminar_paquete(paquete_std);
+    } // Escuchame! Ya sabemos el errror de ultima lo vemos mña  perame lo saco ahora ya me dio bronca
+    enviar_paquete(solicitar_std, config_cpu->SOCKET_KERNEL);
+    eliminar_paquete(solicitar_std);
     }else{log_error(logger , "Erro en la respuesta de desalojo de I/O");}
 }
 

@@ -1,9 +1,9 @@
 #include "io-utils-dial-fs.h"
 
 // 1. Inicialización y configuración de archivos
-FILE *iniciar_archivo(t_interfaz *interfaz, char *name_file) {
+FILE *iniciar_archivo(t_interfaz *interfaz, char *name_file, char *modo_de_apertura) {
     char *path = build_full_path(interfaz, name_file);
-    FILE *file = fopen(path, "rb+");
+    FILE *file = fopen(path, modo_de_apertura);
 
     if(!file)
         log_error(logger, "No se pudo abrir el archivo %s", path);
@@ -11,12 +11,12 @@ FILE *iniciar_archivo(t_interfaz *interfaz, char *name_file) {
     return file;
 }
 
-FILE *iniciar_archivo_bloques(t_interfaz *interfaz) {
-    return iniciar_archivo(interfaz, "bloques.dat");
+FILE *iniciar_archivo_bloques(t_interfaz *interfaz, char *modo_de_apertura) {
+    return iniciar_archivo(interfaz, "bloques.dat", modo_de_apertura);
 }
 
-FILE *iniciar_archivo_bitmap(t_interfaz *interfaz) {
-    return iniciar_archivo(interfaz, "bitmap.dat");
+FILE *iniciar_archivo_bitmap(t_interfaz *interfaz, char *modo_de_apertura) {
+    return iniciar_archivo(interfaz, "bitmap.dat", modo_de_apertura);
 }
 
 t_config *iniciar_archivo_config(t_interfaz *interfaz, char *name_file) {
@@ -38,8 +38,8 @@ t_config *iniciar_archivo_metadata(t_interfaz *interfaz, char *name_file) {
 }
 
 
-t_bitarray *iniciar_bitmap(t_interfaz *interfaz) {
-    FILE *bitmap_archivo = iniciar_archivo_bitmap(interfaz);
+t_bitarray *iniciar_bitmap(t_interfaz *interfaz, char *modo_de_apertura) {
+    FILE *bitmap_archivo = iniciar_archivo_bitmap(interfaz, modo_de_apertura);
 
     size_t size = get_tamanio_bitmap(interfaz) / 8;
     void *bitmap = mmap(NULL, size, PROT_READ | PROT_WRITE, MAP_SHARED, fileno(bitmap_archivo), 0);
@@ -447,4 +447,8 @@ void escribir_buffers_en_bloques(FILE *bloques, t_list *buffers) {
 
     unsigned char *buffer_primero = list_get(buffers, 0); 
     int tamanio_buffer = sizeof(buffer_primero);
+}
+
+char *get_modo_de_apertura(t_list *archivos_abiertos) {
+    return archivos_abiertos ? "wb+" : "rb+";
 }
