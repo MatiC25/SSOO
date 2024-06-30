@@ -53,3 +53,31 @@ int get_block_count(t_interfaz *interfaz) {
 int get_block_size(t_interfaz *interfaz) {
     return interfaz->config->BLOCK_SIZE;
 }
+
+int get_total_de_bytes(t_list *direcciones) {
+    int size = list_size(direcciones) / 2;
+    int bytes_totales = 0;
+
+    for(int i = 0; i < size; i++) {
+        t_direccion_fisica *direccion = list_get(direcciones, i);
+        bytes_totales += direccion->tamanio;
+    }
+
+    return bytes_totales;
+}
+
+char *get_nombre_operacion(tipo_operacion operacion) {
+    switch(operacion) {
+        case IO_GEN_SLEEP_INT:
+            return "IO_GEN_SLEEP";
+            break;
+        case IO_STDOUT_WRITE_INT:
+            return "IO_STDOUT_WRITE";
+            break;
+        case IO_STDIN_READ_INT:
+            return "IO_STDIN_READ";
+            break;
+        default:
+            return "OPERACION DESCONOCIDA";
+    }
+}

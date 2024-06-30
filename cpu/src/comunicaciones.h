@@ -34,7 +34,7 @@ void send_escribi_memoria_string(int pid,int direccionFIsica, int tamanio,char* 
 char* recv_escribir_memoria_string(int tamanio);
 int comunicaciones_con_memoria_escritura(t_mmu_cpu* mmu, int valor);
 int comunicaciones_con_memoria_lectura(t_mmu_cpu* mmu);
-void solicitar_a_kernel_std(char* interfaz , t_list* mmu ,t_paquete* solicitar_std);
+void solicitar_a_kernel_std(char* interfaz , t_mmu_cpu* mmu ,t_paquete* solicitar_std);
 void* recv_leer_memoria(int tamanio);
 
 

@@ -494,13 +494,14 @@ void ejecutar_IO_STDIN_READ(char* interfaz, char* registro_direccion, char* regi
     int reg_Direc = encontrar_int(registroDireccion, tamanio_logica );
     int reg_Tamanio =  encontrar_int(registroTamanio, tamanio_registro);
 
+
     t_mmu_cpu * mmu_io_stdin_read = traducirDireccion(reg_Direc,reg_Tamanio);
     t_paquete* paquete_std = crear_paquete(OPERACION_IO); // dejo asi 
     enviar_pcb_a_kernel(paquete_std );   
     enviar_paquete(paquete_std , config_cpu->SOCKET_KERNEL);
     eliminar_paquete(paquete_std );
 
-    t_paquete* paquete_stdin = crear_paquete(STDIN);
+    t_paquete* paquete_stdin = crear_paquete(IO_STDIN_READ_INT);
     solicitar_a_kernel_std(interfaz,mmu_io_stdin_read ,paquete_stdin);
     free(mmu_io_stdin_read);
     liberar_pcb();
@@ -523,8 +524,8 @@ void ejecutar_IO_STDOUT_WRITE(char* interfaz, char* registro_direccion, char* re
     eliminar_paquete(paquete_std);
 
 
-    t_paquete* paquete_stdout = crear_paquete(STDOUT); // dejo asi 
-    solicitar_a_kernel_std(interfaz, reg_Tamanio,mmu_io_stdout_write->direccionFIsica,paquete_stdout);
+    t_paquete* paquete_stdout = crear_paquete(IO_STDOUT_WRITE_INT); // dejo asi 
+    solicitar_a_kernel_std(interfaz, mmu_io_stdout_write, paquete_stdout);
     enviar_paquete(paquete_stdout, config_cpu->SOCKET_KERNEL);
     eliminar_paquete(paquete_stdout);
     free(mmu_io_stdout_write);

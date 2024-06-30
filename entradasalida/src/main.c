@@ -3,7 +3,7 @@
 t_interfaz *interfaz = NULL;
 
 int main(int argc, char *argv[]) {
-    char *name_interfaz = "Interfaz1";
+    char *name_interfaz = "TECLADO";
     char *config_path = "./entradasalida.config";
 
     // Inicializamos logger y interfaz:

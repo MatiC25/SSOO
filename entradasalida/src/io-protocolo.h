@@ -16,13 +16,16 @@ void send_respuesta_a_kernel(int respuesta, t_interfaz * interfaz);
 void send_interfaz_a_kernel(t_interfaz * interfaz);
 
 // Funciones para recibir mensajes del kernel
-int recibir_entero(t_interfaz * interfaz);
-t_list *recibir_arguementos(t_interfaz * interfaz, tipo_operacion tipo);
+int recibir_entero(int socket);
+t_list *recibir_argumentos(t_interfaz *interfaz, int socket_kernel);
+t_list *recibir_argumentos_para_dial(t_interfaz * interfaz, tipo_operacion tipo);
+t_list *obtener_direcciones_fisicas(int size, int *desplazamiento, void *buffer);
 
 // Funciones para enviar mensajes a la memoria:
 void send_mensaje_a_memoria(t_interfaz * interfaz, char *mensaje);
-void send_bytes_a_leer(t_interfaz *interfaz, int direccion_fisica, int bytes_a_mostrar);
+void send_bytes_a_leer(t_interfaz *interfaz, int pid, t_list *direcciones, void *input);
 void send_bytes_a_grabar(t_interfaz * interfaz, int direccion_fisica, char *bytes, int bytes_a_leer);
+char *rcv_contenido_a_mostrar(t_interfaz *interfaz, t_list *direcciones_fisicas);
 void rcv_contenido_a_escribir(t_interfaz *interfaz, int bytes_a_escribir, unsigned char **contenido);
 
 // Funciones para recibir mensajes de la memoria

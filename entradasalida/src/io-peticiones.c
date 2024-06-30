@@ -20,14 +20,15 @@ void ejecutar_operacion_generica(t_interfaz * interfaz) {
         int *pid_proceso = list_get(argumentos, 0);
         int *tipo_operacion = list_get(argumentos, 1);
         int *tiempo_espera = list_get(argumentos, 2);
-        char *operacion = get_nombre_operacion(tipo_operacion);
+        char *operacion = get_nombre_operacion(*tipo_operacion);
+        int tiempo_unidad = get_tiempo_unidad(interfaz);
 
         // Logeamos la operación:
         log_info(logger, "PID: <%i> - Operacion: <%s>", *pid_proceso, operacion);
         log_info(logger, "PID <%i> - Esperando %i unidades de tiempo", *pid_proceso, *tiempo_espera);
 
         // Esperamos el tiempo de espera:
-        sleep(tiempo_espera * tiempo_unidad);
+        sleep(*tiempo_espera * tiempo_unidad);
 
         // Enviamos la respuesta al kernel:
         send_respuesta_a_kernel(1, interfaz);
@@ -67,11 +68,10 @@ void ejecutar_operacion_stdin(t_interfaz *interfaz) {
         }
 
         // Enviamos los bytes a escribir a memoria:
-        send_bytes_a_leer(interfaz, direcciones, input);
+        send_bytes_a_leer(interfaz, pid_proceso, direcciones, input);
         send_respuesta_a_kernel(1, interfaz);
 
         free(input);
-        free(bytes);
     }
 }
 
@@ -95,7 +95,7 @@ void ejecutar_operacion_stdout(t_interfaz *interfaz) {
         // Enviamos la respuesta:
         send_respuesta_a_kernel(1, interfaz);
 
-        free(bytes);
+        free(contenido_a_mostrar);
     }
 }
 
@@ -124,7 +124,7 @@ void ejecutar_operaciones_dialFS(t_interfaz *interfaz) {
 
     while(1) {
         tipo_operacion operacion = recibir_operacion(socket_kernel);
-        t_list *argumentos = recibir_arguementos(interfaz, operacion);
+        t_list *argumentos = recibir_argumentos_para_dial(interfaz, operacion);
 
         switch(operacion) {
             case IO_FS_CREATE_INT:

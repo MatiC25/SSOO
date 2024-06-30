@@ -99,8 +99,8 @@ void operacion_write_file(t_interfaz *interfaz, FILE *bloques, t_list *argumento
     unsigned char *contenido; // Contenido a escribir
 
     // Enviamos los bytes a leer a memoria y recibimos el contenido a escribir:
-    send_bytes_a_leer(interfaz, dirreccion_fisica, bytes_a_escribir);
-    rcv_contenido_a_escribir(interfaz, bytes_a_escribir, &contenido);
+    // send_bytes_a_leer(interfaz, dirreccion_fisica, bytes_a_escribir);
+    // rcv_contenido_a_escribir(interfaz, bytes_a_escribir, &contenido);
     
     // Escribimos el contenido en los bloques:
     escribir_contenido_en_bloques(bloques, bloque_inicial, offset, tamanio_archivo, contenido, bytes_a_escribir, interfaz);

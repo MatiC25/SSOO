@@ -105,11 +105,11 @@ void send_message_to_dialfs_interface(int socket, t_list *args, int *response) {
     switch(*operacion_a_realizar) {
         case IO_FS_CREATE_INT:
         case IO_FS_DELETE_INT:
-            send_message_to_dialfs_create_o_delete(socket, args, response, operacion_a_realizar);
+            send_message_to_dialfs_create_o_delete(socket, args, response);
             break;
         case IO_FS_READ_INT:
         case IO_FS_WRITE_INT:
-            send_message_to_dialfs_read_o_write(socket, args, response, operacion_a_realizar);
+            send_message_to_dialfs_read_o_write(socket, args, response);
             break;
         case IO_FS_TRUNCATE_INT:
             send_message_to_dialfs_truncate(socket, args, response);
@@ -151,7 +151,7 @@ void send_message_to_dialfs_read_o_write(int socket, t_list *args, int *response
 
     // Enviamos el paquete:
     t_paquete *paquete = crear_paquete(*operacion_a_realizar_ptr);
-    agregar_a_paquete(paquete, pid_proceso_ptr, sizeof(int));s
+    agregar_a_paquete(paquete, pid_proceso_ptr, sizeof(int));
     agregar_a_paquete_string(paquete, nombre_archivo, strlen(nombre_archivo) + 1);
     agregar_a_paquete(paquete, offset, sizeof(int));
 
@@ -285,9 +285,9 @@ t_list *obtener_argumentos(void *buffer, int *desplazamiento, int size, int oper
     t_list *argumentos = list_create();
 
     // Agregamos el pid del proceso a la lista de argumentos:
-    int *pid_proceso = malloc(sizeof(int));
-    *pid_proceso = pid_proceso;
-    list_add(argumentos, pid_proceso);
+    int *pid_proceso_ptr = malloc(sizeof(int));
+    *pid_proceso_ptr = pid_proceso;
+    list_add(argumentos, pid_proceso_ptr);
 
     // Agregamos el operacion_a_realizar a la lista de argumentos:
     int *operacion_a_realizar_ptr = malloc(sizeof(int));

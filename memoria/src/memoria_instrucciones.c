@@ -12,7 +12,6 @@ char* crear_path_instrucciones(char* archivo_path){
 
     char *path = string_new();
     string_append(&path, config_memoria->path_instrucciones);
-    string_append(&path, "/");
     string_append(&path, archivo_path);
 
     if(string_contains(path ,"./")){

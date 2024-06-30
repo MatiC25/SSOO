@@ -38,4 +38,8 @@ int get_block_count(t_interfaz *interfaz);
 
 int get_block_size(t_interfaz *interfaz);
 
+int get_total_de_bytes(t_list *direcciones);
+
+char *get_nombre_operacion(tipo_operacion operacion);
+
 #endif // IO_UTILS_H

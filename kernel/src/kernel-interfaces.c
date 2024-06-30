@@ -67,13 +67,8 @@ void consumers_pcbs_blockeds(void *args) {
         // Sacamos el primer proceso de la cola de bloqueados:
         t_pcb *pcb = queue_pop(interface->process_blocked);
         t_list *args_pcb = queue_pop(interface->args_process); // Obtenemos los argumentos del proceso
-        int *pid_proceso = malloc(sizeof(int));
-        *pid_proceso = pcb->pid;
 
-        // Agregamos el pid del proceso a de argumentos:
-        list_add(args_pcb, pid_proceso);
-
-        log_warning(logger, "Sacando Proceso: %i - Bloqueado por interfaz", *pid);
+        log_warning(logger, "Sacando Proceso: %i - Bloqueado por interfaz", pcb->pid);
 
         // Obtenemos el socket de la interfaz:
         int socket_with_interface = get_socket_interface(interface);

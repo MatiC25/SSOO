@@ -88,13 +88,16 @@ t_list *obtener_direcciones_fisicas(int size, int *desplazamiento, void *buffer)
     // Creamos la lista de direcciones físicas:
     t_list *direccciones_fisicas = list_create();
 
+    int direccion_fisica;
+    int tamanio;
+
     while(*desplazamiento < size) {
         // Obtenemos la dirección física:
-        memcpy(&direccion_fisica, buffer + desplazamiento, sizeof(int));
+        memcpy(&direccion_fisica, buffer + *desplazamiento, sizeof(int));
         *desplazamiento += sizeof(int);
 
         // Obtenemos el tamaño:
-        memcpy(&tamanio, buffer + desplazamiento, sizeof(int));
+        memcpy(&tamanio, buffer + *desplazamiento, sizeof(int));
         *desplazamiento += sizeof(int);
 
         // Creamos la dirección física:
@@ -105,6 +108,8 @@ t_list *obtener_direcciones_fisicas(int size, int *desplazamiento, void *buffer)
         // Agregamos la dirección física a la lista:
         list_add(direccciones_fisicas, direccion);
     }
+
+    return direccciones_fisicas;
 }
 
 // Funciones enviar mensajes a memoria:
@@ -174,7 +179,7 @@ void send_bytes_a_leer(t_interfaz *interfaz, int pid, t_list *direcciones, void 
 char *rcv_contenido_a_mostrar(t_interfaz *interfaz, t_list *direcciones_fisicas) {
     int size = list_size(direcciones_fisicas);
     int socket_memoria = get_socket_memory(interfaz);
-    int cantidad_bytes = get_cantidad_bytes(direcciones_fisicas);
+    int cantidad_bytes = get_total_de_bytes(direcciones_fisicas);
     char *contenido_a_mostrar = malloc(cantidad_bytes);
     int desplazamiento_interno = 0;
 

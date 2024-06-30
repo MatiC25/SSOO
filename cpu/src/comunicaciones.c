@@ -363,23 +363,32 @@ char* recv_escribir_memoria_string(int tamanio){
     return valor;
 }   
 
-void solicitar_a_kernel_std(char* interfaz , t_list* mmu ,t_paquete* solicitar_std){
+void solicitar_a_kernel_std(char* interfaz , t_mmu_cpu* mmu ,t_paquete* solicitar_std){
+
+    int i = 0;
     int respuesta;
     recv(config_cpu->SOCKET_KERNEL, &respuesta , sizeof(int), MSG_WAITALL);
-    if(respuesta == 1){
+
+    if(respuesta == 1) {
+        log_info(logger, "Hola!");
         agregar_a_paquete_string(solicitar_std ,interfaz,strlen(interfaz) + 1);
-    while (!list_is_empty(mmu->direccionFIsica)){
-        int* direccion_fisica = (int*)list_remove(mmu->direccionFIsica, 0);
-        int* ptr_tamanio = (int*)list_remove(mmu->tamanio);
-        int tamanio = *ptr_tamanio;
-        int direc_fisica = *direc_fisica;
-        agregar_a_paquete(solicitar_std, &direc_fisica, sizeof(int));
-        agregar_a_paquete(solicitar_std, &tamanio, sizeof(int));
-        free(direccion_fisica);
-    } // Escuchame! Ya sabemos el errror de ultima lo vemos mña  perame lo saco ahora ya me dio bronca
-    enviar_paquete(solicitar_std, config_cpu->SOCKET_KERNEL);
-    eliminar_paquete(solicitar_std);
-    }else{log_error(logger , "Erro en la respuesta de desalojo de I/O");}
+
+        while (!list_is_empty(mmu->direccionFIsica)){
+            int* direccion_fisica = list_remove(mmu->direccionFIsica, 0);
+            int* ptr_tamanio = list_remove(mmu->tamanio, 0);
+            int tamanio = *ptr_tamanio;
+            int direc_fisica = *direccion_fisica;
+
+            agregar_a_paquete(solicitar_std, &direc_fisica, sizeof(int));
+            agregar_a_paquete(solicitar_std, &tamanio, sizeof(int));
+        }
+
+        enviar_paquete(solicitar_std, config_cpu->SOCKET_KERNEL);
+        eliminar_paquete(solicitar_std);
+
+        log_info(logger, "Hola!");
+    } else
+        log_error(logger , "Erro en la respuesta de desalojo de I/O");
 }
 
 void mostrar_pcb(t_pcb_cpu* pcb){
