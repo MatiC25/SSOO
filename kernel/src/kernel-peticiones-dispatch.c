@@ -348,8 +348,10 @@ void peticion_IO() {
 
     // Obtenemos los argumentos:
     tipo_operacion *operacion = list_get(interfaz_y_argumentos, 0);
-    t_list *args = list_get(interfaz_y_argumentos, 1);
-    char *nombre_interfaz = list_get(interfaz_y_argumentos, 2); 
+    char *nombre_interfaz = list_get(interfaz_y_argumentos, 1); 
+    t_list *args = list_get(interfaz_y_argumentos, 2);
+    
+    log_info(logger, "Operación: %i - Interfaz: %s", *operacion, nombre_interfaz);
     
     // Obtenemos la interfaz:
     interface_io* interface = get_interface_from_dict(nombre_interfaz);

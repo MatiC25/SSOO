@@ -42,4 +42,6 @@ int get_total_de_bytes(t_list *direcciones);
 
 char *get_nombre_operacion(tipo_operacion operacion);
 
+tipo_interfaz get_tipo_interfaz_to_int(t_interfaz *interfaz);
+
 #endif // IO_UTILS_H

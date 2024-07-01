@@ -21,9 +21,15 @@ void send_message_to_interface(interface_io *interface, t_list *args, int *respo
 }
 
 void send_message_to_generic_interface(int socket, t_list *args, int *response) {
+
+    // Obtenemos los argumentos:
     int *pid_proceso_ptr = list_get(args, 0);
     int *operacion_a_realizar_ptr = list_get(args, 1);
     int *tiempo_sleep_ptr = list_get(args, 2);
+
+    // Enviamos la cantidad de bytes a enviar:
+    int cant_de_bytes = sizeof(int) * 3;
+    send(socket, &cant_de_bytes, sizeof(int), 0);
 
     // Enviamos el pid del proceso:
     int pid_proceso = *pid_proceso_ptr;
@@ -56,6 +62,9 @@ void send_message_to_std_interface(int socket, t_list *args, int *response) {
     int *pid_proceso_ptr = list_get(args, 0);
     int *operacion_a_realizar_ptr = list_get(args, 1);
     t_list *direcciones_fisicas_y_bytes = list_get(args, 2);
+
+    // Enviamos la cantidad de bytes a enviar:
+    int cant_de_bytes = sizeof(int) * 2 * list_size(direcciones_fisicas_y_bytes) + sizeof(int) * 2;
 
     // Enviamos el pid del proceso:
     int pid_proceso = *pid_proceso_ptr;
@@ -233,7 +242,7 @@ t_list * recv_interfaz_y_argumentos(int socket, int pid_proceso) {
     int operacion_a_realizar = recibir_operacion(socket);
     int *operacion_a_realizar_ptr = malloc(sizeof(int));
     *operacion_a_realizar_ptr = operacion_a_realizar;
-    list_add(interfaz_y_argumentos, operacion_a_realizar_ptr);
+    list_add(interfaz_y_argumentos, operacion_a_realizar_ptr); 
 
     // Obtenemos el nombre de la interfaz y los argumentos:
     void *buffer = recibir_buffer(&size, socket);
@@ -322,7 +331,7 @@ t_list *obtener_argumentos(void *buffer, int *desplazamiento, int size, int oper
 }
 
 void obtener_argumentos_generica(t_list *argumentos, void *buffer, int *desplazamiento) {
-
+    
     // Obtenemos el tiempo de sleep:
     int *tiempo_sleep = malloc(sizeof(int));
     *tiempo_sleep = parsear_int(buffer, desplazamiento);

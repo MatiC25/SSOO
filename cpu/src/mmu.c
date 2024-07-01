@@ -86,7 +86,7 @@ for (int i = 0; i < list_size(mmu->num_pagina); i++) {
         //log_info(logger, "DIO NULL??");
         //log_info(logger, "Tamano TLB: %i", list_size(tlb));
         
-        if (list_size(tlb) < config_cpu->CANTIDAD_ENTRADAS_TLB) {
+        if (list_size(tlb) < config_cpu->CANTIDAD_ENTRADAS_TLB || config_cpu->CANTIDAD_ENTRADAS_TLB == 0 ) {
             
             solicitar_tablas_a_memoria(pagina_a_buscar);
             t_tabla_de_paginas_cpu* tab = recv_tablas();
@@ -97,9 +97,10 @@ for (int i = 0; i < list_size(mmu->num_pagina); i++) {
             //log_info(logger, "(EN TRADUCCION)pid: %i", tab->pid);
             //log_info(logger, "(EN TRADUCCION)marco: %i", tab->marco);
             //log_info(logger, "(EN TRADUCCION)nro pagina: %i", tab->nropagina);
-
-            list_add(tlb, tab);
-
+            if (config_cpu->CANTIDAD_ENTRADAS_TLB == 0){
+                list_add(tlb, tab);
+            }
+            
             int dirc_fisica = tab->marco * config_cpu->TAMANIO_PAGINA + mmu->ofset;
             //log_info(logger, "Direccion fisica calculada: %i", dirc_fisica);
 
@@ -115,7 +116,7 @@ for (int i = 0; i < list_size(mmu->num_pagina); i++) {
 
         } else {
             if (strcmp(config_cpu->ALGORITMO_TLB, "FIFO") == 0) {
-                //log_info(logger, "Entro a FIFO");
+
                 t_tabla_de_paginas_cpu* tab = (t_tabla_de_paginas_cpu*)actualizar_TLB_por_fifo(pagina_a_buscar);
                 log_warning(logger, "CANTIDAD DE TLB: %i", list_size(tlb));
                 int dirc_fisica = tab->marco * config_cpu->TAMANIO_PAGINA + mmu->ofset;

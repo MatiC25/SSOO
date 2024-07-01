@@ -194,6 +194,7 @@ void ejecutar_instruccion(int socket_cliente) {
         case IO_GEN_SLEEP:
             log_info(logger,"Instruccion Ejecutada: PID: %d- Ejecutando: %s -%s %s", pcb->pid,instruccion->opcode,instruccion->parametro1,instruccion->parametro2);
             ejecutar_IO_GEN_SLEEP(instruccion->parametro1,instruccion->parametro2);
+            liberar_pcb();
             break;
         case MOV_IN:
             log_info(logger,"Instruccion Ejecutada: PID: %d- Ejecutando: %s -%s %s", pcb->pid,instruccion->opcode,instruccion->parametro1,instruccion->parametro2);
@@ -214,37 +215,46 @@ void ejecutar_instruccion(int socket_cliente) {
         case WAIT:
             log_info(logger,"Instruccion Ejecutada: PID: %d- Ejecutando: %s -%s", pcb->pid,instruccion->opcode,instruccion->parametro1);
             ejecutar_WAIT(instruccion->parametro1);
+            liberar_pcb();
             break;
         case SIGNAL:
             log_info(logger,"Instruccion Ejecutada: PID: %d- Ejecutando: %s -%s", pcb->pid,instruccion->opcode,instruccion->parametro1);
             ejecutar_SINGAL(instruccion->parametro1);
+            liberar_pcb();
             break;
         case IO_STDIN_READ:
             log_info(logger,"Instruccion Ejecutada: PID: %d- Ejecutando: %s -%s %s %s", pcb->pid,instruccion->opcode,instruccion->parametro1,instruccion->parametro2, instruccion->parametro3);
             ejecutar_IO_STDIN_READ(instruccion->parametro1, instruccion->parametro2,instruccion->parametro3);
+            liberar_pcb();
         case IO_STDOUT_WRITE:
             log_info(logger,"Instruccion Ejecutada: PID: %d- Ejecutando: %s -%s %s %s", pcb->pid,instruccion->opcode,instruccion->parametro1,instruccion->parametro2, instruccion->parametro3);
             ejecutar_IO_STDOUT_WRITE(instruccion->parametro1, instruccion->parametro2,instruccion->parametro3);
+            liberar_pcb();
             break;
         case IO_FS_CREATE:
             log_info(logger,"Instruccion Ejecutada: PID: %d- Ejecutando: %s -%s %s", pcb->pid,instruccion->opcode,instruccion->parametro1,instruccion->parametro2);
             ejecutar_IO_FS_CREATE(instruccion->parametro1,instruccion->parametro2);
+            liberar_pcb();
             break;
         case IO_FS_DELETE:
             log_info(logger,"Instruccion Ejecutada: PID: %d- Ejecutando: %s -%s %s", pcb->pid,instruccion->opcode,instruccion->parametro1,instruccion->parametro2);
             ejecutar_IO_FS_DELETE(instruccion->parametro1,instruccion->parametro2);
+            liberar_pcb();
             break;
         case IO_FS_TRUNCATE:
             log_info(logger,"Instruccion Ejecutada: PID: %d- Ejecutando: %s -%s %s %s", pcb->pid,instruccion->opcode,instruccion->parametro1,instruccion->parametro2, instruccion->parametro3);
             ejecutar_IO_FS_TRUNCATE(instruccion->parametro1, instruccion->parametro2,instruccion->parametro3);
+            liberar_pcb();
             break;
         case IO_FD_WRITE:
             log_info(logger,"Instruccion Ejecutada: PID: %d- Ejecutando: %s -%s %s %s %s %s", pcb->pid,instruccion->opcode,instruccion->parametro1,instruccion->parametro2,instruccion->parametro3,instruccion->parametro4,instruccion->parametro5);
             ejecutar_IO_FD_WRITE(instruccion->parametro1,instruccion->parametro2,instruccion->parametro3,instruccion->parametro4,instruccion->parametro5);
+            liberar_pcb();
             break;       
          case IO_FS_READ:
             log_info(logger,"Instruccion Ejecutada: PID: %d- Ejecutando: %s -%s %s %s %s %s", pcb->pid,instruccion->opcode,instruccion->parametro1,instruccion->parametro2,instruccion->parametro3,instruccion->parametro4,instruccion->parametro5);
             ejecutar_IO_FS_READ(instruccion->parametro1,instruccion->parametro2,instruccion->parametro3,instruccion->parametro4,instruccion->parametro5);
+            liberar_pcb();
             break;
         default:
             log_error(logger, "Operacion desconocida");          
@@ -319,11 +329,11 @@ void ejecutar_IO_GEN_SLEEP(char* interfazAUsar, char* tiempoDeTrabajo){
         //log_warning(logger, "OP: %i", IO_GEN_SLEEP_INT);
         agregar_a_paquete_string(paquete, interfazAUsar, strlen(interfazAUsar) + 1);
         agregar_a_paquete (paquete ,&tiempo, sizeof(int));
+        log_warning(logger,"tiempo: %d",tiempo);
         //log_warning(logger, "Tiempo: %i", tiempo);
         enviar_paquete(paquete,config_cpu->SOCKET_KERNEL);
         eliminar_paquete(paquete);
-        liberar_pcb();
-    }else{log_error(logger , "ErroR en la respuesta de desalojo de I/O");}
+    }else{log_error(logger , "Error en la respuesta de desalojo de I/O");}
 }
 
 
@@ -452,7 +462,6 @@ void ejecutar_WAIT(char* recurso){
     if (respuesta == 1){
         tengoAlgunaInterrupcion();
     }else{
-        liberar_pcb();
         return;
     }
        
@@ -477,7 +486,6 @@ void ejecutar_SINGAL(char* recurso){
     if (respuesta == 1){
         tengoAlgunaInterrupcion();
     }else{
-        liberar_pcb();
         return;
     }
     
@@ -493,18 +501,18 @@ void ejecutar_IO_STDIN_READ(char* interfaz, char* registro_direccion, char* regi
 
     int reg_Direc = encontrar_int(registroDireccion, tamanio_logica );
     int reg_Tamanio =  encontrar_int(registroTamanio, tamanio_registro);
-
+    mostrar_pcb(pcb);
 
     t_mmu_cpu * mmu_io_stdin_read = traducirDireccion(reg_Direc,reg_Tamanio);
+    mostrar_pcb(pcb);
     t_paquete* paquete_std = crear_paquete(OPERACION_IO); // dejo asi 
-    enviar_pcb_a_kernel(paquete_std );   
+    enviar_pcb_a_kernel(paquete_std);   
     enviar_paquete(paquete_std , config_cpu->SOCKET_KERNEL);
     eliminar_paquete(paquete_std );
 
     t_paquete* paquete_stdin = crear_paquete(IO_STDIN_READ_INT);
     solicitar_a_kernel_std(interfaz,mmu_io_stdin_read ,paquete_stdin);
     free(mmu_io_stdin_read);
-    liberar_pcb();
 }
 
 void ejecutar_IO_STDOUT_WRITE(char* interfaz, char* registro_direccion, char* registro_tamanio){
@@ -518,6 +526,7 @@ void ejecutar_IO_STDOUT_WRITE(char* interfaz, char* registro_direccion, char* re
     int reg_Tamanio =  encontrar_int(registroTamanio, tamanio_registro);
 
     t_mmu_cpu * mmu_io_stdout_write = traducirDireccion(reg_Direc,reg_Tamanio);
+    mostrar_pcb(pcb);
     t_paquete* paquete_std = crear_paquete(OPERACION_IO); // dejo asi 
     enviar_pcb_a_kernel(paquete_std);   
     enviar_paquete(paquete_std, config_cpu->SOCKET_KERNEL);
@@ -529,7 +538,6 @@ void ejecutar_IO_STDOUT_WRITE(char* interfaz, char* registro_direccion, char* re
     enviar_paquete(paquete_stdout, config_cpu->SOCKET_KERNEL);
     eliminar_paquete(paquete_stdout);
     free(mmu_io_stdout_write);
-    liberar_pcb();
 }
 
 
@@ -543,8 +551,7 @@ void ejecutar_IO_FS_CREATE(char* interfaz, char* nombre_archibo){
     agregar_a_paquete_string(paquet_fs_create, interfaz, strlen(interfaz) + 1);
     agregar_a_paquete_string(paquet_fs_create, nombre_archibo, strlen(nombre_archibo) + 1);
     enviar_paquete(paquet_fs_create, config_cpu->SOCKET_KERNEL);
-    eliminar_paquete(paquet_fs_create);
-    liberar_pcb(); 
+    eliminar_paquete(paquet_fs_create); 
 }
 
 void ejecutar_IO_FS_DELETE(char* interfaz, char* nombre_archibo){
@@ -559,7 +566,6 @@ void ejecutar_IO_FS_DELETE(char* interfaz, char* nombre_archibo){
     agregar_a_paquete_string(paquete_delete, nombre_archibo, strlen(nombre_archibo ) + 1);  
     enviar_paquete(paquete_delete, config_cpu->SOCKET_KERNEL);
     eliminar_paquete(paquete_delete); 
-    liberar_pcb();
 }
 
 void ejecutar_IO_FS_TRUNCATE(char* interfaz, char* nombre_archivo, char* registro_tamanio){
@@ -581,7 +587,6 @@ void ejecutar_IO_FS_TRUNCATE(char* interfaz, char* nombre_archivo, char* registr
     agregar_a_paquete(paquete, &reg_Tamanio, sizeof(int));
     enviar_paquete(paquete, config_cpu->SOCKET_KERNEL);
     eliminar_paquete(paquete);
-    liberar_pcb();
 }
 
 void ejecutar_IO_FD_WRITE(char* interfaz, char* nombre_archivo, char* registro_direccion, char* registro_tamanio, char* registro_puntero_archivo){
@@ -614,7 +619,6 @@ void ejecutar_IO_FD_WRITE(char* interfaz, char* nombre_archivo, char* registro_d
     enviar_paquete(paqute, config_cpu->SOCKET_KERNEL);
     eliminar_paquete(paqute);
     free(mmu_io_fs_write);
-    liberar_pcb();
 }
 
 
@@ -650,7 +654,6 @@ void ejecutar_IO_FS_READ(char* interfaz, char* nombre_archivo, char* registro_di
     enviar_paquete(paquete, config_cpu->SOCKET_KERNEL);
     eliminar_paquete(paquete);
     free(mmu_io_fs_read);
-    liberar_pcb();
 
 }
 

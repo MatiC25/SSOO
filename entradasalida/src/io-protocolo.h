@@ -2,6 +2,7 @@
 #define IO_PROTOCOLOS_H
 
 // Incluye las biblotecas externas necesarias:
+#include <commons/collections/list.h>
 #include <utils/estructuras_compartidas.h>
 #include <utils/protocolo.h>
 #include <utils/logger.h>

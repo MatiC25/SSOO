@@ -16,7 +16,7 @@ void set_socket_kernel(int socket, t_interfaz * interfaz) {
 }
 
 // Devuelve el socket con el kernel:
-int get_socket_kernel(t_interfaz * interfaz) {
+int get_socket_kernel(t_interfaz *interfaz) {
     return interfaz->socket_with_kernel;
 }
 
@@ -37,6 +37,10 @@ int get_tiempo_unidad(t_interfaz* interfaz){
 
 char *get_path_dial_fs(t_interfaz *interfaz) {
     return interfaz->config->PATH_BASE_DIALFS;
+}
+
+tipo_interfaz get_tipo_interfaz_to_int(t_interfaz *interfaz) {
+    return interfaz->tipo;
 }
 
 size_t get_tamanio_bitmap(t_interfaz *interfaz) {

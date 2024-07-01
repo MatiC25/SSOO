@@ -29,23 +29,28 @@ t_list *recibir_argumentos(t_interfaz *interfaz, int socket_kernel) {
     t_list *argumentos = list_create();
 
     // Obtenemos el PID del proceso:
-    int *pid = parsear_int(buffer, &desplazamiento);
+    int *pid = malloc(sizeof(int));
+    *pid = parsear_int(buffer, &desplazamiento);
     list_add(argumentos, pid);
 
-    int *tipo_operacion = parsear_int(buffer, &desplazamiento);
+    // Obtenemos el tipo de operación:
+    int *tipo_operacion = malloc(sizeof(int));
+    *tipo_operacion = parsear_int(buffer, &desplazamiento);
     list_add(argumentos, tipo_operacion);
 
-    tipo_interfaz tipo_interfaz_actual = get_tipo_interfaz(interfaz);
+    tipo_interfaz tipo_interfaz_actual = get_tipo_interfaz_to_int(interfaz);
 
     if(tipo_interfaz_actual == GENERICA) {
-        int *tiempo_sleep = parsear_int(buffer, &desplazamiento);
+        int *tiempo_sleep = malloc(sizeof(int));
+        *tiempo_sleep = parsear_int(buffer, &desplazamiento);
+
         list_add(argumentos, tiempo_sleep);
     } else {
         t_list *direcciones = obtener_direcciones_fisicas(size, &desplazamiento, buffer);
         list_add(argumentos, direcciones);
     }
 
-    // Liberamos el buffer recibido:
+    //Liberamos el buffer recibido:
     free(buffer);
 
     return argumentos;

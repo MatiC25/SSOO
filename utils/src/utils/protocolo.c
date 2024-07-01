@@ -41,9 +41,6 @@ void* recibir_buffer(int* size, int socket_cliente) {
 	void * buffer;
 
 	recv(socket_cliente, size, sizeof(int), MSG_WAITALL);
-
-    //log_info(logger, "Recibiendo buffer de %d bytes", *size);
-
 	buffer = malloc(*size);
 	recv(socket_cliente, buffer, *size, MSG_WAITALL);
 

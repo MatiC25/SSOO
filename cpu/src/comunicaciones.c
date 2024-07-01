@@ -368,11 +368,11 @@ void solicitar_a_kernel_std(char* interfaz , t_mmu_cpu* mmu ,t_paquete* solicita
     int i = 0;
     int respuesta;
     recv(config_cpu->SOCKET_KERNEL, &respuesta , sizeof(int), MSG_WAITALL);
-
+    log_warning(logger, "RESPUESTA:%d", respuesta);
     if(respuesta == 1) {
-        log_info(logger, "Hola!");
+        //log_info(logger, "Hola!");
         agregar_a_paquete_string(solicitar_std ,interfaz,strlen(interfaz) + 1);
-
+        log_warning(logger, "interfaz:%s", interfaz);
         while (!list_is_empty(mmu->direccionFIsica)){
             int* direccion_fisica = list_remove(mmu->direccionFIsica, 0);
             int* ptr_tamanio = list_remove(mmu->tamanio, 0);
@@ -385,8 +385,8 @@ void solicitar_a_kernel_std(char* interfaz , t_mmu_cpu* mmu ,t_paquete* solicita
 
         enviar_paquete(solicitar_std, config_cpu->SOCKET_KERNEL);
         eliminar_paquete(solicitar_std);
-
-        log_info(logger, "Hola!");
+        mostrar_pcb(pcb);
+        //log_info(logger, "Hola!");
     } else
         log_error(logger , "Erro en la respuesta de desalojo de I/O");
 }

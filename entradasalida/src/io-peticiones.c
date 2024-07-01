@@ -24,8 +24,8 @@ void ejecutar_operacion_generica(t_interfaz * interfaz) {
         int tiempo_unidad = get_tiempo_unidad(interfaz);
 
         // Logeamos la operación:
-        log_info(logger, "PID: <%i> - Operacion: <%s>", *pid_proceso, operacion);
-        log_info(logger, "PID <%i> - Esperando %i unidades de tiempo", *pid_proceso, *tiempo_espera);
+        log_info(logger, "PID: <%d> - Operacion: <%s>", *pid_proceso, operacion);
+        log_info(logger, "PID <%d> - Esperando %d unidades de tiempo", *pid_proceso, *tiempo_espera);
 
         // Esperamos el tiempo de espera:
         sleep(*tiempo_espera * tiempo_unidad);
@@ -50,7 +50,7 @@ void ejecutar_operacion_stdin(t_interfaz *interfaz) {
         char *operacion = get_nombre_operacion(*tipo_operacion);
 
         // Logeamos la operación:
-        log_info(logger, "PID: <%i> - Operacion: <%s>", *pid_proceso, operacion);
+        log_info(logger, "PID: <%d> - Operacion: <%s>", *pid_proceso, operacion);
 
         // Obtenemos el input:
         input = readline("Ingrese un valor: ");
@@ -152,3 +152,4 @@ void ejecutar_operaciones_dialFS(t_interfaz *interfaz) {
         }
     }
 }
+
