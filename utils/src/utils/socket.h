@@ -25,7 +25,7 @@ int iniciar_servidor( const char *name, char *ip, char *puerto);
 void atender_conexion(char* server_name, int cliente_socket);
 int esperar_cliente(const char *name, int socket_servidor);
 void* server_escuchar_sin_hilos(void* args);
-void server_escuchar_con_hilos( char* server_name, int socket_server);
+void server_escuchar_con_hilos(char* server_name, int socket_server);
 
 // Funciones especificas de atender peticiones de los servidores:
 void atender_conexiones_memoria(void *args);

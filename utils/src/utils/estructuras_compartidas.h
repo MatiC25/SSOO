@@ -47,14 +47,14 @@ typedef struct { // PCB de un proceso
     int quantum; //Para el VRR
     t_registro_cpu* registros;
     int estado;
-}t_pcb;
+} t_pcb;
 
 // typedef enum {
 //     IO,
 //     FIN_QUANTUM,
 //     WAIT,
 //     SIGNAL,
-//     FIN_EJECUCION,
+//     FIN_EJECUCION
 // } tipo_desalojo;
 
 typedef enum {

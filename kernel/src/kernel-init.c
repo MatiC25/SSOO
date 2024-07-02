@@ -1,32 +1,31 @@
 #include "kernel-init.h"
 
-t_list* cola_new = NULL;
-t_list* cola_ready = NULL;
-t_list* cola_block = NULL;
-t_list* cola_prima_VRR = NULL;
-
-
 void iniciar_modulo_kernel(int socket_servidor) {
+    hilo_motivo_de_desalojo();
     inicializar_lista();
     aceptar_interfaces(socket_servidor);
-    // manejar_peticion_con_memoria();
-    manejar_peticion_con_cpu();
+    inicializacion_semaforos();
     iniciar_planificacion();
 }
 
 void inicializar_lista(){
     cola_new = list_create();
     cola_ready = list_create();
-    cola_block = list_create();
     cola_prima_VRR = list_create();
+    cola_block = list_create();
+    cola_exec = list_create();
+    cola_exit = list_create();
+    colas_resource_block[0] = queue_create();
+    colas_resource_block[1] = queue_create();
+    colas_resource_block[2] = queue_create();
+    inicializar_vector_recursos_pedidos();
 }
-
 
 void aceptar_interfaces(int socket_servidor) {
     pthread_t aceptar_interfaces_thread;
 
-    pthread_create(&aceptar_interfaces_thread, NULL, handle_new_interface,(void *)(intptr_t)socket_servidor);
-    pthread_join(aceptar_interfaces_thread, NULL);    
+    pthread_create(&aceptar_interfaces_thread, NULL, (void *) handle_new_interface, (void *) socket_servidor);
+    pthread_detach(aceptar_interfaces_thread);   
 }
 
 void iniciar_planificacion() {
@@ -36,28 +35,10 @@ void iniciar_planificacion() {
 
     //Planificación a corto plazo y largo plazo:
     pthread_create(&planificacion_corto_plazo_thread, NULL, elegir_algoritmo_corto_plazo, NULL);
-    // pthread_create(&planificacion_largo_plazo_thread, NULL, , NULL); 
+    pthread_create(&planificacion_largo_plazo_thread, NULL, agregar_a_cola_ready, NULL); 
     
     //Esperamos a que terminen los hilos de planificación:
-    pthread_join(planificacion_corto_plazo_thread, NULL);
-    pthread_join(planificacion_largo_plazo_thread, NULL);
+    pthread_detach(planificacion_corto_plazo_thread);
+    pthread_detach(planificacion_largo_plazo_thread);
 }
-
-void manejar_peticion_con_memoria() {
-    pthread_t memoria_thread;
-
-    pthread_create(&memoria_thread, NULL,creacion_proceso, NULL);
-    pthread_join(memoria_thread, NULL);
-}
-
-void manejar_peticion_con_cpu() {
-    pthread_t cpu_thread;
-
-    pthread_create(&cpu_thread, NULL,enviar_proceso_a_cpu, NULL);
-    pthread_join(cpu_thread, NULL);
-}
-
-
-
-
 

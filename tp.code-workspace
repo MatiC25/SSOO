@@ -21,7 +21,8 @@
 			"utility": "c",
 			"buffer": "c",
 			"typeinfo": "c",
-			"cstdlib": "c"
+			"cstdlib": "c",
+			"random": "c"
 		},
 		"C_Cpp.errorSquiggles": "disabled",
 	},

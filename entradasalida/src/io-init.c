@@ -1,18 +1,20 @@
 #include "io-init.h"
 
-
-void inicializar_interfaz(char *name_interfaz, char *config_path, t_interfaz * interfaz, t_config_io* config_io) {
-    interfaz = malloc(sizeof(t_interfaz));
+t_interfaz *inicializar_interfaz(char *name_interfaz, char *config_path) {
+    t_interfaz *interfaz = malloc(sizeof(t_interfaz));
 
     if (interfaz == NULL) {
         log_error(logger, "Error al asignar memoria para la interfaz");
         exit(EXIT_FAILURE);
     }
-    cargar_configuraciones(config_path ,interfaz, config_io);
-    
+
+    interfaz->nombre = name_interfaz;
+    interfaz->config = cargar_configuraciones(config_path, interfaz);
+
+    return interfaz;
 }
 
-void cargar_configuraciones(char *config_path, t_interfaz* interfaz, t_config_io* config_io) {
+t_config_io *cargar_configuraciones(char *config_path, t_interfaz *interfaz) {
     t_config *config = config_create(config_path);
 
     if (config == NULL) {
@@ -22,9 +24,10 @@ void cargar_configuraciones(char *config_path, t_interfaz* interfaz, t_config_io
 
     get_tipo_interfaz_with_config(config, interfaz);
 
+    t_config_io *config_io = inicializar_config_io();
+
     if (config_io == NULL) {
         log_error(logger, "Error al asignar memoria para config_io");
-        config_destroy(config);
         exit(EXIT_FAILURE);
     }
 
@@ -34,37 +37,37 @@ void cargar_configuraciones(char *config_path, t_interfaz* interfaz, t_config_io
             break;
         case STDIN:
         case STDOUT:
-            cargar_configuraciones_std(interfaz->tipo, config,config_io);
+            cargar_configuraciones_std(interfaz->tipo, config, config_io);
             break;
         case DIALFS:
-            cargar_configuraciones_dialfs(config,config_io);
+            cargar_configuraciones_dialfs(config, config_io);
             break;
         default:
             log_error(logger, "Tipo de interfaz desconocido");
             config_destroy(config);
-            //free(config_io);
+            free(config_io);
             exit(EXIT_FAILURE);
     }
 
     config_destroy(config);
 
-    
+    return config_io;
 }
 
-void cargar_configuraciones_generica(t_config *config, t_config_io* config_io) {
+void cargar_configuraciones_generica(t_config *config, t_config_io *config_io) {
     char *configuraciones[] = {
-        "TIEMPO_UNIDAD_UNIDAD",
+        "TIEMPO_UNIDAD_TRABAJO",
         "IP_KERNEL",
         "PUERTO_KERNEL",
         NULL
     };
 
-    //validar_configuraciones(config, configuraciones);
+    validar_configuraciones(config, configuraciones);
     configurar_valores_kernel(config_io, config);
     configurar_tiempo_unidad(config_io, config);
 }
 
-void cargar_configuraciones_std(tipo_interfaz tipo, t_config *config, t_config_io* config_io) {
+void cargar_configuraciones_std(tipo_interfaz tipo, t_config *config, t_config_io *config_io) {
     char *configuraciones[] = {
         "IP_KERNEL",
         "PUERTO_KERNEL",
@@ -73,19 +76,19 @@ void cargar_configuraciones_std(tipo_interfaz tipo, t_config *config, t_config_i
         NULL
     };
 
-    //validar_configuraciones(config, configuraciones);
+    validar_configuraciones(config, configuraciones);
     configurar_valores_kernel(config_io, config);
     configurar_valores_memoria(config_io, config);
 
-    if (tipo == STDIN && !config_has_property(config, "TIEMPO_UNIDAD_UNIDAD")) {
-        log_error(logger, "Falta la configuración TIEMPO_UNIDAD_UNIDAD en el archivo de configuración");
+    if (tipo == STDIN && !config_has_property(config, "TIEMPO_UNIDAD_TRABAJO")) {
+        log_error(logger, "Falta la configuración TIEMPO_UNIDAD_TRABAJO en el archivo de configuración");
         exit(EXIT_FAILURE);
     }
 
     configurar_tiempo_unidad(config_io, config);
 }
 
-void cargar_configuraciones_dialfs(t_config *config, t_config_io* config_io) {
+void cargar_configuraciones_dialfs(t_config *config, t_config_io *config_io) {
     char *configuraciones[] = {
         "TIEMPO_UNIDAD_TRABAJO",
         "IP_KERNEL",
@@ -95,20 +98,20 @@ void cargar_configuraciones_dialfs(t_config *config, t_config_io* config_io) {
         "PATH_BASE_DIALFS",
         "BLOCK_SIZE",
         "BLOCK_COUNT",
-        NULL
+        NULL,
     };
 
-    //validar_configuraciones(config, configuraciones);
+    validar_configuraciones(config, configuraciones);
     configurar_tiempo_unidad(config_io, config);
     configurar_valores_kernel(config_io, config);
     configurar_valores_memoria(config_io, config);
     configurar_valores_dialfs(config_io, config);
 }
-void get_tipo_interfaz_with_config(t_config *config , t_interfaz* interfaz) {
+
+void get_tipo_interfaz_with_config(t_config *config, t_interfaz *interfaz) {
     char *tipo = config_get_string_value(config, "TIPO_INTERFAZ");
     interfaz->tipo = get_tipo_interfaz(tipo);
 }
-
 
 tipo_interfaz get_tipo_interfaz(char *tipo) {
     if (string_equals_ignore_case(tipo, "GENERICA")) {
@@ -119,8 +122,7 @@ tipo_interfaz get_tipo_interfaz(char *tipo) {
         return STDOUT;
     } else if (string_equals_ignore_case(tipo, "DIALFS")) {
         return DIALFS;
-    } else {
-        log_error(logger, "Tipo de interfaz desconocido");
-        exit(EXIT_FAILURE);
     }
+
+    return -1;
 }

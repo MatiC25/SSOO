@@ -15,7 +15,7 @@
 #include <stddef.h>
 #include <utils/estructuras_compartidas.h>
 #include <utils/logger.h>
-#include<readline/readline.h>
+#include <readline/readline.h>
 
 typedef enum { //podemos juntar todos los procesos 
     MENSAJE,
@@ -29,7 +29,19 @@ typedef enum { //podemos juntar todos los procesos
     OPERACION_IO,
     CREAR_INTERFAZ,
     FINQUANTUM,
-    FIN_EJECUCION,
+    INICIAR_PROCESO,
+    FINALIZAR_PROCESO,
+    ACCEDER_TABLA_PAGINAS,
+    MODIFICAR_TAMAÑO_MEMORIA,
+    ACCESO_A_LECTURA,
+    ACCESO_A_ESCRITURA,
+    HANDSHAKE_PAGINA,
+    LECTURA_EXITOSA,// No sabemos como lo recibe cpu
+    EXITO_CONSULTA,
+    ESCRIBIR_MEMORIA,
+    LEER_MEMORIA,
+    NEW_INTERFACE,
+    EXITO
 // ----------------
 } op_code;
 
@@ -52,9 +64,10 @@ t_paquete* crear_paquete(op_code operacion);
 void crear_buffer(t_paquete* paquete);
 void agregar_a_paquete(t_paquete* paquete, void* valor, int tamanio);
 void enviar_paquete(t_paquete* paquete, int socket_cliente);
-void* serializar_paquete(t_paquete* paquete, int* bytes);
+void* serializar_paquete(t_paquete* paquete, int bytes);
 void eliminar_paquete(t_paquete* paquete);
 void* recibir_buffer(int* size, int socket_cliente);
+void* recibir_buffer_bytes(int socket_cliente, size_t bytes);
 
 // Funciones para realizar operaciones basicas:
 void enviar_mensaje(char* mensaje, int socket_cliente);
@@ -74,8 +87,10 @@ t_pcb* rcv_contexto_ejecucion(int socket_cliente);
 t_list *recv_list(int socket_cliente);
 void enviar_buffer(void* buffer, size_t tamanio, int socket);
 void recibir_program_counter(int socket_cpu,int *pid,int *program_counter);
-void recv_archi_pid(int socket_cliente, char **path, int* pid);
+
+
 // Funciones de saludo inicial:
 void generar_handshake(int socket, char *server_name, char *ip, char *puerto);
+void recibir_handshake(int socket);
 
 #endif //PROTOCOLO_H

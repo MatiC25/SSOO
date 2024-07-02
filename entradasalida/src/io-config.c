@@ -2,7 +2,7 @@
 
 t_config_io* inicializar_config_io() {
     t_config_io* config_io = malloc(sizeof(t_config_io));
-    config_io->TIEMPO_UNIDAD_UNIDAD = 0;
+    config_io->TIEMPO_UNIDAD_TRABAJO = 0;
     config_io->IP_KERNEL = NULL;
     config_io->PUERTO_KERNEL = NULL;
     config_io->IP_MEMORIA = NULL;
@@ -26,7 +26,7 @@ void configurar_valores_memoria(t_config_io *config_io, t_config *config) {
 }
 
 void configurar_tiempo_unidad(t_config_io *config_io, t_config *config) {
-    config_io->TIEMPO_UNIDAD_UNIDAD = config_get_int_value(config, "TIEMPO_UNIDAD_TRABAJO");
+    config_io->TIEMPO_UNIDAD_TRABAJO = config_get_int_value(config, "TIEMPO_UNIDAD_TRABAJO");
 }
 
 void configurar_valores_dialfs(t_config_io *config_io, t_config *config){

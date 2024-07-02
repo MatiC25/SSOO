@@ -1,20 +1,15 @@
 #ifndef IO_H
 #define IO_H
 
-// Incluye las bibliotecas necesarias:
+// Incluye las bibliotecas necesarias externas:
+#include <utils/logger.h>
 
-#include "io-conexiones.h"
+// Incluye las bibliotecas necesarias internas:
 #include "io-config.h"
 #include "io-estructuras.h"
-#include "io-init.h"
 #include "io-conexiones.h"
+#include "io-init.h"
 #include "io-peticiones.h"
-#include <utils/protocolo.h>
-
-
-
-void interfaz_conectar(t_interfaz * interfaz);
-
-//extern t_config_io* config_io;
+#include "io-protocolo.h"
 
 #endif // IO_H

@@ -3,6 +3,7 @@
 t_paquete* crear_paquete(op_code operacion) {
 	t_paquete* paquete = malloc(sizeof(t_paquete));
     paquete->codigo_operacion = operacion;
+    
 	crear_buffer(paquete);
 	return paquete;
 }
@@ -14,38 +15,20 @@ void crear_buffer(t_paquete* paquete) {
 }
 
 void agregar_a_paquete(t_paquete* paquete, void* valor, int tamanio) {
-	paquete->buffer->stream = realloc(paquete->buffer->stream, paquete->buffer->size + tamanio + sizeof(int));
-
-	memcpy(paquete->buffer->stream + paquete->buffer->size, &tamanio, sizeof(int));
-	memcpy(paquete->buffer->stream + paquete->buffer->size + sizeof(int), valor, tamanio);
-
-	paquete->buffer->size += tamanio + sizeof(int);
-	
-	// paquete->buffer->stream = realloc(paquete->buffer->stream, paquete->buffer->size + tamanio);
-	// memcpy(paquete->buffer->stream + paquete->buffer->size, valor, tamanio);
-	// paquete->buffer->size += tamanio;
+	paquete->buffer->stream = realloc(paquete->buffer->stream, paquete->buffer->size + tamanio);
+	memcpy(paquete->buffer->stream + paquete->buffer->size, valor, tamanio);
+	paquete->buffer->size += tamanio;
 }
 
-void enviar_paquete(t_paquete* paquete, int socket_cliente) {
-	int bytes = paquete->buffer->size + sizeof(op_code) + sizeof(uint32_t);
-	void* a_enviar = serializar_paquete(paquete, &bytes);
+
+void enviar_paquete(t_paquete* paquete, int socket_cliente)
+{
+	int bytes = paquete->buffer->size + 2 *sizeof(int);
+	void* a_enviar = serializar_paquete(paquete, bytes);
 
 	send(socket_cliente, a_enviar, bytes, 0);
 
 	free(a_enviar);
-}
-
-void* serializar_paquete(t_paquete* paquete, int* bytes) {
-	void * magic = malloc(*bytes);
-	int desplazamiento = 0;
-
-	memcpy(magic + desplazamiento, &(paquete->codigo_operacion), sizeof(op_code)); //Creo qeu hay que sacarlo
-	desplazamiento += sizeof(op_code);
-	memcpy(magic + desplazamiento, &(paquete->buffer->size), sizeof(uint32_t));
-	desplazamiento += sizeof(uint32_t);
-	memcpy(magic + desplazamiento, paquete->buffer->stream, paquete->buffer->size);
-
-	return magic;
 }
 
 void eliminar_paquete(t_paquete* paquete) {
@@ -76,34 +59,53 @@ int recibir_operacion(int socket_cliente)
 	}
 }
 
-void enviar_mensaje(char* mensaje, int socket_cliente)
-{
-	t_paquete* paquete = malloc(sizeof(t_paquete));
+void* serializar_paquete(t_paquete* paquete, int bytes) {
+	void * magic = malloc(bytes);
+	int desplazamiento = 0;
 
-	paquete->codigo_operacion = MENSAJE;       //ponele Pseudocodigo hdp!!!!
-	paquete->buffer = malloc(sizeof(t_buffer));
-	paquete->buffer->size = strlen(mensaje) + 1;
-	paquete->buffer->stream = malloc(paquete->buffer->size);
-	memcpy(paquete->buffer->stream, mensaje, paquete->buffer->size);
+	memcpy(magic + desplazamiento, &(paquete->codigo_operacion), sizeof(op_code));
+	desplazamiento += sizeof(op_code);
+	memcpy(magic + desplazamiento, &(paquete->buffer->size), sizeof(uint32_t));
+	desplazamiento += sizeof(uint32_t);
+	memcpy(magic + desplazamiento, paquete->buffer->stream, paquete->buffer->size);
 
-	int bytes = paquete->buffer->size + 2 * sizeof(int);
-	void* a_enviar = serializar_paquete(paquete, &bytes);
-	int bytes_enviados = send(socket_cliente, a_enviar, bytes, 0);
-
-	if (bytes_enviados == -1){
-		log_error (logger, "Error al enviar mensaje");
-	}
-
-	free(a_enviar);
-	eliminar_paquete(paquete);
+	return magic;
 }
 
-void recibir_mensaje(int socket_cliente)
-{
-	int size;
-	char *buffer = recibir_buffer(&size, socket_cliente);
-	log_info(logger, "Me llego el mensaje %s", buffer);
-	free(buffer);
+void enviar_mensaje(char* mensaje, int socket_cliente) {
+    t_paquete *paquete = crear_paquete(MENSAJE);
+
+    agregar_a_paquete_string(paquete, mensaje, strlen(mensaje) + 1);
+
+    enviar_paquete(paquete, socket_cliente);
+    eliminar_paquete(paquete);
+}
+
+void recibir_mensaje(int socket_cliente) {
+    int size;
+    int tam;
+    int desplazamiento = 0;
+    char *buffer = recibir_buffer(&size, socket_cliente);
+
+    // Leemos el tamaño del mensaje:
+    memcpy(&tam, buffer + desplazamiento, sizeof(int));
+    desplazamiento += sizeof(int);
+
+    // Reservamos memoria para el mensaje y copiamos el mensaje recibido:
+    char* mensaje = malloc(tam);
+
+    if (mensaje == NULL) {
+        
+        log_error(logger, "Error al asignar memoria para el mensaje");
+        free(buffer);
+        return;
+    }
+
+    memcpy(mensaje, buffer + desplazamiento, tam );
+
+    log_info(logger, "Mensaje recibido: %s", mensaje);
+    free(buffer);
+    free(mensaje); // No olvides liberar la memoria del mensaje después de usarlo
 }
 
 
@@ -161,74 +163,71 @@ void agregar_a_paquete_string(t_paquete* paquete, char* cadena, int tamanio) {
 
 
 t_pcb* rcv_contexto_ejecucion(int socket_cliente) {
-    
-    t_pcb* proceso = malloc(sizeof(t_pcb));
-    if (proceso == NULL) {
-        log_error(logger, "Error al asignar memoria para el proceso");
-        return NULL;
-    }
-
-    proceso->registros = malloc(sizeof(t_registro_cpu));
-    if (proceso->registros == NULL) {
-        log_error(logger, "Error al asignar memoria para los registros del proceso");
-        free(proceso);
-        return NULL;
-    }
-
     int size;
     int desplazamiento = 0;
-    
-    void* buffer = recibir_buffer(&size, socket_cliente);
+
+    void *buffer = recibir_buffer(&size, socket_cliente);
     if (buffer == NULL) {
-        log_error(logger, "Error al recibir el buffer del socket");
-        free(proceso->registros);
-        free(proceso);
         return NULL;
     }
 
-    memcpy(&proceso->pid, buffer + desplazamiento, sizeof(int));
+    t_pcb *pcb = malloc(sizeof(t_pcb));
+    if (pcb == NULL) {
+        perror("Error al asignar memoria para t_pcb");
+        free(buffer);
+        return NULL;
+    }
+
+    pcb->registros = malloc(sizeof(t_registro_cpu));
+    if (pcb->registros == NULL) {
+        perror("Error al asignar memoria para t_registro_cpu");
+        free(pcb);
+        free(buffer);
+        return NULL;
+    }
+
+    memcpy(&(pcb->pid), buffer + desplazamiento, sizeof(int));
     desplazamiento += sizeof(int);
 
-    memcpy(&proceso->program_counter, buffer + desplazamiento, sizeof(int));
+    memcpy(&(pcb->program_counter), buffer + desplazamiento, sizeof(int));
     desplazamiento += sizeof(int);
 
-    memcpy(&proceso->registros->PC, buffer + desplazamiento, sizeof(uint32_t));
+    memcpy(&(pcb->registros->PC), buffer + desplazamiento, sizeof(uint32_t));
     desplazamiento += sizeof(uint32_t);
 
-    memcpy(&proceso->registros->AX, buffer + desplazamiento, sizeof(uint8_t));
+    memcpy(&(pcb->registros->AX), buffer + desplazamiento, sizeof(uint8_t));
     desplazamiento += sizeof(uint8_t);
 
-    memcpy(&proceso->registros->BX, buffer + desplazamiento, sizeof(uint8_t));
+    memcpy(&(pcb->registros->BX), buffer + desplazamiento, sizeof(uint8_t));
     desplazamiento += sizeof(uint8_t);
 
-    memcpy(&proceso->registros->CX, buffer + desplazamiento, sizeof(uint8_t));
+    memcpy(&(pcb->registros->CX), buffer + desplazamiento, sizeof(uint8_t));
     desplazamiento += sizeof(uint8_t);
 
-    memcpy(&proceso->registros->DX, buffer + desplazamiento, sizeof(uint8_t));
+    memcpy(&(pcb->registros->DX), buffer + desplazamiento, sizeof(uint8_t));
     desplazamiento += sizeof(uint8_t);
 
-    memcpy(&proceso->registros->EAX, buffer + desplazamiento, sizeof(uint32_t));
+    memcpy(&(pcb->registros->EAX), buffer + desplazamiento, sizeof(uint32_t));
     desplazamiento += sizeof(uint32_t);
 
-    memcpy(&proceso->registros->EBX, buffer + desplazamiento, sizeof(uint32_t));
+    memcpy(&(pcb->registros->EBX), buffer + desplazamiento, sizeof(uint32_t));
     desplazamiento += sizeof(uint32_t);
 
-    memcpy(&proceso->registros->ECX, buffer + desplazamiento, sizeof(uint32_t));
+    memcpy(&(pcb->registros->ECX), buffer + desplazamiento, sizeof(uint32_t));
     desplazamiento += sizeof(uint32_t);
 
-    memcpy(&proceso->registros->EDX, buffer + desplazamiento, sizeof(uint32_t));
+    memcpy(&(pcb->registros->EDX), buffer + desplazamiento, sizeof(uint32_t));
     desplazamiento += sizeof(uint32_t);
 
-    memcpy(&proceso->registros->SI, buffer + desplazamiento, sizeof(uint32_t));
+    memcpy(&(pcb->registros->SI), buffer + desplazamiento, sizeof(uint32_t));
     desplazamiento += sizeof(uint32_t);
 
-    memcpy(&proceso->registros->DI, buffer + desplazamiento, sizeof(uint32_t));
+    memcpy(&(pcb->registros->DI), buffer + desplazamiento, sizeof(uint32_t));
     desplazamiento += sizeof(uint32_t);
 
     free(buffer);
-    return proceso;
+    return pcb;
 }
-
 
 t_list *recv_list(int socket_cliente) {
 	int tamanio;
@@ -290,8 +289,7 @@ void generar_handshake(int socket, char *server_name, char *ip, char *puerto) {
 
 	op_code cod_op = HANDSHAKE; 
 	send(socket, &cod_op, sizeof(op_code), 0);
-
-
+    
     send(socket, &handshake, sizeof(int32_t), 0);
 	recv(socket, &result, sizeof(int32_t), MSG_WAITALL);
 
@@ -304,18 +302,16 @@ void generar_handshake(int socket, char *server_name, char *ip, char *puerto) {
 }
 
 void recibir_handshake(int socket) {
-	size_t bytes;
-
 	int32_t handshake;
 	int32_t resultOk = 0;
 	int32_t resultError = -1;
 
-	bytes = recv(socket, &handshake, sizeof(int32_t), MSG_WAITALL);
+	recv(socket, &handshake, sizeof(int32_t), MSG_WAITALL);
 	
 	if (handshake == 1) 
-		bytes = send(socket, &resultOk, sizeof(int32_t), 0);
+		send(socket, &resultOk, sizeof(int32_t), 0);
 	else 
-		bytes = send(socket, &resultError, sizeof(int32_t), 0);
+		send(socket, &resultError, sizeof(int32_t), 0);
 }
 
 //Creamos una funcion que envie el archivo pseudo y el pid del proceso desde kernel a memoria para que pueda ser utilizado en la lectura de pseudocodigo
@@ -350,29 +346,64 @@ void enviar_buffer(void* buffer, size_t tamanio, int socket){
 	
 }
 
+void rcv_string(char **string, int socket_cliente) {
+    int size;
 
-void recv_archi_pid(int socket_cliente, char **path, int* pid){ // Se usan punteros xq necesitamos modificar las variables que se pasan por parametro
-	int size;
-	int desplazamiento = 0;
-	void *buffer;
-	int tamanio;
-
-	buffer = recibir_buffer(&size, socket_cliente); //Recibimos el buffer que antes enviamos
-	while (desplazamiento < size) // Leemos el buffer hasta que lleguemos al final
-	{
-		memcpy(&tamanio, buffer + desplazamiento, sizeof(int)); //Averiguamos que tan largo es el string (path)
-		desplazamiento += sizeof(int);
-		path = malloc(tamanio); // Una vez que sabemos el largo, podemos reservar el espacio de memoraia del mismo 
-								
-		memcpy(*path, buffer + desplazamiento, tamanio); // Copiamos todo el path de una en la variable "*path"
-		desplazamiento += tamanio;
-
-		memcpy(pid, buffer + desplazamiento, sizeof(int));
-		desplazamiento += sizeof(int);
-
-	}
-	free(buffer);
+    recv(socket_cliente, &size, sizeof(int), MSG_WAITALL);
+    *string = malloc(size);
+    recv(socket_cliente, *string, size, MSG_WAITALL);
 }
+
+// void recv_archi_pid(int socket_cliente, char **path, int* pid){ // Se usan punteros xq necesitamos modificar las variables que se pasan por parametro
+// 	int size;
+// 	int desplazamiento = 0;
+// 	void *buffer;
+// 	int tamaño;
+
+// 	buffer = recibir_buffer(&size, socket_cliente); //Recibimos el buffer que antes enviamos
+// 	while (desplazamiento < size) // Leemos el buffer hasta que lleguemos al final
+// 	{
+// 		memcpy(&tamaño, buffer + desplazamiento, sizeof(int)); //Averiguamos que tan largo es el string (path)
+// 		desplazamiento += sizeof(int);
+// 		path = malloc(tamaño); // Una vez que sabemos el largo, podemos reservar el espacio de memoraia del mismo 
+								
+// 		memcpy(*path, buffer + desplazamiento, tamaño); // Copiamos todo el path de una en la variable "*path"
+// 		desplazamiento += tamaño;
+
+// 		memcpy(pid, buffer + desplazamiento, sizeof(int));
+// 		desplazamiento += sizeof(int);
+
+// 	}
+// 	free(buffer);
+// }
+
+// void recv_archi_pid(int socket_cliente, char **path, int* pid) {
+//     int size;
+//     int desplazamiento = 0;
+//     void *buffer;
+//     int tamanio;
+
+//     buffer = recibir_buffer(&size, socket_cliente); // Recibimos el buffer que antes enviamos
+//     if (size > 0) { // Ensure there's data to process
+//         memcpy(&tamanio, buffer + desplazamiento, sizeof(int)); // Averiguamos que tan largo es el string (path)
+//         desplazamiento += sizeof(int);
+
+//         *path = malloc(tamanio + 1); // Allocate memory for the path, +1 for null terminator
+//         if (*path == NULL) {
+//             free(buffer);
+//             return; // Handle memory allocation failure
+//         }
+
+//         memcpy(*path, buffer + desplazamiento, tamanio); // Copiamos todo el path en la variable "*path"
+//         (*path)[tamanio] = '\0'; // Null-terminate the string
+//         desplazamiento += tamanio;
+
+//         memcpy(pid, buffer + desplazamiento, sizeof(int)); // Copy the PID
+//         desplazamiento += sizeof(int);
+//     }
+
+//     free(buffer);
+// }
 
 //Funcion para recibir el PC y el PID de un proceso
 void recibir_program_counter(int socket_cpu, int *pid, int *program_counter){

@@ -1,11 +1,10 @@
 #ifndef IO_UTILS_H
 #define IO_UTILS_H
-#include <utils/estructuras_compartidas.h>
-#include <utils/logger.h>
-#include "io.h"
-// Incluye las estructuras necesarias:
+
 #include "io-config.h"
 #include "io-estructuras.h"
+
+// Incluye las estructuras necesarias:
 
 // Setea el socket con la memoria:
 void set_socket_memory(int socket, t_interfaz * interfaz);
@@ -25,9 +24,24 @@ int get_socket_kernel(t_interfaz * interfaz);
 // Devuelve el nombre de la interfaz:
 void set_interfaz_name(char* name, t_interfaz * interfaz) ;
 
-char* get_interfaz_name(t_interfaz * interfaz);
+char *get_interfaz_name(t_interfaz * interfaz);
 
 //Devuelve el tiempo de una interfaz
-int get_tiempo_unidad(t_config_io* config_io);
+int get_tiempo_unidad(t_interfaz * interfaz);
+
+//Devuelve el path de una interfaz
+char *get_path_dial_fs(t_interfaz * interfaz);
+
+size_t get_tamanio_bitmap(t_interfaz *interfaz);
+
+int get_block_count(t_interfaz *interfaz);
+
+int get_block_size(t_interfaz *interfaz);
+
+int get_total_de_bytes(t_list *direcciones);
+
+char *get_nombre_operacion(tipo_operacion operacion);
+
+tipo_interfaz get_tipo_interfaz_to_int(t_interfaz *interfaz);
 
 #endif // IO_UTILS_H

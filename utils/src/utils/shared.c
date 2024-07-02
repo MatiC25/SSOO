@@ -74,23 +74,42 @@ void copiar_valor(char** destino, char* valor) // Funcion: copia el valor de una
     strcpy(*destino, valor);
 }
 
-void crear_vector_dinamico_char(char*** vector, char* informacion[]) // Funcion: crea un vector dinamico de char
-{ 
+void crear_vector_dinamico_char(char*** vector, char* informacion[]) {
     int cantidad_de_elementos = string_array_size(informacion);
     *vector = (char **)malloc(sizeof(char *) * (cantidad_de_elementos + 1));
-    (*vector)[cantidad_de_elementos] = NULL;
 
-    for(size_t i = 0; informacion[i] != NULL; i++) 
+    if (*vector == NULL) {
+        perror("Error al asignar memoria");
+        exit(EXIT_FAILURE);
+    }
+
+    for (size_t i = 0; informacion[i] != NULL; i++) {
         (*vector)[i] = strdup(informacion[i]);
+        if ((*vector)[i] == NULL) {
+            perror("Error al duplicar cadena");
+            // Liberar memoria previamente asignada en caso de error
+            for (size_t j = 0; j < i; j++) {
+                free((*vector)[j]);
+            }
+            free(*vector);
+            exit(EXIT_FAILURE);
+        }
+    }
+    (*vector)[cantidad_de_elementos] = NULL;
 }
 
-void crear_vector_dinamico_int(int** vector, char* informacion[]) 
-{
+void crear_vector_dinamico_int(int** vector, char* informacion[]) {
     int cantidad_de_elementos = string_array_size(informacion);
-    *vector = (int *)malloc(sizeof(int *) * (cantidad_de_elementos + 1));
+    *vector = (int *)malloc(sizeof(int) * cantidad_de_elementos);
 
-    for (size_t i = 0; informacion[i] != NULL; i++)
+    if (*vector == NULL) {
+        perror("Error al asignar memoria");
+        exit(EXIT_FAILURE);
+    }
+
+    for (size_t i = 0; i < cantidad_de_elementos; i++) {
         (*vector)[i] = atoi(informacion[i]);
+    }
 }
 
 void recorrer_vector_char(char* vector[]) 
