@@ -9,10 +9,10 @@ void send_message_to_interface(interface_io *interface, t_list *args, int *respo
             break;
         case STDIN:
         case STDOUT:
-            send_message_to_std_interface(get_socket_interface(interface), args, response);
+            send_message_to_std_interface(socket, args, response);
             break;
         case DIALFS:
-            send_message_to_dialfs_interface(get_socket_interface(interface), args, response);
+            send_message_to_dialfs_interface(socket, args, response);
             break;
         default:
             // Manejo de error o caso por defecto
@@ -64,7 +64,11 @@ void send_message_to_std_interface(int socket, t_list *args, int *response) {
     t_list *direcciones_fisicas_y_bytes = list_get(args, 2);
 
     // Enviamos la cantidad de bytes a enviar:
-    int cant_de_bytes = sizeof(int) * 2 * list_size(direcciones_fisicas_y_bytes) + sizeof(int) * 2;
+    int cant_de_bytes = sizeof(int) * list_size(direcciones_fisicas_y_bytes) + sizeof(int) * 2;
+    if(send(socket, &cant_de_bytes, sizeof(int), 0) == -1) {
+        perror("Error al enviar la cantidad de bytes a enviar");
+        return;
+    }
 
     // Enviamos el pid del proceso:
     int pid_proceso = *pid_proceso_ptr;
@@ -85,6 +89,7 @@ void send_message_to_std_interface(int socket, t_list *args, int *response) {
 
         // Enviamos la dirección física:
         int *direccion_fisica = list_get(direcciones_fisicas_y_bytes, i * 2);
+
         if (send(socket, direccion_fisica, sizeof(int), 0) == -1) {
             perror("Error al enviar la dirección física");
             return;
@@ -92,6 +97,9 @@ void send_message_to_std_interface(int socket, t_list *args, int *response) {
 
         // Enviamos los bytes a leer:
         int *bytes_a_leer = list_get(direcciones_fisicas_y_bytes, i * 2 + 1);
+
+        log_info(logger, "Se envían los bytes a leer %d al proceso %d", *bytes_a_leer, pid_proceso);
+
         if (send(socket, bytes_a_leer, sizeof(int), 0) == -1) {
             perror("Error al enviar los bytes a leer");
             return;
@@ -251,9 +259,12 @@ t_list * recv_interfaz_y_argumentos(int socket, int pid_proceso) {
     char *nombre_interfaz = parsear_string(buffer, &desplazamiento);
     list_add(interfaz_y_argumentos, nombre_interfaz);
 
+    log_info(logger, "Desplazamiento: %d", desplazamiento);
+
     // Obtenemos los argumentos:
     t_list *argumentos = obtener_argumentos(buffer, &desplazamiento, size, operacion_a_realizar, pid_proceso);
     list_add(interfaz_y_argumentos, argumentos);
+
 
     return interfaz_y_argumentos;
 }
@@ -265,6 +276,8 @@ int parsear_int(void *buffer, int *desplazamiento) {
 
     memcpy(&dato, buffer + *desplazamiento, sizeof(int));
     *desplazamiento += sizeof(int);
+
+    log_info(logger, "Dato parseado: %d", dato);
 
     return dato;
 }
@@ -341,23 +354,27 @@ void obtener_argumentos_generica(t_list *argumentos, void *buffer, int *desplaza
 
 void obtener_argumentos_std(t_list *argumentos, void *buffer, int *desplazamiento, int size) {
 
-    // Obtenemos la dirección física y los bytes a leer:
-    int *direccion_fisica = malloc(sizeof(int));
-    int *bytes_a_leer = malloc(sizeof(int));
+    // Inicializamos el desplazamiento inicial:
+    int desplazamiento_inicial = *desplazamiento;
 
     // Creamos la lista de direcciones físicas y bytes a leer/escribir:
     t_list *direcciones_fisicas_y_bytes = list_create();
 
-    while(*desplazamiento < size) {
-        *direccion_fisica = parsear_int(buffer, desplazamiento);
-        *bytes_a_leer = parsear_int(buffer, desplazamiento);
+    while(desplazamiento_inicial < size) {
+        int *direccion_fisica_ptr = malloc(sizeof(int));
+        int *bytes_a_leer_ptr = malloc(sizeof(int));
 
-        list_add(direcciones_fisicas_y_bytes, direccion_fisica);
-        list_add(direcciones_fisicas_y_bytes, bytes_a_leer);
+        *direccion_fisica_ptr = parsear_int(buffer, &desplazamiento_inicial);
+        *bytes_a_leer_ptr = parsear_int(buffer, &desplazamiento_inicial);
+
+        list_add(direcciones_fisicas_y_bytes, direccion_fisica_ptr);
+        list_add(direcciones_fisicas_y_bytes, bytes_a_leer_ptr);
     }
 
     list_add(argumentos, direcciones_fisicas_y_bytes);
+    *desplazamiento = desplazamiento_inicial;
 }
+
 
 void obtener_argumentos_dialfs_create_o_delete(t_list *argumentos, void *buffer, int *desplazamiento) {
 

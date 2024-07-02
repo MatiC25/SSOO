@@ -4,6 +4,7 @@
 
 void send_respuesta_a_kernel(int respuesta, t_interfaz * interfaz) {
     int socket_kernel = get_socket_kernel(interfaz);
+
     send(socket_kernel, &respuesta, sizeof(int), 0);
 
     return;
@@ -24,6 +25,7 @@ t_list *recibir_argumentos(t_interfaz *interfaz, int socket_kernel) {
     int size;
     int desplazamiento = 0;
     void *buffer = recibir_buffer(&size, socket_kernel);
+
 
     // Parseamos el buffer para obtener los argumentos:
     t_list *argumentos = list_create();
@@ -49,6 +51,8 @@ t_list *recibir_argumentos(t_interfaz *interfaz, int socket_kernel) {
         t_list *direcciones = obtener_direcciones_fisicas(size, &desplazamiento, buffer);
         list_add(argumentos, direcciones);
     }
+
+
 
     //Liberamos el buffer recibido:
     free(buffer);
@@ -100,10 +104,14 @@ t_list *obtener_direcciones_fisicas(int size, int *desplazamiento, void *buffer)
         // Obtenemos la dirección física:
         memcpy(&direccion_fisica, buffer + *desplazamiento, sizeof(int));
         *desplazamiento += sizeof(int);
+        
+        log_info(logger, "Dirección física: %d", direccion_fisica);
 
         // Obtenemos el tamaño:
         memcpy(&tamanio, buffer + *desplazamiento, sizeof(int));
         *desplazamiento += sizeof(int);
+
+        log_info(logger, "Tamaño: %d", tamanio);
 
         // Creamos la dirección física:
         t_direccion_fisica *direccion = malloc(sizeof(t_direccion_fisica));
@@ -144,10 +152,15 @@ void send_bytes_a_leer(t_interfaz *interfaz, int pid, t_list *direcciones, void 
     int size = list_size(direcciones);
     int socket_memoria = get_socket_memory(interfaz);
 
+    log_info(logger, "Cantidad de direcciones: %d", size);
+
     for (int i = 0; i < size; i++) {
         t_direccion_fisica *direccion = list_get(direcciones, i);
         int direccion_fisica = direccion->direccion_fisica;
         int tamanio = direccion->tamanio;
+
+        log_info(logger, "Dirección física: %d", direccion_fisica);
+        log_info(logger, "Tamaño: %d", tamanio);
 
         // Enviamos la dirección física a memoria:
         t_paquete *paquete = crear_paquete(ACCESO_A_ESCRITURA);
@@ -161,7 +174,7 @@ void send_bytes_a_leer(t_interfaz *interfaz, int pid, t_list *direcciones, void 
         agregar_a_paquete(paquete, buffer, tamanio);
 
         // Asegúrate de enviar el paquete a la memoria usando socket_memoria
-        enviar_paquete(socket_memoria, paquete);
+        enviar_paquete(paquete, socket_memoria);
 
         // Liberar la memoria usada para buffer y el paquete
         free(buffer);

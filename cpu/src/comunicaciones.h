@@ -36,6 +36,7 @@ int comunicaciones_con_memoria_escritura(t_mmu_cpu* mmu, int valor);
 int comunicaciones_con_memoria_lectura(t_mmu_cpu* mmu);
 void solicitar_a_kernel_std(char* interfaz , t_mmu_cpu* mmu ,t_paquete* solicitar_std);
 void* recv_leer_memoria(int tamanio);
-
+char* comunicaciones_con_memoria_lectura_copy_string(t_mmu_cpu* mmu);
+int comunicaciones_con_memoria_escritura_copy_string(t_mmu_cpu* mmu, char* valor);
 
 #endif

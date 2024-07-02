@@ -188,10 +188,17 @@ void imprimir_proceso_exec() {
 
 void* multiprogramacion(void* args) {
     char *multiprogramacion = (char*) args;
-    int valor_multiprogramacion = atoi(multiprogramacion);
-
-    for (int i = 0; i < valor_multiprogramacion; i++)
-        sem_post(&sem_multiprogramacion);
+    int nuevo_grado_multiprogramacion = atoi(multiprogramacion);
+    int diferencia = nuevo_grado_multiprogramacion - config_kernel->GRADO_MULTIP;
+    if(diferencia < 0) {// O sea, se baja el grado de multi 
+        for(int i = 0; i < diferencia + 1; i++) 
+            sem_wait(&sem_multiprogramacion);
+    }
+    else {
+        for(int i = 0; i < diferencia + 1; i++)
+            sem_post(&sem_multiprogramacion);
+    }
+    config_kernel->GRADO_MULTIP = nuevo_grado_multiprogramacion;
     return NULL;
 }
 
@@ -286,12 +293,6 @@ t_pcb* pcb_encontrado(t_list* cola_a_buscar_pid, int pid_buscado) {
     pid_buscado_global = pid_buscado;
     t_pcb* resultado = list_find(cola_a_buscar_pid, es_el_proceso_buscado);
     return resultado;
-}
-
-
-bool existe_proceso_con_pid_ingresado(t_list* cola_a_buscar_pid, int pid_buscado) {
-    pid_buscado_global = pid_buscado;
-    return list_any_satisfy(cola_a_buscar_pid, es_el_proceso_buscado);
 }
 
 

@@ -283,6 +283,12 @@ void liberar_marco(int marco) {
     bitarray_clean_bit(bitmap, marco); // Marca el bit como libre (pone 0)
 }
 
+void inicializar_bitmap(){
+    for(int i; i < bitarray_get_max_bit(bitmap); i++){
+        bitarray_clean_bit(bitmap, i);
+    }
+}
+
 //Acceso a espacio de usuario: "PID:" <PID> "- Accion:" <LEER / ESCRIBIR> "- Direccion fisica:" <DIRECCION_FISICA> "- Tamanio" <TAMANIO A LEER / ESCRIBIR>
 void acceso_lectura(int socket_cliente){
     int size;
@@ -302,7 +308,6 @@ void acceso_lectura(int socket_cliente){
     memcpy(&tamanio_lectura, buffer + desplazamiento, sizeof(int));
     desplazamiento += sizeof(int);
     log_warning(logger, "Tamanio a leer : %i", tamanio_lectura);
-
     // Asignar memoria para el contenido a leer
     void* contenido_leer = malloc(tamanio_lectura);
 
@@ -333,9 +338,11 @@ void acceso_lectura(int socket_cliente){
     log_info(logger, "Acceso a espacio de usuario: PID: %d - Accion: LEER - Direccion fisica: %d  - Tamaño: %d", pid, direc_fisica, tamanio_lectura);
     mem_hexdump(espacio_de_usuario + direc_fisica, tamanio_lectura);
 
+
     t_paquete* paquete = crear_paquete(EXITO);
     agregar_a_paquete(paquete, contenido_leer, tamanio_lectura);
     enviar_paquete(paquete, socket_cliente);
+
 
     eliminar_paquete(paquete);
     free(contenido_leer);

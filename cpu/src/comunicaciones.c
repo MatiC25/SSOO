@@ -31,92 +31,173 @@ int comunicaciones_con_memoria_lectura(t_mmu_cpu* mmu){
 
         enviar_a_leer_memoria(pcb->pid, direc, tam);
         void* valor = recv_leer_memoria(tam);
+        void* valor_ptr = &valor_final;
 
         // Concatenar la parte leída al valor final
-        memcpy((unsigned char*)&valor_final + desplazamiento, valor, tam);
+        memcpy((unsigned char*)valor_ptr + desplazamiento, valor, tam);
         desplazamiento += tam;
         
-        log_info(logger, "PID: %i - Acción LEER - Dirección Física: %i - Valor: 0x%x", pcb->pid, direc, valor_final);
+        log_info(logger, "PID: %i - Acción LEER - Dirección Física: %i - Valor: %i", pcb->pid, direc, valor_final);
 
         free(valor);
         free(direccionFIsicaa);
         free(tamanio);
 
-        int verificador = recv_escribir_memoria();
-        if (verificador = -1){
-        t_paquete* paquete_a_kernel = crear_paquete(OUT_OF_MEMORY);
-        enviar_pcb_a_kernel(paquete_a_kernel);
-        enviar_paquete(paquete_a_kernel, config_cpu->SOCKET_KERNEL);
-        eliminar_paquete(paquete_a_kernel);
-        }
-        
+
    }
     return valor_final;
 }
- 
-       
 
-int comunicaciones_con_memoria_escritura(t_mmu_cpu* mmu, int valor){
-    int verificador;
+char* comunicaciones_con_memoria_lectura_copy_string(t_mmu_cpu*mmu){
     int desplazamiento = 0;
-    uint32_t registro_reconstruido = 0; 
-//log_warning(logger, "Cantidad de DF: %i", list_size(mmu->direccionFIsica));
-    //log_info(logger,"VALOR INICIAL: %i" , valor);
+    int total_tam = 0;
+    int direc;
+
+    for (int i = 0; i < list_size(mmu->direccionFIsica); i++){
+        int* tamnio = (int*)list_get(mmu->tamanio, i);
+        total_tam += *tamnio;
+    }
+
+    char* palabra = malloc(total_tam + 1);
+    if (palabra == NULL){
+        log_warning(logger, "NO HAY MEMORIA TONTISSS");
+        return NULL;
+    }
+    
+    
+
     while (!list_is_empty(mmu->direccionFIsica)){
-        int* direccionFIsicaa = (int*)list_remove(mmu->direccionFIsica,0);
+        int* direccionFIsicaa = (int*)list_remove(mmu->direccionFIsica, 0);
+        int* tamanio = (int*)list_remove(mmu->tamanio, 0);
+        int tam = *tamanio;
+        direc = *direccionFIsicaa;
+
+        enviar_a_leer_memoria(pcb->pid, direc, tam);
+        void* valor = recv_leer_memoria(tam);
+        void* palabra_ptr = &palabra;
+
+        memcpy(palabra + desplazamiento, valor,tam);
+        desplazamiento += tam;
+
+        log_info(logger, "PID: %i - Acción LEER - Dirección Física: %i - Parte Leída: %s", pcb->pid, direc, (char*)valor);
+
+        free(valor);
+        free(direccionFIsicaa);
+        free(tamanio);
+    }
+    return palabra;
+}
+
+int comunicaciones_con_memoria_escritura_copy_string(t_mmu_cpu* mmu, char* valor){
+    int verificador;
+    char* palabra;
+    int desplazamiento = 0;
+    int des = 0;
+    int longitud = strlen(valor);
+    char* palbara_reconstruida = (char*)malloc(longitud + 1);
+    if (palbara_reconstruida == NULL){
+            log_warning(logger, "ERRORE ASIGNAR MEMORIA");
+            return -1;
+        }
+    while (!list_is_empty(mmu->direccionFIsica)) {
+        int* direccionFIsicaa = (int*)list_remove(mmu->direccionFIsica, 0);
         int* tamanio = (int*)list_remove(mmu->tamanio, 0);
 
-        uint32_t registro_ecx = valor;
-        int tam  = *tamanio;
+        int tam = *tamanio;
         int direc = *direccionFIsicaa;
-        int tam1 = tam;
-        int desplazamiento = 0;
-        int des = 0;
-    
-        //reservar memoria para la primera parte del valor
-        void* registro_parte_1 = malloc(tam1); 
-    
-        // creamos los punteros a al registro original y al que reconstruiremos
-        void* registro_puntero = &registro_ecx; 
-        void* registro_reconstruido_puntero = &registro_reconstruido;
-    
-        // copia la parte del valor en la parte de momeria recervada
-        memcpy(registro_parte_1, registro_puntero + desplazamiento, tam1);
-        desplazamiento += tam1;
-    
-        //log_info( logger,"El valor de ECX completo es: %d \n", registro_ecx);
-        //log_info( logger,"El valor de ECX antes de reconstruirlo: %d \n", registro_reconstruido);
-    
-        // esto ya serai para la parte de leer
-        // reconstruir la primera parte del valor dividido
-        uint32_t* medio_parte_1 = (uint32_t*)registro_parte_1;
 
-        //log_info( logger,"El valor de la primer mitad de ECX: %d \n", *medio_parte_1);
-        memcpy(registro_reconstruido_puntero +des, registro_parte_1, tam);
+        // Reservar memoria para la parte del valor
+        char* palabra_parte = (char*)malloc(tam);
+        if (palabra_parte == NULL){
+            log_warning(logger, "ERRORE ASIGNAR MEMORIA");
+            free(direccionFIsicaa);
+            free(tamanio);
+            free(palabra_parte);
+            return -1;
+        }
+        
+
+        // Copiar la parte del valor en la memoria reservada
+        memcpy(palabra_parte, valor + desplazamiento, tam); // NOC SI VA EL (unsigned char*)&
+        desplazamiento += tam;
+
+        // Reconstruir la parte del valor dividido
+        memcpy(palbara_reconstruida + des, palabra_parte, tam); // NOC SI VA EL (unsigned char*)&
         des += tam;
 
-
-        send_escribi_memoria(pcb->pid, direc, tam  , *medio_parte_1);
+        send_escribi_memoria_string(pcb->pid, direc, tam, palabra_parte);
         verificador = recv_escribir_memoria();
-        if (verificador == -1){
-            log_error(logger,"Error en  escritura memoria  direccion fisica :%d", direc);
-            //log_info(logger,"la pagina que busco no existe");
+        if (verificador == -1) {
+            log_error(logger, "Error en escritura memoria, direccion fisica: %d", direc);
             t_paquete* paquete_a_kernel = crear_paquete(OUT_OF_MEMORY);
             enviar_pcb_a_kernel(paquete_a_kernel);
             enviar_paquete(paquete_a_kernel, config_cpu->SOCKET_KERNEL);
             eliminar_paquete(paquete_a_kernel);
             free(direccionFIsicaa);
             free(tamanio);
+            free(palabra_parte);
             return -1;
-        }else{
-        log_info(logger,"PID: %i -Accion ESCRIBIR -Direccion Fisica: %i -Valor: %i",pcb->pid,direc, *medio_parte_1);
-        free(registro_parte_1);
+        } else {
+            log_info(logger, "PID: %i - Acción ESCRIBIR - Dirección Física: %i - Valor: %s", pcb->pid, direc, palabra_parte);
         }
-    free(direccionFIsicaa);
-    free(tamanio);
-    }
-    log_info(logger,"VALOR RECONSTRUIDO: %i" , registro_reconstruido);
 
+        free(direccionFIsicaa);
+        free(tamanio);
+        free(palabra_parte);
+    }
+
+    log_info(logger, "VALOR RECONSTRUIDO: %s", palbara_reconstruida);
+    return verificador;
+    
+    }
+
+
+int comunicaciones_con_memoria_escritura(t_mmu_cpu* mmu, int valor) {
+    int verificador;
+    uint32_t registro_reconstruido = 0; 
+    int desplazamiento = 0;
+    int des = 0;
+
+    while (!list_is_empty(mmu->direccionFIsica)) {
+        int* direccionFIsicaa = (int*)list_remove(mmu->direccionFIsica, 0);
+        int* tamanio = (int*)list_remove(mmu->tamanio, 0);
+
+        int tam = *tamanio;
+        int direc = *direccionFIsicaa;
+
+        // Reservar memoria para la parte del valor
+        void* registro_parte = malloc(tam);
+
+        // Copiar la parte del valor en la memoria reservada
+        memcpy(registro_parte, (unsigned char*)&valor + desplazamiento, tam);
+        desplazamiento += tam;
+
+        // Reconstruir la parte del valor dividido
+        memcpy((unsigned char*)&registro_reconstruido + des, registro_parte, tam);
+        des += tam;
+
+        send_escribi_memoria(pcb->pid, direc, tam, *(uint32_t*)registro_parte);
+        verificador = recv_escribir_memoria();
+        if (verificador == -1) {
+            log_error(logger, "Error en escritura memoria, direccion fisica: %d", direc);
+            t_paquete* paquete_a_kernel = crear_paquete(OUT_OF_MEMORY);
+            enviar_pcb_a_kernel(paquete_a_kernel);
+            enviar_paquete(paquete_a_kernel, config_cpu->SOCKET_KERNEL);
+            eliminar_paquete(paquete_a_kernel);
+            free(direccionFIsicaa);
+            free(tamanio);
+            free(registro_parte);
+            return -1;
+        } else {
+            log_info(logger, "PID: %i - Acción ESCRIBIR - Dirección Física: %i - Valor: %i", pcb->pid, direc, *(uint32_t*)registro_parte);
+        }
+
+        free(direccionFIsicaa);
+        free(tamanio);
+        free(registro_parte);
+    }
+
+    log_info(logger, "VALOR RECONSTRUIDO: %i", registro_reconstruido);
     return verificador;
 }
 
@@ -379,13 +460,16 @@ void solicitar_a_kernel_std(char* interfaz , t_mmu_cpu* mmu ,t_paquete* solicita
             int tamanio = *ptr_tamanio;
             int direc_fisica = *direccion_fisica;
 
+            log_info(logger, "DIRECCION FISICA:%i", direc_fisica);
+            log_info(logger, "TAMANIO: %i", tamanio);
+
             agregar_a_paquete(solicitar_std, &direc_fisica, sizeof(int));
             agregar_a_paquete(solicitar_std, &tamanio, sizeof(int));
         }
 
         enviar_paquete(solicitar_std, config_cpu->SOCKET_KERNEL);
         eliminar_paquete(solicitar_std);
-        mostrar_pcb(pcb);
+       // mostrar_pcb(pcb);
         //log_info(logger, "Hola!");
     } else
         log_error(logger , "Erro en la respuesta de desalojo de I/O");

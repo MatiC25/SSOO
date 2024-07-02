@@ -36,6 +36,7 @@ void ejecutar_operacion_generica(t_interfaz * interfaz) {
 }
 
 void ejecutar_operacion_stdin(t_interfaz *interfaz) {
+
     // Inicializamos las variables:
     char *input = NULL;
 
@@ -50,7 +51,7 @@ void ejecutar_operacion_stdin(t_interfaz *interfaz) {
         char *operacion = get_nombre_operacion(*tipo_operacion);
 
         // Logeamos la operación:
-        log_info(logger, "PID: <%d> - Operacion: <%s>", *pid_proceso, operacion);
+        log_info(logger, "PID: %d - Operacion: %s ", *pid_proceso, operacion);
 
         // Obtenemos el input:
         input = readline("Ingrese un valor: ");

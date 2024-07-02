@@ -30,5 +30,6 @@ int calcular_total_instancias();
 void finalizar_por_invalidacion(t_pcb* pcb, const char* tipo_invalidacion);
 void liberar_recurso_por_exit(t_pcb* pcb);
 void mostrar_pcb(t_pcb* pcb);
+void liberar_pcb();
 
 #endif // KERNEL_PETICIONES_DISPATCH_H

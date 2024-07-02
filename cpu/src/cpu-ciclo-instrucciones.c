@@ -38,7 +38,6 @@ void ejecutar_ciclo_instrucciones(int socket_cliente, int socket_server) {
 void seguir_ciclo(){
     fecth(config_cpu->SOCKET_MEMORIA);
     ejecutar_instruccion(config_cpu->SOCKET_MEMORIA);
-
 }
 
 void fecth(int socket_server){
@@ -226,6 +225,7 @@ void ejecutar_instruccion(int socket_cliente) {
             log_info(logger,"Instruccion Ejecutada: PID: %d- Ejecutando: %s -%s %s %s", pcb->pid,instruccion->opcode,instruccion->parametro1,instruccion->parametro2, instruccion->parametro3);
             ejecutar_IO_STDIN_READ(instruccion->parametro1, instruccion->parametro2,instruccion->parametro3);
             liberar_pcb();
+            break;
         case IO_STDOUT_WRITE:
             log_info(logger,"Instruccion Ejecutada: PID: %d- Ejecutando: %s -%s %s %s", pcb->pid,instruccion->opcode,instruccion->parametro1,instruccion->parametro2, instruccion->parametro3);
             ejecutar_IO_STDOUT_WRITE(instruccion->parametro1, instruccion->parametro2,instruccion->parametro3);
@@ -337,12 +337,14 @@ void ejecutar_IO_GEN_SLEEP(char* interfazAUsar, char* tiempoDeTrabajo){
 }
 
 
-void ejecutar_MOV_IN(char* registro_Direccion, char* registro_Datos){
+void ejecutar_MOV_IN(char* registro_Datos ,char* registro_Direccion){
     void* reg_Direccion = obtener_registro(registro_Direccion);
     void* reg_Datos   = obtener_registro(registro_Datos);
 
     int tamanio_registro = espacio_de_registro(registro_Datos);
+    //log_warning(logger, "tamanio registro; %i", tamanio_registro);
     int tamanio_registro_direcion = espacio_de_registro(registro_Direccion);
+    //log_warning(logger, "tamanio direc: %i", tamanio_registro_direcion);
 
     int direccionLogica = encontrar_int(reg_Direccion, tamanio_registro_direcion);
     //int reg_datos =encontrar_int(reg_Datos);
@@ -367,8 +369,10 @@ void ejecutar_MOV_OUT(char* Registro_Direccion, char* Registro_Datos){
     void* reg_Datos = obtener_registro(Registro_Datos);
     //mostrar_pcb(pcb);
 
-    int tamanio_registro = espacio_de_registro(Registro_Datos); 
+    int tamanio_registro = espacio_de_registro(Registro_Datos);
+    //log_warning(logger, "tamanio: %i", tamanio_registro); 
     int tamanio_logica = espacio_de_registro(Registro_Direccion);
+   //log_warning(logger, "tamanio logica: %i", tamanio_logica);
 
     //log_info(logger, "tamanio logica:%i", tamanio_logica);
     //log_info(logger, "tamanio_registro:%i", tamanio_registro);
@@ -381,9 +385,6 @@ void ejecutar_MOV_OUT(char* Registro_Direccion, char* Registro_Datos){
 
     char* valorr = string_itoa(regDAtos);
     
-
-    //log_info(logger, "tamanio:%i", tamanio_registro);
-    //log_info(logger,"tamanio:%i", tamanio_registro);
     t_mmu_cpu* mmu_mov_out = traducirDireccion(direccionLogica, tamanio_registro);
 
 //VERIFICADOR DE DIRECCIONES FISICAS
@@ -428,13 +429,15 @@ void ejecutar_COPY_STRING(char* tam){
     
     t_mmu_cpu* mmu_copiar_string_SI = traducirDireccion(registerSI, tamanio);
 
-    char* valor = comunicaciones_con_memoria_lectura(mmu_copiar_string_SI);
+
+    char* valor = comunicaciones_con_memoria_lectura_copy_string(mmu_copiar_string_SI);
+    log_warning(logger, "EL valor es %s", valor);
     free(mmu_copiar_string_SI); 
 
     
     t_mmu_cpu* mmu_copiar_string_DI = traducirDireccion(registreDI, tamanio);
 
-        if(comunicaciones_con_memoria_escritura(mmu_copiar_string_DI, valor) == 1){
+        if(comunicaciones_con_memoria_escritura_copy_string(mmu_copiar_string_DI, valor) == 1){
         log_info(logger,"Se puedo escribir correctamente");
     }else{
         log_error(logger,"No se pudo escribir en memoria");
@@ -501,14 +504,15 @@ void ejecutar_IO_STDIN_READ(char* interfaz, char* registro_direccion, char* regi
 
     int reg_Direc = encontrar_int(registroDireccion, tamanio_logica );
     int reg_Tamanio =  encontrar_int(registroTamanio, tamanio_registro);
-    mostrar_pcb(pcb);
+    log_warning(logger, "tamanio: %i", reg_Tamanio);
+    //mostrar_pcb(pcb);
 
     t_mmu_cpu * mmu_io_stdin_read = traducirDireccion(reg_Direc,reg_Tamanio);
-    mostrar_pcb(pcb);
+    //mostrar_pcb(pcb);
     t_paquete* paquete_std = crear_paquete(OPERACION_IO); // dejo asi 
     enviar_pcb_a_kernel(paquete_std);   
     enviar_paquete(paquete_std , config_cpu->SOCKET_KERNEL);
-    eliminar_paquete(paquete_std );
+    eliminar_paquete(paquete_std);
 
     t_paquete* paquete_stdin = crear_paquete(IO_STDIN_READ_INT);
     solicitar_a_kernel_std(interfaz,mmu_io_stdin_read ,paquete_stdin);

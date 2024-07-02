@@ -18,6 +18,7 @@ sem_t hay_proceso_exec;
 sem_t hay_proceso_en_bloq;
 
 int pid = 0;
+int pid_buscado_temporal = 0;
 
 t_pcb* proceso_en_exec = NULL;
 
@@ -43,7 +44,7 @@ void inicializacion_semaforos() {
     sem_init(&habilitar_corto_plazo, 0, 0);
     sem_init(&hay_en_estado_ready, 0, 0);
     sem_init(&hay_en_estado_new, 0, 0);
-    sem_init(&sem_multiprogramacion, 0, 0);
+    sem_init(&sem_multiprogramacion, 0, config_kernel->GRADO_MULTIP);
     sem_init(&cortar_sleep, 0, 0);
     sem_init(&desalojo_proceso, 0, 0);
     sem_init(&hay_proceso_exec, 0, 1);
@@ -52,7 +53,7 @@ void inicializacion_semaforos() {
 }
 
 
-int generar_pid_unico() { //Es static para que mantenga su valor luego de terminar la ejecucion, y no reinicializar en 0 siempre
+int generar_pid_unico() {
     return pid++;
 }
 
@@ -137,23 +138,42 @@ void* agregar_a_cola_ready() {
 }
 
 
+
+bool busqueda_en_cola_block(void* elemento) {
+    t_pcb* pcb = (t_pcb*) elemento;
+    return pcb->pid == pid_buscado_temporal;
+}
+
+
 void mover_procesos_de_bloqueado_a_ready(t_pcb* proceso) {
     sem_wait(&hay_proceso_en_bloq);
 
     pthread_mutex_lock(&reanudar_block);
     pthread_mutex_unlock(&reanudar_block);
 
+    pid_buscado_temporal = proceso->pid;
+
     pthread_mutex_lock(&mutex_estado_block);
-    proceso = list_remove(cola_block, 0);
+    t_pcb* pcb_a_ready = list_remove_by_condition(cola_block, busqueda_en_cola_block);
     pthread_mutex_unlock(&mutex_estado_block);
 
-    pthread_mutex_lock(&mutex_estado_ready);
-    proceso->estado = READY;
-    list_add(cola_ready, proceso);
-    log_info(logger2, "PID: %i - Estado Anterior: BLOCK - Estado Actual: READY", proceso->pid);
-    pthread_mutex_unlock(&mutex_estado_ready);
-
-    sem_post(&hay_en_estado_ready);
+    if (pcb_a_ready != NULL) {
+        if (strcmp(config_kernel->ALGORITMO_PLANIFICACION, "VRR") == 0) {
+            pthread_mutex_lock(&mutex_cola_priori_vrr);
+            pcb_a_ready->estado = READY;
+            log_info(logger, "PID: %i - Estado Anterior: BLOCK - Estado Actual: READY", pcb_a_ready->pid);
+            log_facu(logger, "Quantum Moviendo a Ready: %i", pcb_a_ready->quantum);
+            list_add(cola_prima_VRR, pcb_a_ready);
+            pthread_mutex_unlock(&mutex_cola_priori_vrr);
+        } else {
+            pthread_mutex_lock(&mutex_estado_ready);
+            pcb_a_ready->estado = READY;
+            list_add(cola_ready, pcb_a_ready);
+            log_info(logger2, "PID: %i - Estado Anterior: BLOCK - Estado Actual: READY", pcb_a_ready->pid);
+            pthread_mutex_unlock(&mutex_estado_ready);
+        }
+        sem_post(&hay_en_estado_ready);
+    }
 }
 
 
@@ -352,27 +372,23 @@ void* planificacion_cortoplazo_VRR() {
         pthread_join(hilo_quantum, NULL);
 
         int64_t tiempo_ejecutado = temporal_gettime(tiempo_de_ejecucion) - tiempo_inicial_de_exec;
-
         temporal_destroy(tiempo_de_ejecucion);
+
+        pthread_mutex_lock(&mutex_proceso_exec);
         int64_t quantum_restante = proceso_en_exec->quantum - tiempo_ejecutado;
-        log_leo(logger, "Quantum: %i - Exec Time: %i - Quantum Restante: %i", proceso_en_exec->quantum, tiempo_ejecutado, quantum_restante);
-        pthread_mutex_lock(&mutex_proceso_exec);
-        proceso_en_exec->quantum = quantum_restante;
-        pthread_mutex_unlock(&mutex_proceso_exec);
-
-        pthread_mutex_lock(&mutex_proceso_exec);
-        if (proceso_en_exec->quantum > 0) {
-            proceso_en_exec->quantum = quantum_restante;
-            pthread_mutex_unlock(&mutex_proceso_exec);
-
-            pthread_mutex_lock(&mutex_cola_priori_vrr);
-            list_add(cola_prima_VRR, proceso_en_exec);
-            pthread_mutex_unlock(&mutex_cola_priori_vrr);
-        
-        } else {
-            proceso_en_exec->quantum=0;
+        if(quantum_restante <= 0) {
+            proceso_en_exec->quantum = 0;
+            log_leo(logger, "Quantum: %i - Exec Time: %i - Quantum Restante: %i", proceso_en_exec->quantum, tiempo_ejecutado, quantum_restante);
             pthread_mutex_unlock(&mutex_proceso_exec);
         }
+        else {
+            proceso_en_exec->quantum = quantum_restante;
+            log_leo(logger, "Quantum: %i - Exec Time: %i - Quantum Restante: %i", proceso_en_exec->quantum, tiempo_ejecutado, quantum_restante);
+            pthread_mutex_unlock(&mutex_proceso_exec);
+        }
+        
+        
+
     }
     
 }

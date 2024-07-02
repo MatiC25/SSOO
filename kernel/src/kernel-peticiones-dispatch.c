@@ -178,7 +178,7 @@ void peticion_wait() {
             }
         }
         
-        log_info(logger, "¡WAIT exitoso!");
+        log_facu(logger, "¡WAIT exitoso!");
         int wait_exitoso = 1;
         send(config_kernel->SOCKET_DISPATCH, &wait_exitoso, sizeof(int), NULL);
 
@@ -233,7 +233,7 @@ void peticion_signal() {
     // Liberar el pid y el recurso en el vector
     for (int i = 0; i < tam_vector_recursos_pedidos; i++) {
         if (vector_recursos_pedidos[i].recurso == proceso_en_exec->pid && strncmp(vector_recursos_pedidos[i].recurso, recurso, 2) == 0) {
-            log_info(logger, "Proceso: %i - Devuelve: %s", proceso_en_exec->pid, recurso);
+            log_facu(logger, "Proceso: %i - Devuelve: %s", proceso_en_exec->pid, recurso);
             vector_recursos_pedidos[i].PID = -1;
             free(vector_recursos_pedidos[i].recurso);
             vector_recursos_pedidos[i].recurso = NULL;
@@ -246,19 +246,33 @@ void peticion_signal() {
         t_pcb* pcb_signal = queue_pop(colas_resource_block[indice_recurso]);
         pthread_mutex_unlock(&mutex_estado_block);
 
-        pthread_mutex_lock(&mutex_estado_ready);
-        pcb_signal->estado = READY;
-        list_add(cola_ready, pcb_signal);
-        pthread_mutex_unlock(&mutex_estado_ready);
+        mover_procesos_de_bloqueado_a_ready(pcb_signal);
+        liberar_pcb(pcb_signal);
+        // pthread_mutex_lock(&mutex_estado_ready);
+        // pcb_signal->estado = READY;
+        // list_add(cola_ready, pcb_signal);
+        // pthread_mutex_unlock(&mutex_estado_ready);
 
-        log_info(logger, "PID: %i - Estado Anterior: BLOCK - Estado Actual: READY", pcb_signal->pid);
-        sem_post(&hay_en_estado_ready);
+        // log_info(logger, "PID: %i - Estado Anterior: BLOCK - Estado Actual: READY", pcb_signal->pid);
+        // sem_post(&hay_en_estado_ready);
     }
 
-    log_info(logger, "¡SIGNAL exitoso!");
+    log_facu(logger, "¡SIGNAL exitoso!");
     int wait_exitoso = 1;
     send(config_kernel->SOCKET_DISPATCH, &wait_exitoso, sizeof(int), NULL);
     free(recurso);
+}
+
+
+void liberar_pcb(t_pcb* pcb){
+  if (pcb != NULL) {
+        if (pcb->registros != NULL) {
+            if (pcb->registros != NULL) {
+                free(pcb->registros); // Liberar el arreglo dentro de Registros
+            }
+        }
+        free(pcb); // Liberar la estructura PCB
+    }
 }
 
 
@@ -276,10 +290,11 @@ void mover_a_bloqueado_por_wait(t_pcb* pcb, char* recurso) {
 
 
 void mover_a_cola_block_general(t_pcb* pcb, char* motivo) {
-    log_info(logger, "PID: %i - Estado Anterior: EXEC - Estado Actual: BLOCK", pcb->pid);
 
     pthread_mutex_lock(&mutex_cola_block);
     log_info(logger, "PID: %i - Bloqueado por: %s \n", pcb->pid, motivo);
+    log_info(logger, "PID: %i - Estado Anterior: EXEC - Estado Actual: BLOCK", pcb->pid);
+    log_facu(logger, "Quantum en Block: %i", pcb->quantum);
     pcb->estado = BLOCK;
     list_add(cola_block, pcb);
     pthread_mutex_unlock(&mutex_cola_block);
@@ -480,3 +495,4 @@ void mostrar_pcb(t_pcb* pcb){
     log_info(logger,"Reg SI:%i",pcb->registros->SI);
     log_info(logger,"Reg DI:%i",pcb->registros->DI);
 }
+

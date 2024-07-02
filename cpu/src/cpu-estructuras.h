@@ -34,7 +34,7 @@ typedef struct {
 
 typedef struct {
     t_list* num_pagina; 
-    int ofset;
+    t_list* ofset;
     t_list* direccionFIsica;
     t_list* tamanio;
 }t_mmu_cpu;

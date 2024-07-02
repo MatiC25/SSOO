@@ -38,6 +38,7 @@ int main()
     espacio_de_usuario = malloc (config_memoria->tam_memoria); // reservamos memoria para el espacio de usuario
     void* memoria_usuario_bitmap = malloc(cantidad_marcos/8);// reservamos memoria para el bitmap
     bitmap = bitarray_create_with_mode(memoria_usuario_bitmap , cantidad_marcos/8, LSB_FIRST);
+    inicializar_bitmap();
 
     //abrimos el servidor
     iniciar_modulo(config_memoria);
