@@ -6,12 +6,14 @@
 #include <utils/estructuras_compartidas.h>
 #include <utils/logger.h>
 #include <commons/bitarray.h>
+#include <commons/collections/list.h>
 
 // Incluye las estructuras necesarias:
 #include "io-config.h"
+#include "io-protocolo.h"
 #include "io-estructuras.h"
 #include "io-utils.h"
-#include "io-protocolo.h"
+#include "io-archivos-abiertos.h"
 #include "io-archivos.h"
 #include "io-bitmap.h"
 

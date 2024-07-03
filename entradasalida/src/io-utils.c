@@ -105,7 +105,7 @@ int ordenar_direcciones_por_tamanio(void *direccion1, void *direccion2) {
 }
 
 // Devuelve el modo de apertura de un archivo:
-int get_modo_de_apertura(int size) {
+char *get_modo_de_apertura(int size) {
     if(size == 0)
         return "wb+";
     else

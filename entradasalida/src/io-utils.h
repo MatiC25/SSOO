@@ -55,7 +55,7 @@ tipo_interfaz get_tipo_interfaz_to_int(t_interfaz *interfaz);
 int ordenar_direcciones_por_tamanio(void *direccion1, void *direccion2);
 
 // Devuelve el modo de apertura:
-int get_modo_de_apertura(int size); 
+char *get_modo_de_apertura(int size); 
 
 // Devuelve el path de un archivo:
 char *get_path_archivo(t_interfaz *interfaz, char *name_file);

@@ -15,3 +15,5 @@ t_config *abrir_archivo_metadata_config(t_interfaz *interfaz, char *name_file, c
 
 // Funciones para validar los archivos:
 int es_un_archivo_valido(t_config *archivo_metadata);
+
+#endif

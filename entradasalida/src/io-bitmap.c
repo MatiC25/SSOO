@@ -7,7 +7,7 @@ t_bitarray *crear_bitmap(t_interfaz *interfaz, char *modo_de_apertura) {
     int size = get_block_count(interfaz);
 
     // Mapeo el archivo bitmap:
-    void *bitmap = mmap(NULL, size, PROT_READ | PROT_WRITE, MAP_SHARED, fileno(bitmap_archivo), 0);
+    void *bitmap = mmap(NULL, size, PROT_READ | PROT_WRITE, MAP_SHARED, fileno(archivo_bitmap), 0);
 
     // Verifico que se haya mapeado correctamente:
     if(bitmap == MAP_FAILED) {

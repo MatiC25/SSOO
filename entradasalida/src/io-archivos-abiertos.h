@@ -5,7 +5,6 @@
 #include <commons/config.h>
 #include <utils/logger.h>
 #include <utils/shared.h>
-#include <commons/collections/list.h>
 
 #include "io-estructuras.h"
 #include "io-archivos-metadata.h"
@@ -17,3 +16,5 @@ t_list *obtener_archivos_ya_abiertos(t_interfaz *interfaz);
 // Funciones para setear los datos del archivo abierto:
 void set_archivo_metada_en_archivo_abierto(t_archivo_abierto *archivo_abierto, t_config *archivo_metadata);
 void set_name_file_en_archivo_abierto(t_archivo_abierto *archivo_abierto, char *name_file);
+
+#endif
