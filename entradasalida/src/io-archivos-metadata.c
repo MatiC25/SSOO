@@ -15,7 +15,6 @@ t_config *abrir_archivo_metadata_config(t_interfaz *interfaz, char *name_file, c
     return config;
 }
 
-
 // Funciones para validar los archivos:
 int es_un_archivo_valido(t_config *archivo_metadata) {
 
@@ -26,3 +25,21 @@ int es_un_archivo_valido(t_config *archivo_metadata) {
     return tiene_todas_las_configuraciones(archivo_metadata, propiedades);
 }
 
+// Funciones para setear los datos del archivo metadata:
+void set_bloque_inicial_en_archivo_metadata(t_config *archivo_metadata, int bloque_inicial) {
+    char *bloque_inicial_string = string_itoa(bloque_inicial);
+
+    config_set_value(archivo_metadata, "BLOQUE_INICIAL", bloque_inicial_string);
+}
+
+void set_tamanio_archivo_en_archivo_metadata(t_config *archivo_metadata, int tamanio_archivo) {
+    char *tamanio_archivo_string = string_itoa(tamanio_archivo);
+
+    config_set_value(archivo_metadata, "TAMANIO_ARCHIVO", tamanio_archivo_string);
+}
+
+void set_archivo_metada_en_fs(t_interfaz *interfaz, char *name_file, t_config *archivo_metadata) {
+    char *path = get_path_archivo(interfaz, name_file);
+
+    config_save(archivo_metadata, path);
+}

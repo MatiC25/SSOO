@@ -52,3 +52,29 @@ void set_archivo_metada_en_archivo_abierto(t_archivo_abierto *archivo_abierto, t
 void set_name_file_en_archivo_abierto(t_archivo_abierto *archivo_abierto, char *name_file) {
     archivo_abierto->name_file = name_file;
 }
+
+void set_nuevo_archivo_abierto(t_list *archivos_abiertos, char *name_file, t_config *archivo_metadata) {
+    t_archivo_abierto *archivo_abierto = malloc(sizeof(t_archivo_abierto));
+    archivo_abierto->name_file = name_file;
+    archivo_abierto->archivo_metadata = archivo_metadata;
+
+    list_add(archivos_abiertos, archivo_abierto);
+}
+
+// Funciones para gettear los datos del archivo abierto:
+
+// Funciones para verificar si existe ya un archivo:
+
+int ya_esta_abierto(t_list *archivos_abiertos, char *nombre_archivo) {
+    int size = list_size(archivos_abiertos);
+
+    for(int i = 0; i < size; i++) {
+        t_archivo_abierto *archivo_abierto = list_get(archivos_abiertos, i);
+        char *name_file = archivo_abierto->name_file;
+
+        if(strcmp(name_file, nombre_archivo) == 0)
+            return 1;
+    }
+
+    return 0;
+}

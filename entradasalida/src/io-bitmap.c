@@ -31,3 +31,31 @@ void inicializar_bitmap(t_bitarray *bitmap) {
         bitarray_clean_bit(bitmap, i);
 }
 
+// Funcion para obtener un bloque libre:
+int obtener_bloque_libre(t_bitarray *bitmap, t_interfaz *interfaz) {
+
+    // Obtenemos la cantidad de bloques y la cantidad de bits por bloque:
+    int cantidad_bloques = get_block_count(interfaz);
+    int bits_por_bloque = cantidad_bloques / 8;
+    int cantidad_bits;
+
+    for(int i = 0; i < cantidad_bloques; i++) {
+
+        // Obtenemos el bloque:
+        int bloque = i * bits_por_bloque;
+        cantidad_bits = 0;
+
+        // Verificamos si el bloque esta libre:
+        for(int j = 0; j < bits_por_bloque; j++) {
+            if(!bitarray_test_bit(bitmap, bloque + j)) {
+                cantidad_bits++;
+            }
+        }
+
+        // Si el bloque esta libre, lo devolvemos:
+        if(cantidad_bits == bits_por_bloque)
+            return bloque;
+    }
+
+    return -1;
+}

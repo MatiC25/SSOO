@@ -1,11 +1,14 @@
 #ifndef IO_ARCHIVOS_METADATA_H_
 #define IO_ARCHIVOS_METADATA_H_ 
 
+// Incluimos las librerias necesarias:
 #include <stdio.h>
 #include <commons/config.h>
+#include <commons/string.h>
 #include <utils/logger.h>
 #include <utils/shared.h>
 
+// Incluimoos las librerias propias:
 #include "io-estructuras.h"
 #include "io-utils.h"
 #include "io-archivos.h"
@@ -15,5 +18,10 @@ t_config *abrir_archivo_metadata_config(t_interfaz *interfaz, char *name_file, c
 
 // Funciones para validar los archivos:
 int es_un_archivo_valido(t_config *archivo_metadata);
+
+// Funciones para setear los datos del archivo metadata:
+void set_bloque_inicial_en_archivo_metadata(t_config *archivo_metadata, int bloque_inicial);
+void set_tamanio_archivo_en_archivo_metadata(t_config *archivo_metadata, int tamanio_archivo);
+void set_archivo_metada_en_fs(t_interfaz *interfaz, char *name_file, t_config *archivo_metadata);
 
 #endif
