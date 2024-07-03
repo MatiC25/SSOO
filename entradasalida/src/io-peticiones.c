@@ -116,50 +116,44 @@ void ejecutar_operaciones_dialFS(t_interfaz *interfaz) {
     int tiempo_respuesta_retardo = get_tiempo_unidad(interfaz);
     int socket_kernel = get_socket_kernel(interfaz);
 
-    // Inicializamos archivos abiertos:
-    t_list *archivos_abiertos = traer_archivos_abiertos(interfaz);
+    // Inicializamos las estructuras necesarias:
+    t_list *archivos_ya_abiertos = obtener_archivos_ya_abiertos(interfaz);
+    int size = list_size(archivos_ya_abiertos);
 
-    // Inicializamos modo de apertura:
-    char *modo_de_apertura = get_modo_de_apertura(archivos_abiertos);
+    // Obtenemos el modo de apertura:
+    char *modo_de_apertura = get_modo_de_apertura(size);
 
-    // Inicializamos bloques:
-    FILE *bloques = iniciar_archivo_bloques(interfaz, modo_de_apertura);
+    // Abrimos los archivos necesarios:
+    FILE *archivo_bloque = abrir_archivo_bloques(interfaz, modo_de_apertura);
+    t_bitarray *bitmap = crear_bitmap(interfaz, modo_de_apertura);
 
-    // Inicializamos bitmap:
-    t_bitarray *bitmap = iniciar_bitmap(interfaz, modo_de_apertura);
+    // while(1) {
+    //     tipo_operacion operacion = recibir_operacion(socket_kernel);
+    //     t_list *argumentos = recibir_argumentos_para_dial(interfaz, operacion);
 
-    // Traemos archivos persistidos:
-
-    if (!archivos_abiertos) // Si no hay archivos abiertos, inicializamos el bitmap
-        inicializar_bloques_vacios(bitmap, interfaz); // Inicializamos los bloques vacios
-
-    while(1) {
-        tipo_operacion operacion = recibir_operacion(socket_kernel);
-        t_list *argumentos = recibir_argumentos_para_dial(interfaz, operacion);
-
-        switch(operacion) {
-            case IO_FS_CREATE_INT:
-                operacion_create_file(interfaz, bitmap, argumentos, archivos_abiertos);
-                send_respuesta_a_kernel(1, interfaz);
-                break;
-            case IO_FS_READ_INT:
-                operacion_read_file(interfaz, bloques, argumentos, archivos_abiertos);
-                send_respuesta_a_kernel(1, interfaz);
-                break;
-            case IO_FS_DELETE_INT:
-                operacion_delete_file(interfaz, bitmap, argumentos, archivos_abiertos);
-                send_respuesta_a_kernel(1, interfaz);
-                break;
-            case IO_FS_WRITE_INT:
-                operacion_write_file(interfaz, bloques, argumentos, archivos_abiertos);
-                send_respuesta_a_kernel(1, interfaz);
-                break;
-            case IO_FS_TRUNCATE_INT:
-                operacion_truncate_file(interfaz, bloques, bitmap, argumentos, archivos_abiertos);
-                send_respuesta_a_kernel(1, interfaz);
-                break;
-            default:
-                log_error(logger, "Operacion desconocida");
-        }
-    }
+    //     switch(operacion) {
+    //         case IO_FS_CREATE_INT:
+    //             operacion_create_file(interfaz, bitmap, argumentos, archivos_abiertos);
+    //             send_respuesta_a_kernel(1, interfaz);
+    //             break;
+    //         case IO_FS_READ_INT:
+    //             operacion_read_file(interfaz, bloques, argumentos, archivos_abiertos);
+    //             send_respuesta_a_kernel(1, interfaz);
+    //             break;
+    //         case IO_FS_DELETE_INT:
+    //             operacion_delete_file(interfaz, bitmap, argumentos, archivos_abiertos);
+    //             send_respuesta_a_kernel(1, interfaz);
+    //             break;
+    //         case IO_FS_WRITE_INT:
+    //             operacion_write_file(interfaz, bloques, argumentos, archivos_abiertos);
+    //             send_respuesta_a_kernel(1, interfaz);
+    //             break;
+    //         case IO_FS_TRUNCATE_INT:
+    //             operacion_truncate_file(interfaz, bloques, bitmap, argumentos, archivos_abiertos);
+    //             send_respuesta_a_kernel(1, interfaz);
+    //             break;
+    //         default:
+    //             log_error(logger, "Operacion desconocida");
+    //     }
+    // }
 }

@@ -51,7 +51,13 @@ char *get_nombre_operacion(tipo_operacion operacion);
 // Devuelve el tipo de interfaz:
 tipo_interfaz get_tipo_interfaz_to_int(t_interfaz *interfaz);
 
-// Devuelve el tamaño de un archivo:
+// Devuelve si una dirección es mayor, menor o igual a otra:
 int ordenar_direcciones_por_tamanio(void *direccion1, void *direccion2);
+
+// Devuelve el modo de apertura:
+int get_modo_de_apertura(int size); 
+
+// Devuelve el path de un archivo:
+char *get_path_archivo(t_interfaz *interfaz, char *name_file);
 
 #endif // IO_UTILS_H

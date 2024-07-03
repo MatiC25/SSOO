@@ -12,8 +12,8 @@
 #include "io-estructuras.h"
 #include "io-utils.h"
 #include "io-protocolo.h"
-#include "io-operaciones-dial-fs.h"
-#include "io-utils-dial-fs.h"
+#include "io-archivos.h"
+#include "io-bitmap.h"
 
 // Funciones para enviar peticiones:
 void interfaz_recibir_peticiones(t_interfaz* interfaz);
