@@ -54,6 +54,8 @@ t_list *recibir_argumentos(t_interfaz *interfaz, int socket_kernel) {
     //Liberamos el buffer recibido:
     free(buffer);
 
+    log_info(logger, "Se recibieron los argumentos");
+
     return argumentos;
 }
 
@@ -156,25 +158,29 @@ void send_bytes_a_leer(t_interfaz *interfaz, int pid, t_list *direcciones, void 
     int respuesta;
 
     // Enviamos el input a memoria:
-    while(bytes_mandados <= bytes_leidos) {
+    while(bytes_mandados < bytes_leidos) {
         t_direccion_fisica *direccion = list_get(direcciones_fisicas_tam_ordernadas, index);
         int direccion_fisica = direccion->direccion_fisica;
         int tamanio = direccion->tamanio;
 
         // Enviamos el input a memoria:
-        t_paquete *paquete = crear_paquete(ESCRIBIR_MEMORIA);
+        t_paquete *paquete = crear_paquete(ACCESO_A_ESCRITURA);
+        agregar_a_paquete(paquete, &pid, sizeof(int));
         agregar_a_paquete(paquete, &direccion_fisica, sizeof(int));
         agregar_a_paquete(paquete, &tamanio, sizeof(int));
 
         // Creamos el buffer a enviar:
-        unsigned *buffer = malloc(tamanio - bytes_mandados);
-        memcpy(buffer, input + bytes_mandados, tamanio - bytes_mandados);
+        unsigned *buffer = malloc(tamanio);
+        memcpy(buffer, input + bytes_mandados, tamanio);
+
+        // Logueamos el buffer:
+        log_info(logger, "Se manda el buffer: %s", buffer);
 
         // Agregamos el buffer al paquete:
-        agregar_a_paquete(paquete, buffer, tamanio - bytes_mandados);
+        agregar_a_paquete(paquete, buffer, tamanio);
 
         // Enviamos el paquete a memoria:
-        enviar_paquete(socket_memoria, paquete);
+        enviar_paquete(paquete, socket_memoria);
 
         // Esperamos la respuesta de memoria:
         respuesta = recibir_entero(socket_memoria);
@@ -192,11 +198,13 @@ void send_bytes_a_leer(t_interfaz *interfaz, int pid, t_list *direcciones, void 
         bytes_mandados += tamanio;
         index++;
     }
+
+    log_info(logger, "Se escribieron %d bytes en memoria", bytes_leidos);
 }
 
 // Funciones recibir mensajes de memoria:
 
-char *rcv_contenido_a_mostrar(t_interfaz *interfaz, t_list *direcciones_fisicas) {
+char *rcv_contenido_a_mostrar(t_interfaz *interfaz, t_list *direcciones_fisicas, int pid_proceso) {
 
     // Inicializamos las variables:
     int size = list_size(direcciones_fisicas);
@@ -211,25 +219,39 @@ char *rcv_contenido_a_mostrar(t_interfaz *interfaz, t_list *direcciones_fisicas)
     t_list *direcciones_fisicas_tam_ordernadas = list_sorted(direcciones_fisicas, (void *)ordenar_direcciones_por_tamanio);
 
     for (int i = 0; i < size; i++) {
+    
         t_direccion_fisica *direccion = list_get(direcciones_fisicas_tam_ordernadas, i);
         int direccion_fisica = direccion->direccion_fisica;
         int tamanio = direccion->tamanio;
-
+    
         // Enviamos la dirección física a memoria:
         t_paquete *paquete = crear_paquete(ACCESO_A_LECTURA);
+        agregar_a_paquete(paquete, &pid_proceso, sizeof(int));
         agregar_a_paquete(paquete, &direccion_fisica, sizeof(int));
         agregar_a_paquete(paquete, &tamanio, sizeof(int));
 
         // Asegúrate de enviar el paquete a la memoria usando socket_memoria
-        enviar_paquete(socket_memoria, paquete);
+        enviar_paquete(paquete, socket_memoria);
+
 
         // Liberar la memoria usada para el paquete
         eliminar_paquete(paquete);
 
+        int respuesta = recibir_entero(socket_memoria);
+        
+        if(respuesta == -1) {
+            log_error(logger, "Error al leer en memoria");
+            exit(EXIT_FAILURE);
+        }
+
         // Recibimos el buffer:
         int desplazamiento = 0;
-        void *buffer = recibir_buffer(&tamanio, socket_memoria);
-        char *contenido = parsear_string(buffer, &desplazamiento);
+        int size;
+        void *buffer = recibir_buffer(&size, socket_memoria);
+
+        // Parseamos el buffer para obtener el contenido:
+        char *contenido = malloc(size);
+        memcpy(contenido, buffer + desplazamiento, size);
 
         // Copiamos el contenido al buffer a mostrar:
         memcpy(contenido_a_mostrar + desplazamiento_interno, contenido, tamanio);

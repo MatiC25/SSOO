@@ -504,7 +504,7 @@ void ejecutar_IO_STDIN_READ(char* interfaz, char* registro_direccion, char* regi
 
     int reg_Direc = encontrar_int(registroDireccion, tamanio_logica );
     int reg_Tamanio =  encontrar_int(registroTamanio, tamanio_registro);
-    log_warning(logger, "tamanio: %i", reg_Tamanio);
+    //log_warning(logger, "tamanio: %i", reg_Tamanio);
     //mostrar_pcb(pcb);
 
     t_mmu_cpu * mmu_io_stdin_read = traducirDireccion(reg_Direc,reg_Tamanio);
@@ -528,6 +528,7 @@ void ejecutar_IO_STDOUT_WRITE(char* interfaz, char* registro_direccion, char* re
 
     int reg_Direc = encontrar_int(registroDireccion, tamanio_logica );
     int reg_Tamanio =  encontrar_int(registroTamanio, tamanio_registro);
+    //log_warning(logger, "Tamanio: %i", reg_Tamanio);
 
     t_mmu_cpu * mmu_io_stdout_write = traducirDireccion(reg_Direc,reg_Tamanio);
     mostrar_pcb(pcb);
@@ -551,7 +552,10 @@ void ejecutar_IO_FS_CREATE(char* interfaz, char* nombre_archibo){
     enviar_paquete(paquete_IO, config_cpu->SOCKET_KERNEL);
     eliminar_paquete(paquete_IO);
 
-    t_paquete* paquet_fs_create = crear_paquete(IO_FS_CREATE);
+    int response = 1;
+    recv(config_cpu->SOCKET_KERNEL, &response, sizeof(int), MSG_WAITALL);
+
+    t_paquete* paquet_fs_create = crear_paquete(IO_FS_CREATE_INT);
     agregar_a_paquete_string(paquet_fs_create, interfaz, strlen(interfaz) + 1);
     agregar_a_paquete_string(paquet_fs_create, nombre_archibo, strlen(nombre_archibo) + 1);
     enviar_paquete(paquet_fs_create, config_cpu->SOCKET_KERNEL);

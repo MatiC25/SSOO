@@ -7,6 +7,8 @@ void interfaz_recibir_peticiones(t_interfaz * interfaz) {
         ejecutar_operacion_stdin(interfaz);
     else if(interfaz->tipo == STDOUT)
         ejecutar_operacion_stdout(interfaz);
+    else if(interfaz->tipo == DIALFS)
+        ejecutar_operaciones_dialFS(interfaz);
     else
         log_error(logger, "Tipo de interfaz no soportado");
 }
@@ -53,7 +55,12 @@ void ejecutar_operacion_stdin(t_interfaz *interfaz) {
         // Logeamos la operación:
         log_info(logger, "PID: %d - Operacion: %s", *pid_proceso, operacion);
 
-        // Obtenemos el input:
+    
+        int bytes_a_escribir = get_total_de_bytes(direcciones);
+
+        log_info(logger, "Bytes a escribir: %i", bytes_a_escribir);
+
+        // Leemos el input:
         input = readline("Ingrese un valor: ");
 
         if(input == NULL) {
@@ -61,9 +68,7 @@ void ejecutar_operacion_stdin(t_interfaz *interfaz) {
             exit(EXIT_FAILURE);
         }
 
-        int bytes_a_escribir = get_total_de_bytes(direcciones);
-
-        while(strlen(input) > bytes_a_escribir) {
+        while(strlen(input) > bytes_a_escribir || strlen(input) < bytes_a_escribir) {
             log_error(logger, "El input ingresado es mayor al tamaño de bytes a leer");
             input = readline("Ingrese un valor: ");
         }
@@ -71,7 +76,7 @@ void ejecutar_operacion_stdin(t_interfaz *interfaz) {
         int bytes_leidos = strlen(input);
 
         // Enviamos los bytes a escribir a memoria:
-        send_bytes_a_leer(interfaz, pid_proceso, direcciones, input, bytes_leidos);
+        send_bytes_a_leer(interfaz, *pid_proceso, direcciones, input, bytes_leidos);
         send_respuesta_a_kernel(1, interfaz);
 
         free(input);
@@ -79,7 +84,6 @@ void ejecutar_operacion_stdin(t_interfaz *interfaz) {
 }
 
 void ejecutar_operacion_stdout(t_interfaz *interfaz) {
-    
     while(1) {
         // Obtenemos los argumentos:
         t_list *argumentos = recibir_argumentos(interfaz, get_socket_kernel(interfaz));
@@ -90,8 +94,11 @@ void ejecutar_operacion_stdout(t_interfaz *interfaz) {
         t_list *direcciones = list_get(argumentos, 2);
         char *operacion = get_nombre_operacion(*tipo_operacion);
         
+        // Logeamos la operación:
+        log_info(logger, "PID: %d - Operacion: %s", *pid_proceso, operacion);
+
         // Solicitamos los bytes a memoria:
-        char *contenido_a_mostrar = rcv_contenido_a_mostrar(interfaz, direcciones);
+        char *contenido_a_mostrar = rcv_contenido_a_mostrar(interfaz, direcciones, *pid_proceso);
 
         // Mostramos el contenido:
         log_info(logger, "PID: %i - Contenido leido: %s", *pid_proceso, contenido_a_mostrar);

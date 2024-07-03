@@ -12,11 +12,11 @@ FILE *iniciar_archivo(t_interfaz *interfaz, char *name_file, char *modo_de_apert
 }
 
 FILE *iniciar_archivo_bloques(t_interfaz *interfaz, char *modo_de_apertura) {
-    return iniciar_archivo(interfaz, "bloques.dat", modo_de_apertura);
+    return iniciar_archivo(interfaz, "/bloques.dat", modo_de_apertura);
 }
 
 FILE *iniciar_archivo_bitmap(t_interfaz *interfaz, char *modo_de_apertura) {
-    return iniciar_archivo(interfaz, "bitmap.dat", modo_de_apertura);
+    return iniciar_archivo(interfaz, "/bitmap.dat", modo_de_apertura);
 }
 
 t_config *iniciar_archivo_config(t_interfaz *interfaz, char *name_file) {
@@ -413,13 +413,14 @@ char *build_full_path(t_interfaz *interfaz, const char *name_file) {
     if (!path_bloques || !name_file) 
         return NULL;
 
-    int tam_new_string = strlen(path_bloques) + strlen(name_file) + 1;
+    int tam_new_string = strlen(path_bloques) + strlen(name_file) + 1 + 1;
     char *path_completo = malloc(tam_new_string);
 
     if (!path_completo) 
         return NULL;
 
     strcpy(path_completo, path_bloques);
+    strcat(path_completo, "/");
     strcat(path_completo, name_file);
 
     return path_completo;

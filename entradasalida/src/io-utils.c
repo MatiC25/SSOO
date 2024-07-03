@@ -58,7 +58,7 @@ int get_block_size(t_interfaz *interfaz) {
 }
 
 int get_total_de_bytes(t_list *direcciones) {
-    int size = list_size(direcciones) / 2;
+    int size = list_size(direcciones);
     int bytes_totales = 0;
 
     for(int i = 0; i < size; i++) {
@@ -89,5 +89,8 @@ int ordenar_direcciones_por_tamanio(void *direccion1, void *direccion2) {
     t_direccion_fisica *dir1 = direccion1;
     t_direccion_fisica *dir2 = direccion2;
 
-    return dir1->tamanio - dir2->tamanio;
+    if (dir1->tamanio < dir2->tamanio) return -1;
+    if (dir1->tamanio > dir2->tamanio) return 0;
+
+    return 1;
 }

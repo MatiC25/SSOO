@@ -301,7 +301,7 @@ void acceso_lectura(int socket_cliente){
     log_warning(logger, "_______________________acceso_lectura_______________________");
     memcpy(&pid, buffer + desplazamiento, sizeof(int));
     desplazamiento += sizeof(int);
-    log_warning(logger, "Pid : %i", pid);
+    log_warning(logger, "Pid : %d", pid);
     memcpy(&direc_fisica, buffer + desplazamiento, sizeof(int));
     desplazamiento += sizeof(int);
     log_warning(logger, "Direc_fisica : %i", direc_fisica);
