@@ -85,3 +85,10 @@ char *get_nombre_operacion(tipo_operacion operacion) {
             return "OPERACION DESCONOCIDA";
     }
 }
+
+int ordenar_direcciones_por_tamanio(void *direccion1, void *direccion2) {
+    t_direccion_fisica *dir1 = direccion1;
+    t_direccion_fisica *dir2 = direccion2;
+
+    return dir1->tamanio - dir2->tamanio;
+}

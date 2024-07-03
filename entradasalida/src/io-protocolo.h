@@ -24,13 +24,11 @@ t_list *obtener_direcciones_fisicas(int size, int *desplazamiento, void *buffer)
 
 // Funciones para enviar mensajes a la memoria:
 void send_mensaje_a_memoria(t_interfaz * interfaz, char *mensaje);
-void send_bytes_a_leer(t_interfaz *interfaz, int pid, t_list *direcciones, void *input);
+void send_bytes_a_leer(t_interfaz *interfaz, int pid, t_list *direcciones, void *input, int bytes_leidos);
 void send_bytes_a_grabar(t_interfaz * interfaz, int direccion_fisica, char *bytes, int bytes_a_leer);
-char *rcv_contenido_a_mostrar(t_interfaz *interfaz, t_list *direcciones_fisicas);
-void rcv_contenido_a_escribir(t_interfaz *interfaz, int bytes_a_escribir, unsigned char **contenido);
 
 // Funciones para recibir mensajes de la memoria
-void rcv_bytes_a_leer(t_interfaz *interfaz, int bytes_a_mostrar, char **bytes);
+char *rcv_contenido_a_mostrar(t_interfaz *interfaz, t_list *direcciones_fisicas) ;
 
 // Funciones auxiliares:
 char *parsear_string(void *buffer, int *desplazamiento);
