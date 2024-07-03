@@ -34,7 +34,6 @@ int get_tiempo_unidad(t_interfaz* interfaz){
     return interfaz->config->TIEMPO_UNIDAD_TRABAJO;
 }
 
-
 char *get_path_dial_fs(t_interfaz *interfaz) {
     return interfaz->config->PATH_BASE_DIALFS;
 }
@@ -84,4 +83,11 @@ char *get_nombre_operacion(tipo_operacion operacion) {
         default:
             return "OPERACION DESCONOCIDA";
     }
+}
+
+int ordenar_direcciones_por_tamanio(void *direccion1, void *direccion2) {
+    t_direccion_fisica *dir1 = direccion1;
+    t_direccion_fisica *dir2 = direccion2;
+
+    return dir1->tamanio - dir2->tamanio;
 }

@@ -1,10 +1,10 @@
+
 #include "io-protocolo.h"
 
 // Funciones enviar mensajes a kernel:
 
 void send_respuesta_a_kernel(int respuesta, t_interfaz * interfaz) {
     int socket_kernel = get_socket_kernel(interfaz);
-
     send(socket_kernel, &respuesta, sizeof(int), 0);
 
     return;
@@ -25,7 +25,6 @@ t_list *recibir_argumentos(t_interfaz *interfaz, int socket_kernel) {
     int size;
     int desplazamiento = 0;
     void *buffer = recibir_buffer(&size, socket_kernel);
-
 
     // Parseamos el buffer para obtener los argumentos:
     t_list *argumentos = list_create();
@@ -51,8 +50,6 @@ t_list *recibir_argumentos(t_interfaz *interfaz, int socket_kernel) {
         t_list *direcciones = obtener_direcciones_fisicas(size, &desplazamiento, buffer);
         list_add(argumentos, direcciones);
     }
-
-
 
     //Liberamos el buffer recibido:
     free(buffer);
@@ -104,14 +101,10 @@ t_list *obtener_direcciones_fisicas(int size, int *desplazamiento, void *buffer)
         // Obtenemos la dirección física:
         memcpy(&direccion_fisica, buffer + *desplazamiento, sizeof(int));
         *desplazamiento += sizeof(int);
-        
-        log_info(logger, "Dirección física: %d", direccion_fisica);
 
         // Obtenemos el tamaño:
         memcpy(&tamanio, buffer + *desplazamiento, sizeof(int));
         *desplazamiento += sizeof(int);
-
-        log_info(logger, "Tamaño: %d", tamanio);
 
         // Creamos la dirección física:
         t_direccion_fisica *direccion = malloc(sizeof(t_direccion_fisica));
@@ -148,61 +141,77 @@ void send_mensaje_a_memoria(t_interfaz * interfaz, char *mensaje) {
     eliminar_paquete(paquete);
 }
 
-void send_bytes_a_leer(t_interfaz *interfaz, int pid, t_list *direcciones, void *input) {
+void send_bytes_a_leer(t_interfaz *interfaz, int pid, t_list *direcciones, void *input, int bytes_leidos) {
+
+    // Obtenemos el tamaño de la lista de direcciones:
     int size = list_size(direcciones);
     int socket_memoria = get_socket_memory(interfaz);
 
-    log_info(logger, "Cantidad de direcciones: %d", size);
+    // Ordenamos las direcciones por tamaño:
+    t_list *direcciones_fisicas_tam_ordernadas = list_sorted(direcciones, (void *)ordenar_direcciones_por_tamanio);
 
-    for (int i = 0; i < size; i++) {
-        t_direccion_fisica *direccion = list_get(direcciones, i);
+    // Inicializamos las variables:
+    int bytes_mandados = 0;
+    int index = 0;
+    int respuesta;
+
+    // Enviamos el input a memoria:
+    while(bytes_mandados <= bytes_leidos) {
+        t_direccion_fisica *direccion = list_get(direcciones_fisicas_tam_ordernadas, index);
         int direccion_fisica = direccion->direccion_fisica;
         int tamanio = direccion->tamanio;
 
-        log_info(logger, "Dirección física: %d", direccion_fisica);
-        log_info(logger, "Tamaño: %d", tamanio);
-
-        // Enviamos la dirección física a memoria:
-        t_paquete *paquete = crear_paquete(ACCESO_A_ESCRITURA);
-        agregar_a_paquete(paquete, &pid, sizeof(int));
+        // Enviamos el input a memoria:
+        t_paquete *paquete = crear_paquete(ESCRIBIR_MEMORIA);
         agregar_a_paquete(paquete, &direccion_fisica, sizeof(int));
         agregar_a_paquete(paquete, &tamanio, sizeof(int));
 
-        // Parseamos y enviamos la porción correspondiente de input
-        void *buffer = malloc(tamanio);
-        memcpy(buffer, input, tamanio);
-        agregar_a_paquete(paquete, buffer, tamanio);
+        // Creamos el buffer a enviar:
+        unsigned *buffer = malloc(tamanio - bytes_mandados);
+        memcpy(buffer, input + bytes_mandados, tamanio - bytes_mandados);
 
-        // Asegúrate de enviar el paquete a la memoria usando socket_memoria
-        enviar_paquete(paquete, socket_memoria);
+        // Agregamos el buffer al paquete:
+        agregar_a_paquete(paquete, buffer, tamanio - bytes_mandados);
 
-        // Liberar la memoria usada para buffer y el paquete
+        // Enviamos el paquete a memoria:
+        enviar_paquete(socket_memoria, paquete);
+
+        // Esperamos la respuesta de memoria:
+        respuesta = recibir_entero(socket_memoria);
+
+        if(respuesta == -1) {
+            log_error(logger, "Error al escribir en memoria");
+            exit(EXIT_FAILURE);
+        }
+
+        // Liberamos la memoria usada para el buffer y el paquete:
         free(buffer);
         eliminar_paquete(paquete);
 
-        int verificacion = recibir_entero(socket_memoria); 
-
-        if(verificacion == -1) {
-            log_error(logger, "Error al escribir en memoria");
-            break;
-        }
-
-        // Avanzar el puntero input por el tamaño que acabamos de procesar
-        input = (char *)input + tamanio;
+        // Actualizamos las variables:
+        bytes_mandados += tamanio;
+        index++;
     }
 }
 
 // Funciones recibir mensajes de memoria:
 
 char *rcv_contenido_a_mostrar(t_interfaz *interfaz, t_list *direcciones_fisicas) {
+
+    // Inicializamos las variables:
     int size = list_size(direcciones_fisicas);
     int socket_memoria = get_socket_memory(interfaz);
     int cantidad_bytes = get_total_de_bytes(direcciones_fisicas);
+
+    // Creamos el buffer a mostrar:
     char *contenido_a_mostrar = malloc(cantidad_bytes);
     int desplazamiento_interno = 0;
 
+    // Ordenamos las direcciones por tamaño:
+    t_list *direcciones_fisicas_tam_ordernadas = list_sorted(direcciones_fisicas, (void *)ordenar_direcciones_por_tamanio);
+
     for (int i = 0; i < size; i++) {
-        t_direccion_fisica *direccion = list_get(direcciones_fisicas, i);
+        t_direccion_fisica *direccion = list_get(direcciones_fisicas_tam_ordernadas, i);
         int direccion_fisica = direccion->direccion_fisica;
         int tamanio = direccion->tamanio;
 
@@ -230,19 +239,6 @@ char *rcv_contenido_a_mostrar(t_interfaz *interfaz, t_list *direcciones_fisicas)
     return contenido_a_mostrar;
 }
 
-void rcv_contenido_a_escribir(t_interfaz *interfaz, int bytes_a_escribir, unsigned char **contenido) {
-    int size;
-    int socket_memoria = get_socket_memory(interfaz);
-
-    // Recibimos el buffer:
-    void *buffer = recibir_buffer(&size, socket_memoria);
-    
-    // Copiamos el buffer a contenido:
-    memcpy(*contenido, buffer, bytes_a_escribir);
-
-    // Liberamos el buffer recibido:
-    free(buffer);
-}
 
 // Funciones auxiliares:
 

@@ -24,8 +24,8 @@ void ejecutar_operacion_generica(t_interfaz * interfaz) {
         int tiempo_unidad = get_tiempo_unidad(interfaz);
 
         // Logeamos la operación:
-        log_info(logger, "PID: <%d> - Operacion: <%s>", *pid_proceso, operacion);
-        log_info(logger, "PID <%d> - Esperando %d unidades de tiempo", *pid_proceso, *tiempo_espera);
+        log_info(logger, "PID: %d - Operacion: %s", *pid_proceso, operacion);
+        log_info(logger, "Tiempo de espera de segundos: %d", *tiempo_espera * tiempo_unidad);
 
         // Esperamos el tiempo de espera:
         sleep(*tiempo_espera * tiempo_unidad);
@@ -51,7 +51,7 @@ void ejecutar_operacion_stdin(t_interfaz *interfaz) {
         char *operacion = get_nombre_operacion(*tipo_operacion);
 
         // Logeamos la operación:
-        log_info(logger, "PID: %d - Operacion: %s ", *pid_proceso, operacion);
+        log_info(logger, "PID: %d - Operacion: %s", *pid_proceso, operacion);
 
         // Obtenemos el input:
         input = readline("Ingrese un valor: ");
@@ -68,8 +68,10 @@ void ejecutar_operacion_stdin(t_interfaz *interfaz) {
             input = readline("Ingrese un valor: ");
         }
 
+        int bytes_leidos = strlen(input);
+
         // Enviamos los bytes a escribir a memoria:
-        send_bytes_a_leer(interfaz, pid_proceso, direcciones, input);
+        send_bytes_a_leer(interfaz, pid_proceso, direcciones, input, bytes_leidos);
         send_respuesta_a_kernel(1, interfaz);
 
         free(input);
@@ -77,6 +79,7 @@ void ejecutar_operacion_stdin(t_interfaz *interfaz) {
 }
 
 void ejecutar_operacion_stdout(t_interfaz *interfaz) {
+    
     while(1) {
         // Obtenemos los argumentos:
         t_list *argumentos = recibir_argumentos(interfaz, get_socket_kernel(interfaz));
@@ -91,7 +94,7 @@ void ejecutar_operacion_stdout(t_interfaz *interfaz) {
         char *contenido_a_mostrar = rcv_contenido_a_mostrar(interfaz, direcciones);
 
         // Mostramos el contenido:
-        log_info(logger, "PID: <%i> - Contenido leido: <%s>", *pid_proceso, contenido_a_mostrar);
+        log_info(logger, "PID: %i - Contenido leido: %s", *pid_proceso, contenido_a_mostrar);
 
         // Enviamos la respuesta:
         send_respuesta_a_kernel(1, interfaz);
@@ -153,4 +156,3 @@ void ejecutar_operaciones_dialFS(t_interfaz *interfaz) {
         }
     }
 }
-
