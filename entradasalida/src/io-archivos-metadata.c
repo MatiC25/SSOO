@@ -38,8 +38,6 @@ void set_tamanio_archivo_en_archivo_metadata(t_config *archivo_metadata, int tam
     config_set_value(archivo_metadata, "TAMANIO_ARCHIVO", tamanio_archivo_string);
 }
 
-void set_archivo_metada_en_fs(t_interfaz *interfaz, char *name_file, t_config *archivo_metadata) {
-    char *path = get_path_archivo(interfaz, name_file);
-
-    config_save(archivo_metadata, path);
+void set_archivo_metada_en_fs(t_config *archivo_metadata) {
+    config_save(archivo_metadata);
 }

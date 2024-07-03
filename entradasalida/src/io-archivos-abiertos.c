@@ -26,6 +26,7 @@ t_list *obtener_archivos_ya_abiertos(t_interfaz *interfaz) {
             t_config *archivo_metadata = abrir_archivo_metadata_config(interfaz, name_file, "r");
             t_archivo_abierto *archivo_abierto = malloc(sizeof(t_archivo_abierto));
             
+
             // Seteamos los datos del archivo abierto:
             set_archivo_metada_en_archivo_abierto(archivo_abierto, archivo_metadata);
             set_name_file_en_archivo_abierto(archivo_abierto, name_file);
@@ -33,8 +34,6 @@ t_list *obtener_archivos_ya_abiertos(t_interfaz *interfaz) {
             // Agregamos el archivo a la lista de archivos abiertos:
             if(es_un_archivo_valido(archivo_metadata))
                 list_add(archivos_abiertos, archivo_abierto);
-            else
-                config_destroy(archivo_metadata);
         }
     }
 
@@ -66,14 +65,21 @@ void set_nuevo_archivo_abierto(t_list *archivos_abiertos, char *name_file, t_con
 // Funciones para verificar si existe ya un archivo:
 
 int ya_esta_abierto(t_list *archivos_abiertos, char *nombre_archivo) {
+
+
     int size = list_size(archivos_abiertos);
+    nombre_archivo[strlen(nombre_archivo)] = '\0';
 
-    for(int i = 0; i < size; i++) {
+    for (int i = 0; i < size; i++) {
         t_archivo_abierto *archivo_abierto = list_get(archivos_abiertos, i);
-        char *name_file = archivo_abierto->name_file;
+        char *nombre_archivo_abierto = archivo_abierto->name_file;
 
-        if(strcmp(name_file, nombre_archivo) == 0)
+        log_info(logger, "Archivo dentro de la lista: %s", nombre_archivo_abierto);
+        log_info(logger, "Archivo a punto de crearse: %s", nombre_archivo);
+
+        if (strcmp(nombre_archivo_abierto, nombre_archivo) == 0) {
             return 1;
+        }
     }
 
     return 0;

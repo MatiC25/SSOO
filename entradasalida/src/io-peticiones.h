@@ -16,6 +16,7 @@
 #include "io-archivos-abiertos.h"
 #include "io-archivos.h"
 #include "io-bitmap.h"
+#include "io-operaciones-dialfs.h"
 
 // Funciones para enviar peticiones:
 void interfaz_recibir_peticiones(t_interfaz* interfaz);

@@ -16,12 +16,12 @@ t_bitarray *crear_bitmap(t_interfaz *interfaz, char *modo_de_apertura) {
     }
 
     // Creo el bitmap:
-    t_bitarray *bitarray = bitarray_create_with_mode(bitmap, size, MSB_FIRST);
+    t_bitarray *bitarray = bitarray_create_with_mode(bitmap, size, LSB_FIRST);
 
     if(strcmp(modo_de_apertura, "wb+") == 0)
         inicializar_bitmap(bitarray);
 
-    return bitmap;
+    return bitarray;
 }
 
 void inicializar_bitmap(t_bitarray *bitmap) {
@@ -54,8 +54,16 @@ int obtener_bloque_libre(t_bitarray *bitmap, t_interfaz *interfaz) {
 
         // Si el bloque esta libre, lo devolvemos:
         if(cantidad_bits == bits_por_bloque)
-            return bloque;
+            return i;
     }
 
     return -1;
+}
+
+// Funciones para settear bloques como ocupados:
+void set_bloque_ocupado(t_bitarray *bitmap, t_interfaz *interfaz, int bloque_inicial) {
+    int cantidad_bits_por_bloque = get_block_count(interfaz) / 8;
+
+    for(int i = 0; i < cantidad_bits_por_bloque; i++) 
+        bitarray_set_bit(bitmap, bloque_inicial + i);
 }

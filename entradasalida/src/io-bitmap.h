@@ -16,4 +16,7 @@ void inicializar_bitmap(t_bitarray *bitmap);
 // Funcion para obtener un bloque libre:
 int obtener_bloque_libre(t_bitarray *bitmap, t_interfaz *interfaz);
 
+// Funciones para settear bloques como ocupados:
+void set_bloque_ocupado(t_bitarray *bitmap, t_interfaz *interfaz, int bloque_inicial);
+
 #endif

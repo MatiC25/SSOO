@@ -23,6 +23,9 @@ void operacion_create_file(t_interfaz *interfaz, t_bitarray *bitmap, t_list *arg
         return;
     }
 
+    // Seteamos bloque inicial como ocupado:
+    set_bloque_ocupado(bitmap, interfaz, bloque_inicial);
+
     // Seteamos los datos del archivo:
     set_bloque_inicial_en_archivo_metadata(archivo_metadata, bloque_inicial);
     set_tamanio_archivo_en_archivo_metadata(archivo_metadata, 0);
@@ -31,5 +34,9 @@ void operacion_create_file(t_interfaz *interfaz, t_bitarray *bitmap, t_list *arg
     set_nuevo_archivo_abierto(archivos_ya_abiertos, nombre_archivo, archivo_metadata);
 
     // Guardamos el archivo:
-    set_archivo_metada_en_fs(interfaz, nombre_archivo, archivo_metadata);
+    set_archivo_metada_en_fs(archivo_metadata);
+
+    // Logeamos operacion:
+    log_info(logger, "Archivo: %s", nombre_archivo);
+    log_info(logger, "Bloque inicial: %i", bloque_inicial);
 }

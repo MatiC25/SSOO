@@ -22,6 +22,6 @@ int es_un_archivo_valido(t_config *archivo_metadata);
 // Funciones para setear los datos del archivo metadata:
 void set_bloque_inicial_en_archivo_metadata(t_config *archivo_metadata, int bloque_inicial);
 void set_tamanio_archivo_en_archivo_metadata(t_config *archivo_metadata, int tamanio_archivo);
-void set_archivo_metada_en_fs(t_interfaz *interfaz, char *name_file, t_config *archivo_metadata);
+void set_archivo_metada_en_fs(t_config *archivo_metadata);
 
 #endif
