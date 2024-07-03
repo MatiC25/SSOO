@@ -4,6 +4,7 @@
 #include <stdio.h>
 #include <unistd.h>
 #include <sys/mman.h>
+#include <commons/string.h>
 
 #include "io-estructuras.h"
 #include "io-utils.h"
@@ -16,5 +17,8 @@ FILE *abrir_archivo_bitmap(t_interfaz *interfaz, char *modo_de_apertura);
 // Funciones auxiliares:
 FILE *abrir_archivo(char *path, char *modo_de_apertura);
 FILE *persistir_archivo(t_interfaz *interfaz, char *name_file, char *modo_de_apertura, int tamanio_archivo);
+
+// Funciones de utilidad:
+int es_un_archivo_txt(char *name_file);
 
 #endif

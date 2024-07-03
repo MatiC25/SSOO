@@ -8,6 +8,7 @@
 
 #include "io-estructuras.h"
 #include "io-archivos-metadata.h"
+#include "io-archivos.h"
 #include "io-utils.h"
 
 // Funcione para traer los archivos ya abiertos:

@@ -38,3 +38,9 @@ FILE *persistir_archivo(t_interfaz *interfaz, char *name_file, char *modo_de_ape
     
     return archivo;
 }
+
+// Funciones de utilidad:
+
+int es_un_archivo_txt(char *name_file) {
+    return string_ends_with(name_file, ".txt");
+}

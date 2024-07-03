@@ -22,17 +22,20 @@ t_list *obtener_archivos_ya_abiertos(t_interfaz *interfaz) {
             // Obtenemos el nombre del archivo:
             char *name_file = archivo->d_name;
 
-            // Inicializamos el archivo abierto:
-            t_config *archivo_metadata = abrir_archivo_metadata_config(interfaz, name_file, "r");
-            t_archivo_abierto *archivo_abierto = malloc(sizeof(t_archivo_abierto));
-            
-            // Seteamos los datos del archivo abierto:
-            set_archivo_metada_en_archivo_abierto(archivo_abierto, archivo_metadata);
-            set_name_file_en_archivo_abierto(archivo_abierto, name_file);
+            if(es_un_archivo_txt(name_file)) {
 
-            // Agregamos el archivo a la lista de archivos abiertos:
-            if(es_un_archivo_valido(archivo_metadata))
-                list_add(archivos_abiertos, archivo_abierto);
+                // Inicializamos el archivo abierto:
+                t_config *archivo_metadata = abrir_archivo_metadata_config(interfaz, name_file, "r");
+                t_archivo_abierto *archivo_abierto = malloc(sizeof(t_archivo_abierto));
+                
+                // Seteamos los datos del archivo abierto:
+                set_archivo_metada_en_archivo_abierto(archivo_abierto, archivo_metadata);
+                set_name_file_en_archivo_abierto(archivo_abierto, name_file);
+
+                // Agregamos el archivo a la lista de archivos abiertos:
+                if(es_un_archivo_valido(archivo_metadata))
+                    list_add(archivos_abiertos, archivo_abierto);
+            }
         }
     }
 
