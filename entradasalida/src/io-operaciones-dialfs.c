@@ -37,6 +37,6 @@ void operacion_create_file(t_interfaz *interfaz, t_bitarray *bitmap, t_list *arg
     set_archivo_metada_en_fs(archivo_metadata);
 
     // Logeamos operacion:
-    log_info(logger, "Archivo: %s", nombre_archivo);
-    log_info(logger, "Bloque inicial: %i", bloque_inicial);
+    log_info(logger, "Se creo el archivo %s", nombre_archivo);
+    log_info(logger, "Bloque inicial: %d", bloque_inicial);
 }

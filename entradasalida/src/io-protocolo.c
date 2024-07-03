@@ -272,9 +272,11 @@ char *parsear_string(void *buffer, int *desplazamiento) {
     *desplazamiento += sizeof(int);
 
     // Copiamos el string:
-    char *string = malloc(tam);
+    char *string = malloc(tam + 1);
     memcpy(string, buffer + *desplazamiento, tam);
-    *desplazamiento += tam;
+    *desplazamiento += tam + 1;
+    
+    string[tam] = '\0';
 
     return string;
 }
