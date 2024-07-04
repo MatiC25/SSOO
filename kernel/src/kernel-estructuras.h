@@ -8,7 +8,6 @@
 #include <semaphore.h>
 #include <pthread.h>
 
-#define MAX_RECURSOS 3
 typedef struct {
     char* PUERTO_ESCUCHA;
     char *IP_MEMORIA;
@@ -52,7 +51,6 @@ extern t_list* cola_prima_VRR;
 extern t_list* cola_block;
 extern t_list* cola_exec;
 extern t_list* cola_exit;
-extern t_queue* colas_resource_block[MAX_RECURSOS];
 
 extern pthread_mutex_t reanudar_plani;
 extern pthread_mutex_t reanudar_ds;

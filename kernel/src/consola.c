@@ -235,7 +235,7 @@ void* ejecutar_script(void* args) {
         comando[strcspn(comando, CENTINELA)] = '\0';
         ejecutar_comando(comando);
     }
-
+    
     fclose(archivo_script);
     free(path_nuevo);
     return NULL;
@@ -253,15 +253,11 @@ void* finalizar_proceso(void* pid) {
     } else {
         pthread_mutex_unlock(&mutex_estado_exec);
 
-        pthread_mutex_lock(&mutex_estado_block);
         t_pcb* pcb = pcb_encontrado(cola_block, pid_buscado);
         if (pcb != NULL) {
             finalizar_por_invalidacion(pcb, "INTERRUPTED_BY_USER");
             log_info(logger, "Proceso a Finalizar encontrado en BLOCK");
-            pthread_mutex_unlock(&mutex_estado_block);
         } else {
-            pthread_mutex_unlock(&mutex_estado_block);
-
             pthread_mutex_lock(&mutex_estado_ready);
             pcb = pcb_encontrado(cola_ready, pid_buscado);
             if (pcb != NULL) {

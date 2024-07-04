@@ -10,6 +10,8 @@
 #include "kernel-protocolo.h"
 #include "planificacion.h"
 
+extern int tam_cola_resource;
+extern t_queue** colas_resource_block;
 
 void hilo_motivo_de_desalojo();
 void* escuchar_peticiones_dispatch();
@@ -19,7 +21,6 @@ void peticion_exit(const char *tipo_de_exit);
 void peticion_wait();
 void peticion_signal();
 void mover_a_bloqueado_por_wait(t_pcb* pcb, char* recurso);
-void inicializar_colas_bloqueados();
 int obtener_indice_recurso(char* recurso);
 bool recurso_existe(char* recurso);
 t_pcb* recibir_contexto_y_recurso(char** recurso);
@@ -31,5 +32,7 @@ void finalizar_por_invalidacion(t_pcb* pcb, const char* tipo_invalidacion);
 void liberar_recurso_por_exit(t_pcb* pcb);
 void mostrar_pcb(t_pcb* pcb);
 void liberar_pcb();
+void inicializar_cola_resource_block();
+int inicializar_tam_cola_resources();
 
 #endif // KERNEL_PETICIONES_DISPATCH_H

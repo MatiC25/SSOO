@@ -9,6 +9,7 @@ void iniciar_ciclo_de_ejecucion(int socket_server ,int socket_cliente) {
     config_cpu->SOCKET_KERNEL = socket_cliente;
     while(1) {
         int codigo_operacion = recibir_operacion(socket_cliente); //Acordarme que lo cambie
+        log_info(logger, "%i", codigo_operacion);
         switch(codigo_operacion) {  
             case RECIBIR_PROCESO:
             // log_warning(logger,"Recibiendo la PCB");
@@ -23,7 +24,7 @@ void iniciar_ciclo_de_ejecucion(int socket_server ,int socket_cliente) {
             log_warning(logger,"Se desconecto el cliente Kernel (Ds)");
             return ; 
         default:
-        log_error(logger, "Operacion desconocida");
+        log_error(logger, "Operacion desconocida recibir");
        }
     }   
 }
@@ -214,12 +215,10 @@ void ejecutar_instruccion(int socket_cliente) {
         case WAIT:
             log_info(logger,"Instruccion Ejecutada: PID: %d- Ejecutando: %s -%s", pcb->pid,instruccion->opcode,instruccion->parametro1);
             ejecutar_WAIT(instruccion->parametro1);
-            liberar_pcb();
             break;
         case SIGNAL:
             log_info(logger,"Instruccion Ejecutada: PID: %d- Ejecutando: %s -%s", pcb->pid,instruccion->opcode,instruccion->parametro1);
             ejecutar_SINGAL(instruccion->parametro1);
-            liberar_pcb();
             break;
         case IO_STDIN_READ:
             log_info(logger,"Instruccion Ejecutada: PID: %d- Ejecutando: %s -%s %s %s", pcb->pid,instruccion->opcode,instruccion->parametro1,instruccion->parametro2, instruccion->parametro3);
@@ -257,7 +256,7 @@ void ejecutar_instruccion(int socket_cliente) {
             liberar_pcb();
             break;
         default:
-            log_error(logger, "Operacion desconocida");          
+            log_error(logger, "Operacion desconocida ejecucion");          
         }
 }
 

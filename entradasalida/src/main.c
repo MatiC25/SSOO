@@ -3,7 +3,7 @@
 t_interfaz *interfaz = NULL;
 
 int main(int argc, char *argv[]) {
-    char *name_interfaz = "MONITOR";
+    char *name_interfaz = "GENERICA";
     char *config_path = "./entradasalida.config";
 
     // Inicializamos logger y interfaz:

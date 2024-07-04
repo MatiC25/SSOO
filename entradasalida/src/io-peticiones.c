@@ -28,7 +28,7 @@ void ejecutar_operacion_generica(t_interfaz * interfaz) {
         // Logeamos la operación:
         log_info(logger, "PID: %d - Operacion: %s", *pid_proceso, operacion);
         log_info(logger, "Tiempo de espera de segundos: %d", *tiempo_espera * tiempo_unidad);
-
+        log_info(logger, "Durmiendo %i...", *tiempo_espera * tiempo_unidad);
         // Esperamos el tiempo de espera:
         sleep(*tiempo_espera * tiempo_unidad);
 

@@ -28,7 +28,6 @@ t_list* cola_prima_VRR;
 t_list* cola_block;
 t_list* cola_exec;
 t_list* cola_exit;
-t_queue* colas_resource_block[MAX_RECURSOS];
 t_recursos_pedidos* vector_recursos_pedidos;
 int tam_vector_recursos_pedidos;
 
@@ -146,16 +145,18 @@ bool busqueda_en_cola_block(void* elemento) {
 
 
 void mover_procesos_de_bloqueado_a_ready(t_pcb* proceso) {
-    sem_wait(&hay_proceso_en_bloq);
 
+    sem_wait(&hay_proceso_en_bloq);
     pthread_mutex_lock(&reanudar_block);
     pthread_mutex_unlock(&reanudar_block);
 
-    pid_buscado_temporal = proceso->pid;
+    // pid_buscado_temporal = proceso->pid;
+    // log_info(logger, "PID BUSCADO: %i", pid_buscado_temporal);
 
-    pthread_mutex_lock(&mutex_estado_block);
+    pthread_mutex_lock(&mutex_cola_block);
     t_pcb* pcb_a_ready = list_remove_by_condition(cola_block, busqueda_en_cola_block);
-    pthread_mutex_unlock(&mutex_estado_block);
+    pthread_mutex_unlock(&mutex_cola_block);
+    log_info(logger, "PID BUSCADO: %i", pcb_a_ready->pid);
 
     if (pcb_a_ready != NULL) {
         if (strcmp(config_kernel->ALGORITMO_PLANIFICACION, "VRR") == 0) {
@@ -239,20 +240,22 @@ void hilo_planificador_cortoplazo_VRR() {
 
 
 void* planificador_cortoplazo_fifo(void* arg) {
-        sem_wait(&habilitar_corto_plazo);
-
+    sem_wait(&habilitar_corto_plazo);
     while (1) {
         pthread_mutex_lock(&reanudar_plani);
         pthread_mutex_unlock(&reanudar_plani);
 
         sem_wait(&hay_en_estado_ready);
+        sem_wait(&hay_proceso_exec);
 
         pthread_mutex_lock(&mutex_estado_ready);
+        pthread_mutex_lock(&mutex_proceso_exec);
+        proceso_en_exec->estado = EXEC;
         proceso_en_exec = list_remove(cola_ready, 0);
+        pthread_mutex_unlock(&mutex_proceso_exec);
         pthread_mutex_unlock(&mutex_estado_ready);
     
-        // Envia el proceso a la CPU
-        sem_wait(&hay_proceso_exec);
+        log_info(logger, "Enviando PCB...");
         enviar_proceso_a_cpu(proceso_en_exec);
     
     }
@@ -267,7 +270,7 @@ void puede_ejecutar_otro_proceso() {
 
 void* planificador_corto_plazo_RoundRobin(void* arg) {
      //Se envia signal en el largo plazo
-             sem_wait(&habilitar_corto_plazo);
+    sem_wait(&habilitar_corto_plazo);
 
     while (1) {
         pthread_mutex_lock(&reanudar_plani);
@@ -443,10 +446,6 @@ void prevent_from_memory_leaks() {
         list_destroy_and_destroy_elements(cola_prima_VRR, free); // Liberar los elementos de la lista
     }
 
-    // if(cola_exec) {
-    //     list_destroy_and_destroy_elements(cola_exec, free); // Liberar los elementos de la lista
-    // }
-
     if(cola_block) {
         list_destroy_and_destroy_elements(cola_block, free); // Liberar los elementos de la lista
     }
@@ -463,7 +462,7 @@ void prevent_from_memory_leaks() {
         list_destroy_and_destroy_elements(cola_exit, free); // Liberar los elementos de la lista
     }
 
-    for(int i = 0; i < MAX_RECURSOS; i++) {
+    for(int i = 0; i < string_array_size(config_kernel->RECURSOS); i++) {
         if(queue_size(colas_resource_block[i]) > 0) {
             queue_destroy_and_destroy_elements(colas_resource_block[i], free);
         }

@@ -1,5 +1,7 @@
 #include "kernel-peticiones-dispatch.h"
 
+int tam_cola_resource;
+t_queue** colas_resource_block;
 
 void hilo_motivo_de_desalojo() {
     pthread_t hilo_desalojo;
@@ -292,9 +294,9 @@ void mover_a_bloqueado_por_wait(t_pcb* pcb, char* recurso) {
 void mover_a_cola_block_general(t_pcb* pcb, char* motivo) {
 
     pthread_mutex_lock(&mutex_cola_block);
-    log_info(logger, "PID: %i - Bloqueado por: %s \n", pcb->pid, motivo);
+    log_info(logger, "PID: %i - Bloqueado por: %s", pcb->pid, motivo);
     log_info(logger, "PID: %i - Estado Anterior: EXEC - Estado Actual: BLOCK", pcb->pid);
-    log_facu(logger, "Quantum en Block: %i", pcb->quantum);
+    //log_facu(logger, "Quantum en Block: %i", pcb->quantum);
     pcb->estado = BLOCK;
     list_add(cola_block, pcb);
     pthread_mutex_unlock(&mutex_cola_block);
@@ -304,8 +306,8 @@ void mover_a_cola_block_general(t_pcb* pcb, char* motivo) {
 
 
 int obtener_indice_recurso(char* recurso) {
-    for (int i = 0; i < MAX_RECURSOS; i++) {
-        if (strncmp(config_kernel->RECURSOS[i], recurso, 2) == 0) { //ACORDATE DE CAMBIARLOOOO!!!
+    for (int i = 0; i < string_array_size(config_kernel->RECURSOS); i++) {
+        if (strncmp(config_kernel->RECURSOS[i], recurso, 2) == 0) { //ACORDATE DE CAMBIARLOOOO!!! TODO
             return i;
         }
     }
@@ -429,15 +431,40 @@ void inicializar_vector_recursos_pedidos() {
         vector_recursos_pedidos[i].PID = -1;
         vector_recursos_pedidos[i].recurso = NULL;
     }
+
 }
 
 
 int calcular_total_instancias() {
     int suma = 0;
-    for (int i = 0; i < MAX_RECURSOS; i++) {
+    for (int i = 0; i < string_array_size(config_kernel->RECURSOS); i++) {
         suma += config_kernel->INST_RECURSOS[i];
     }
     return suma;
+}
+
+
+int inicializar_tam_cola_resources() {
+    tam_cola_resource = string_array_size(config_kernel->RECURSOS);
+    log_facu(logger, "%i", tam_cola_resource);
+    return tam_cola_resource;
+}
+
+
+void inicializar_cola_resource_block() {
+    tam_cola_resource = inicializar_tam_cola_resources();
+    
+    // Asignar memoria para el array de punteros a colas
+    colas_resource_block = malloc(tam_cola_resource * sizeof(t_queue*));
+    if (colas_resource_block == NULL) {
+        // Manejar error de asignación de memoria
+        log_error(logger, "No se pudo asignar memoria para colas_resource_block");
+        exit(EXIT_FAILURE);
+    }
+
+    for (int i = 0; i < tam_cola_resource; i++) {
+        colas_resource_block[i] = queue_create();
+    }
 }
 
 
@@ -457,14 +484,26 @@ void finalizar_por_invalidacion(t_pcb* pcb, const char* tipo_invalidacion) {
 
 
 void liberar_recurso_por_exit(t_pcb* pcb) {
-
     for (int i = 0; i < tam_vector_recursos_pedidos; i++) {
-
         if (vector_recursos_pedidos[i].PID == pcb->pid) {
             int indice_recurso = obtener_indice_recurso(vector_recursos_pedidos[i].recurso);
 
             if (indice_recurso != -1) {
+
                 config_kernel->INST_RECURSOS[indice_recurso]++;
+                log_info(logger, "Se libera el recurso %s - PID: %i", vector_recursos_pedidos[i].recurso, pcb->pid);
+
+                if (!queue_is_empty(colas_resource_block[indice_recurso])) { //SI hay algun proceso esperando dicho recurso, retoma la ejecucion
+                    //log_facu(logger, "aaa");
+                    pthread_mutex_lock(&mutex_estado_block);
+                    //log_facu(logger, "aaa");
+                    t_pcb* pcb_bloqueado = queue_pop(colas_resource_block[indice_recurso]);
+                    pthread_mutex_unlock(&mutex_estado_block);
+                    //log_facu(logger, "aaa");
+                    mover_procesos_de_bloqueado_a_ready(pcb_bloqueado);
+    
+                    //liberar_pcb(pcb_bloqueado);
+                }
             } else {
                 log_error(logger, "¡Hay una descoordinación, recurso no coincide con PID: %i", pcb->pid);
                 continue;
@@ -475,6 +514,7 @@ void liberar_recurso_por_exit(t_pcb* pcb) {
             vector_recursos_pedidos[i].recurso = NULL;
         }
     }
+    liberar_pcb(pcb);
     puede_ejecutar_otro_proceso();
     sem_post(&sem_multiprogramacion);
 }

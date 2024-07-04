@@ -15,9 +15,7 @@ void inicializar_lista(){
     cola_block = list_create();
     cola_exec = list_create();
     cola_exit = list_create();
-    colas_resource_block[0] = queue_create();
-    colas_resource_block[1] = queue_create();
-    colas_resource_block[2] = queue_create();
+    inicializar_cola_resource_block();
     inicializar_vector_recursos_pedidos();
 }
 
