@@ -11,7 +11,7 @@
 #include "planificacion.h"
 
 extern int tam_cola_resource;
-extern t_queue** colas_resource_block;
+extern t_list** colas_resource_block;
 
 void hilo_motivo_de_desalojo();
 void* escuchar_peticiones_dispatch();

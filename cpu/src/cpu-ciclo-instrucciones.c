@@ -30,6 +30,7 @@ void iniciar_ciclo_de_ejecucion(int socket_server ,int socket_cliente) {
 void ejecutar_ciclo_instrucciones() {
     
     pcb = rcv_contexto_ejecucion_cpu(config_cpu->SOCKET_KERNEL);
+    log_warning(logger, "PCB QUE LLEGA ES LA SIGUENTE");
     seguir_ciclo();
 
 }   
@@ -148,9 +149,11 @@ void tengoAlgunaInterrupcion(){
         enviar_pcb_a_kernel(paquete_a_kernel);
         enviar_paquete(paquete_a_kernel, config_cpu->SOCKET_KERNEL);
         eliminar_paquete(paquete_a_kernel);
+        log_info(logger, "PCB DESALOJADA POR QUANTUM");
         liberar_pcb();
     return;
     }else{
+        log_warning(logger, "PCB SEGUIR CICLO");
         seguir_ciclo();
     }  
 }
@@ -171,7 +174,7 @@ void ejecutar_instruccion(int socket_cliente) {
             enviar_paquete(paquete_a_kernel, config_cpu->SOCKET_KERNEL);
             eliminar_paquete(paquete_a_kernel);
             liberar_pcb();
-            
+            liberar_instrucciones(instruccion);
             atomic_store(&interrupt_flag, 0); //Para no acumular un desalojo que no este acorde al proceso
             return; 
         case SET:
@@ -321,14 +324,12 @@ void ejecutar_IO_GEN_SLEEP(char* interfazAUsar, char* tiempoDeTrabajo){
     int respuesta;
 
     recv(config_cpu->SOCKET_KERNEL,&respuesta , sizeof(int), MSG_WAITALL);
-    log_warning(logger, "Numero de respuesta es %i", respuesta);
 
     if(respuesta == 1){
         t_paquete* paquete = crear_paquete(IO_GEN_SLEEP_INT);
         //log_warning(logger, "OP: %i", IO_GEN_SLEEP_INT);
         agregar_a_paquete_string(paquete, interfazAUsar, strlen(interfazAUsar) + 1);
         agregar_a_paquete (paquete ,&tiempo, sizeof(int));
-        log_warning(logger,"tiempo: %d",tiempo);
         //log_warning(logger, "Tiempo: %i", tiempo);
         enviar_paquete(paquete,config_cpu->SOCKET_KERNEL);
         eliminar_paquete(paquete);
@@ -436,23 +437,22 @@ void ejecutar_WAIT(char* recurso){
     enviar_paquete(paquete, config_cpu->SOCKET_KERNEL);
     eliminar_paquete(paquete);
 
-    int respuesta = 1;
+    int respuesta = -1;
     recv(config_cpu->SOCKET_KERNEL, &respuesta , sizeof(int), MSG_WAITALL);
-    //log_leo(logger2,"NUMERO : %i" ,respuesta);
     if (respuesta == 1){
         tengoAlgunaInterrupcion();
     }else{
         return;
+        liberar_pcb(pcb);
     }
        
 
 }
 
-void ejecutar_SINGAL(char* recurso){
+void ejecutar_SINGAL(char* recurso) {
     t_paquete* paquete_a_kernel = crear_paquete(SIGNAL);
     enviar_pcb_a_kernel(paquete_a_kernel);
     enviar_paquete(paquete_a_kernel, config_cpu->SOCKET_KERNEL);
-    //log_warning(logger,"PCB ENVIADA");
     eliminar_paquete(paquete_a_kernel);
 
     t_paquete* paquete_signal = crear_paquete(SIGNAL);
@@ -460,15 +460,14 @@ void ejecutar_SINGAL(char* recurso){
     enviar_paquete(paquete_signal, config_cpu->SOCKET_KERNEL);
     eliminar_paquete(paquete_signal);
 
-    int respuesta = 1;
-    recv(config_cpu->SOCKET_KERNEL, &respuesta , sizeof(int), MSG_WAITALL);
-    //log_leo(logger2,"NUMEOR : %i", respuesta);
-    if (respuesta == 1){
+    int respuesta = -1;
+    recv(config_cpu->SOCKET_KERNEL, &respuesta, sizeof(int), MSG_WAITALL);
+    if (respuesta == 1) {
         tengoAlgunaInterrupcion();
-    }else{
+    } else {
         return;
+        liberar_pcb(pcb);
     }
-    
 }
 
 
@@ -481,7 +480,6 @@ void ejecutar_IO_STDIN_READ(char* interfaz, char* registro_direccion, char* regi
 
     int reg_Direc = encontrar_int(registroDireccion, tamanio_logica );
     int reg_Tamanio =  encontrar_int(registroTamanio, tamanio_registro);
-    log_warning(logger, "tamanio: %i", reg_Tamanio);
     //mostrar_pcb(pcb);
 
     t_mmu_cpu * mmu_io_stdin_read = traducirDireccion(reg_Direc,reg_Tamanio);

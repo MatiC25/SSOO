@@ -1,7 +1,7 @@
 #include "kernel-peticiones-dispatch.h"
 
 int tam_cola_resource;
-t_queue** colas_resource_block;
+t_list** colas_resource_block;
 
 void hilo_motivo_de_desalojo() {
     pthread_t hilo_desalojo;
@@ -28,7 +28,6 @@ void* escuchar_peticiones_dispatch() {
         pthread_mutex_unlock(&reanudar_ds);
 
         t_tipo_instruccion motivo_desalojo = recibir_operacion(config_kernel->SOCKET_DISPATCH);
-
         if (motivo_desalojo < 0) {
             log_error(logger, "Dispatch acaba de recibir un motivo de desalojo inválido!");
             continue;
@@ -128,11 +127,12 @@ void peticion_exit(const char *tipo_de_exit) {
 
     pthread_mutex_lock(&mutex_proceso_exec);
     proceso_en_exec->estado = EXITT;
-    pthread_mutex_unlock(&mutex_proceso_exec);
+    
 
     pthread_mutex_lock(&mutex_exit);
     list_add(cola_exit, proceso_en_exec);
     pthread_mutex_unlock(&mutex_exit);
+    pthread_mutex_unlock(&mutex_proceso_exec);
 
     log_info(logger, "Se manda a Memoria para liberar el Proceso");
     informar_a_memoria_liberacion_proceso(proceso_en_exec->pid);
@@ -141,6 +141,7 @@ void peticion_exit(const char *tipo_de_exit) {
     pthread_mutex_lock(&mutex_proceso_exec);
     liberar_recurso_por_exit(proceso_en_exec);
     pthread_mutex_unlock(&mutex_proceso_exec);
+    puede_ejecutar_otro_proceso();
 }
 
 
@@ -155,7 +156,7 @@ void peticion_wait() {
         return;
     }
     pthread_mutex_unlock(&mutex_proceso_exec);
-
+    // mostrar_pcb(proceso_en_exec);
     if (!recurso_existe(recurso)) {
         log_error(logger, "El recurso solicitado no existe!");
         finalizar_por_invalidacion(proceso_en_exec, "INVALID_RESOURCE");
@@ -167,34 +168,33 @@ void peticion_wait() {
     int indice_recurso = obtener_indice_recurso(recurso);
     
     if (config_kernel->INST_RECURSOS[indice_recurso] > 0) {
-        sem_post(&desalojo_proceso);
         config_kernel->INST_RECURSOS[indice_recurso]--;
+        sem_post(&desalojo_proceso);
 
         // Guardar el pid y el recurso en el vector
         for (int i = 0; i < tam_vector_recursos_pedidos; i++) {
             if (vector_recursos_pedidos[i].PID == -1) {
                 vector_recursos_pedidos[i].PID = proceso_en_exec->pid;
                 vector_recursos_pedidos[i].recurso = strdup(recurso);
-                log_info(logger, "PID: %i - Asignado: %s", proceso_en_exec->pid, recurso, i);
+                log_facu(logger, "PID: %i - Asignado: %s", proceso_en_exec->pid, recurso, i);
                 break;
             }
         }
         
-        log_facu(logger, "¡WAIT exitoso!");
+        log_facu(logger, "¡WAIT exitoso!\n");
         int wait_exitoso = 1;
-        send(config_kernel->SOCKET_DISPATCH, &wait_exitoso, sizeof(int), NULL);
+        send(config_kernel->SOCKET_DISPATCH, &wait_exitoso, sizeof(int),  MSG_WAITALL);
 
     } else {
-        log_info(logger, "Recurso no disponible actualmente");
-        log_info(logger, "Moviendo proceso a BLOCK");
+        log_leo(logger, "Recurso no disponible actualmente");
+        log_leo(logger, "Moviendo proceso a BLOCK");
 
         int wait_fallido = 0;
-        send(config_kernel->SOCKET_DISPATCH, &wait_fallido, sizeof(int), NULL);
-        puede_ejecutar_otro_proceso();
+        send(config_kernel->SOCKET_DISPATCH, &wait_fallido, sizeof(int),  MSG_WAITALL);
         pthread_mutex_lock(&mutex_proceso_exec);
         mover_a_bloqueado_por_wait(proceso_en_exec, recurso);
         pthread_mutex_unlock(&mutex_proceso_exec);
-
+        puede_ejecutar_otro_proceso();
         free(recurso);
         return;
     }
@@ -204,65 +204,61 @@ void peticion_wait() {
 
 
 void peticion_signal() {
-
+    int signal_fallido = 0;
     char* recurso;
     pthread_mutex_lock(&mutex_proceso_exec);
     proceso_en_exec = recibir_contexto_y_recurso(&recurso);
     if (!proceso_en_exec) {
         log_error(logger, "Dispatch acaba de recibir algo inexistente!");
-        int signal_fallido = 0;
-        send(config_kernel->SOCKET_DISPATCH, &signal_fallido, sizeof(int), NULL);
+        send(config_kernel->SOCKET_DISPATCH, &signal_fallido, sizeof(int), MSG_WAITALL);
         puede_ejecutar_otro_proceso();
         return;
     }
     pthread_mutex_unlock(&mutex_proceso_exec);
-
     sem_post(&desalojo_proceso);
 
     if (!recurso_existe(recurso)) {
         log_error(logger, "El recurso solicitado no existe!");
         finalizar_por_invalidacion(proceso_en_exec, "INVALID_RESOURCE");
-        int signal_fallido = 0;
-        send(config_kernel->SOCKET_DISPATCH, &signal_fallido, sizeof(int), NULL);
+        send(config_kernel->SOCKET_DISPATCH, &signal_fallido, sizeof(int), MSG_WAITALL);
         free(recurso);
         puede_ejecutar_otro_proceso();
         return;
     }
 
+    // for(int i = 0; i < tam_vector_recursos_pedidos; i++) {
+    //     log_info(logger, "pid: %i",vector_recursos_pedidos[i].PID);
+    //     log_info(logger, "rec: %s", vector_recursos_pedidos[i].recurso);
+    // }
+
     int indice_recurso = obtener_indice_recurso(recurso);
     config_kernel->INST_RECURSOS[indice_recurso]++;
-
     // Liberar el pid y el recurso en el vector
     for (int i = 0; i < tam_vector_recursos_pedidos; i++) {
-        if (vector_recursos_pedidos[i].recurso == proceso_en_exec->pid && strncmp(vector_recursos_pedidos[i].recurso, recurso, 2) == 0) {
+        if (vector_recursos_pedidos[i].PID == proceso_en_exec->pid && strncmp(vector_recursos_pedidos[i].recurso, recurso, 2) == 0) {
             log_facu(logger, "Proceso: %i - Devuelve: %s", proceso_en_exec->pid, recurso);
             vector_recursos_pedidos[i].PID = -1;
             free(vector_recursos_pedidos[i].recurso);
             vector_recursos_pedidos[i].recurso = NULL;
-            break;
         }
     }
 
-    if (!queue_is_empty(colas_resource_block[indice_recurso])) {
+    log_facu(logger, "¡SIGNAL exitoso!");
+    int signal_exitoso = 1;
+    send(config_kernel->SOCKET_DISPATCH, &signal_exitoso, sizeof(int), MSG_WAITALL);
+    
+
+    if (!list_is_empty(colas_resource_block[indice_recurso])) {
         pthread_mutex_lock(&mutex_estado_block);
-        t_pcb* pcb_signal = queue_pop(colas_resource_block[indice_recurso]);
+        t_pcb* pcb_signal = list_remove(colas_resource_block[indice_recurso], 0);
         pthread_mutex_unlock(&mutex_estado_block);
-
+        log_info(logger, "¡Desbloqueando Proceso por Recurso!");
         mover_procesos_de_bloqueado_a_ready(pcb_signal);
-        liberar_pcb(pcb_signal);
-        // pthread_mutex_lock(&mutex_estado_ready);
-        // pcb_signal->estado = READY;
-        // list_add(cola_ready, pcb_signal);
-        // pthread_mutex_unlock(&mutex_estado_ready);
-
-        // log_info(logger, "PID: %i - Estado Anterior: BLOCK - Estado Actual: READY", pcb_signal->pid);
-        // sem_post(&hay_en_estado_ready);
+        //liberar_pcb(pcb_signal);
     }
 
-    log_facu(logger, "¡SIGNAL exitoso!");
-    int wait_exitoso = 1;
-    send(config_kernel->SOCKET_DISPATCH, &wait_exitoso, sizeof(int), NULL);
     free(recurso);
+    //sem_post(&pedidos);
 }
 
 
@@ -284,7 +280,7 @@ void mover_a_bloqueado_por_wait(t_pcb* pcb, char* recurso) {
 
     pthread_mutex_lock(&mutex_estado_block);
     pcb->estado = BLOCK;
-    queue_push(colas_resource_block[indice_recurso], pcb);
+    list_add(colas_resource_block[indice_recurso], pcb);
     pthread_mutex_unlock(&mutex_estado_block);
 
     mover_a_cola_block_general(pcb, recurso);
@@ -294,7 +290,7 @@ void mover_a_bloqueado_por_wait(t_pcb* pcb, char* recurso) {
 void mover_a_cola_block_general(t_pcb* pcb, char* motivo) {
 
     pthread_mutex_lock(&mutex_cola_block);
-    log_info(logger, "PID: %i - Bloqueado por: %s", pcb->pid, motivo);
+    log_leo(logger, "PID: %i - Bloqueado por: %s", pcb->pid, motivo);
     log_info(logger, "PID: %i - Estado Anterior: EXEC - Estado Actual: BLOCK", pcb->pid);
     //log_facu(logger, "Quantum en Block: %i", pcb->quantum);
     pcb->estado = BLOCK;
@@ -463,7 +459,7 @@ void inicializar_cola_resource_block() {
     }
 
     for (int i = 0; i < tam_cola_resource; i++) {
-        colas_resource_block[i] = queue_create();
+        colas_resource_block[i] = list_create();
     }
 }
 
@@ -489,19 +485,15 @@ void liberar_recurso_por_exit(t_pcb* pcb) {
             int indice_recurso = obtener_indice_recurso(vector_recursos_pedidos[i].recurso);
 
             if (indice_recurso != -1) {
-
                 config_kernel->INST_RECURSOS[indice_recurso]++;
-                log_info(logger, "Se libera el recurso %s - PID: %i", vector_recursos_pedidos[i].recurso, pcb->pid);
+                log_info(logger, "Liberado %s - PID: %i", vector_recursos_pedidos[i].recurso, pcb->pid);
 
-                if (!queue_is_empty(colas_resource_block[indice_recurso])) { //SI hay algun proceso esperando dicho recurso, retoma la ejecucion
-
+                if (!list_is_empty(colas_resource_block[indice_recurso])) {
                     pthread_mutex_lock(&mutex_estado_block);
-                    t_pcb* pcb_bloqueado = queue_pop(colas_resource_block[indice_recurso]);
+                    t_pcb* pcb_bloqueado = list_remove(colas_resource_block[indice_recurso], 0);
                     pthread_mutex_unlock(&mutex_estado_block);
 
                     mover_procesos_de_bloqueado_a_ready(pcb_bloqueado);
-    
-                    //liberar_pcb(pcb_bloqueado);
                 }
             } else {
                 log_error(logger, "¡Hay una descoordinación, recurso no coincide con PID: %i", pcb->pid);
@@ -513,9 +505,7 @@ void liberar_recurso_por_exit(t_pcb* pcb) {
             vector_recursos_pedidos[i].recurso = NULL;
         }
     }
-    liberar_pcb(pcb);
-    //liberar_pcb(pcb_bloqueado);
-    puede_ejecutar_otro_proceso();
+    //puede_ejecutar_otro_proceso();
     sem_post(&sem_multiprogramacion);
 }
 

@@ -12,7 +12,7 @@ sem_t sem_multiprogramacion;
 sem_t habilitar_corto_plazo;
 sem_t hay_en_estado_ready;
 sem_t hay_en_estado_new;
-sem_t cortar_sleep;
+sem_t pedidos;
 sem_t desalojo_proceso;
 sem_t hay_proceso_exec;
 sem_t hay_proceso_en_bloq;
@@ -44,7 +44,7 @@ void inicializacion_semaforos() {
     sem_init(&hay_en_estado_ready, 0, 0);
     sem_init(&hay_en_estado_new, 0, 0);
     sem_init(&sem_multiprogramacion, 0, config_kernel->GRADO_MULTIP);
-    sem_init(&cortar_sleep, 0, 0);
+    sem_init(&pedidos, 0, 1);
     sem_init(&desalojo_proceso, 0, 0);
     sem_init(&hay_proceso_exec, 0, 1);
     sem_init(&hay_proceso_en_bloq, 0, 0);
@@ -137,28 +137,22 @@ void* agregar_a_cola_ready() {
 }
 
 
-
-bool busqueda_en_cola_block(void* elemento) {
-    t_pcb* pcb = (t_pcb*) elemento;
-    return pcb->pid == pid_buscado_temporal;
-}
-
-
 void mover_procesos_de_bloqueado_a_ready(t_pcb* proceso) {
 
     sem_wait(&hay_proceso_en_bloq);
     pthread_mutex_lock(&reanudar_block);
     pthread_mutex_unlock(&reanudar_block);
 
-    // pid_buscado_temporal = proceso->pid;
-    // log_info(logger, "PID BUSCADO: %i", pid_buscado_temporal);
+    pid_buscado_temporal = proceso->pid;
 
     pthread_mutex_lock(&mutex_cola_block);
-    t_pcb* pcb_a_ready = list_remove_by_condition(cola_block, busqueda_en_cola_block);
+    t_pcb* pcb_a_ready = pcb_encontrado(cola_block, pid_buscado_temporal);
+    if(pcb_a_ready) {
+        list_remove_element(cola_block, pcb_a_ready);
+    }
     pthread_mutex_unlock(&mutex_cola_block);
-    log_info(logger, "PID BUSCADO: %i", pcb_a_ready->pid);
-
-    if (pcb_a_ready != NULL) {
+    
+    if (pcb_a_ready) {
         if (strcmp(config_kernel->ALGORITMO_PLANIFICACION, "VRR") == 0) {
             pthread_mutex_lock(&mutex_cola_priori_vrr);
             pcb_a_ready->estado = READY;
@@ -253,11 +247,12 @@ void* planificador_cortoplazo_fifo(void* arg) {
         proceso_en_exec = list_remove(cola_ready, 0);
         proceso_en_exec->estado = EXEC;
         pthread_mutex_unlock(&mutex_proceso_exec);
+        log_info(logger, "PID: %i - Estado Anterior: READY - Estado Actual: EXEC", proceso_en_exec->pid);
+        log_info(logger, "Enviando proceso %i a CPU\n", proceso_en_exec->pid);
         pthread_mutex_unlock(&mutex_estado_ready);
-    
-        log_info(logger, "Enviando PCB...");
+
         enviar_proceso_a_cpu(proceso_en_exec);
-    
+        sem_wait(&desalojo_proceso);
     }
     return NULL;
 }
@@ -463,8 +458,8 @@ void prevent_from_memory_leaks() {
     }
 
     for(int i = 0; i < string_array_size(config_kernel->RECURSOS); i++) {
-        if(queue_size(colas_resource_block[i]) > 0) {
-            queue_destroy_and_destroy_elements(colas_resource_block[i], free);
+        if(list_size(colas_resource_block[i]) > 0) {
+            list_destroy_and_destroy_elements(colas_resource_block[i], free);
         }
     }
 }
@@ -483,7 +478,7 @@ void destruir_semaforos() {
     sem_destroy(&hay_en_estado_ready);
     sem_destroy(&hay_en_estado_new);
     sem_destroy(&sem_multiprogramacion);
-    sem_destroy(&cortar_sleep);
+    sem_destroy(&pedidos);
     sem_destroy(&desalojo_proceso);
 }
 

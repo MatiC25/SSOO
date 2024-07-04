@@ -25,7 +25,7 @@ extern sem_t sem_multiprogramacion;
 extern sem_t habilitar_corto_plazo;
 extern sem_t hay_en_estado_ready;
 extern sem_t hay_en_estado_new;
-extern sem_t cortar_sleep;
+extern sem_t pedidos;
 extern sem_t desalojo_proceso;
 extern sem_t hay_proceso_en_bloq;
 

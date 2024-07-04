@@ -68,7 +68,7 @@ void consumers_pcbs_blockeds(void *args) {
         t_pcb *pcb = queue_pop(interface->process_blocked);
         t_list *args_pcb = queue_pop(interface->args_process); // Obtenemos los argumentos del proceso
 
-        log_warning(logger, "Sacando Proceso: %i - Bloqueado por interfaz", pcb->pid);
+        //log_warning(logger, "Sacando Proceso: %i - Bloqueado por interfaz", pcb->pid);
 
         // Obtenemos el socket de la interfaz:
         int socket_with_interface = get_socket_interface(interface);
