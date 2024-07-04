@@ -21,7 +21,7 @@ extern atomic_int interrupt_flag;
 
 // Funciones para manejo de clientes y conexiones del modulo:
 void crear_servidores_cpu(int* md_cpu_ds, int* md_cpu_it);
-void* generar_conexion_a_memoria(void* arg);
+void* generar_conexion_a_memoria();
 int generar_servidor_cpu_dispatch();
 int generar_servidor_cpu_interrupt();
 void* server_interrupt(void* args);

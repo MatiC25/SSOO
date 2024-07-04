@@ -494,12 +494,11 @@ void liberar_recurso_por_exit(t_pcb* pcb) {
                 log_info(logger, "Se libera el recurso %s - PID: %i", vector_recursos_pedidos[i].recurso, pcb->pid);
 
                 if (!queue_is_empty(colas_resource_block[indice_recurso])) { //SI hay algun proceso esperando dicho recurso, retoma la ejecucion
-                    //log_facu(logger, "aaa");
+
                     pthread_mutex_lock(&mutex_estado_block);
-                    //log_facu(logger, "aaa");
                     t_pcb* pcb_bloqueado = queue_pop(colas_resource_block[indice_recurso]);
                     pthread_mutex_unlock(&mutex_estado_block);
-                    //log_facu(logger, "aaa");
+
                     mover_procesos_de_bloqueado_a_ready(pcb_bloqueado);
     
                     //liberar_pcb(pcb_bloqueado);
@@ -515,6 +514,7 @@ void liberar_recurso_por_exit(t_pcb* pcb) {
         }
     }
     liberar_pcb(pcb);
+    //liberar_pcb(pcb_bloqueado);
     puede_ejecutar_otro_proceso();
     sem_post(&sem_multiprogramacion);
 }

@@ -27,7 +27,7 @@ void* obtener_registro (char *registro);
 void seguir_ciclo();
 int espacio_de_registro(char* registro);
 void tengoAlgunaInterrupcion();
-void ejecutar_ciclo_instrucciones(int socket_cliente, int socket_server);
+void ejecutar_ciclo_instrucciones();
 void fecth(int socket_server);
 void ejecutar_instruccion(int socket_cliente);
 void ejecutar_set(char* registro, char* valor);
@@ -37,6 +37,8 @@ void ejecutar_sub(char* registro_origen_char, char* registro_desitino_char);
 void ejecutar_JNZ(char* registro, char* valor);
 void ejecutar_IO_GEN_SLEEP(char* interfazAUsar, char* tiempoDeTrabajo);
 void liberar_pcb();
+void liberar_mmu(t_mmu_cpu* mmu);
+void liberar_instrucciones(t_instruccion* instruccion);
 
 void ejecutar_MOV_IN(char* registro_Datos, char* registro_Direccion);
 void ejecutar_MOV_OUT(char* Registro_Datos, char* Registro_Direccion);

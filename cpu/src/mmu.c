@@ -9,84 +9,80 @@ t_mmu_cpu* traducirDireccion(int direccionLogica , int tamanio){
         return NULL;
     }
     //log_info(logger, "Se inicializan las listas");
-    mmu->tamanio = list_create();
-    mmu->direccionFIsica = list_create();
-    mmu->num_pagina = list_create();
+    mmu->tamanio = list_create(); // LINEA 12
+    mmu->direccionFIsica = list_create();// LINEA 13
+    mmu->num_pagina = list_create();// LINEA 14
     mmu->ofset = list_create();
 
 
     int pagina = (int)floor((double)direccionLogica / config_cpu->TAMANIO_PAGINA);
-    //log_info(logger, "PAgina: %i", pagina);
-    int *pagina_ptr = malloc(sizeof(int));
-    *pagina_ptr = pagina;
-    list_add(mmu->num_pagina , pagina_ptr); //Primera posicion
-     //log_nico(logger2, "Se agregó una pagina a la mmu");
-     //log_nico(logger2, "Se la tabla de la mmu de paginas es de: %i", list_size(mmu->num_pagina));
-     //log_info(logger, "DIreccion logica: %i", direccionLogica);
     int offset = direccionLogica - pagina * config_cpu->TAMANIO_PAGINA ;
-    int *offset_ptr = malloc(sizeof(int));
-    *offset_ptr = offset;
-    list_add(mmu->ofset, offset_ptr);
-    //log_info(logger,"Ofset: %i",mmu->ofset);
 
-    //int tamanio_Actualizado = (int)floor((double)tamanio/config_cpu->TAMANIO_PAGINA); 
+    int *pagina_ptr = malloc(sizeof(int));
+    int *offset_ptr = malloc(sizeof(int));
+    int* tamanio_ptr;
+    //log_info(logger, "PAgina: %i", pagina);
+    
+    *pagina_ptr = pagina;
+    *offset_ptr = offset;
+    list_add(mmu->num_pagina , pagina_ptr); //Primera posicion
+    list_add(mmu->ofset, offset_ptr);
+
+
     
     int tamanio_Actualizado = config_cpu->TAMANIO_PAGINA - offset;
     if (tamanio_Actualizado < tamanio){
-    int* tamanio_ptr = malloc(sizeof(int));
+    tamanio_ptr = malloc(sizeof(int));
+        if (!tamanio_ptr) {
+        log_error(logger, "Error al asignar memoria para tamaño");
+        liberar_mmu(mmu);
+        return NULL;
+    }
+    
     *tamanio_ptr = tamanio_Actualizado; 
     list_add(mmu->tamanio, tamanio_ptr);
     }else{
-        int* ptro = malloc(sizeof(int));
-        *ptro = tamanio;
-        list_add(mmu->tamanio, ptro);
+        tamanio_ptr= malloc(sizeof(int));
+        *tamanio_ptr = tamanio;
+        list_add(mmu->tamanio, tamanio_ptr);
         //log_info(logger,"TAMANIO: %i",*ptro);
     }
     
 
     int direccionLogica_actualizada = (pagina + 1) * config_cpu->TAMANIO_PAGINA;
-    //log_warning(logger, "pagina: %i", pagina);
-    //log_warning(logger, "Direccion logica actualizada: %i", direccionLogica_actualizada);
-
     tamanio_Actualizado = tamanio - tamanio_Actualizado;
-    //log_warning(logger, "TAMANIO ACTUALIZADO: %i", tamanio_Actualizado);
 
     while (config_cpu ->TAMANIO_PAGINA <= tamanio_Actualizado){ 
-        int pagina_actualizada = (int)floor((double)direccionLogica_actualizada / config_cpu->TAMANIO_PAGINA);
-        log_info(logger, "Nro pagina actualizada: %i", pagina_actualizada);
-        int* pagina_ptr_nuevo = malloc(sizeof(int));
-        *pagina_ptr_nuevo = pagina_actualizada; //Posicion N
-        list_add(mmu->num_pagina , pagina_ptr_nuevo);
-        
-        int *offset_ptr = malloc(sizeof(int));
-        *offset_ptr = 0;
-        list_add(mmu->ofset, offset_ptr);
-        
-        direccionLogica_actualizada = pagina_actualizada * config_cpu->TAMANIO_PAGINA;
-        tamanio_Actualizado = tamanio_Actualizado  - config_cpu -> TAMANIO_PAGINA;
+        pagina_ptr = malloc(sizeof(int));
+        offset_ptr = malloc(sizeof(int));
+        tamanio_ptr = malloc(sizeof(int));
 
-        int* tamanio_ptr_nuevo = malloc(sizeof(int));
-        *tamanio_ptr_nuevo = tamanio_Actualizado;
-        list_add(mmu->tamanio, tamanio_ptr_nuevo);
+        *pagina_ptr = pagina;
+        *offset_ptr = 0;
+        *tamanio_ptr = config_cpu->TAMANIO_PAGINA;
+
+        list_add(mmu->num_pagina, pagina_ptr);
+        list_add(mmu->ofset, offset_ptr);
+        list_add(mmu->tamanio, tamanio_ptr);
+
+        direccionLogica_actualizada += config_cpu->TAMANIO_PAGINA;
+        tamanio_Actualizado -= config_cpu->TAMANIO_PAGINA;
+        pagina++;
     }
 
     if (tamanio_Actualizado  > 0){
-        //Ultima posicion
-         int ultima_pagina = (int)floor((double)direccionLogica_actualizada / config_cpu->TAMANIO_PAGINA);
-         log_info(logger,"ENTRO A ULTIMA PAGINA: %i", ultima_pagina);
-        int* pagina_ptr_ultima = malloc(sizeof(int));
-        *pagina_ptr_ultima = ultima_pagina;
-        list_add(mmu->num_pagina , pagina_ptr_ultima);
 
-        int offset = direccionLogica_actualizada  - ultima_pagina * config_cpu->TAMANIO_PAGINA ;
-        int *offset_ptr = malloc(sizeof(int));
-        *offset_ptr = offset;
+        pagina_ptr = malloc(sizeof(int));
+        offset_ptr = malloc(sizeof(int));
+        tamanio_ptr = malloc(sizeof(int));
+
+        *pagina_ptr = pagina;
+        *offset_ptr = 0;
+        *tamanio_ptr = tamanio_Actualizado;
+
+        list_add(mmu->num_pagina, pagina_ptr);
         list_add(mmu->ofset, offset_ptr);
-
-
-        int* tamanio_ptr_ultimo = malloc(sizeof(int));
-        *tamanio_ptr_ultimo = tamanio_Actualizado;
-        list_add(mmu->tamanio, tamanio_ptr_ultimo);
+        list_add(mmu->tamanio, tamanio_ptr);
     }
 
 
@@ -95,14 +91,11 @@ for (int i = 0; i < list_size(mmu->num_pagina); i++) {
     int* offset_ptr = (int*)list_get(mmu->ofset, i);
     int offset = *offset_ptr;
     int pagina_a_buscar = *pagina;
-    //log_warning(logger, "PAGINA A BUSACAR: %i", pagina_a_buscar);
-    //log_warning(logger, "Offset: %i", offset);
+
 
     t_tabla_de_paginas_cpu* tabla = (t_tabla_de_paginas_cpu*)buscarEnTLB(pagina_a_buscar);
         
     if (tabla == NULL) { // NO TLB
-        //log_info(logger, "DIO NULL??");
-        //log_info(logger, "Tamano TLB: %i", list_size(tlb));
         
         if (list_size(tlb) < config_cpu->CANTIDAD_ENTRADAS_TLB || config_cpu->CANTIDAD_ENTRADAS_TLB == 0 ) {
             
@@ -112,26 +105,18 @@ for (int i = 0; i < list_size(mmu->num_pagina); i++) {
             tab->contador = 0;
             tab->nropagina = pagina_a_buscar;
             
-            //log_info(logger, "(EN TRADUCCION)pid: %i", tab->pid);
-            //log_info(logger, "(EN TRADUCCION)marco: %i", tab->marco);
-            //log_info(logger, "(EN TRADUCCION)nro pagina: %i", tab->nropagina);
             if (config_cpu->CANTIDAD_ENTRADAS_TLB == 0){
                 list_add(tlb, tab);
             }
-            
-            
+             
             int dirc_fisica = tab->marco * config_cpu->TAMANIO_PAGINA + offset;
-            //log_info(logger, "offset: %i", offset);
 
             int* ptr_dirc_fisica = malloc(sizeof(int));
-            if (ptr_dirc_fisica == NULL) {
-                log_error(logger, "Error al asignar memoria para ptr_dirc_fisica");
-                return NULL;
-            }
-
             *ptr_dirc_fisica = dirc_fisica;
+
             list_add(mmu->direccionFIsica, ptr_dirc_fisica);
             log_info(logger,"PID %i -TLB MISS -Pagina %i",pcb->pid,tab->nropagina);
+            free(tab);
 
         } else {
             if (strcmp(config_cpu->ALGORITMO_TLB, "FIFO") == 0) {
@@ -139,7 +124,6 @@ for (int i = 0; i < list_size(mmu->num_pagina); i++) {
                 t_tabla_de_paginas_cpu* tab = (t_tabla_de_paginas_cpu*)actualizar_TLB_por_fifo(pagina_a_buscar);
                 log_warning(logger, "CANTIDAD DE TLB: %i", list_size(tlb));
                 int dirc_fisica = tab->marco * config_cpu->TAMANIO_PAGINA + offset;
-                //log_info(logger, "Direccion fisica calculada: %i", dirc_fisica);
 
                 int* ptr_dirc_fisica = malloc(sizeof(int));
                 if (ptr_dirc_fisica == NULL) {
@@ -151,12 +135,11 @@ for (int i = 0; i < list_size(mmu->num_pagina); i++) {
                 list_add(mmu->direccionFIsica, ptr_dirc_fisica);
 
             } else if (strcmp(config_cpu->ALGORITMO_TLB, "LRU") == 0) {
-                //log_info(logger, "Entro a LRU");
+
                 t_tabla_de_paginas_cpu* tab = (t_tabla_de_paginas_cpu*)actualizar_Tlb_por_lru(pagina_a_buscar);      
                 log_nico(logger2, "CANTIDAD DE TLB DESPUES DE LRU: %i", list_size(tlb));
 
                 int dirc_fisica = tab->marco * config_cpu->TAMANIO_PAGINA + offset;
-                //log_info(logger, "Direccion fisica calculada: %i", dirc_fisica);
 
                 int* ptr_dirc_fisica = malloc(sizeof(int));
                 if (ptr_dirc_fisica == NULL) {
@@ -169,20 +152,14 @@ for (int i = 0; i < list_size(mmu->num_pagina); i++) {
                 
             } else {
                 log_error(logger, "Algoritmo no es valido en mmu");
-                free(mmu);
+                liberar_mmu(mmu);
                 return NULL;
             }
         }
     } else {
         int dirc_fisica = tabla->marco * config_cpu->TAMANIO_PAGINA + offset;
-        //log_info(logger, "DF: %i", dirc_fisica);
         
         int* ptr_dirc_fisica = malloc(sizeof(int));
-        if (ptr_dirc_fisica == NULL) {
-            log_error(logger, "Error al asignar memoria para ptr_dirc_fisica");
-            return NULL;
-        }
-
         *ptr_dirc_fisica = dirc_fisica;
 
         log_info(logger, "PID %i - TLB HIT - Pagina: %i", pcb->pid, tabla->nropagina);
@@ -190,9 +167,7 @@ for (int i = 0; i < list_size(mmu->num_pagina); i++) {
         
         list_add(mmu->direccionFIsica, ptr_dirc_fisica);
     }
-    //free(tabla);
 }
-free(mmu->num_pagina);
 
 return mmu;
 }
@@ -204,17 +179,13 @@ t_tabla_de_paginas_cpu* buscarEnTLB(int num_pagina){
         return NULL;
     }
 
- //log_warning(logger, "CANTIDAD DE TLB: %i", list_size(tlb));
   if (strcmp(config_cpu->ALGORITMO_TLB, "LRU") == 0) {
         for (int i = 0; i < list_size(tlb); i++) {
             t_tabla_de_paginas_cpu* tlb_item = (t_tabla_de_paginas_cpu*) list_get(tlb, i);
             if (tlb_item == NULL) {
-                //log_warning(logger, "Elemento NULL encontrado en la TLB en la posición %d", i);
                 continue;
             }
             tlb_item->contador++;
-            //log_info(logger, "Contado: %i", tlb_item->contador);
-            // free(tlb_item); // No liberes aquí si vas a seguir usándolo
         }
     }
 
@@ -224,17 +195,11 @@ t_tabla_de_paginas_cpu* buscarEnTLB(int num_pagina){
             if (strcmp(config_cpu->ALGORITMO_TLB, "LRU") == 0){
                 
                 t_tabla_de_paginas_cpu* tabla = (t_tabla_de_paginas_cpu*)list_remove(tlb,i);
-                //log_info(logger, "tabla_a_buscar->contador: %i", tabla->contador);
                 tabla->contador = 0;
-                //log_info(logger, "tabla_a_buscar->contador: %i", tabla->contador);
                 list_add_in_index(tlb,i,tabla);
             } 
-            // log_info(logger, "      marco: %i", tabla_a_buscar->marco);
-            // log_info(logger, "      Nro Pagina: %i", tabla_a_buscar->nropagina);
-            // log_info(logger, "      Pid: %i", tabla_a_buscar->pid);
-
             return tabla_a_buscar;
-            //free(tlb);
+
         }
     }
     return NULL;
@@ -242,21 +207,12 @@ t_tabla_de_paginas_cpu* buscarEnTLB(int num_pagina){
 
 
 t_tabla_de_paginas_cpu* actualizar_TLB_por_fifo(int numero_pagina){
-//Segunda opcion pero aca no mantengo la tabla  
-    // t_tabla_de_paginas_cpu* victima = list_remove(tlb, 0);
-    // free(victima);
 
-    // solicitar_tablas_a_memoria(numero_pagina);
-    // t_tabla_de_paginas_cpu* nueva_tabla = recv_tablas();
-    // if (nueva_tabla != NULL){
-    //     list_add(tlb,nueva_tabla);
-    // }
-        
         if (posicion_fifo <= config_cpu->CANTIDAD_ENTRADAS_TLB){
             t_tabla_de_paginas_cpu* tabla   = list_remove(tlb, posicion_fifo); //Puede ser tlb 
             log_nico(logger2, "TABLA SACADA: %i", tabla->nropagina);
             free(tabla);
-           // log_warning(logger, "CANTIDAD DE TLB: %i", list_size(tlb));
+
             solicitar_tablas_a_memoria(numero_pagina); 
             t_tabla_de_paginas_cpu* nueva_tabla = recv_tablas();
             if (nueva_tabla != NULL){
@@ -266,7 +222,6 @@ t_tabla_de_paginas_cpu* actualizar_TLB_por_fifo(int numero_pagina){
                 list_add_in_index(tlb,posicion_fifo,nueva_tabla);//Inserto en el lugar sacado
                 posicion_fifo++;
                 return nueva_tabla;
-                //free(nueva_tabla);
             }else{
                 log_error(logger, "No llego nada la tabla de memoria FIFO");
                 return NULL;
@@ -298,25 +253,20 @@ t_tabla_de_paginas_cpu* actualizar_Tlb_por_lru(int numero_pagina){
     int contador = -1;
     int indice = -1;
 
-    //log_warning(logger, "CANTIDAD DE TLB: %i", list_size(tlb));
+
     for (int i = 0; i < list_size(tlb); i++){
         t_tabla_de_paginas_cpu* tabla = list_get(tlb,i);
-        //log_info(logger,"Numero pag: %i", tabla->nropagina);
         if (tabla->contador > contador){
             contador = tabla->contador;
-            //log_info(logger,"contador: %i", contador);
-            indice = i; 
-
+            indice = i;
         }
     }
-    //log_info(logger, "inidice:%i", indice);
+
 if (indice != -1)
 {
-    //log_warning(logger, "CANTIDAD DE TLB: %i", list_size(tlb));
    t_tabla_de_paginas_cpu* tabla_a_eliminar = list_remove(tlb,indice);
    log_nico(logger2, "TABLA SACADA: %i", tabla_a_eliminar->nropagina);
     free(tabla_a_eliminar);
-    //log_warning(logger, "CANTIDAD DE TLB: %i", list_size(tlb));
 
     solicitar_tablas_a_memoria(numero_pagina);
     t_tabla_de_paginas_cpu* nueva_tabla = recv_tablas();
@@ -326,8 +276,6 @@ if (indice != -1)
         nueva_tabla->nropagina = numero_pagina;
         nueva_tabla->pid = pcb->pid;  
         list_add(tlb, nueva_tabla); //Puede ser tlb
-        return nueva_tabla;
-        //free(nueva_tabla);
     }else{
         log_error(logger, "No llego nada la tabla de memoria LRU");
         return NULL;

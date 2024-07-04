@@ -1,20 +1,17 @@
 #include "cpu-ciclo-instrucciones.h"
-//BRANCH DE FEDE juntado con branch leo nico
-t_pcb_cpu* pcb;
-int seguir_ejecutando;
 
+t_pcb_cpu* pcb;
 
 void iniciar_ciclo_de_ejecucion(int socket_server ,int socket_cliente) {
-    //log_info(logger,"socket DS %i", socket_cliente);
+
     config_cpu->SOCKET_KERNEL = socket_cliente;
     while(1) {
         int codigo_operacion = recibir_operacion(socket_cliente); //Acordarme que lo cambie
-        log_info(logger, "%i", codigo_operacion);
         switch(codigo_operacion) {  
             case RECIBIR_PROCESO:
             // log_warning(logger,"Recibiendo la PCB");
             log_warning(logger,"Recibiendo la PCB");
-            ejecutar_ciclo_instrucciones(socket_cliente, socket_server);
+            ejecutar_ciclo_instrucciones();
             break;
             case HANDSHAKE:
             //log_warning(logger,"Haciendo HANDSHAKE");
@@ -22,17 +19,18 @@ void iniciar_ciclo_de_ejecucion(int socket_server ,int socket_cliente) {
             break;
             case -1:
             log_warning(logger,"Se desconecto el cliente Kernel (Ds)");
-            return ; 
+            close(socket_cliente);
+            return; 
         default:
-        log_error(logger, "Operacion desconocida recibir");
+        log_error(logger, "Operacion desconocida");
        }
     }   
 }
 
-void ejecutar_ciclo_instrucciones(int socket_cliente, int socket_server) {
+void ejecutar_ciclo_instrucciones() {
     
-    pcb = rcv_contexto_ejecucion_cpu(socket_cliente);
-    seguir_ciclo(socket_cliente, socket_server);
+    pcb = rcv_contexto_ejecucion_cpu(config_cpu->SOCKET_KERNEL);
+    seguir_ciclo();
 
 }   
 
@@ -144,15 +142,13 @@ void operar_con_registros(void* registro_destino, void* registro_origen, char* r
 
 void tengoAlgunaInterrupcion(){
     if (atomic_load(&interrupt_flag) == 1){
-    //Se recibio una interrupcion
     t_paquete* paquete_a_kernel = crear_paquete(FIN_QUANTUM);
-    log_warning(logger, "ESTOY DESALOJANDO");
-    atomic_store(&interrupt_flag,0);
-    enviar_pcb_a_kernel(paquete_a_kernel);
-    enviar_paquete(paquete_a_kernel, config_cpu->SOCKET_KERNEL);
-    //log_warning(logger,"PCB ENVIADA");
-    eliminar_paquete(paquete_a_kernel);
-    liberar_pcb();
+        log_warning(logger, "ESTOY DESALOJANDO");
+        atomic_store(&interrupt_flag, 0);  // Reset the flag here
+        enviar_pcb_a_kernel(paquete_a_kernel);
+        enviar_paquete(paquete_a_kernel, config_cpu->SOCKET_KERNEL);
+        eliminar_paquete(paquete_a_kernel);
+        liberar_pcb();
     return;
     }else{
         seguir_ciclo();
@@ -161,18 +157,21 @@ void tengoAlgunaInterrupcion(){
 
 void ejecutar_instruccion(int socket_cliente) {
     t_instruccion *instruccion = recv_instruccion(socket_cliente);
+    if (instruccion == NULL){
+        log_error(logger, "Instruccion mal recibida");
+        return;
+    }
     t_tipo_instruccion tipo_instruccion = obtener_tipo_instruccion(instruccion->opcode); //decode
 
         switch (tipo_instruccion){
         case EXIT:
-            //mostrar_pcb(pcb);
-            //log_info(logger,"Instruccion Ejecutada: PID: %i Ejecutando: %s", pcb->pid,instruccion->opcode);
             log_nico(logger2,"Instruccion Ejecutada: PID: %i Ejecutando: %s", pcb->pid,instruccion->opcode);
             t_paquete* paquete_a_kernel = crear_paquete(EXIT);
             enviar_pcb_a_kernel(paquete_a_kernel);
             enviar_paquete(paquete_a_kernel, config_cpu->SOCKET_KERNEL);
             eliminar_paquete(paquete_a_kernel);
             liberar_pcb();
+            
             atomic_store(&interrupt_flag, 0); //Para no acumular un desalojo que no este acorde al proceso
             return; 
         case SET:
@@ -256,8 +255,9 @@ void ejecutar_instruccion(int socket_cliente) {
             liberar_pcb();
             break;
         default:
-            log_error(logger, "Operacion desconocida ejecucion");          
+            log_error(logger, "Operacion desconocida");          
         }
+        liberar_instrucciones(instruccion);
 }
 
 void ejecutar_set (char* registro, char* valor){
@@ -341,63 +341,41 @@ void ejecutar_MOV_IN(char* registro_Datos ,char* registro_Direccion){
     void* reg_Datos   = obtener_registro(registro_Datos);
 
     int tamanio_registro = espacio_de_registro(registro_Datos);
-    //log_warning(logger, "tamanio registro; %i", tamanio_registro);
+
     int tamanio_registro_direcion = espacio_de_registro(registro_Direccion);
-    //log_warning(logger, "tamanio direc: %i", tamanio_registro_direcion);
 
     int direccionLogica = encontrar_int(reg_Direccion, tamanio_registro_direcion);
-    //int reg_datos =encontrar_int(reg_Datos);
-    //log_info(logger, "(DENTRO DE ejecutar_MOV_IN) direccionLogica:%i", direccionLogica);
 
-    //log_info(logger, "(DENTRO DE ejecutar_MOV_IN) tamanio_registro: %i", tamanio_registro);
     t_mmu_cpu* mmu_mov_in = traducirDireccion(direccionLogica, tamanio_registro);
-    
-    //log_info(logger, "Proximo a problema");
+
     int valor = comunicaciones_con_memoria_lectura(mmu_mov_in);
     log_info(logger,"valor enviada por memoria: %i", valor);
 
-
     operar_con_registros(reg_Datos,NULL,registro_Datos,"set",valor);
-    free(mmu_mov_in);
+    liberar_mmu(mmu_mov_in);
     tengoAlgunaInterrupcion();
 }
 
-void ejecutar_MOV_OUT(char* Registro_Direccion, char* Registro_Datos){
-    
+void ejecutar_MOV_OUT(char* Registro_Direccion, char* Registro_Datos) {
     void* reg_Direc = obtener_registro(Registro_Direccion);
     void* reg_Datos = obtener_registro(Registro_Datos);
-    //mostrar_pcb(pcb);
 
-    int tamanio_registro = espacio_de_registro(Registro_Datos);
-    //log_warning(logger, "tamanio: %i", tamanio_registro); 
+    int tamanio_registro = espacio_de_registro(Registro_Datos); 
     int tamanio_logica = espacio_de_registro(Registro_Direccion);
-   //log_warning(logger, "tamanio logica: %i", tamanio_logica);
-
-    //log_info(logger, "tamanio logica:%i", tamanio_logica);
-    //log_info(logger, "tamanio_registro:%i", tamanio_registro);
 
     int direccionLogica = encontrar_int(reg_Direc, tamanio_logica);
-    //log_info(logger, "direccionLogica:%i", direccionLogica);
-
     int regDAtos = encontrar_int(reg_Datos, tamanio_registro);   
-    //log_info(logger, "regDAtos:%i", regDAtos);
 
-    char* valorr = string_itoa(regDAtos);
-    
     t_mmu_cpu* mmu_mov_out = traducirDireccion(direccionLogica, tamanio_registro);
 
-//VERIFICADOR DE DIRECCIONES FISICAS
-
-
-    //Noc como hacer la verificacion ver despues 
-    if(comunicaciones_con_memoria_escritura(mmu_mov_out, regDAtos) == 1){
-        log_info(logger,"Se puedo escribir correctamente");
-    }else{
-        log_error(logger,"No se pudo escribir en memoria");
+    if (comunicaciones_con_memoria_escritura(mmu_mov_out, regDAtos) == 1) {
+        log_info(logger, "Se pudo escribir correctamente");
+    } else {
+        log_error(logger, "No se pudo escribir en memoria");
     }
-    free(mmu_mov_out);
+
+    liberar_mmu(mmu_mov_out);
     tengoAlgunaInterrupcion();
-    free(valorr);
 }
 
 void ejecutar_RESIZE(char* tam){
@@ -431,7 +409,7 @@ void ejecutar_COPY_STRING(char* tam){
 
     char* valor = comunicaciones_con_memoria_lectura_copy_string(mmu_copiar_string_SI);
     log_warning(logger, "EL valor es %s", valor);
-    free(mmu_copiar_string_SI); 
+    liberar_mmu(mmu_copiar_string_SI);
 
     
     t_mmu_cpu* mmu_copiar_string_DI = traducirDireccion(registreDI, tamanio);
@@ -442,7 +420,7 @@ void ejecutar_COPY_STRING(char* tam){
         log_error(logger,"No se pudo escribir en memoria");
     }
     free(valor);
-    free(mmu_copiar_string_DI);
+    liberar_mmu(mmu_copiar_string_DI);
     tengoAlgunaInterrupcion();
 }
 
@@ -503,7 +481,7 @@ void ejecutar_IO_STDIN_READ(char* interfaz, char* registro_direccion, char* regi
 
     int reg_Direc = encontrar_int(registroDireccion, tamanio_logica );
     int reg_Tamanio =  encontrar_int(registroTamanio, tamanio_registro);
-    //log_warning(logger, "tamanio: %i", reg_Tamanio);
+    log_warning(logger, "tamanio: %i", reg_Tamanio);
     //mostrar_pcb(pcb);
 
     t_mmu_cpu * mmu_io_stdin_read = traducirDireccion(reg_Direc,reg_Tamanio);
@@ -515,7 +493,7 @@ void ejecutar_IO_STDIN_READ(char* interfaz, char* registro_direccion, char* regi
 
     t_paquete* paquete_stdin = crear_paquete(IO_STDIN_READ_INT);
     solicitar_a_kernel_std(interfaz,mmu_io_stdin_read ,paquete_stdin);
-    free(mmu_io_stdin_read);
+    liberar_mmu(mmu_io_stdin_read);
 }
 
 void ejecutar_IO_STDOUT_WRITE(char* interfaz, char* registro_direccion, char* registro_tamanio){
@@ -527,7 +505,6 @@ void ejecutar_IO_STDOUT_WRITE(char* interfaz, char* registro_direccion, char* re
 
     int reg_Direc = encontrar_int(registroDireccion, tamanio_logica );
     int reg_Tamanio =  encontrar_int(registroTamanio, tamanio_registro);
-    //log_warning(logger, "Tamanio: %i", reg_Tamanio);
 
     t_mmu_cpu * mmu_io_stdout_write = traducirDireccion(reg_Direc,reg_Tamanio);
     mostrar_pcb(pcb);
@@ -541,7 +518,7 @@ void ejecutar_IO_STDOUT_WRITE(char* interfaz, char* registro_direccion, char* re
     solicitar_a_kernel_std(interfaz, mmu_io_stdout_write, paquete_stdout);
     enviar_paquete(paquete_stdout, config_cpu->SOCKET_KERNEL);
     eliminar_paquete(paquete_stdout);
-    free(mmu_io_stdout_write);
+    liberar_mmu(mmu_io_stdout_write);
 }
 
 
@@ -551,10 +528,7 @@ void ejecutar_IO_FS_CREATE(char* interfaz, char* nombre_archibo){
     enviar_paquete(paquete_IO, config_cpu->SOCKET_KERNEL);
     eliminar_paquete(paquete_IO);
 
-    int response = 1;
-    recv(config_cpu->SOCKET_KERNEL, &response, sizeof(int), MSG_WAITALL);
-
-    t_paquete* paquet_fs_create = crear_paquete(IO_FS_CREATE_INT);
+    t_paquete* paquet_fs_create = crear_paquete(IO_FS_CREATE);
     agregar_a_paquete_string(paquet_fs_create, interfaz, strlen(interfaz) + 1);
     agregar_a_paquete_string(paquet_fs_create, nombre_archibo, strlen(nombre_archibo) + 1);
     enviar_paquete(paquet_fs_create, config_cpu->SOCKET_KERNEL);
@@ -625,7 +599,7 @@ void ejecutar_IO_FD_WRITE(char* interfaz, char* nombre_archivo, char* registro_d
     agregar_a_paquete(paqute, &reg_Archi, sizeof(int)); //Porsicion en archivo 
     enviar_paquete(paqute, config_cpu->SOCKET_KERNEL);
     eliminar_paquete(paqute);
-    free(mmu_io_fs_write);
+    liberar_mmu(mmu_io_fs_write);
 }
 
 
@@ -672,5 +646,37 @@ void liberar_pcb(){
             }
         }
         free(pcb); // Liberar la estructura PCB
+    }
+}
+
+void liberar_mmu(t_mmu_cpu* mmu){
+  if (mmu == NULL) {
+        return;
+    }
+    if (mmu->num_pagina != NULL) {
+        list_destroy_and_destroy_elements(mmu->num_pagina, free);
+    }
+    if (mmu->direccionFIsica != NULL) {
+        list_destroy_and_destroy_elements(mmu->direccionFIsica, free);
+    }
+    if (mmu->ofset != NULL) {
+        list_destroy_and_destroy_elements(mmu->ofset, free);
+    }
+    if (mmu->tamanio != NULL) {
+        list_destroy_and_destroy_elements(mmu->tamanio, free);
+    }
+
+    free(mmu);
+}
+
+void liberar_instrucciones(t_instruccion* instruccion){
+    if (instruccion) {
+        free(instruccion->opcode);
+        free(instruccion->parametro1);
+        free(instruccion->parametro2);
+        free(instruccion->parametro3);
+        free(instruccion->parametro4);
+        free(instruccion->parametro5);
+        free(instruccion);
     }
 }

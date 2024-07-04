@@ -250,8 +250,8 @@ void* planificador_cortoplazo_fifo(void* arg) {
 
         pthread_mutex_lock(&mutex_estado_ready);
         pthread_mutex_lock(&mutex_proceso_exec);
-        proceso_en_exec->estado = EXEC;
         proceso_en_exec = list_remove(cola_ready, 0);
+        proceso_en_exec->estado = EXEC;
         pthread_mutex_unlock(&mutex_proceso_exec);
         pthread_mutex_unlock(&mutex_estado_ready);
     

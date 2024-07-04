@@ -2,7 +2,7 @@
 
 
 int recv_pagina(int socket){
-    op_code cod_op = recibir_operacion(socket);
+    recibir_operacion(socket);
     int size;
     int valor;
     void* buffer = recibir_buffer(&size, socket);
@@ -11,27 +11,40 @@ int recv_pagina(int socket){
         return -1;
         }
     memcpy(&valor, buffer, sizeof(int));
+    free(buffer); // CAMBIADO
     return valor;
 }
 
 
 
 int comunicaciones_con_memoria_lectura(t_mmu_cpu* mmu){
-    int valor_final;
+    int valor_final = 0;
     int desplazamiento = 0;
-    int total_tam = 0;
-    int direc;
+    
 
    while (!list_is_empty(mmu->direccionFIsica)){
-     int* direccionFIsicaa = (int*)list_remove(mmu->direccionFIsica, 0);
+        int* direccionFIsicaa = (int*)list_remove(mmu->direccionFIsica, 0);
         int* tamanio = (int*)list_remove(mmu->tamanio, 0);
+
+        if (!direccionFIsicaa || !tamanio) {
+            log_error(logger, "Error al obtener dirección física o tamaño");
+            free(direccionFIsicaa);
+            free(tamanio);
+            return -1;
+        }
+
         int tam = *tamanio;
-        direc = *direccionFIsicaa;
+        int direc = *direccionFIsicaa;
 
 
         enviar_a_leer_memoria(pcb->pid, direc, tam);
         void* valor = recv_leer_memoria(tam);
         void* valor_ptr = &valor_final;
+        if (!valor || !valor_ptr){
+            free(direccionFIsicaa);
+            free(tamanio);
+            return -1;
+        }
 
         // Concatenar la parte leída al valor final
         memcpy((unsigned char*)valor_ptr + desplazamiento, valor, tam);
@@ -51,7 +64,7 @@ int comunicaciones_con_memoria_lectura(t_mmu_cpu* mmu){
 char* comunicaciones_con_memoria_lectura_copy_string(t_mmu_cpu*mmu){
     int desplazamiento = 0;
     int total_tam = 0;
-    int direc;
+
 
     for (int i = 0; i < list_size(mmu->direccionFIsica); i++){
         int* tamnio = (int*)list_get(mmu->tamanio, i);
@@ -69,12 +82,29 @@ char* comunicaciones_con_memoria_lectura_copy_string(t_mmu_cpu*mmu){
     while (!list_is_empty(mmu->direccionFIsica)){
         int* direccionFIsicaa = (int*)list_remove(mmu->direccionFIsica, 0);
         int* tamanio = (int*)list_remove(mmu->tamanio, 0);
-        int tam = *tamanio;
-        direc = *direccionFIsicaa;
+
+        if (!direccionFIsicaa || !tamanio) {
+        log_error(logger, "Error al obtener dirección física o tamaño");
+        free(direccionFIsicaa);
+        free(tamanio);
+        free(palabra);
+            return NULL;
+        }
+
+        int  tam = *tamanio;
+        int  direc = *direccionFIsicaa;
 
         enviar_a_leer_memoria(pcb->pid, direc, tam);
         void* valor = recv_leer_memoria(tam);
         void* palabra_ptr = &palabra;
+        if (!valor || !palabra_ptr){
+            free(direccionFIsicaa);
+            free(tamanio);
+            free(palabra);
+            return NULL;
+        }
+        
+
 
         memcpy(palabra + desplazamiento, valor,tam);
         desplazamiento += tam;
@@ -85,6 +115,7 @@ char* comunicaciones_con_memoria_lectura_copy_string(t_mmu_cpu*mmu){
         free(direccionFIsicaa);
         free(tamanio);
     }
+    //palabra[total_tam] = '\0'; // NOC SI HACE FALTA
     return palabra;
 }
 
@@ -95,13 +126,23 @@ int comunicaciones_con_memoria_escritura_copy_string(t_mmu_cpu* mmu, char* valor
     int des = 0;
     int longitud = strlen(valor);
     char* palbara_reconstruida = (char*)malloc(longitud + 1);
+
     if (palbara_reconstruida == NULL){
             log_warning(logger, "ERRORE ASIGNAR MEMORIA");
             return -1;
         }
+
     while (!list_is_empty(mmu->direccionFIsica)) {
         int* direccionFIsicaa = (int*)list_remove(mmu->direccionFIsica, 0);
         int* tamanio = (int*)list_remove(mmu->tamanio, 0);
+
+        if (!direccionFIsicaa || !tamanio) {
+            log_error(logger, "Error al obtener dirección física o tamaño");
+            free(direccionFIsicaa);
+            free(tamanio);
+            free(palbara_reconstruida);
+            return -1;
+        }
 
         int tam = *tamanio;
         int direc = *direccionFIsicaa;
@@ -112,7 +153,7 @@ int comunicaciones_con_memoria_escritura_copy_string(t_mmu_cpu* mmu, char* valor
             log_warning(logger, "ERRORE ASIGNAR MEMORIA");
             free(direccionFIsicaa);
             free(tamanio);
-            free(palabra_parte);
+            free(palbara_reconstruida);
             return -1;
         }
         
@@ -136,24 +177,26 @@ int comunicaciones_con_memoria_escritura_copy_string(t_mmu_cpu* mmu, char* valor
             free(direccionFIsicaa);
             free(tamanio);
             free(palabra_parte);
+            free(palbara_reconstruida);
             return -1;
-        } else {
-            log_info(logger, "PID: %i - Acción ESCRIBIR - Dirección Física: %i - Valor: %s", pcb->pid, direc, palabra_parte);
         }
+
+            log_info(logger, "PID: %i - Acción ESCRIBIR - Dirección Física: %i - Valor: %s", pcb->pid, direc, palabra_parte);
+        
 
         free(direccionFIsicaa);
         free(tamanio);
         free(palabra_parte);
     }
 
-    log_info(logger, "VALOR RECONSTRUIDO: %s", palbara_reconstruida);
+    log_info(logger, "PALABRA RECONSTRUIDA: %s", palbara_reconstruida);
+    free(palbara_reconstruida);
     return verificador;
     
     }
 
-
 int comunicaciones_con_memoria_escritura(t_mmu_cpu* mmu, int valor) {
-    int verificador;
+    int verificador = -1;
     uint32_t registro_reconstruido = 0; 
     int desplazamiento = 0;
     int des = 0;
@@ -162,11 +205,24 @@ int comunicaciones_con_memoria_escritura(t_mmu_cpu* mmu, int valor) {
         int* direccionFIsicaa = (int*)list_remove(mmu->direccionFIsica, 0);
         int* tamanio = (int*)list_remove(mmu->tamanio, 0);
 
+        if (!direccionFIsicaa || !tamanio){
+            log_error(logger, "Error al obtener direccion fisica y tamanio");
+            free(direccionFIsicaa);
+            free(tamanio);
+            return -1;
+        }
+        
         int tam = *tamanio;
         int direc = *direccionFIsicaa;
 
         // Reservar memoria para la parte del valor
         void* registro_parte = malloc(tam);
+        if (!registro_parte){
+            log_error(logger, "Error al asignar memoria a registro_parte");
+            free(direccionFIsicaa);
+            free(tamanio);
+            return -1;
+        }
 
         // Copiar la parte del valor en la memoria reservada
         memcpy(registro_parte, (unsigned char*)&valor + desplazamiento, tam);
@@ -176,6 +232,7 @@ int comunicaciones_con_memoria_escritura(t_mmu_cpu* mmu, int valor) {
         memcpy((unsigned char*)&registro_reconstruido + des, registro_parte, tam);
         des += tam;
 
+        // Asegúrate de que `pcb` y `config_cpu` estén correctamente inicializados y accesibles
         send_escribi_memoria(pcb->pid, direc, tam, *(uint32_t*)registro_parte);
         verificador = recv_escribir_memoria();
         if (verificador == -1) {
@@ -188,9 +245,9 @@ int comunicaciones_con_memoria_escritura(t_mmu_cpu* mmu, int valor) {
             free(tamanio);
             free(registro_parte);
             return -1;
-        } else {
-            log_info(logger, "PID: %i - Acción ESCRIBIR - Dirección Física: %i - Valor: %i", pcb->pid, direc, *(uint32_t*)registro_parte);
-        }
+        } 
+        
+        log_info(logger, "PID: %i - Acción ESCRIBIR - Dirección Física: %i - Valor: %u", pcb->pid, direc, *(uint32_t*)registro_parte);
 
         free(direccionFIsicaa);
         free(tamanio);
@@ -200,8 +257,6 @@ int comunicaciones_con_memoria_escritura(t_mmu_cpu* mmu, int valor) {
     log_info(logger, "VALOR RECONSTRUIDO: %i", registro_reconstruido);
     return verificador;
 }
-
-
 
 t_pcb_cpu* rcv_contexto_ejecucion_cpu(int socket_cliente) {
     
@@ -321,8 +376,8 @@ void enviar_a_leer_memoria(int pid,int direccionFIsica, int tamanio){
 }
 
 void* recv_leer_memoria(int tamanio){
-    op_code code = recibir_operacion(config_cpu->SOCKET_MEMORIA);
-    log_info(logger, "op_code: %i", code);
+    recibir_operacion(config_cpu->SOCKET_MEMORIA);
+
     int size;
 
     void* buffer = recibir_buffer(&size, config_cpu->SOCKET_MEMORIA);
@@ -349,13 +404,14 @@ void send_escribi_memoria(int pid, int direccionFIsica, int tamanio, int valor){
 }
 
 int recv_escribir_memoria(){
-    op_code code = recibir_operacion(config_cpu->SOCKET_MEMORIA);
+    recibir_operacion(config_cpu->SOCKET_MEMORIA);
     int valor,size;
     void* buffer = recibir_buffer(&size, config_cpu->SOCKET_MEMORIA);
     if (buffer == NULL) {
         log_error(logger, "Error al recibir el buffer del socket");
     }
     memcpy(&valor, buffer, sizeof(int));
+    free(buffer);
     return valor;
 }   
 
@@ -373,7 +429,7 @@ void solicitar_tablas_a_memoria(int numero_pagina){
 
 
 t_tabla_de_paginas_cpu* recv_tablas(){
-    op_code code = recibir_operacion(config_cpu->SOCKET_MEMORIA);
+    recibir_operacion(config_cpu->SOCKET_MEMORIA);
     t_tabla_de_paginas_cpu* tabla = (t_tabla_de_paginas_cpu*)malloc(sizeof(t_tabla_de_paginas_cpu));
     if(tabla == NULL){
         log_error(logger, "Erorr al asignar memoria para la tabla");
@@ -412,7 +468,7 @@ void send_agrandar_memoria (int pid , int tamanio){
 }
 
 int recv_agrandar_memoria() {
-    op_code code = recibir_operacion(config_cpu->SOCKET_MEMORIA);
+    recibir_operacion(config_cpu->SOCKET_MEMORIA);
     int size;
     int estado = -1;
     void* buffer = recibir_buffer(&size, config_cpu->SOCKET_MEMORIA);
@@ -420,6 +476,7 @@ int recv_agrandar_memoria() {
         log_error(logger, "Error al recibir el buffer del socket en agrandar memoria");
     }
     memcpy(&estado, buffer, sizeof(int));
+    free(buffer); //CAMBIADO
     return estado;
 }
 
@@ -446,7 +503,6 @@ char* recv_escribir_memoria_string(int tamanio){
 
 void solicitar_a_kernel_std(char* interfaz , t_mmu_cpu* mmu ,t_paquete* solicitar_std){
 
-    int i = 0;
     int respuesta;
     recv(config_cpu->SOCKET_KERNEL, &respuesta , sizeof(int), MSG_WAITALL);
     log_warning(logger, "RESPUESTA:%d", respuesta);
