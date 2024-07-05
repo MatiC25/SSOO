@@ -589,7 +589,7 @@ void ejecutar_IO_FS_TRUNCATE(char* interfaz, char* nombre_archivo, char* registr
     eliminar_paquete(paquete_IO);
 
 
-    t_paquete* paquete = crear_paquete(IO_FS_TRUNCATE);
+    t_paquete* paquete = crear_paquete(IO_FS_TRUNCATE_INT);
     agregar_a_paquete_string(paquete, interfaz, strlen(interfaz) + 1);
     agregar_a_paquete_string(paquete, nombre_archivo, strlen(nombre_archivo) + 1);
     agregar_a_paquete(paquete, &reg_Tamanio, sizeof(int));

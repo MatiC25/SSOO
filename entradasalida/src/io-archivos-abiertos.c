@@ -96,9 +96,6 @@ t_archivo_abierto *obtener_archivo_abierto(t_list *archivos_abiertos, char *nomb
         t_archivo_abierto *archivo_abierto = list_get(archivos_abiertos, i);
         char *nombre_archivo_abierto = archivo_abierto->name_file;
 
-        log_info(logger, "Archivo en lista: %s", nombre_archivo_abierto);
-        log_info(logger, "Archivo a buscar: %s", nombre_archivo);
-
         if (strncmp(nombre_archivo_abierto, nombre_archivo, cantidad_de_caracteres) == 0) {
             return archivo_abierto;
         }
