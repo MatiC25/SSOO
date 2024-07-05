@@ -68,6 +68,11 @@ t_list *recibir_argumentos_para_dial(t_interfaz * interfaz, tipo_operacion tipo)
 
     // Recibimos el buffer:
     void *buffer = recibir_buffer(&size, socket_kernel);
+
+    // Obtenemos el PID del proceso:
+    int *pid = malloc(sizeof(int));
+    *pid = parsear_int(buffer, &desplazamiento);
+    list_add(argumentos, pid);
     
     // Parseamos el buffer para obtener los argumentos:
     char *file = parsear_string(buffer, &desplazamiento);

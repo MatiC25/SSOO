@@ -20,9 +20,12 @@ void set_name_file_en_archivo_abierto(t_archivo_abierto *archivo_abierto, char *
 void set_nuevo_archivo_abierto(t_list *archivos_abiertos, char *name_file, t_config *archivo_metadata);
 
 // Funciones para gettear los datos del archivo abierto:
-
+t_config *get_archivo_metadata(t_archivo_abierto *archivo_abierto);
 
 // Funciones para verificar si existe ya un archivo:
 int ya_esta_abierto(t_list *archivos_abiertos, char *nombre_archivo);
+
+// Funciones para obtener un archivo abierto:
+t_archivo_abierto *obtener_archivo_abierto(t_list *archivos_abiertos, char *nombre_archivo);
 
 #endif

@@ -88,6 +88,21 @@ char *get_nombre_operacion(tipo_operacion operacion) {
         case IO_STDIN_READ_INT:
             return "IO_STDIN_READ";
             break;
+        case IO_FS_CREATE_INT:
+            return "IO_FS_CREATE";
+            break;
+        case IO_FS_READ_INT:
+            return "IO_FS_READ";
+            break;
+        case IO_FS_WRITE_INT:
+            return "IO_FS_WRITE";
+            break;
+        case IO_FS_DELETE_INT:
+            return "IO_FS_DELETE";
+            break;
+        case IO_FS_TRUNCATE_INT:
+            return "IO_FS_TRUNCATE";
+            break;
         default:
             return "OPERACION DESCONOCIDA";
     }
@@ -121,4 +136,19 @@ char *get_path_archivo(t_interfaz *interfaz, char *name_file) {
     string_append(&path, name_file);
 
     return path;
+}
+
+// Devuelve los bloques necesarios para un archivo:
+int get_bloques_necesarios(t_interfaz *interfaz, int nuevo_tamanio) {
+    int tamanio_bloque = get_block_size(interfaz);
+    int bloques_necesarios = (int) ceil((double)nuevo_tamanio / tamanio_bloque);
+    
+    return bloques_necesarios;
+}
+
+// Funcion para calcular el bloque final:
+int calcular_bloque_final(t_interfaz *interfaz, int bloque_inicial, int tamanio_archivo) {
+    int bloques_necesarios = get_bloques_necesarios(interfaz, tamanio_archivo);
+
+    return bloque_inicial + bloques_necesarios - 1;
 }

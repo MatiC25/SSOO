@@ -41,3 +41,12 @@ void set_tamanio_archivo_en_archivo_metadata(t_config *archivo_metadata, int tam
 void set_archivo_metada_en_fs(t_config *archivo_metadata) {
     config_save(archivo_metadata);
 }
+
+// Funciones para gettear los datos del archivo metadata:
+int get_bloque_inicial(t_config *archivo_metadata) {
+    return config_get_int_value(archivo_metadata, "BLOQUE_INICIAL");
+}
+
+int get_tamanio_archivo(t_config *archivo_metadata) {
+    return config_get_int_value(archivo_metadata, "TAMANIO_ARCHIVO");
+}

@@ -1,10 +1,11 @@
 #include "io-bitmap.h"
 
+// Funcion para crear un bitmap:
 t_bitarray *crear_bitmap(t_interfaz *interfaz, char *modo_de_apertura) {
 
     // Obtengo el archivo bitmap:
     FILE *archivo_bitmap = abrir_archivo_bitmap(interfaz, modo_de_apertura);
-    int size = get_block_count(interfaz);
+    int size = get_block_count(interfaz) / 8;
 
     // Mapeo el archivo bitmap:
     void *bitmap = mmap(NULL, size, PROT_READ | PROT_WRITE, MAP_SHARED, fileno(archivo_bitmap), 0);
@@ -24,6 +25,7 @@ t_bitarray *crear_bitmap(t_interfaz *interfaz, char *modo_de_apertura) {
     return bitarray;
 }
 
+// Funcion para inicializar un bitmap:
 void inicializar_bitmap(t_bitarray *bitmap) {
     int size = bitarray_get_max_bit(bitmap);
 
@@ -34,26 +36,11 @@ void inicializar_bitmap(t_bitarray *bitmap) {
 // Funcion para obtener un bloque libre:
 int obtener_bloque_libre(t_bitarray *bitmap, t_interfaz *interfaz) {
 
-    // Obtenemos la cantidad de bloques y la cantidad de bits por bloque:
+    // Obtengo la cantidad de bloques:
     int cantidad_bloques = get_block_count(interfaz);
-    int bits_por_bloque = cantidad_bloques / 8;
-    int cantidad_bits;
 
     for(int i = 0; i < cantidad_bloques; i++) {
-
-        // Obtenemos el bloque:
-        int bloque = i * bits_por_bloque;
-        cantidad_bits = 0;
-
-        // Verificamos si el bloque esta libre:
-        for(int j = 0; j < bits_por_bloque; j++) {
-            if(!bitarray_test_bit(bitmap, bloque + j)) {
-                cantidad_bits++;
-            }
-        }
-
-        // Si el bloque esta libre, lo devolvemos:
-        if(cantidad_bits == bits_por_bloque)
+        if(!bitarray_test_bit(bitmap, i))
             return i;
     }
 
@@ -61,9 +48,52 @@ int obtener_bloque_libre(t_bitarray *bitmap, t_interfaz *interfaz) {
 }
 
 // Funciones para settear bloques como ocupados:
-void set_bloque_ocupado(t_bitarray *bitmap, t_interfaz *interfaz, int bloque_inicial) {
-    int cantidad_bits_por_bloque = get_block_count(interfaz) / 8;
+void set_bloque_ocupado(t_bitarray *bitmap, int bloque_inicial) {
+    bitarray_set_bit(bitmap, bloque_inicial);
+}
 
-    for(int i = 0; i < cantidad_bits_por_bloque; i++) 
-        bitarray_set_bit(bitmap, bloque_inicial + i);
+// Funcion para averiguar si hay los suficientes bloques libres:
+int hay_suficientes_bloques_libres(t_bitarray *bitmap, t_interfaz *interfaz, int bloques_necesarios) {
+    int cantidad_bloques = get_block_count(interfaz);
+    int cantidad_bloques_libres = contar_bloques_libres(bitmap, 0, cantidad_bloques);
+
+    return cantidad_bloques_libres >= bloques_necesarios;
+}
+
+// Funcion para contar bloques libres:
+int contar_bloques_libres(t_bitarray *bitmap, int inicio, int fin) {
+    int cantidad_bloques_libres = 0;
+
+    for(int i = inicio; i < fin; i++) {
+        if(!bitarray_test_bit(bitmap, i))
+            cantidad_bloques_libres++;
+    }
+
+    return cantidad_bloques_libres;
+}
+
+// Funcion para averiguar si hay bloques contiguos libres:
+int hay_bloques_contiguos_libres(t_interfaz, *interfaz, t_bitarray *bitmap, int bloque_inicial, int tamanio_archivo) {
+
+    // Obtengo la cantidad de bloques:
+    int cantidad_bloques = get_block_count(interfaz);
+
+    // Calculo el bloque final:
+    int bloque_final = calcular_bloque_final(bloque_inicial, tamanio_archivo);
+
+    // Verifico si hay bloques contiguos libres:
+    for(int i = bloque_inicial; i <= bloque_final; i++) {
+        if(!bitarray_test_bit(bitmap, i))
+            return 1; // Si no hay bloques contiguos libres, retorno 1
+    }
+
+    return 0; // Si hay bloques contiguos libres, retorno 0
+}
+
+// Funcion para setear bloques como ocupados:
+void set_bloques_como_ocupados(t_bitarray *bitmap, int bloque_final, int bloques_necesarios) {
+    int limite_de_bloques = bloque_final + bloques_necesarios;
+
+    for(int i = bloque_final + 1; i < limite_de_bloques; i++)
+        set_bloque_ocupado(bitmap, i);
 }

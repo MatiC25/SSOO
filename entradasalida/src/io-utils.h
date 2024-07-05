@@ -1,10 +1,12 @@
 #ifndef IO_UTILS_H
 #define IO_UTILS_H
 
+// Incluimos las librerias externas:
+#include <math.h>
+
+// Incluimos las librerias necesarias:
 #include "io-config.h"
 #include "io-estructuras.h"
-
-// Incluye las estructuras necesarias:
 
 // Setea el socket con la memoria:
 void set_socket_memory(int socket, t_interfaz * interfaz);
@@ -59,5 +61,11 @@ char *get_modo_de_apertura(int size);
 
 // Devuelve el path de un archivo:
 char *get_path_archivo(t_interfaz *interfaz, char *name_file);
+
+// Devuelve los bloques necesarios para un archivo:
+int get_bloques_necesarios(t_interfaz *interfaz, int nuevo_tamanio);
+
+// Devuelve el bloque final de un archivo:
+int calcular_bloque_final(t_interfaz *interfaz, int bloque_inicial, int tamanio_archivo);
 
 #endif // IO_UTILS_H

@@ -131,27 +131,35 @@ void ejecutar_operaciones_dialFS(t_interfaz *interfaz) {
         tipo_operacion operacion = recibir_operacion(socket_kernel);
         t_list *argumentos = recibir_argumentos_para_dial(interfaz, operacion);
 
+        // Obtenemos los pid y el tipo de operacion:
+        int *pid_proceso = list_get(argumentos, 0);
+        int *tipo_operacion = list_get(argumentos, 1);
+        char *operacion = get_nombre_operacion(*tipo_operacion);
+
+        // Logeamos la operación:
+        log_info(logger, "PID: %d - Operacion: %s", *pid_proceso, operacion);
+
         switch(operacion) {
             case IO_FS_CREATE_INT:
                 operacion_create_file(interfaz, bitmap, argumentos, archivos_ya_abiertos);
                 send_respuesta_a_kernel(1, interfaz);
                 break;
-            // case IO_FS_READ_INT:
-            //     operacion_read_file(interfaz, bloques, argumentos, archivos_abiertos);
-            //     send_respuesta_a_kernel(1, interfaz);
-            //     break;
-            // case IO_FS_DELETE_INT:
-            //     operacion_delete_file(interfaz, bitmap, argumentos, archivos_abiertos);
-            //     send_respuesta_a_kernel(1, interfaz);
-            //     break;
-            // case IO_FS_WRITE_INT:
-            //     operacion_write_file(interfaz, bloques, argumentos, archivos_abiertos);
-            //     send_respuesta_a_kernel(1, interfaz);
-            //     break;
-            // case IO_FS_TRUNCATE_INT:
-            //     operacion_truncate_file(interfaz, bloques, bitmap, argumentos, archivos_abiertos);
-            //     send_respuesta_a_kernel(1, interfaz);
-            //     break;
+            case IO_FS_READ_INT:
+                operacion_read_file(interfaz, bloques, argumentos, archivos_abiertos);
+                send_respuesta_a_kernel(1, interfaz);
+                break;
+            case IO_FS_DELETE_INT:
+                operacion_delete_file(interfaz, bitmap, argumentos, archivos_abiertos);
+                send_respuesta_a_kernel(1, interfaz);
+                break;
+            case IO_FS_WRITE_INT:
+                operacion_write_file(interfaz, bloques, argumentos, archivos_abiertos);
+                send_respuesta_a_kernel(1, interfaz);
+                break;
+            case IO_FS_TRUNCATE_INT:
+                operacion_truncate_file(interfaz, bloques, bitmap, argumentos, archivos_abiertos);
+                send_respuesta_a_kernel(1, interfaz);
+                break;
             default:
                 log_error(logger, "Operacion desconocida");
         }

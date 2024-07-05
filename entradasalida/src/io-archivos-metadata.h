@@ -24,4 +24,8 @@ void set_bloque_inicial_en_archivo_metadata(t_config *archivo_metadata, int bloq
 void set_tamanio_archivo_en_archivo_metadata(t_config *archivo_metadata, int tamanio_archivo);
 void set_archivo_metada_en_fs(t_config *archivo_metadata);
 
+// Funciones para gettear los datos del archivo metadata:
+int get_bloque_inicial(t_config *archivo_metadata);
+int get_tamanio_archivo(t_config *archivo_metadata);
+
 #endif

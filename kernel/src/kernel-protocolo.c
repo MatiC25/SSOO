@@ -146,6 +146,7 @@ void send_message_to_dialfs_create_o_delete(int socket, t_list *args, int *respo
 
     // Enviamos el paquete:
     t_paquete *paquete = crear_paquete(*operacion_a_realizar_ptr);
+    agregar_a_paquete(paquete, pid_proceso_ptr, sizeof(int));
     agregar_a_paquete_string(paquete, nombre_archivo, strlen(nombre_archivo) + 1);
     enviar_paquete(paquete, socket);
     eliminar_paquete(paquete);
