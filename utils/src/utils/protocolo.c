@@ -120,7 +120,6 @@ void send_contexto_ejecucion(op_code operacion, int socket_cliente, t_pcb* proce
 
 void agregar_a_paquete_PCB(t_paquete* paquete, t_pcb* proceso) {
     agregar_a_paquete(paquete, &proceso->pid, sizeof(int)); 
-    agregar_a_paquete(paquete, &proceso->program_counter, sizeof(int)); // PARA MI SE COMENTA
 }
 
 void agregar_a_paquete_registros(t_paquete* paquete, t_registro_cpu* registros) {
@@ -187,9 +186,6 @@ t_pcb* rcv_contexto_ejecucion(int socket_cliente) {
     }
 
     memcpy(&(pcb->pid), buffer + desplazamiento, sizeof(int));
-    desplazamiento += sizeof(int);
-
-    memcpy(&(pcb->program_counter), buffer + desplazamiento, sizeof(int));
     desplazamiento += sizeof(int);
 
     memcpy(&(pcb->registros->PC), buffer + desplazamiento, sizeof(uint32_t));

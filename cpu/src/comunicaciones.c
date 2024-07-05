@@ -288,10 +288,6 @@ t_pcb_cpu* rcv_contexto_ejecucion_cpu(int socket_cliente) {
     desplazamiento += sizeof(int);
     //log_info(logger,"PID: %i", proceso->pid);
 
-    memcpy(&proceso->program_counter, buffer + desplazamiento, sizeof(int));
-    desplazamiento += sizeof(int);
-    //log_info(logger,"Program Counter:%i",proceso->program_counter);
-
     memcpy(&proceso->registros->PC, buffer + desplazamiento, sizeof(uint32_t));
     desplazamiento += sizeof(uint32_t);
     //log_info(logger,"Reg PC:%i",proceso->registros->PC);
@@ -346,7 +342,6 @@ t_pcb_cpu* rcv_contexto_ejecucion_cpu(int socket_cliente) {
 
     // Agregar información del PCB al paquete
     agregar_a_paquete(paquete_a_kernel, &pcb->pid, sizeof(int));
-    agregar_a_paquete(paquete_a_kernel, &pcb->program_counter, sizeof(int));
 
     // Agregar los registros de la CPU al paquete individualmente
     agregar_a_paquete(paquete_a_kernel, &pcb->registros->PC, sizeof(uint32_t));
@@ -533,7 +528,6 @@ void solicitar_a_kernel_std(char* interfaz , t_mmu_cpu* mmu ,t_paquete* solicita
 
 void mostrar_pcb(t_pcb_cpu* pcb){
     log_info(logger,"PID: %i", pcb->pid);
-    log_info(logger,"Program Counter:%i",pcb->program_counter);
     log_info(logger,"Reg PC:%i",pcb->registros->PC);
     log_info(logger,"Reg AX:%i",pcb->registros->AX);
     log_info(logger,"Reg BX:%i",pcb->registros->BX);

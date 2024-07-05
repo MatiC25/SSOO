@@ -284,7 +284,7 @@ void* planificador_corto_plazo_RoundRobin(void* arg) {
             proceso_en_exec->estado = EXEC;
             proceso_en_exec->quantum = 2000;
             pthread_mutex_unlock(&mutex_proceso_exec);
-            
+            mostrar_pcb(proceso_en_exec);
             enviar_proceso_a_cpu(proceso_en_exec);
             log_info(logger2, "Enviando proceso %i a CPU", proceso_en_exec->pid);
             log_info(logger2, "PID: %i - Estado Anterior: READY - Estado Actual: EXEC", proceso_en_exec->pid);
@@ -409,7 +409,6 @@ void enviar_proceso_a_cpu(t_pcb* pcbproceso) {
 
     // Agregar información del PCB al paquete
     agregar_a_paquete(paquete_cpu, &pcbproceso->pid, sizeof(int));
-    agregar_a_paquete(paquete_cpu, &pcbproceso->program_counter, sizeof(int));
 
     // Agregar los registros de la CPU al paquete individualmente
     agregar_a_paquete(paquete_cpu, &pcbproceso->registros->PC, sizeof(uint32_t));

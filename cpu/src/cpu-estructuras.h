@@ -21,7 +21,6 @@ typedef struct {
 
 typedef struct { 
     int pid;
-    int program_counter; 
     t_registro_cpu* registros;
 }t_pcb_cpu;
 

@@ -512,7 +512,6 @@ void liberar_recurso_por_exit(t_pcb* pcb) {
 
 void mostrar_pcb(t_pcb* pcb){
     log_info(logger,"PID: %i", pcb->pid);
-    log_info(logger,"Program Counter:%i",pcb->program_counter);
     log_info(logger,"Reg PC:%i",pcb->registros->PC);
     log_info(logger,"Reg AX:%i",pcb->registros->AX);
     log_info(logger,"Reg BX:%i",pcb->registros->BX);

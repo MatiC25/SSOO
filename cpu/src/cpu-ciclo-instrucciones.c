@@ -9,12 +9,9 @@ void iniciar_ciclo_de_ejecucion(int socket_server ,int socket_cliente) {
         int codigo_operacion = recibir_operacion(socket_cliente); //Acordarme que lo cambie
         switch(codigo_operacion) {  
             case RECIBIR_PROCESO:
-            // log_warning(logger,"Recibiendo la PCB");
-            //log_warning(logger,"Recibiendo la PCB");
             ejecutar_ciclo_instrucciones();
             break;
             case HANDSHAKE:
-            //log_warning(logger,"Haciendo HANDSHAKE");
             recibir_handshake(socket_cliente);
             break;
             case -1:
@@ -28,11 +25,8 @@ void iniciar_ciclo_de_ejecucion(int socket_server ,int socket_cliente) {
 }
 
 void ejecutar_ciclo_instrucciones() {
-    
     pcb = rcv_contexto_ejecucion_cpu(config_cpu->SOCKET_KERNEL);
-    //log_warning(logger, "PCB QUE LLEGA ES LA SIGUENTE");
     seguir_ciclo();
-
 }   
 
 void seguir_ciclo(){
@@ -43,7 +37,7 @@ void seguir_ciclo(){
 void fecth(int socket_server){
     int program_counter = 0;
     int PID = pcb->pid;
-    program_counter = pcb->program_counter++;
+    program_counter = pcb->registros->PC++;
     solicitar_instruccion(socket_server,PID, program_counter);
     //log_info(logger,"Fetch Instruccion: PID: %d - FETCH -Programn Counter: %d",PID,program_counter);  
     log_nico(logger2,"Fetch Instruccion: PID: %d - FETCH -Programn Counter: %d",PID,program_counter);  
@@ -306,7 +300,7 @@ void ejecutar_JNZ(char* registro, char* valor){
     void* reg = obtener_registro(registro);
     uint32_t regg = *(uint32_t*)reg;
     if (regg == 0){
-        pcb->program_counter += atoi(valor);
+        pcb->registros->PC += atoi(valor);
         tengoAlgunaInterrupcion();
     }
 
