@@ -42,11 +42,11 @@ FILE *persistir_archivo(t_interfaz *interfaz, char *name_file, char *modo_de_ape
 // Funciones de utilidad:
 
 int tiene_extension(const char *name_file, const char *extension) {
-    size_t len_filename = strlen(filename);
+    size_t len_filename = strlen(name_file);
     size_t len_extension = strlen(extension);
 
     if (len_filename >= len_extension) {
-        return strcmp(filename + len_filename - len_extension, extension) == 0;
+        return strcmp(name_file + len_filename - len_extension, extension) == 0;
     }
 
     return 0;

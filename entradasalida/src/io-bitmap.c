@@ -73,17 +73,11 @@ int contar_bloques_libres(t_bitarray *bitmap, int inicio, int fin) {
 }
 
 // Funcion para averiguar si hay bloques contiguos libres:
-int hay_bloques_contiguos_libres(t_interfaz, *interfaz, t_bitarray *bitmap, int bloque_inicial, int tamanio_archivo) {
-
-    // Obtengo la cantidad de bloques:
-    int cantidad_bloques = get_block_count(interfaz);
-
-    // Calculo el bloque final:
-    int bloque_final = calcular_bloque_final(bloque_inicial, tamanio_archivo);
+int hay_bloques_contiguos_libres(t_bitarray *bitmap, int bloque_final, int bloques_necesarios) {
 
     // Verifico si hay bloques contiguos libres:
-    for(int i = bloque_inicial; i <= bloque_final; i++) {
-        if(!bitarray_test_bit(bitmap, i))
+    for(int i = bloque_final + 1; i <= bloques_necesarios; i++) {
+        if(bitarray_test_bit(bitmap, i))
             return 1; // Si no hay bloques contiguos libres, retorno 1
     }
 
@@ -94,6 +88,6 @@ int hay_bloques_contiguos_libres(t_interfaz, *interfaz, t_bitarray *bitmap, int 
 void set_bloques_como_ocupados(t_bitarray *bitmap, int bloque_final, int bloques_necesarios) {
     int limite_de_bloques = bloque_final + bloques_necesarios;
 
-    for(int i = bloque_final + 1; i < limite_de_bloques; i++)
+    for(int i = bloque_final + 1; i <= limite_de_bloques; i++)
         set_bloque_ocupado(bitmap, i);
 }

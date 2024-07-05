@@ -20,6 +20,6 @@ FILE *abrir_archivo(char *path, char *modo_de_apertura);
 FILE *persistir_archivo(t_interfaz *interfaz, char *name_file, char *modo_de_apertura, int tamanio_archivo);
 
 // Funciones de utilidad:
-int es_un_archivo_txt(char *name_file);
+int tiene_extension(const char *name_file, const char *extension);
 
 #endif

@@ -150,5 +150,8 @@ int get_bloques_necesarios(t_interfaz *interfaz, int nuevo_tamanio) {
 int calcular_bloque_final(t_interfaz *interfaz, int bloque_inicial, int tamanio_archivo) {
     int bloques_necesarios = get_bloques_necesarios(interfaz, tamanio_archivo);
 
+    if(bloques_necesarios == 1 || bloques_necesarios == 0)
+        return bloque_inicial;
+
     return bloque_inicial + bloques_necesarios - 1;
 }

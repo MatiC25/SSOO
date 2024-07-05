@@ -150,8 +150,7 @@ void send_mensaje_a_memoria(t_interfaz * interfaz, char *mensaje) {
 
 void send_bytes_a_leer(t_interfaz *interfaz, int pid, t_list *direcciones, void *input, int bytes_leidos) {
 
-    // Obtenemos el tamaño de la lista de direcciones:
-    int size = list_size(direcciones);
+    // Obtenemos socket con memoria:
     int socket_memoria = get_socket_memory(interfaz);
 
     // Ordenamos las direcciones por tamaño:
@@ -179,7 +178,7 @@ void send_bytes_a_leer(t_interfaz *interfaz, int pid, t_list *direcciones, void 
         memcpy(buffer, input + bytes_mandados, tamanio);
 
         // Logueamos el buffer:
-        log_info(logger, "Se manda el buffer: %s", buffer);
+        log_info(logger, "Se manda el buffer: %ls", buffer);
 
         // Agregamos el buffer al paquete:
         agregar_a_paquete(paquete, buffer, tamanio);
