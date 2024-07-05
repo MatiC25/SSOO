@@ -298,7 +298,9 @@ void acceso_lectura(int socket_cliente){
     int pid;
     int direc_fisica;
     int tamanio_lectura;
-    log_warning(logger, "_______________________acceso_lectura_______________________");
+    
+    //log_warning(logger, "acceso_lectura");
+    
     memcpy(&pid, buffer + desplazamiento, sizeof(int));
     desplazamiento += sizeof(int);
     log_warning(logger, "Pid : %d", pid);
@@ -336,7 +338,7 @@ void acceso_lectura(int socket_cliente){
     mem_hexdump(espacio_de_usuario + direc_fisica, tamanio_lectura);
     memcpy(contenido_leer, espacio_de_usuario + direc_fisica, tamanio_lectura);
     log_info(logger, "Acceso a espacio de usuario: PID: %d - Accion: LEER - Direccion fisica: %d  - Tamaño: %d", pid, direc_fisica, tamanio_lectura);
-    mem_hexdump(espacio_de_usuario + direc_fisica, tamanio_lectura);
+    //mem_hexdump(espacio_de_usuario + direc_fisica, tamanio_lectura);
 
 
     t_paquete* paquete = crear_paquete(EXITO);

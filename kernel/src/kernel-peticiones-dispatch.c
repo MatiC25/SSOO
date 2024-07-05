@@ -442,7 +442,7 @@ int calcular_total_instancias() {
 
 int inicializar_tam_cola_resources() {
     tam_cola_resource = string_array_size(config_kernel->RECURSOS);
-    log_facu(logger, "%i", tam_cola_resource);
+    //log_facu(logger, "%i", tam_cola_resource);
     return tam_cola_resource;
 }
 
