@@ -88,7 +88,7 @@ int hay_bloques_contiguos_libres(t_bitarray *bitmap, int bloque_final, int bloqu
 void set_bloques_como_ocupados(t_bitarray *bitmap, int bloque_final, int bloques_necesarios) {
     int limite_de_bloques = bloque_final + bloques_necesarios;
 
-    for(int i = bloque_final + 1; i <= limite_de_bloques; i++)
+    for(int i = bloque_final + 1; i < limite_de_bloques; i++)
         set_bloque_ocupado(bitmap, i);
 }
 

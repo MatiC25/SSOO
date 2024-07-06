@@ -7,6 +7,8 @@
 // Incluimos las librerias necesarias:
 #include "io-config.h"
 #include "io-estructuras.h"
+#include "io-archivos-abiertos.h"
+#include "io-archivos-metadata.h"
 
 // Setea el socket con la memoria:
 void set_socket_memory(int socket, t_interfaz * interfaz);

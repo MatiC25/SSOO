@@ -171,8 +171,14 @@ int comparar_bloque_inicial(void *archivo1, void *archivo2) {
     t_archivo_abierto *archivo_abierto1 = archivo1;
     t_archivo_abierto *archivo_abierto2 = archivo2;
 
-    if(archivo_abierto1->bloque_inicial < archivo_abierto2->bloque_inicial) return -1;
-    if(archivo_abierto1->bloque_inicial > archivo_abierto2->bloque_inicial) return 0;
+    t_config *archivo_metadata1 = get_archivo_metadata(archivo_abierto1);
+    t_config *archivo_metadata2 = get_archivo_metadata(archivo_abierto2);
+
+    int bloque_inicial1 = get_bloque_inicial(archivo_metadata1);
+    int bloque_inicial2 = get_bloque_inicial(archivo_metadata2);
+
+    if(bloque_inicial1 < bloque_inicial2) return -1;
+    if(bloque_inicial1 > bloque_inicial2) return 0;
     
     return 1;
 }

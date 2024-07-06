@@ -122,6 +122,7 @@ void operacion_read_file(t_interfaz *interfaz, FILE *bloques, t_list *argumentos
 void operacion_truncate_file(t_interfaz *interfaz, FILE *bloques, t_bitarray *bitmap, t_list *argumentos, t_list *archivos_ya_abiertos) {
     
     // Obtenemos los argumentos:
+    int *pid_proceso = list_get(argumentos, 0);
     char *nombre_archivo = list_get(argumentos, 1);
     int *nuevo_tamanio = list_get(argumentos, 2);
 
@@ -163,11 +164,11 @@ void operacion_truncate_file(t_interfaz *interfaz, FILE *bloques, t_bitarray *bi
             return;
         }
 
+        int bloque_final = calcular_bloque_final(interfaz, bloque_inicial, tamanio_actual);
+
         // Si hay bloques libres suficientes, truncamos el archivo:
         if(!hay_bloques_contiguos_libres(bitmap, bloque_final, bloques_necesarios)) {
             log_info(logger, "Hay bloques libres suficientes para truncar el archivo");
-
-            int bloque_final = calcular_bloque_final(interfaz, bloque_inicial, tamanio_actual);
 
             // Seteamos los bloques como ocupados:
             set_bloques_como_ocupados(bitmap, bloque_final, bloques_necesarios);
@@ -188,4 +189,6 @@ void operacion_truncate_file(t_interfaz *interfaz, FILE *bloques, t_bitarray *bi
     log_info(logger, "Se truncó el archivo %s", nombre_archivo);
     log_info(logger, "Nuevo tamanio: %d", tam_resultante);
     log_info(logger, "Bloques necesarios: %d", bloques_necesarios);
+
+    set_archivo_metada_en_fs(archivo_metadata);
 }
