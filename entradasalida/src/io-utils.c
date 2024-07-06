@@ -155,3 +155,24 @@ int calcular_bloque_final(t_interfaz *interfaz, int bloque_inicial, int tamanio_
 
     return bloque_inicial + bloques_necesarios - 1;
 }
+
+// Funcion para calcular la cantidad de bloques asignados a un archivo:
+int calcular_cantidad_bloques_asignados(t_interfaz *interfaz, int tamanio_archivo) {
+    int cantidad_bloques = get_bloques_necesarios(interfaz, tamanio_archivo);
+
+    if(cantidad_bloques == 0 || cantidad_bloques == 1)
+        return 1;
+    
+    return cantidad_bloques;
+}
+
+// Funcion para comparar bloques iniciales:
+int comparar_bloque_inicial(void *archivo1, void *archivo2) {
+    t_archivo_abierto *archivo_abierto1 = archivo1;
+    t_archivo_abierto *archivo_abierto2 = archivo2;
+
+    if(archivo_abierto1->bloque_inicial < archivo_abierto2->bloque_inicial) return -1;
+    if(archivo_abierto1->bloque_inicial > archivo_abierto2->bloque_inicial) return 0;
+    
+    return 1;
+}

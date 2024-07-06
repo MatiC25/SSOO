@@ -68,4 +68,10 @@ int get_bloques_necesarios(t_interfaz *interfaz, int nuevo_tamanio);
 // Devuelve el bloque final de un archivo:
 int calcular_bloque_final(t_interfaz *interfaz, int bloque_inicial, int tamanio_archivo);
 
+// Funcion para calcular la cantidad de bloques asignados a un archivo:
+int calcular_cantidad_bloques_asignados(t_interfaz *interfaz, int tamanio_archivo);
+
+// Funcion para comparar bloques iniciales:
+int comparar_bloque_inicial(void *archivo1, void *archivo2);
+
 #endif // IO_UTILS_H

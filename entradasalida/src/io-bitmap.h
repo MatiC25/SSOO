@@ -34,4 +34,10 @@ int hay_bloques_contiguos_libres(t_bitarray *bitmap, int bloque_final, int bloqu
 // Funcion para setear bloques como ocupados:
 void set_bloques_como_ocupados(t_bitarray *bitmap, int bloque_final, int bloques_necesarios);
 
+// Funcion para liberar bloques asignados:
+void liberar_bloques_asignados(t_bitarray *bitmap, int bloque_inicial, int bloques_necesarios);
+
+// Funcion para setear bloques como ocupados desde un bloque inicial:
+void set_bloques_como_ocupados_desde(t_bitarray *bitmap, int bloque_inicial, int bloques_necesarios);
+
 #endif

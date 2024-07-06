@@ -12,6 +12,7 @@
 #include "io-archivos-metadata.h"
 #include "io-archivos-abiertos.h"
 #include "io-bitmap.h"
+#include "io-compactacion.h"
 
 // Funciones para ejecutar las operaciones de DialFS:
 void operacion_create_file(t_interfaz *interfaz, t_bitarray *bitmap, t_list *argumentos, t_list *archivos_ya_abiertos);

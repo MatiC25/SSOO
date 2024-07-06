@@ -147,12 +147,13 @@ void operacion_truncate_file(t_interfaz *interfaz, FILE *bloques, t_bitarray *bi
         return;
     }
 
-    // Obtenemos bloques necesarios y :
+    // Obtenemos bloques necesarios:
     int bloques_necesarios = get_bloques_necesarios(interfaz, *nuevo_tamanio);
 
     // Calculamos tamanio resultante:
     int tam_resultante = *nuevo_tamanio  + tamanio_actual;
 
+    // Si necesitamos mas de un bloque, verificamos si hay bloques libres suficientes:
     if(bloques_necesarios > 1) {
 
         // Para truncar el archivo necesitamos bloques libres suficientes:
@@ -162,14 +163,21 @@ void operacion_truncate_file(t_interfaz *interfaz, FILE *bloques, t_bitarray *bi
             return;
         }
 
-        int bloque_final = calcular_bloque_final(interfaz, bloque_inicial, tamanio_actual);
-
         // Si hay bloques libres suficientes, truncamos el archivo:
         if(!hay_bloques_contiguos_libres(bitmap, bloque_final, bloques_necesarios)) {
             log_info(logger, "Hay bloques libres suficientes para truncar el archivo");
 
+            int bloque_final = calcular_bloque_final(interfaz, bloque_inicial, tamanio_actual);
+
             // Seteamos los bloques como ocupados:
             set_bloques_como_ocupados(bitmap, bloque_final, bloques_necesarios);
+        } else {
+            log_info(logger, "“PID: %i - Inicio Compactación.", *pid_proceso);
+
+            // Iniciamos la compactacion:
+            compactar_fs(interfaz, bloques, bitmap, archivos_ya_abiertos, archivo_metadata, bloques_necesarios, bloque_inicial, tam_resultante);
+
+            log_info(logger, "PID: %i - Fin Compactación.", *pid_proceso);
         }
     }
 
