@@ -156,13 +156,20 @@ void peticion_wait() {
         return;
     }
     pthread_mutex_unlock(&mutex_proceso_exec);
-    // mostrar_pcb(proceso_en_exec);
+    
     if (!recurso_existe(recurso)) {
         log_error(logger, "El recurso solicitado no existe!");
         finalizar_por_invalidacion(proceso_en_exec, "INVALID_RESOURCE");
         free(recurso);
         puede_ejecutar_otro_proceso();
         return;
+    }
+    
+    if(strcmp(config_kernel->ALGORITMO_PLANIFICACION, "VRR") == 0) {
+        pthread_mutex_lock(&mutex_proceso_exec);
+        proceso_en_exec->quantum = quantum_restante;
+        pthread_mutex_unlock(&mutex_proceso_exec);
+        log_facu(logger, "Quantum W: %i", proceso_en_exec->quantum);
     }
     
     int indice_recurso = obtener_indice_recurso(recurso);
@@ -349,6 +356,13 @@ void peticion_IO() {
     if (!proceso_en_exec) {
         log_error(logger, "Error al recibir el contexto de ejecución para IO");
         return;
+    }
+
+    if(strcmp(config_kernel->ALGORITMO_PLANIFICACION, "VRR") == 0) {
+        pthread_mutex_lock(&mutex_proceso_exec);
+        proceso_en_exec->quantum = quantum_restante;
+        pthread_mutex_unlock(&mutex_proceso_exec);
+        log_facu(logger, "Quantum IO: %i", proceso_en_exec->quantum);
     }
     
     // Enviamos un mensaje de confirmación al Dispatch:

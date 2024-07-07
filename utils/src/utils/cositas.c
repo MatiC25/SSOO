@@ -15,7 +15,7 @@ static char *log_colors2[LOG_ENUM2_SIZE] = {
     "\x1B[38;2;222;98;255m", 
     "\x1B[38;2;200;25;73m",     
     "\x1B[38;2;44;145;222m", 
-    "\x1B[38;2;44;222;142m"
+    "\x1B[38;2;3;252;115m"
 };
 static char *reset_color2 = "\x1b[0m";
 

@@ -105,8 +105,6 @@ void ejecutar_operacion_stdout(t_interfaz *interfaz) {
 
         // Enviamos la respuesta:
         send_respuesta_a_kernel(1, interfaz);
-
-        free(contenido_a_mostrar);
     }
 }
 

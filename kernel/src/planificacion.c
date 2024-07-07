@@ -12,13 +12,13 @@ sem_t sem_multiprogramacion;
 sem_t habilitar_corto_plazo;
 sem_t hay_en_estado_ready;
 sem_t hay_en_estado_new;
-sem_t pedidos;
 sem_t desalojo_proceso;
 sem_t hay_proceso_exec;
 sem_t hay_proceso_en_bloq;
 
 int pid = 0;
 int pid_buscado_temporal = 0;
+int quantum_restante;
 
 t_pcb* proceso_en_exec = NULL;
 
@@ -40,15 +40,14 @@ void inicializacion_semaforos() {
     pthread_mutex_init(&mutex_cola_priori_vrr, NULL);
     pthread_mutex_init(&mutex_proceso_exec, NULL);
     pthread_mutex_init(&mutex_cola_block, NULL);
+    pthread_mutex_init(&mutex_exit, NULL);
     sem_init(&habilitar_corto_plazo, 0, 0);
     sem_init(&hay_en_estado_ready, 0, 0);
     sem_init(&hay_en_estado_new, 0, 0);
     sem_init(&sem_multiprogramacion, 0, config_kernel->GRADO_MULTIP);
-    sem_init(&pedidos, 0, 1);
     sem_init(&desalojo_proceso, 0, 0);
     sem_init(&hay_proceso_exec, 0, 1);
     sem_init(&hay_proceso_en_bloq, 0, 0);
-
 }
 
 
@@ -284,7 +283,7 @@ void* planificador_corto_plazo_RoundRobin(void* arg) {
             proceso_en_exec->estado = EXEC;
             proceso_en_exec->quantum = 2000;
             pthread_mutex_unlock(&mutex_proceso_exec);
-            mostrar_pcb(proceso_en_exec);
+
             enviar_proceso_a_cpu(proceso_en_exec);
             log_info(logger2, "Enviando proceso %i a CPU", proceso_en_exec->pid);
             log_info(logger2, "PID: %i - Estado Anterior: READY - Estado Actual: EXEC", proceso_en_exec->pid);
@@ -349,11 +348,11 @@ void* planificacion_cortoplazo_VRR() {
         log_info(logger, "PID: %i - Estado Anterior: READY - Estado Actual: EXEC", proceso_en_exec->pid);
         pthread_mutex_unlock(&mutex_proceso_exec);
 
-        pthread_mutex_lock(&mutex_proceso_exec);
-        if (proceso_en_exec->quantum == 0) {
-            proceso_en_exec->quantum = 2000;
-        }
-        pthread_mutex_unlock(&mutex_proceso_exec);
+        // pthread_mutex_lock(&mutex_proceso_exec);
+        // if (proceso_en_exec->quantum == 0) {
+        //     proceso_en_exec->quantum = 2000;
+        // }
+        // pthread_mutex_unlock(&mutex_proceso_exec);
 
         enviar_proceso_a_cpu(proceso_en_exec);
 
@@ -364,7 +363,7 @@ void* planificacion_cortoplazo_VRR() {
         if (pthread_create(&hilo_quantum, NULL, quantum_handler, (void*)proceso_en_exec) != 0) { //mandarle el contador global
             log_error(logger, "Error al crear el hilo del quantum para el proceso %d", proceso_en_exec->pid);
         }
-        
+
         sem_wait(&desalojo_proceso);
         pthread_cancel(hilo_quantum);
         pthread_join(hilo_quantum, NULL);
@@ -373,19 +372,23 @@ void* planificacion_cortoplazo_VRR() {
         temporal_destroy(tiempo_de_ejecucion);
 
         pthread_mutex_lock(&mutex_proceso_exec);
-        int64_t quantum_restante = proceso_en_exec->quantum - tiempo_ejecutado;
-        if(quantum_restante <= 0) {
-            proceso_en_exec->quantum = 0;
-            log_leo(logger, "Quantum: %i - Exec Time: %i - Quantum Restante: %i", proceso_en_exec->quantum, tiempo_ejecutado, quantum_restante);
-            pthread_mutex_unlock(&mutex_proceso_exec);
+        if (proceso_en_exec->quantum == 0) {
+            proceso_en_exec->quantum = 2000;
         }
-        else {
-            proceso_en_exec->quantum = quantum_restante;
-            log_leo(logger, "Quantum: %i - Exec Time: %i - Quantum Restante: %i", proceso_en_exec->quantum, tiempo_ejecutado, quantum_restante);
-            pthread_mutex_unlock(&mutex_proceso_exec);
-        }
-        
-        
+        pthread_mutex_unlock(&mutex_proceso_exec);
+
+        quantum_restante = proceso_en_exec->quantum - tiempo_ejecutado;
+        log_facu(logger, "Quantum Restante: %i", quantum_restante);
+        // if(quantum_restante > 0) {
+        //     proceso_en_exec->quantum = 0;
+        //     log_leo(logger, "Quantum: %i - Exec Time: %i - Quantum Restante: %i", proceso_en_exec->quantum, tiempo_ejecutado, quantum_restante);
+        //     pthread_mutex_unlock(&mutex_proceso_exec);
+        // }
+        // else {
+        //     proceso_en_exec->quantum = quantum_restante;
+        //     log_leo(logger, "Quantum: %i - Exec Time: %i - Quantum Restante: %i", proceso_en_exec->quantum, tiempo_ejecutado, quantum_restante);
+        //     pthread_mutex_unlock(&mutex_proceso_exec);
+        // }
 
     }
     
@@ -472,13 +475,14 @@ void destruir_semaforos() {
     pthread_mutex_destroy(&mutex_cola_priori_vrr);
     pthread_mutex_destroy(&mutex_proceso_exec);
     pthread_mutex_destroy(&mutex_cola_block);
-    pthread_mutex_destroy(&mutex_proceso_exec);
+    pthread_mutex_destroy(&mutex_exit);
     sem_destroy(&habilitar_corto_plazo);
     sem_destroy(&hay_en_estado_ready);
     sem_destroy(&hay_en_estado_new);
     sem_destroy(&sem_multiprogramacion);
-    sem_destroy(&pedidos);
     sem_destroy(&desalojo_proceso);
+    sem_destroy(&hay_proceso_en_bloq);
+    sem_destroy(&hay_proceso_exec);
 }
 
 
@@ -494,7 +498,3 @@ void mostrar_pid (t_pcb* pcb) {
     log_info(logger2, "Cola Ready: %i", pcb->pid);
 }
 
-
-void actualizar_pcb(t_pcb* proceso) {
-
-}

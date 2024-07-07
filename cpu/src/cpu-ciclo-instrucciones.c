@@ -401,8 +401,8 @@ void ejecutar_COPY_STRING(char* tam){
     
     t_mmu_cpu* mmu_copiar_string_SI = traducirDireccion(registerSI, tamanio);
 
-
-    char* valor = comunicaciones_con_memoria_lectura_copy_string(mmu_copiar_string_SI);
+    char* valor = malloc(tamanio + 1);
+    valor = comunicaciones_con_memoria_lectura_copy_string(mmu_copiar_string_SI);
     log_warning(logger, "EL valor es %s", valor);
     //liberar_mmu(mmu_copiar_string_SI);
 
@@ -415,7 +415,6 @@ void ejecutar_COPY_STRING(char* tam){
         log_error(logger,"No se pudo escribir en memoria");
     }
     free(valor);
-    //liberar_mmu(mmu_copiar_string_DI);
     tengoAlgunaInterrupcion();
 }
 
@@ -505,11 +504,8 @@ void ejecutar_IO_STDOUT_WRITE(char* interfaz, char* registro_direccion, char* re
     enviar_paquete(paquete_std, config_cpu->SOCKET_KERNEL);
     eliminar_paquete(paquete_std);
 
-
     t_paquete* paquete_stdout = crear_paquete(IO_STDOUT_WRITE_INT); // dejo asi 
     solicitar_a_kernel_std(interfaz, mmu_io_stdout_write, paquete_stdout);
-    enviar_paquete(paquete_stdout, config_cpu->SOCKET_KERNEL);
-    eliminar_paquete(paquete_stdout);
     //liberar_mmu(mmu_io_stdout_write);
 }
 

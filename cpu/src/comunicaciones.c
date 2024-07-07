@@ -61,52 +61,46 @@ int comunicaciones_con_memoria_lectura(t_mmu_cpu* mmu){
     return valor_final;
 }
 
-char* comunicaciones_con_memoria_lectura_copy_string(t_mmu_cpu*mmu){
+char* comunicaciones_con_memoria_lectura_copy_string(t_mmu_cpu* mmu) {
     int desplazamiento = 0;
     int total_tam = 0;
 
-
-    for (int i = 0; i < list_size(mmu->direccionFIsica); i++){
+    for (int i = 0; i < list_size(mmu->direccionFIsica); i++) {
         int* tamnio = (int*)list_get(mmu->tamanio, i);
         total_tam += *tamnio;
     }
 
     char* palabra = malloc(total_tam + 1);
-    if (palabra == NULL){
+    if (palabra == NULL) {
         log_warning(logger, "NO HAY MEMORIA TONTISSS");
         return NULL;
     }
-    
-    
 
-    while (!list_is_empty(mmu->direccionFIsica)){
+    while (!list_is_empty(mmu->direccionFIsica)) {
         int* direccionFIsicaa = (int*)list_remove(mmu->direccionFIsica, 0);
         int* tamanio = (int*)list_remove(mmu->tamanio, 0);
 
         if (!direccionFIsicaa || !tamanio) {
-        log_error(logger, "Error al obtener dirección física o tamaño");
-        free(direccionFIsicaa);
-        free(tamanio);
-        free(palabra);
-            return NULL;
-        }
-
-        int  tam = *tamanio;
-        int  direc = *direccionFIsicaa;
-
-        enviar_a_leer_memoria(pcb->pid, direc, tam);
-        void* valor = recv_leer_memoria(tam);
-        void* palabra_ptr = &palabra;
-        if (!valor || !palabra_ptr){
+            log_error(logger, "Error al obtener dirección física o tamaño");
             free(direccionFIsicaa);
             free(tamanio);
             free(palabra);
             return NULL;
         }
-        
 
+        int tam = *tamanio;
+        int direc = *direccionFIsicaa;
 
-        memcpy(palabra + desplazamiento, valor,tam);
+        enviar_a_leer_memoria(pcb->pid, direc, tam);
+        void* valor = recv_leer_memoria(tam);
+        if (!valor) {
+            free(direccionFIsicaa);
+            free(tamanio);
+            free(palabra);
+            return NULL;
+        }
+
+        memcpy(palabra + desplazamiento, valor, tam);
         desplazamiento += tam;
 
         log_info(logger, "PID: %i - Acción LEER - Dirección Física: %i - Parte Leída: %s", pcb->pid, direc, (char*)valor);
@@ -115,7 +109,9 @@ char* comunicaciones_con_memoria_lectura_copy_string(t_mmu_cpu*mmu){
         free(direccionFIsicaa);
         free(tamanio);
     }
-    //palabra[total_tam] = '\0'; // NOC SI HACE FALTA
+
+    palabra[total_tam] = '\0'; // Agregar el carácter nulo al final
+
     return palabra;
 }
 

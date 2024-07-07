@@ -43,7 +43,6 @@ typedef enum {
 
 typedef struct { // PCB de un proceso 
     int pid;
-    int program_counter; 
     int quantum; //Para el VRR
     t_registro_cpu* registros;
     int estado;

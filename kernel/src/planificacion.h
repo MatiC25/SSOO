@@ -25,11 +25,11 @@ extern sem_t sem_multiprogramacion;
 extern sem_t habilitar_corto_plazo;
 extern sem_t hay_en_estado_ready;
 extern sem_t hay_en_estado_new;
-extern sem_t pedidos;
 extern sem_t desalojo_proceso;
 extern sem_t hay_proceso_en_bloq;
 
 extern t_pcb* proceso_en_exec;
+extern int quantum_restante;
 
 void inicializacion_semaforos();
 int generar_pid_unico();
@@ -58,6 +58,5 @@ void mostrar_lista_de_pids(t_list* lista);
 void mostrar_pid (t_pcb* pcb);
 void ingresar_a_exec(t_pcb* pcb);
 void puede_ejecutar_otro_proceso();
-
 
 #endif

@@ -245,7 +245,7 @@ void obtener_marco(int socket_cliente){
 
     if(list_size(tabla_de_paginas) > pagina){
         t_tabla_de_paginas* entrada = list_get(tabla_de_paginas, pagina);  //Obtenemos la pagina requerida
-        log_mati(logger2, "La entrada (pagina) que recibo para obtener el marco es: %i", entrada->nro_pagina);
+        log_mati(logger2, "La pagina que recibo para obtener el marco es: %i", entrada->nro_pagina);
         if(entrada->bit_validez == 1){// si la pagina existe, se la enviamos a cpu
     
             t_paquete* marco_paquete = crear_paquete(ACCEDER_TABLA_PAGINAS);                                                        
