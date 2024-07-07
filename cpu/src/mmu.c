@@ -171,7 +171,7 @@ for (int i = 0; i < list_size(mmu->num_pagina); i++) {
         list_add(mmu->direccionFIsica, ptr_dirc_fisica);
     }
 }
-free(mmu->num_pagina);
+//free(mmu->num_pagina);
 
 return mmu;
 }

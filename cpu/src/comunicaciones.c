@@ -475,8 +475,7 @@ void send_escribi_memoria_string(int pid,int direccionFIsica, int tamanio,char* 
     t_paquete* solicitud_escritura = crear_paquete(ACCESO_A_ESCRITURA);
     agregar_a_paquete(solicitud_escritura, &pid ,sizeof(int));
     agregar_a_paquete(solicitud_escritura, &direccionFIsica,sizeof(int));
-    agregar_a_paquete(solicitud_escritura, &tamanio,sizeof(int));
-    agregar_a_paquete(solicitud_escritura, &valor,sizeof(int));
+    agregar_a_paquete_string(solicitud_escritura,valor,strlen(valor) + 1);
     enviar_paquete(solicitud_escritura, config_cpu->SOCKET_MEMORIA);
     eliminar_paquete(solicitud_escritura);
 }

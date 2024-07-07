@@ -347,7 +347,7 @@ void ejecutar_MOV_IN(char* registro_Datos ,char* registro_Direccion){
     log_info(logger,"valor enviada por memoria: %i", valor);
 
     operar_con_registros(reg_Datos,NULL,registro_Datos,"set",valor);
-    //liberar_mmu(mmu_mov_in);
+    liberar_mmu(mmu_mov_in);
     tengoAlgunaInterrupcion();
 }
 
@@ -369,7 +369,7 @@ void ejecutar_MOV_OUT(char* Registro_Direccion, char* Registro_Datos) {
         log_error(logger, "No se pudo escribir en memoria");
     }
 
-    //liberar_mmu(mmu_mov_out);
+    liberar_mmu(mmu_mov_out);
     tengoAlgunaInterrupcion();
 }
 
@@ -484,7 +484,7 @@ void ejecutar_IO_STDIN_READ(char* interfaz, char* registro_direccion, char* regi
 
     t_paquete* paquete_stdin = crear_paquete(IO_STDIN_READ_INT);
     solicitar_a_kernel_std(interfaz,mmu_io_stdin_read ,paquete_stdin);
-    //liberar_mmu(mmu_io_stdin_read);
+    liberar_mmu(mmu_io_stdin_read);
 }
 
 void ejecutar_IO_STDOUT_WRITE(char* interfaz, char* registro_direccion, char* registro_tamanio){
@@ -506,7 +506,7 @@ void ejecutar_IO_STDOUT_WRITE(char* interfaz, char* registro_direccion, char* re
 
     t_paquete* paquete_stdout = crear_paquete(IO_STDOUT_WRITE_INT); // dejo asi 
     solicitar_a_kernel_std(interfaz, mmu_io_stdout_write, paquete_stdout);
-    //liberar_mmu(mmu_io_stdout_write);
+    liberar_mmu(mmu_io_stdout_write);
 }
 
 
@@ -587,7 +587,7 @@ void ejecutar_IO_FD_WRITE(char* interfaz, char* nombre_archivo, char* registro_d
     agregar_a_paquete(paqute, &reg_Archi, sizeof(int)); //Porsicion en archivo 
     enviar_paquete(paqute, config_cpu->SOCKET_KERNEL);
     eliminar_paquete(paqute);
-    //liberar_mmu(mmu_io_fs_write);
+    liberar_mmu(mmu_io_fs_write);
 }
 
 
@@ -622,7 +622,7 @@ void ejecutar_IO_FS_READ(char* interfaz, char* nombre_archivo, char* registro_di
     }
     enviar_paquete(paquete, config_cpu->SOCKET_KERNEL);
     eliminar_paquete(paquete);
-    free(mmu_io_fs_read);
+    liberar_mmu(mmu_io_fs_read);
 
 }
 

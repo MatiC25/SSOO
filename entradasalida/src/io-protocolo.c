@@ -223,8 +223,6 @@ char *rcv_contenido_a_mostrar(t_interfaz *interfaz, t_list *direcciones_fisicas,
         t_direccion_fisica *direccion = list_get(direcciones_fisicas_tam_ordernadas, i);
         int direccion_fisica = direccion->direccion_fisica;
         int tamanio = direccion->tamanio;
-    
-        log_info(logger, "Se va a leer la dirección física %d de tamaño %d", direccion_fisica, tamanio);
 
         // Enviamos la dirección física a memoria:
         t_paquete *paquete = crear_paquete(ACCESO_A_LECTURA);
@@ -249,14 +247,10 @@ char *rcv_contenido_a_mostrar(t_interfaz *interfaz, t_list *direcciones_fisicas,
         int desplazamiento = 0;
         int size;
         void *buffer = recibir_buffer(&size, socket_memoria);
-
-        log_info(logger, "Se recibió el buffer de tamaño %d", size);
         
         // Parseamos el buffer para obtener el contenido:
         char *contenido = malloc(size);
         memcpy(contenido, buffer + desplazamiento, size);
-
-        log_info(logger, "Se recibió el contenido: %s", contenido);
 
         // Copiamos el contenido al buffer a mostrar:
         memcpy(contenido_a_mostrar + desplazamiento_interno, contenido, tamanio);
