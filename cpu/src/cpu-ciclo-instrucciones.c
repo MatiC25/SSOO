@@ -516,7 +516,7 @@ void ejecutar_IO_FS_CREATE(char* interfaz, char* nombre_archibo){
     enviar_paquete(paquete_IO, config_cpu->SOCKET_KERNEL);
     eliminar_paquete(paquete_IO);
 
-    t_paquete* paquet_fs_create = crear_paquete(IO_FS_CREATE);
+    t_paquete* paquet_fs_create = crear_paquete(IO_FS_CREATE_INT);
     agregar_a_paquete_string(paquet_fs_create, interfaz, strlen(interfaz) + 1);
     agregar_a_paquete_string(paquet_fs_create, nombre_archibo, strlen(nombre_archibo) + 1);
     enviar_paquete(paquet_fs_create, config_cpu->SOCKET_KERNEL);
@@ -530,7 +530,7 @@ void ejecutar_IO_FS_DELETE(char* interfaz, char* nombre_archibo){
     eliminar_paquete(paquete_IO);
 
 
-    t_paquete* paquete_delete = crear_paquete(IO_FS_DELETE);
+    t_paquete* paquete_delete = crear_paquete(IO_FS_DELETE_INT);
     agregar_a_paquete_string(paquete_delete, interfaz, strlen(interfaz ) + 1);
     agregar_a_paquete_string(paquete_delete, nombre_archibo, strlen(nombre_archibo ) + 1);  
     enviar_paquete(paquete_delete, config_cpu->SOCKET_KERNEL);
@@ -550,7 +550,7 @@ void ejecutar_IO_FS_TRUNCATE(char* interfaz, char* nombre_archivo, char* registr
     eliminar_paquete(paquete_IO);
 
 
-    t_paquete* paquete = crear_paquete(IO_FS_TRUNCATE);
+    t_paquete* paquete = crear_paquete(IO_FS_TRUNCATE_INT);
     agregar_a_paquete_string(paquete, interfaz, strlen(interfaz) + 1);
     agregar_a_paquete_string(paquete, nombre_archivo, strlen(nombre_archivo) + 1);
     agregar_a_paquete(paquete, &reg_Tamanio, sizeof(int));
@@ -579,7 +579,7 @@ void ejecutar_IO_FD_WRITE(char* interfaz, char* nombre_archivo, char* registro_d
     eliminar_paquete(paquete_IO);
 
 
-    t_paquete* paqute = crear_paquete(IO_FD_WRITE);
+    t_paquete* paqute = crear_paquete(IO_FD_WRITE_INT);
     agregar_a_paquete_string(paqute, interfaz, strlen(interfaz) + 1);
     agregar_a_paquete_string(paqute, nombre_archivo, strlen(nombre_archivo) + 1);
     agregar_a_paquete_string(paqute, valor, strlen(valor) + 1);
@@ -610,7 +610,7 @@ void ejecutar_IO_FS_READ(char* interfaz, char* nombre_archivo, char* registro_di
     enviar_paquete(paquete_IO, config_cpu->SOCKET_KERNEL);
 
 
-    t_paquete* paquete = crear_paquete(IO_FS_READ);
+    t_paquete* paquete = crear_paquete(IO_FS_READ_INT);
     agregar_a_paquete_string(paquete, interfaz, strlen(interfaz) + 1);
     agregar_a_paquete_string(paquete, nombre_archivo, strlen(nombre_archivo) + 1);
     agregar_a_paquete(paquete, &reg_Tamanio, sizeof(int));
