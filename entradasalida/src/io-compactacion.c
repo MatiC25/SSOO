@@ -1,62 +1,85 @@
 #include "io-compactacion.h"
 
-void compactar_archivos(t_bitarray *bitmap, FILE *bloques, t_interfaz *interfaz, t_list *archivos_abiertos, t_config *archivo_metadata, int cantidad_de_bloques_nuevos_necesarios) {
+void compactar_fs(t_interfaz  *interfaz, FILE *bloques, t_bitarray *bitmap, t_list *archivos_ya_abiertos, t_config *archivo_metadata, int cantidad_bloques_asignados_a_archivo_compactar, int bloque_inicial_archivo_a_compactar, int tam_nuevo_archivo_a_compactar) {
 
-    // Creamos una lista de buffers y ordenamos los archivos abiertos:
-    t_list *buffers = list_create();
-    t_list *archivos_ordenados = list_sorted(archivos_abiertos, (void *) ordenar_por_bloque_inicial);
+    // Obtenemos la cantidad de archivos abiertos:
+    int cantidad_archivos_abiertos = list_size(archivos_ya_abiertos);
 
-    // Obtenemos el bloque inicial del archivo a compactar y su tamaño:
-    int size = list_size(archivos_ordenados);
-    int bloque_del_archivo_a_compactar = get_bloque_inicial(archivo_metadata);
-    int tamanio_archivo = get_tamanio_archivo(archivo_metadata);
-    int cantidad_de_bloques_asignados;
+    // Ordenamos la lista de archivos abiertos por bloque inicial:
+    t_list *archivos_ordenados = list_sorted(archivos_ya_abiertos, (void *) comparar_bloque_inicial);
 
-    for (int i = 0; i < size; i++) {
-        // Obtenemos el archivo abierto y su metadata:
-        t_archivo_abierto *archivo_abierto_actual = list_get(archivos_ordenados, i);
-        t_config *archivo_metadata_actual = get_archivo_metadata(archivo_abierto_actual);
+    // Creamos un buffer para los archivos:
+    t_queue *buffer = queue_create();
 
-        // Obtenemos el nuevo bloque inicial y el bloque inicial actual del archivo:
-        int bloque_inicial = get_bloque_inicial(archivo_metadata);
-        int bloque_libre = buscar_bloque_libre(bitmap, interfaz);
+    // Inicializamos variables:
+    int bloque_libre;
+    int bloque_inicial_archivo_actual;
+    int tamanio_archivo_archivo_actual;
+    int cantidad_bloques_asignados;
 
-        if (bloque_inicial == bloque_del_archivo_a_compactar || bloque_libre < bloque_inicial) {
-            // Calculamos la cantidad de bloques necesarios:
-            cantidad_de_bloques_asignados = calcular_cantidad_de_bloques_asignados(interfaz, archivo_metadata_actual);
+    for(int i =  0; i < cantidad_archivos_abiertos; i++) {
+        t_archivo_abierto *abierto_actual_abierto = list_get(archivos_ordenados, i);
 
-            // Liberar bloques usados por el archivo:
-            liberar_bloques_usados(bitmap, bloques, archivo_metadata);
+        // Obtenemos el archivo actual:
+        t_config *archivo_metadata_archivo_actual = get_archivo_metadata(abierto_actual_abierto);
 
-            // Calculamos la cantidad de bytes que debe de tener el buffer:
-            unsigned char *buffer = malloc(cantidad_de_bloques_asignados * get_block_size(interfaz));
+        // Obtenemos el bloque inicial y el tamanio del archivo actual:
+        bloque_inicial_archivo_actual = get_bloque_inicial(archivo_metadata_archivo_actual);
+        tamanio_archivo_archivo_actual = get_tamanio_archivo(archivo_metadata_archivo_actual);
 
-            // Leer contenido de los bloques:
-            fseek(bloques, bloque_inicial * get_block_size(interfaz), SEEK_SET);
-            fread(buffer, get_block_size(interfaz), cantidad_de_bloques_asignados, bloques);
+        // Obtenemos un bloque libre:
+        bloque_libre = obtener_bloque_libre(bitmap, interfaz);
+
+        if(bloque_libre > bloque_inicial_archivo_actual || bloque_inicial_archivo_actual == bloque_inicial_archivo_a_compactar) {
+            cantidad_bloques_asignados = calcular_cantidad_bloques_asignados(interfaz, tamanio_archivo_archivo_actual);
+
+            // Liberamos los bloques asignados:
+            liberar_bloques_asignados(bitmap, cantidad_bloques_asignados, bloque_inicial_archivo_actual);
+
+            // Creamos un buffer para el archivo actual:
+            unsigned char *buffer = malloc(tamanio_archivo_archivo_actual);
+
+            // Obtenemos los datos del archivo actual:
+            fseek(bloques, bloque_inicial_archivo_actual * get_block_size(interfaz), SEEK_SET);
+            fread(buffer, tamanio_archivo_archivo_actual, 1, bloques);
             fseek(bloques, 0, SEEK_SET);
 
-            // Agregar buffer a la lista
-            list_add(buffers, buffer);
+            if(bloque_inicial_archivo_actual != bloque_inicial_archivo_a_compactar) {
+                // Seteamos los bloques como ocupados:
+                set_bloques_como_ocupados_desde(bitmap, bloque_libre, cantidad_bloques_asignados);
 
-            // Asignar nuevo bloque inicial si es necesario
-            if (bloque_inicial != bloque_del_archivo_a_compactar) {
-                set_bloque_inicial_archivo_metadata(archivo_metadata_actual, bloque_libre);
-                asignar_bloques_nuevos_desde_inicio(bitmap, interfaz, archivo_metadata_actual, cantidad_de_bloques_asignados);
+                // Seteamos los datos del archivo actual:
+                set_bloque_inicial_en_archivo_metadata(archivo_metadata, bloque_libre);
+
+                // Guardamos el archivo:
+                set_archivo_metada_en_fs(archivo_metadata);
+
+                // Guardamos los datos del archivo actual:
+                queue_push(buffer, buffer);
             } else {
-                liberar_bloques_usados(bitmap, bloque_del_archivo_a_compactar, tamanio_archivo);
+                // Guardamos los datos del archivo a compactar:
+                unsigned char *buffer_archivo_a_compactar = malloc(tamanio_archivo_archivo_actual);
+
+                // Obtenemos los datos del archivo a compactar:
+                buffer_archivo_a_compactar = buffer;
             }
         }
     }
 
-    // Asignar bloques nuevos al archivo
-    int bloque_libre_final = buscar_bloque_libre(bitmap, interfaz);
-    cantidad_de_bloques_asignados = calcular_cantidad_de_bloques_asignados(interfaz, archivo_metadata);
+    // Guardamos los datos del archivo a compactar:
+    queue_push(buffer, buffer_archivo_a_compactar);
 
-    set_bloque_inicial_archivo_metadata(archivo_metadata, bloque_libre_final);
-    asignar_bloques_nuevos_desde_inicio(bitmap, interfaz, archivo_metadata, cantidad_de_bloques_asignados);
-    asignar_nuevos_bloques_desde_final(bitmap, interfaz, archivo_metadata, cantidad_de_bloques_nuevos_necesarios);
+    // Obtenemos el un bloque libre:
+    bloque_libre = calcular_bloque_final(interfaz, bloque_libre, tamanio_archivo_archivo_actual) + 1;
+    cantidad_bloques_asignados = calcular_cantidad_bloques_asignados(interfaz, tam_nuevo_archivo_a_compactar) + cantidad_bloques_asignados_a_archivo_compactar;
 
-    // Escribir buffers en bloques
-    escribir_buffers_en_bloques(bloques, buffers);
+    // Seteamos los bloques como ocupados:
+    set_bloques_como_ocupados_desde(bitmap, bloque_libre, cantidad_bloques_asignados);
+
+    // Seteamos los datos del archivo a compactar:
+    set_bloque_inicial_en_archivo_metadata(archivo_metadata, bloque_libre);
+
+    // Logeamos operacion:
+    log_info(logger, "Se compacto el archivo %s", get_nombre_archivo(archivo_metadata));
+    log_info(logger, "Bloque inicial: %d", bloque_libre);
 }

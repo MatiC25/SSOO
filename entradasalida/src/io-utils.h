@@ -1,10 +1,12 @@
 #ifndef IO_UTILS_H
 #define IO_UTILS_H
 
+// Incluimos las librerias externas:
+#include <math.h>
+
+// Incluimos las librerias necesarias:
 #include "io-config.h"
 #include "io-estructuras.h"
-
-// Incluye las estructuras necesarias:
 
 // Setea el socket con la memoria:
 void set_socket_memory(int socket, t_interfaz * interfaz);
@@ -51,7 +53,25 @@ char *get_nombre_operacion(tipo_operacion operacion);
 // Devuelve el tipo de interfaz:
 tipo_interfaz get_tipo_interfaz_to_int(t_interfaz *interfaz);
 
-// Devuelve el tamaño de un archivo:
+// Devuelve si una dirección es mayor, menor o igual a otra:
 int ordenar_direcciones_por_tamanio(void *direccion1, void *direccion2);
+
+// Devuelve el modo de apertura:
+char *get_modo_de_apertura(int size); 
+
+// Devuelve el path de un archivo:
+char *get_path_archivo(t_interfaz *interfaz, char *name_file);
+
+// Devuelve los bloques necesarios para un archivo:
+int get_bloques_necesarios(t_interfaz *interfaz, int nuevo_tamanio);
+
+// Devuelve el bloque final de un archivo:
+int calcular_bloque_final(t_interfaz *interfaz, int bloque_inicial, int tamanio_archivo);
+
+// Funcion para calcular la cantidad de bloques asignados a un archivo:
+int calcular_cantidad_bloques_asignados(t_interfaz *interfaz, int tamanio_archivo);
+
+// Funcion para comparar bloques iniciales:
+int comparar_bloque_inicial(void *archivo1, void *archivo2);
 
 #endif // IO_UTILS_H

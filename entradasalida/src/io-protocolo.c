@@ -68,6 +68,11 @@ t_list *recibir_argumentos_para_dial(t_interfaz * interfaz, tipo_operacion tipo)
 
     // Recibimos el buffer:
     void *buffer = recibir_buffer(&size, socket_kernel);
+
+    // Obtenemos el PID del proceso:
+    int *pid = malloc(sizeof(int));
+    *pid = parsear_int(buffer, &desplazamiento);
+    list_add(argumentos, pid);
     
     // Parseamos el buffer para obtener los argumentos:
     char *file = parsear_string(buffer, &desplazamiento);
@@ -145,8 +150,7 @@ void send_mensaje_a_memoria(t_interfaz * interfaz, char *mensaje) {
 
 void send_bytes_a_leer(t_interfaz *interfaz, int pid, t_list *direcciones, void *input, int bytes_leidos) {
 
-    // Obtenemos el tamaño de la lista de direcciones:
-    int size = list_size(direcciones);
+    // Obtenemos socket con memoria:
     int socket_memoria = get_socket_memory(interfaz);
 
     // Ordenamos las direcciones por tamaño:
@@ -174,7 +178,7 @@ void send_bytes_a_leer(t_interfaz *interfaz, int pid, t_list *direcciones, void 
         memcpy(buffer, input + bytes_mandados, tamanio);
 
         // Logueamos el buffer:
-        log_info(logger, "Se manda el buffer: %s", buffer);
+        log_info(logger, "Se manda el buffer: %ls", buffer);
 
         // Agregamos el buffer al paquete:
         agregar_a_paquete(paquete, buffer, tamanio);
@@ -223,7 +227,7 @@ char *rcv_contenido_a_mostrar(t_interfaz *interfaz, t_list *direcciones_fisicas,
         t_direccion_fisica *direccion = list_get(direcciones_fisicas_tam_ordernadas, i);
         int direccion_fisica = direccion->direccion_fisica;
         int tamanio = direccion->tamanio;
-
+    
         // Enviamos la dirección física a memoria:
         t_paquete *paquete = crear_paquete(ACCESO_A_LECTURA);
         agregar_a_paquete(paquete, &pid_proceso, sizeof(int));
@@ -232,6 +236,7 @@ char *rcv_contenido_a_mostrar(t_interfaz *interfaz, t_list *direcciones_fisicas,
 
         // Asegúrate de enviar el paquete a la memoria usando socket_memoria
         enviar_paquete(paquete, socket_memoria);
+
 
         // Liberar la memoria usada para el paquete
         eliminar_paquete(paquete);
@@ -247,7 +252,7 @@ char *rcv_contenido_a_mostrar(t_interfaz *interfaz, t_list *direcciones_fisicas,
         int desplazamiento = 0;
         int size;
         void *buffer = recibir_buffer(&size, socket_memoria);
-        
+
         // Parseamos el buffer para obtener el contenido:
         char *contenido = malloc(size);
         memcpy(contenido, buffer + desplazamiento, size);
@@ -271,9 +276,11 @@ char *parsear_string(void *buffer, int *desplazamiento) {
     *desplazamiento += sizeof(int);
 
     // Copiamos el string:
-    char *string = malloc(tam);
+    char *string = malloc(tam + 1);
     memcpy(string, buffer + *desplazamiento, tam);
-    *desplazamiento += tam;
+    *desplazamiento += tam + 1;
+    
+    string[tam] = '\0';
 
     return string;
 }

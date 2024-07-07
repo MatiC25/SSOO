@@ -2,6 +2,7 @@
 #define IO_ESTRUCTURAS_H
 
 #include <utils/estructuras_compartidas.h>
+#include <commons/config.h>
 
 typedef struct {
     int TIEMPO_UNIDAD_TRABAJO;
