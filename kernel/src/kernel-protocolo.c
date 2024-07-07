@@ -146,6 +146,7 @@ void send_message_to_dialfs_create_o_delete(int socket, t_list *args, int *respo
 
     // Enviamos el paquete:
     t_paquete *paquete = crear_paquete(*operacion_a_realizar_ptr);
+    agregar_a_paquete(paquete, pid_proceso_ptr, sizeof(int));
     agregar_a_paquete_string(paquete, nombre_archivo, strlen(nombre_archivo) + 1);
     enviar_paquete(paquete, socket);
     eliminar_paquete(paquete);
@@ -259,6 +260,8 @@ t_list * recv_interfaz_y_argumentos(int socket, int pid_proceso) {
     char *nombre_interfaz = parsear_string(buffer, &desplazamiento);
     list_add(interfaz_y_argumentos, nombre_interfaz);
 
+    log_info(logger, "Desplazamiento: %d", desplazamiento);
+
     // Obtenemos los argumentos:
     t_list *argumentos = obtener_argumentos(buffer, &desplazamiento, size, operacion_a_realizar, pid_proceso);
     list_add(interfaz_y_argumentos, argumentos);
@@ -274,6 +277,8 @@ int parsear_int(void *buffer, int *desplazamiento) {
 
     memcpy(&dato, buffer + *desplazamiento, sizeof(int));
     *desplazamiento += sizeof(int);
+
+    log_info(logger, "Dato parseado: %d", dato);
 
     return dato;
 }
