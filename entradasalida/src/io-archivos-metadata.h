@@ -28,4 +28,7 @@ void set_archivo_metada_en_fs(t_config *archivo_metadata);
 int get_bloque_inicial(t_config *archivo_metadata);
 int get_tamanio_archivo(t_config *archivo_metadata);
 
+// Funciones para cerrar el archivo metadata:
+void cerrar_archivo_metadata(t_config *archivo_metadata);
+
 #endif

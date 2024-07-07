@@ -28,4 +28,7 @@ int ya_esta_abierto(t_list *archivos_abiertos, char *nombre_archivo);
 // Funciones para obtener un archivo abierto:
 t_archivo_abierto *obtener_archivo_abierto(t_list *archivos_abiertos, char *nombre_archivo);
 
+// Funciones para cerrar un archivo abierto:
+void cerrar_archivo_abierto(t_list *archivos_abiertos, char *nombre_archivo);
+
 #endif

@@ -122,10 +122,8 @@ t_tipo_instruccion obtener_tipo_instruccion(char* instruccion) {
         return IO_FS_DELETE;
     }else if(strcmp(instruccion, "IO_FS_TRUNCATE") == 0) {
         return IO_FS_TRUNCATE;
-    }else if(strcmp(instruccion, "IO_FS_TRUNCATE") == 0) {
-        return IO_FS_TRUNCATE;
-    }else if(strcmp(instruccion, "IO_FD_WRITE") == 0) {
-        return IO_FD_WRITE;
+    }else if(strcmp(instruccion, "IO_FS_WRITE") == 0) {
+        return IO_FS_WRITE;
     }else if(strcmp(instruccion, "IO_GEN_SLEEP") == 0) {
         return IO_GEN_SLEEP;
     }else if(strcmp(instruccion, "IO_FS_READ") == 0) {

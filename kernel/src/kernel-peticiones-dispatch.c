@@ -94,16 +94,19 @@ void peticion_fin_quantum() {
         log_error(logger, "Dispatch acaba de recibir algo inexistente!");
         return;
     }
-    sem_post(&desalojo_proceso);
-
-    log_warning(logger, "PID: %i - Desalojado por fin de Quantum", proceso_en_exec->pid);
 
     pthread_mutex_lock(&mutex_estado_ready);
     pthread_mutex_lock(&mutex_proceso_exec);
+    proceso_en_exec->quantum = config_kernel->QUANTUM;
     list_add(cola_ready, proceso_en_exec);
     log_info(logger, "PID: %i - Estado Anterior: EXEC - Estado Actual: READY \n", proceso_en_exec->pid);
     pthread_mutex_unlock(&mutex_proceso_exec);
     pthread_mutex_unlock(&mutex_estado_ready);
+
+    sem_post(&desalojo_proceso);
+
+    log_warning(logger, "PID: %i - Desalojado por fin de Quantum", proceso_en_exec->pid);
+
 
     sem_post(&hay_en_estado_ready);
     puede_ejecutar_otro_proceso();
@@ -127,7 +130,7 @@ void peticion_exit(const char *tipo_de_exit) {
 
     pthread_mutex_lock(&mutex_proceso_exec);
     proceso_en_exec->estado = EXITT;
-    
+    proceso_en_exec->quantum = 0;
 
     pthread_mutex_lock(&mutex_exit);
     list_add(cola_exit, proceso_en_exec);
@@ -165,13 +168,6 @@ void peticion_wait() {
         return;
     }
     
-    if(strcmp(config_kernel->ALGORITMO_PLANIFICACION, "VRR") == 0) {
-        pthread_mutex_lock(&mutex_proceso_exec);
-        proceso_en_exec->quantum = quantum_restante;
-        pthread_mutex_unlock(&mutex_proceso_exec);
-        log_facu(logger, "Quantum W: %i", proceso_en_exec->quantum);
-    }
-    
     int indice_recurso = obtener_indice_recurso(recurso);
     
     if (config_kernel->INST_RECURSOS[indice_recurso] > 0) {
@@ -198,9 +194,23 @@ void peticion_wait() {
 
         int wait_fallido = 0;
         send(config_kernel->SOCKET_DISPATCH, &wait_fallido, sizeof(int),  MSG_WAITALL);
+        
         pthread_mutex_lock(&mutex_proceso_exec);
+        proceso_en_exec->quantum = config_kernel->QUANTUM;
+        pthread_mutex_unlock(&mutex_proceso_exec);
+
+        sem_post(&desalojo_proceso);
+
+        pthread_mutex_lock(&mutex_proceso_exec);
+        if(strcmp(config_kernel->ALGORITMO_PLANIFICACION, "VRR") == 0) {
+            pthread_mutex_lock(&mutex_proceso_exec);
+            proceso_en_exec->quantum = quantum_restante;
+            log_facu(logger, "Quantum W: %i", proceso_en_exec->quantum);
+            pthread_mutex_unlock(&mutex_proceso_exec);
+        }
         mover_a_bloqueado_por_wait(proceso_en_exec, recurso);
         pthread_mutex_unlock(&mutex_proceso_exec);
+
         puede_ejecutar_otro_proceso();
         free(recurso);
         return;
@@ -297,7 +307,7 @@ void mover_a_bloqueado_por_wait(t_pcb* pcb, char* recurso) {
 void mover_a_cola_block_general(t_pcb* pcb, char* motivo) {
 
     pthread_mutex_lock(&mutex_cola_block);
-    log_leo(logger, "PID: %i - Bloqueado por: %s", pcb->pid, motivo);
+    log_leo(logger, "PID: %i - Bloqueado por: %s\n", pcb->pid, motivo);
     log_info(logger, "PID: %i - Estado Anterior: EXEC - Estado Actual: BLOCK", pcb->pid);
     //log_facu(logger, "Quantum en Block: %i", pcb->quantum);
     pcb->estado = BLOCK;
@@ -351,6 +361,11 @@ void peticion_IO() {
     pthread_mutex_unlock(&mutex_proceso_exec);
 
     log_warning(logger, "¡Peticion I/O, desalojando Proceso: %i", proceso_en_exec->pid);
+
+    pthread_mutex_lock(&mutex_proceso_exec);
+    proceso_en_exec->quantum = config_kernel->QUANTUM;
+    pthread_mutex_unlock(&mutex_proceso_exec);
+
     sem_post(&desalojo_proceso);
 
     if (!proceso_en_exec) {
@@ -358,13 +373,6 @@ void peticion_IO() {
         return;
     }
 
-    if(strcmp(config_kernel->ALGORITMO_PLANIFICACION, "VRR") == 0) {
-        pthread_mutex_lock(&mutex_proceso_exec);
-        proceso_en_exec->quantum = quantum_restante;
-        pthread_mutex_unlock(&mutex_proceso_exec);
-        log_facu(logger, "Quantum IO: %i", proceso_en_exec->quantum);
-    }
-    
     // Enviamos un mensaje de confirmación al Dispatch:
     int response = 1;
     send(config_kernel->SOCKET_DISPATCH, &response, sizeof(int), 0);
@@ -395,6 +403,14 @@ void peticion_IO() {
         free(nombre_interfaz);
         return;
     }
+
+    if(strcmp(config_kernel->ALGORITMO_PLANIFICACION, "VRR") == 0) {
+        pthread_mutex_lock(&mutex_proceso_exec);
+        proceso_en_exec->quantum = quantum_restante;
+        log_facu(logger, "Quantum IO: %i", proceso_en_exec->quantum);
+        pthread_mutex_unlock(&mutex_proceso_exec);
+    }
+    
 
     pthread_mutex_lock(&mutex_proceso_exec);
     mover_a_cola_block_general(proceso_en_exec, "INTERFAZ");

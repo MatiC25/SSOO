@@ -16,7 +16,7 @@
 #include "cpu.h"
 #include "cpu-estructuras.h"
 
-
+char* filtrar_nueva_linea(char* cadena);
 int recv_pagina(int socket);
 t_pcb_cpu* rcv_contexto_ejecucion_cpu(int socket_cliente);
 void enviar_pcb_a_kernel(t_paquete* paquete_a_kernel);

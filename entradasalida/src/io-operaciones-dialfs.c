@@ -49,6 +49,8 @@ void operacion_write_file(t_interfaz *interfaz, FILE *bloques, t_list *argumento
     int *offset  = list_get(argumentos, 2);
     t_list *direcciones_fisicas = list_get(argumentos, 3);
 
+    log_info(logger, "Se va a escribir en el archivo %s", nombre_archivo);
+
     // Obtenemos el archivo abierto:
     t_archivo_abierto *archivo_abierto = obtener_archivo_abierto(archivos_ya_abiertos, nombre_archivo);
 
@@ -119,9 +121,45 @@ void operacion_read_file(t_interfaz *interfaz, FILE *bloques, t_list *argumentos
     log_info(logger, "Contenido: %s", contenido);
 }
 
+void operacion_delete_file(t_interfaz *interfaz, t_bitarray *bitmap, t_list *argumentos, t_list *archivos_ya_abiertos) {
+
+    // Obtenemos los argumentos:
+    char *nombre_archivo = list_get(argumentos, 1);
+
+    // Obtenemos el archivo abierto:
+    t_archivo_abierto *archivo_abierto = obtener_archivo_abierto(archivos_ya_abiertos, nombre_archivo);
+
+    if(!archivo_abierto) {
+        log_error(logger, "El archivo no se encuentra abierto");
+
+        return;
+    }
+
+    // Obtenemos el archivo metadata:
+    t_config *archivo_metadata = get_archivo_metadata(archivo_abierto);
+
+    // Obtenemos el bloque inicial y el tamanio del archivo:
+    int bloque_inicial = get_bloque_inicial(archivo_metadata);
+    int tamanio_archivo = get_tamanio_archivo(archivo_metadata);
+    int bloques_necesarios = calcular_cantidad_bloques_asignados(interfaz, tamanio_archivo);
+
+    // Liberamos los bloques ocupados:
+    liberar_bloques_asignados(bitmap, bloque_inicial, bloques_necesarios);
+
+    // Eliminamos el archivo de la lista de archivos abiertos:
+    cerrar_archivo_abierto(archivos_ya_abiertos, nombre_archivo);
+
+    // Eliminamos el archivo:
+    cerrar_archivo_metadata(archivo_metadata);
+
+    // Eliminamos el archivo de la FS:
+    eliminar_archivo_en_fs(interfaz, nombre_archivo);
+}
+
 void operacion_truncate_file(t_interfaz *interfaz, FILE *bloques, t_bitarray *bitmap, t_list *argumentos, t_list *archivos_ya_abiertos) {
     
     // Obtenemos los argumentos:
+    int *pid_proceso = list_get(argumentos, 0);
     char *nombre_archivo = list_get(argumentos, 1);
     int *nuevo_tamanio = list_get(argumentos, 2);
 
@@ -163,16 +201,16 @@ void operacion_truncate_file(t_interfaz *interfaz, FILE *bloques, t_bitarray *bi
             return;
         }
 
+        int bloque_final = calcular_bloque_final(interfaz, bloque_inicial, tamanio_actual);
+
         // Si hay bloques libres suficientes, truncamos el archivo:
         if(!hay_bloques_contiguos_libres(bitmap, bloque_final, bloques_necesarios)) {
             log_info(logger, "Hay bloques libres suficientes para truncar el archivo");
 
-            int bloque_final = calcular_bloque_final(interfaz, bloque_inicial, tamanio_actual);
-
             // Seteamos los bloques como ocupados:
             set_bloques_como_ocupados(bitmap, bloque_final, bloques_necesarios);
         } else {
-            log_info(logger, "“PID: %i - Inicio Compactación.", *pid_proceso);
+            log_info(logger, "PID: %i - Inicio Compactación.", *pid_proceso);
 
             // Iniciamos la compactacion:
             compactar_fs(interfaz, bloques, bitmap, archivos_ya_abiertos, archivo_metadata, bloques_necesarios, bloque_inicial, tam_resultante);
@@ -188,4 +226,6 @@ void operacion_truncate_file(t_interfaz *interfaz, FILE *bloques, t_bitarray *bi
     log_info(logger, "Se truncó el archivo %s", nombre_archivo);
     log_info(logger, "Nuevo tamanio: %d", tam_resultante);
     log_info(logger, "Bloques necesarios: %d", bloques_necesarios);
+
+    set_archivo_metada_en_fs(archivo_metadata);
 }

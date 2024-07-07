@@ -148,8 +148,8 @@ void ejecutar_operaciones_dialFS(t_interfaz *interfaz) {
                 send_respuesta_a_kernel(1, interfaz);
                 break;
             case IO_FS_DELETE_INT:
-                // operacion_delete_file(interfaz, bitmap, argumentos, archivos_ya_abiertos);
-                // send_respuesta_a_kernel(1, interfaz);
+                operacion_delete_file(interfaz, bitmap, argumentos, archivos_ya_abiertos);
+                send_respuesta_a_kernel(1, interfaz);
                 break;
             case IO_FS_WRITE_INT:
                 operacion_write_file(interfaz, archivo_bloque, argumentos, archivos_ya_abiertos);

@@ -153,9 +153,6 @@ void send_bytes_a_leer(t_interfaz *interfaz, int pid, t_list *direcciones, void 
     // Obtenemos socket con memoria:
     int socket_memoria = get_socket_memory(interfaz);
 
-    // Ordenamos las direcciones por tamaño:
-    t_list *direcciones_fisicas_tam_ordernadas = list_sorted(direcciones, (void *)ordenar_direcciones_por_tamanio);
-
     // Inicializamos las variables:
     int bytes_mandados = 0;
     int index = 0;
@@ -163,7 +160,7 @@ void send_bytes_a_leer(t_interfaz *interfaz, int pid, t_list *direcciones, void 
 
     // Enviamos el input a memoria:
     while(bytes_mandados < bytes_leidos) {
-        t_direccion_fisica *direccion = list_get(direcciones_fisicas_tam_ordernadas, index);
+        t_direccion_fisica *direccion = list_get(direcciones, index);
         int direccion_fisica = direccion->direccion_fisica;
         int tamanio = direccion->tamanio;
 
@@ -178,7 +175,7 @@ void send_bytes_a_leer(t_interfaz *interfaz, int pid, t_list *direcciones, void 
         memcpy(buffer, input + bytes_mandados, tamanio);
 
         // Logueamos el buffer:
-        log_info(logger, "Se manda el buffer: %ls", buffer);
+        log_info(logger, "Se manda el buffer: %s", buffer);
 
         // Agregamos el buffer al paquete:
         agregar_a_paquete(paquete, buffer, tamanio);
@@ -219,12 +216,8 @@ char *rcv_contenido_a_mostrar(t_interfaz *interfaz, t_list *direcciones_fisicas,
     char *contenido_a_mostrar = malloc(cantidad_bytes);
     int desplazamiento_interno = 0;
 
-    // Ordenamos las direcciones por tamaño:
-    t_list *direcciones_fisicas_tam_ordernadas = list_sorted(direcciones_fisicas, (void *)ordenar_direcciones_por_tamanio);
-
     for (int i = 0; i < size; i++) {
-    
-        t_direccion_fisica *direccion = list_get(direcciones_fisicas_tam_ordernadas, i);
+        t_direccion_fisica *direccion = list_get(direcciones_fisicas, i);
         int direccion_fisica = direccion->direccion_fisica;
         int tamanio = direccion->tamanio;
     

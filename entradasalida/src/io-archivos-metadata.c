@@ -50,3 +50,8 @@ int get_bloque_inicial(t_config *archivo_metadata) {
 int get_tamanio_archivo(t_config *archivo_metadata) {
     return config_get_int_value(archivo_metadata, "TAMANIO_ARCHIVO");
 }
+
+// Funciones para cerrar el archivo metadata:
+void cerrar_archivo_metadata(t_config *archivo_metadata) {
+    config_destroy(archivo_metadata);
+}

@@ -260,8 +260,6 @@ t_list * recv_interfaz_y_argumentos(int socket, int pid_proceso) {
     char *nombre_interfaz = parsear_string(buffer, &desplazamiento);
     list_add(interfaz_y_argumentos, nombre_interfaz);
 
-    log_info(logger, "Desplazamiento: %d", desplazamiento);
-
     // Obtenemos los argumentos:
     t_list *argumentos = obtener_argumentos(buffer, &desplazamiento, size, operacion_a_realizar, pid_proceso);
     list_add(interfaz_y_argumentos, argumentos);
@@ -277,8 +275,6 @@ int parsear_int(void *buffer, int *desplazamiento) {
 
     memcpy(&dato, buffer + *desplazamiento, sizeof(int));
     *desplazamiento += sizeof(int);
-
-    log_info(logger, "Dato parseado: %d", dato);
 
     return dato;
 }
@@ -390,10 +386,14 @@ void obtener_argumentos_dialfs_read_o_write(t_list *argumentos, void *buffer, in
     char *nombre_archivo = parsear_string(buffer, desplazamiento);
     list_add(argumentos, nombre_archivo);
 
+    log_info(logger, "Se obtiene el nombre del archivo %s", nombre_archivo);
+
     // Obtenemos el offset:
     int *offset = malloc(sizeof(int));
     *offset = parsear_int(buffer, desplazamiento);
     list_add(argumentos, offset);
+
+    log_info(logger, "Se obtiene el offset %d", *offset);
 
     // Obtenemos la dirección física y los bytes a leer o escribir:
     int *direccion_fisica = malloc(sizeof(int));

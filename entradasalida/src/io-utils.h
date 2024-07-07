@@ -2,11 +2,14 @@
 #define IO_UTILS_H
 
 // Incluimos las librerias externas:
+#include <stdio.h>
 #include <math.h>
 
 // Incluimos las librerias necesarias:
 #include "io-config.h"
 #include "io-estructuras.h"
+#include "io-archivos-metadata.h"
+#include "io-archivos-abiertos.h"
 
 // Setea el socket con la memoria:
 void set_socket_memory(int socket, t_interfaz * interfaz);
@@ -73,5 +76,8 @@ int calcular_cantidad_bloques_asignados(t_interfaz *interfaz, int tamanio_archiv
 
 // Funcion para comparar bloques iniciales:
 int comparar_bloque_inicial(void *archivo1, void *archivo2);
+
+// Funcion para eliminar un archivo del sistema:
+void eliminar_archivo_en_fs(t_interfaz *interfaz, char *nombre_archivo);
 
 #endif // IO_UTILS_H

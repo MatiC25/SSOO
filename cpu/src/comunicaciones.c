@@ -112,7 +112,10 @@ char* comunicaciones_con_memoria_lectura_copy_string(t_mmu_cpu* mmu) {
 
     palabra[total_tam] = '\0'; // Agregar el carácter nulo al final
 
-    return palabra;
+    char* resultado_filtrado = filtrar_nueva_linea(palabra);
+    free(palabra);
+
+    return resultado_filtrado;
 }
 
 int comunicaciones_con_memoria_escritura_copy_string(t_mmu_cpu* mmu, char* valor){
@@ -534,4 +537,21 @@ void mostrar_pcb(t_pcb_cpu* pcb){
     log_info(logger,"Reg EDX:%i",pcb->registros->EDX);
     log_info(logger,"Reg SI:%i",pcb->registros->SI);
     log_info(logger,"Reg DI:%i",pcb->registros->DI);
+}
+
+char* filtrar_nueva_linea(char* cadena) {
+    int longitud = strlen(cadena);
+    char* resultado = malloc(longitud + 1);
+    if (resultado == NULL) {
+        return NULL;
+    }
+
+    int j = 0;
+    for (int i = 0; i < longitud; i++) {
+        if (cadena[i] != '\n') {
+            resultado[j++] = cadena[i];
+        }
+    }
+    resultado[j] = '\0';
+    return resultado;
 }

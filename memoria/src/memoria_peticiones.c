@@ -170,7 +170,7 @@ void resize_proceso(int socket_cliente) {
     } // CHEQUEAR ESTO
 
     // Calcular el número de páginas necesarias
-    int num_paginas = ceil((double)tamanio_bytes / 32); // La funcion ceil redondea hacia arriba
+    int num_paginas = ceil((double)tamanio_bytes / config_memoria->tam_pagina); // La funcion ceil redondea hacia arriba
     int paginas_actuales = list_size(tabla_de_paginas); // Calculamos la cantidad de paginas que tiene la tabla
     log_mati(logger2, "El numero de pagians a ampliar es : %i", num_paginas);               
     if (num_paginas > paginas_actuales) { // Si la cantidad de paginas de la tabla actual son menos al calculo del resize -> se amplia 
@@ -337,7 +337,7 @@ void acceso_lectura(int socket_cliente){
     // Realizar la lectura del espacio de usuario
     mem_hexdump(espacio_de_usuario + direc_fisica, tamanio_lectura);
     memcpy(contenido_leer, espacio_de_usuario + direc_fisica, tamanio_lectura);
-    log_info(logger, "Acceso a espacio de usuario: PID: %d - Accion: LEER - Direccion fisica: %d  - Tamaño: %d", pid, direc_fisica, tamanio_lectura);
+    log_info(logger, "Acceso a espacio de usuario: PID: %d - Accion: LEER - Direccion fisica: %d - Tamaño: %d", pid, direc_fisica, tamanio_lectura);
     //mem_hexdump(espacio_de_usuario + direc_fisica, tamanio_lectura);
 
 
@@ -393,7 +393,7 @@ void acceso_escritura(int socket_cliente){
 
     memcpy(espacio_de_usuario + direc_fisica, contenido_a_escribir, tamanio_escritura);
     mem_hexdump(espacio_de_usuario + direc_fisica, tamanio_escritura);
-    log_info(logger, "Acceso a espacio de usuario: PID: %d - Accion: ESCRIBIR - Direccion fisica: %d  - Tamaño: %d", pid, direc_fisica, tamanio_escritura);
+    log_info(logger, "Acceso a espacio de usuario: PID: %d - Accion: ESCRIBIR - Direccion fisica: %d - Tamaño: %d", pid, direc_fisica, tamanio_escritura);
     
     t_paquete* paquete = crear_paquete(EXITO);
     agregar_a_paquete(paquete, &verificacion,sizeof(int));

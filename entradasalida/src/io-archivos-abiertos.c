@@ -13,26 +13,27 @@ t_list *obtener_archivos_ya_abiertos(t_interfaz *interfaz) {
 
     // Inicializamos la lista de archivos:
     t_list *archivos_abiertos = list_create();
-    const char *extension = ".txt";
+    const char *archivo_bloques = "bloques";
+    const char *archivo_bitmap = "bitmap";
 
     // Iteramos sobre los archivos del directorio:
     struct dirent *archivo;
-    while(archivo = readdir(directorio) != NULL) {
+    while(archivo = readdir(directorio)) {
         if(archivo->d_type == DT_REG) {
-            // if(!tiene_extension(archivo->d_name, extension)) {
-
-            //     // Inicializamos el archivo abierto:
-            //     t_config *archivo_metadata = abrir_archivo_metadata_config(interfaz, archivo->d_name, "r");
-            //     t_archivo_abierto *archivo_abierto = malloc(sizeof(t_archivo_abierto));
+            if(strncmp(archivo->d_name, archivo_bloques, 7) != 0 && strncmp(archivo->d_name, archivo_bitmap, 6) != 0) {
+    
+                // Inicializamos el archivo abierto:
+                t_config *archivo_metadata = abrir_archivo_metadata_config(interfaz, archivo->d_name, "r");
+                t_archivo_abierto *archivo_abierto = malloc(sizeof(t_archivo_abierto));
                 
-            //     // Seteamos los datos del archivo abierto:
-            //     set_archivo_metada_en_archivo_abierto(archivo_abierto, archivo_metadata);
-            //     set_name_file_en_archivo_abierto(archivo_abierto, archivo->d_name);
+                // Seteamos los datos del archivo abierto:
+                set_archivo_metada_en_archivo_abierto(archivo_abierto, archivo_metadata);
+                set_name_file_en_archivo_abierto(archivo_abierto, archivo->d_name);
 
-            //     // Agregamos el archivo a la lista de archivos abiertos:
-            //     if(es_un_archivo_valido(archivo_metadata))
-            //         list_add(archivos_abiertos, archivo_abierto);
-            // }
+                // Agregamos el archivo a la lista de archivos abiertos:
+                if(es_un_archivo_valido(archivo_metadata))
+                    list_add(archivos_abiertos, archivo_abierto);
+            }
         }
     }
 
@@ -102,4 +103,23 @@ t_archivo_abierto *obtener_archivo_abierto(t_list *archivos_abiertos, char *nomb
     }
 
     return NULL;
+}
+
+// Funciones para cerrar un archivo abierto:
+void cerrar_archivo_abierto(t_list *archivos_abiertos, char *nombre_archivo) {
+
+    // Iteramos sobre los archivos abiertos:
+    int size = list_size(archivos_abiertos);
+    int cantidad_de_caracteres = strlen(nombre_archivo);
+
+    // Buscamos el archivo abierto:
+    for (int i = 0; i < size; i++) {
+        t_archivo_abierto *archivo_abierto = list_get(archivos_abiertos, i);
+        char *nombre_archivo_abierto = archivo_abierto->name_file;
+
+        if (strncmp(nombre_archivo_abierto, nombre_archivo, cantidad_de_caracteres) == 0) {
+            list_remove(archivos_abiertos, i);
+            return;
+        }
+    }
 }

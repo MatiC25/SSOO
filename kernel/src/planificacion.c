@@ -281,7 +281,7 @@ void* planificador_corto_plazo_RoundRobin(void* arg) {
 
             pthread_mutex_lock(&mutex_proceso_exec);
             proceso_en_exec->estado = EXEC;
-            proceso_en_exec->quantum = 2000;
+            proceso_en_exec->quantum = config_kernel->QUANTUM;
             pthread_mutex_unlock(&mutex_proceso_exec);
 
             enviar_proceso_a_cpu(proceso_en_exec);
@@ -348,11 +348,11 @@ void* planificacion_cortoplazo_VRR() {
         log_info(logger, "PID: %i - Estado Anterior: READY - Estado Actual: EXEC", proceso_en_exec->pid);
         pthread_mutex_unlock(&mutex_proceso_exec);
 
-        // pthread_mutex_lock(&mutex_proceso_exec);
-        // if (proceso_en_exec->quantum == 0) {
-        //     proceso_en_exec->quantum = 2000;
-        // }
-        // pthread_mutex_unlock(&mutex_proceso_exec);
+        pthread_mutex_lock(&mutex_proceso_exec);
+        if (proceso_en_exec->quantum <= 0) {
+            proceso_en_exec->quantum = config_kernel->QUANTUM;
+        }
+        pthread_mutex_unlock(&mutex_proceso_exec);
 
         enviar_proceso_a_cpu(proceso_en_exec);
 
@@ -371,25 +371,8 @@ void* planificacion_cortoplazo_VRR() {
         int64_t tiempo_ejecutado = temporal_gettime(tiempo_de_ejecucion) - tiempo_inicial_de_exec;
         temporal_destroy(tiempo_de_ejecucion);
 
-        pthread_mutex_lock(&mutex_proceso_exec);
-        if (proceso_en_exec->quantum == 0) {
-            proceso_en_exec->quantum = 2000;
-        }
-        pthread_mutex_unlock(&mutex_proceso_exec);
-
         quantum_restante = proceso_en_exec->quantum - tiempo_ejecutado;
         log_facu(logger, "Quantum Restante: %i", quantum_restante);
-        // if(quantum_restante > 0) {
-        //     proceso_en_exec->quantum = 0;
-        //     log_leo(logger, "Quantum: %i - Exec Time: %i - Quantum Restante: %i", proceso_en_exec->quantum, tiempo_ejecutado, quantum_restante);
-        //     pthread_mutex_unlock(&mutex_proceso_exec);
-        // }
-        // else {
-        //     proceso_en_exec->quantum = quantum_restante;
-        //     log_leo(logger, "Quantum: %i - Exec Time: %i - Quantum Restante: %i", proceso_en_exec->quantum, tiempo_ejecutado, quantum_restante);
-        //     pthread_mutex_unlock(&mutex_proceso_exec);
-        // }
-
     }
     
 }

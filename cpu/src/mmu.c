@@ -48,41 +48,41 @@ t_mmu_cpu* traducirDireccion(int direccionLogica , int tamanio){
         //log_info(logger,"TAMANIO: %i",*ptro);
     }
     
-
-    int direccionLogica_actualizada = (pagina + 1) * config_cpu->TAMANIO_PAGINA;
+    int pagina_actualizada = pagina + 1;
+    int direccionLogica_actualizada = (pagina_actualizada) * config_cpu->TAMANIO_PAGINA;
     tamanio_Actualizado = tamanio - tamanio_Actualizado;
 
     while (config_cpu ->TAMANIO_PAGINA <= tamanio_Actualizado){ 
-        pagina_ptr = malloc(sizeof(int));
-        offset_ptr = malloc(sizeof(int));
-        tamanio_ptr = malloc(sizeof(int));
+        int* pagina_ptrr = malloc(sizeof(int));
+        int* offset_ptrr = malloc(sizeof(int));
+        int* tamanio_ptrr = malloc(sizeof(int));
 
-        *pagina_ptr = pagina;
-        *offset_ptr = 0;
-        *tamanio_ptr = config_cpu->TAMANIO_PAGINA;
+        *pagina_ptrr = pagina_actualizada;
+        *offset_ptrr = 0;
+        *tamanio_ptrr = config_cpu->TAMANIO_PAGINA;
 
-        list_add(mmu->num_pagina, pagina_ptr);
-        list_add(mmu->ofset, offset_ptr);
-        list_add(mmu->tamanio, tamanio_ptr);
+        list_add(mmu->num_pagina, pagina_ptrr);
+        list_add(mmu->ofset, offset_ptrr);
+        list_add(mmu->tamanio, tamanio_ptrr);
 
         direccionLogica_actualizada += config_cpu->TAMANIO_PAGINA;
         tamanio_Actualizado -= config_cpu->TAMANIO_PAGINA;
-        pagina++;
+        pagina_actualizada++;
     }
 
     if (tamanio_Actualizado  > 0){
 
-        pagina_ptr = malloc(sizeof(int));
-        offset_ptr = malloc(sizeof(int));
-        tamanio_ptr = malloc(sizeof(int));
+        int* pagina_ptrrr = malloc(sizeof(int));
+        int* offset_ptrrr = malloc(sizeof(int));
+        int* tamanio_ptrrr = malloc(sizeof(int));
 
-        *pagina_ptr = pagina;
-        *offset_ptr = 0;
-        *tamanio_ptr = tamanio_Actualizado;
+        *pagina_ptrrr = pagina_actualizada;
+        *offset_ptrrr = 0;
+        *tamanio_ptrrr = tamanio_Actualizado;
 
-        list_add(mmu->num_pagina, pagina_ptr);
-        list_add(mmu->ofset, offset_ptr);
-        list_add(mmu->tamanio, tamanio_ptr);
+        list_add(mmu->num_pagina, pagina_ptrrr);
+        list_add(mmu->ofset, offset_ptrrr);
+        list_add(mmu->tamanio, tamanio_ptrrr);
     }
 
 
