@@ -51,9 +51,8 @@ void generar_conexion_con_memoria(void) {
 int crear_servidor_kernel() {
     int socket_servidor = 0;
     char *puerto = config_kernel->PUERTO_ESCUCHA;
-    char *ip = config_kernel->IP_MEMORIA;
 
-    socket_servidor = iniciar_servidor("KERNEL", ip, puerto);
+    socket_servidor = iniciar_servidor("KERNEL", NULL, puerto);
 
     if(socket_servidor == -1) {
         log_error(logger, "No se pudo crear el servidor");
