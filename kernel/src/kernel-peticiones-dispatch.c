@@ -2,6 +2,8 @@
 
 int tam_cola_resource;
 t_list** colas_resource_block;
+int esta_block;
+int proceso_finalizado_por_consola;
 
 void hilo_motivo_de_desalojo() {
     pthread_t hilo_desalojo;
@@ -92,6 +94,11 @@ void peticion_fin_quantum() {
     
     if (!proceso_en_exec) {
         log_error(logger, "Dispatch acaba de recibir algo inexistente!");
+        return;
+    }
+    
+    if (proceso_finalizado_por_consola == 1) {
+        proceso_finalizado_por_consola = 0;
         return;
     }
 
@@ -200,12 +207,12 @@ void peticion_wait() {
         pthread_mutex_unlock(&mutex_proceso_exec);
 
         sem_post(&desalojo_proceso);
-
+        esta_block == 1;
         pthread_mutex_lock(&mutex_proceso_exec);
         if(strcmp(config_kernel->ALGORITMO_PLANIFICACION, "VRR") == 0) {
+            sem_wait(&sem_vrr);
             pthread_mutex_lock(&mutex_proceso_exec);
             proceso_en_exec->quantum = quantum_restante;
-            log_facu(logger, "Quantum W: %i", proceso_en_exec->quantum);
             pthread_mutex_unlock(&mutex_proceso_exec);
         }
         mover_a_bloqueado_por_wait(proceso_en_exec, recurso);
@@ -215,7 +222,7 @@ void peticion_wait() {
         free(recurso);
         return;
     }
-
+    esta_block == 0;
     free(recurso);
 }
 
@@ -403,11 +410,11 @@ void peticion_IO() {
         free(nombre_interfaz);
         return;
     }
-
+    esta_block = 1;
     if(strcmp(config_kernel->ALGORITMO_PLANIFICACION, "VRR") == 0) {
+        sem_wait(&sem_vrr);
         pthread_mutex_lock(&mutex_proceso_exec);
         proceso_en_exec->quantum = quantum_restante;
-        log_facu(logger, "Quantum IO: %i", proceso_en_exec->quantum);
         pthread_mutex_unlock(&mutex_proceso_exec);
     }
     
@@ -421,6 +428,7 @@ void peticion_IO() {
     queue_push(interface->args_process, args);
     sem_post(&interface->size_blocked);
 
+    esta_block == 0;
     // Liberamos recursos:
     puede_ejecutar_otro_proceso();
 }
@@ -496,7 +504,7 @@ void inicializar_cola_resource_block() {
 
 void finalizar_por_invalidacion(t_pcb* pcb, const char* tipo_invalidacion) {
     
-    log_info(logger, "Finaliza el proceso: %i - Motivo: %s", pcb->pid, tipo_invalidacion);
+    log_warning(logger, "Finaliza el proceso: %i - Motivo: %s", pcb->pid, tipo_invalidacion);
 
     pthread_mutex_lock(&mutex_exit);
     pcb->estado = EXITT;

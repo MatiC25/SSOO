@@ -40,3 +40,9 @@ void iniciar_planificacion() {
     pthread_detach(planificacion_largo_plazo_thread);
 }
 
+void finalizar_programa() {
+    destruir_semaforos();
+    prevent_from_memory_leaks();
+    log_destroy(logger);
+    log_destroy2(logger2);
+}

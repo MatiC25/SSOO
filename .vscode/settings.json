@@ -17,6 +17,7 @@
     "kernel-interfaces.h": "c",
     "kernel-estructuras.h": "c",
     "kernel-peticiones-dispatch.h": "c",
-    "kernel-protocolo.h": "c"
+    "kernel-protocolo.h": "c",
+    "dictionary.h": "c"
   }
 }

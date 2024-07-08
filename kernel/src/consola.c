@@ -246,10 +246,15 @@ void* finalizar_proceso(void* pid) {
     int pid_buscado = atoi((char*)pid);
 
     pthread_mutex_lock(&mutex_estado_exec);
-    if (proceso_en_exec != NULL && pid_buscado == proceso_en_exec->pid && proceso_en_exec->estado == EXITT) {
+    if (proceso_en_exec != NULL && pid_buscado == proceso_en_exec->pid) {
+        proceso_finalizado_por_consola = 1;
+        //sem_wait(&desalojo_proceso);
+        informar_a_memoria_liberacion_proceso(pid_buscado);
         finalizar_por_invalidacion(proceso_en_exec, "INTERRUPTED_BY_USER");
         log_info(logger, "Proceso a Finalizar encontrado en EXEC");
         pthread_mutex_unlock(&mutex_estado_exec);
+        //sem_post(&desalojo_proceso);
+        // liberar_pcb(proceso_en_exec); //si libero me rompe todo
     } else {
         pthread_mutex_unlock(&mutex_estado_exec);
 
@@ -257,12 +262,14 @@ void* finalizar_proceso(void* pid) {
         if (pcb && list_remove_element(cola_block, pcb)) {
             eliminar_proceso_de_cola_recursos(pcb->pid);
             finalizar_por_invalidacion(pcb, "INTERRUPTED_BY_USER");
+            informar_a_memoria_liberacion_proceso(pid_buscado);
             log_info(logger, "Proceso a Finalizar encontrado en BLOCK");
         } else {
             pthread_mutex_lock(&mutex_estado_ready);
             pcb = pcb_encontrado(cola_ready, pid_buscado);
             if (pcb && list_remove_element(cola_ready, pcb)) {
                 finalizar_por_invalidacion(pcb, "INTERRUPTED_BY_USER");
+                informar_a_memoria_liberacion_proceso(pid_buscado);
                 log_info(logger, "Proceso a Finalizar encontrado en READY");
                 pthread_mutex_unlock(&mutex_estado_ready);
             } else {
@@ -272,11 +279,12 @@ void* finalizar_proceso(void* pid) {
                 pcb = pcb_encontrado(cola_prima_VRR, pid_buscado);
                 if (pcb && list_remove_element(cola_prima_VRR, pcb)) {
                     finalizar_por_invalidacion(pcb, "INTERRUPTED_BY_USER");
+                    informar_a_memoria_liberacion_proceso(pid_buscado);
                     log_info(logger, "Proceso a Finalizar encontrado en READY_VRR");
                     pthread_mutex_unlock(&mutex_cola_priori_vrr);
                 } else {
                     pthread_mutex_unlock(&mutex_cola_priori_vrr);
-                    log_error(logger, "¡No existe el PID indicado! Ingrese nuevamente ...");
+                    log_error(logger, "¡No existe el PID: %i ! Ingrese nuevamente ...", pid_buscado);
                 }
             }
         }

@@ -15,6 +15,7 @@ sem_t hay_en_estado_new;
 sem_t desalojo_proceso;
 sem_t hay_proceso_exec;
 sem_t hay_proceso_en_bloq;
+sem_t sem_vrr;
 
 int pid = 0;
 int pid_buscado_temporal = 0;
@@ -48,6 +49,7 @@ void inicializacion_semaforos() {
     sem_init(&desalojo_proceso, 0, 0);
     sem_init(&hay_proceso_exec, 0, 1);
     sem_init(&hay_proceso_en_bloq, 0, 0);
+    sem_init(&sem_vrr, 0, 0);
 }
 
 
@@ -153,12 +155,24 @@ void mover_procesos_de_bloqueado_a_ready(t_pcb* proceso) {
     
     if (pcb_a_ready) {
         if (strcmp(config_kernel->ALGORITMO_PLANIFICACION, "VRR") == 0) {
-            pthread_mutex_lock(&mutex_cola_priori_vrr);
-            pcb_a_ready->estado = READY;
-            log_info(logger, "PID: %i - Estado Anterior: BLOCK - Estado Actual: READY", pcb_a_ready->pid);
-            log_facu(logger, "Quantum Moviendo a Ready: %i", pcb_a_ready->quantum);
-            list_add(cola_prima_VRR, pcb_a_ready);
-            pthread_mutex_unlock(&mutex_cola_priori_vrr);
+
+            if(pcb_a_ready->quantum <= 0) {
+                pthread_mutex_lock(&mutex_estado_ready);
+                pcb_a_ready->estado = READY;
+                log_info(logger, "PID: %i - Estado Anterior: BLOCK - Estado Actual: READY", pcb_a_ready->pid);
+                log_facu(logger, "Quantum Restante: %i", pcb_a_ready->quantum);
+                list_add(cola_ready, pcb_a_ready);
+                pthread_mutex_unlock(&mutex_estado_ready);
+            }
+            else {
+                pthread_mutex_lock(&mutex_cola_priori_vrr);
+                pcb_a_ready->estado = READY;
+                log_info(logger, "PID: %i - Estado Anterior: BLOCK - Estado Actual: READY", pcb_a_ready->pid);
+                log_facu(logger, "Quantum Restante: %i", pcb_a_ready->quantum);
+                list_add(cola_prima_VRR, pcb_a_ready);
+                pthread_mutex_unlock(&mutex_cola_priori_vrr);
+            }
+
         } else {
             pthread_mutex_lock(&mutex_estado_ready);
             pcb_a_ready->estado = READY;
@@ -322,26 +336,35 @@ void* planificacion_cortoplazo_VRR() {
 
         if (!list_is_empty(cola_prima_VRR)) {
             pthread_mutex_lock(&mutex_cola_priori_vrr);
-            proceso_en_exec = list_remove(cola_prima_VRR, 0); 
+            if (!list_is_empty(cola_prima_VRR)) {
+                proceso_en_exec = list_remove(cola_prima_VRR, 0);
+            }
             pthread_mutex_unlock(&mutex_cola_priori_vrr);
-            log_facu(logger, "¡Se encontró un proceso en Cola Prima!");
-            pthread_mutex_unlock(&mutex_proceso_exec);
+            
+            if (proceso_en_exec) {
+                log_facu(logger, "¡Se encontró un proceso en Cola Prima!");
+            } else {
+                log_error(logger, "Error al obtener un proceso de la Cola Prima");
+            }
             
         } else if (!list_is_empty(cola_ready)) {
-            pthread_mutex_lock(&mutex_estado_ready); 
-            proceso_en_exec = list_remove(cola_ready, 0);
+            pthread_mutex_lock(&mutex_estado_ready);
+            if (!list_is_empty(cola_ready)) {
+                proceso_en_exec = list_remove(cola_ready, 0);
+            }
             pthread_mutex_unlock(&mutex_estado_ready);
-            log_facu(logger, "¡Se encontró un proceso en Cola Normal!");
-            pthread_mutex_unlock(&mutex_proceso_exec);
+            
+            if (proceso_en_exec) {
+                log_facu(logger, "¡Se encontró un proceso en Cola Normal!");
+            } else {
+                log_error(logger, "Error al obtener un proceso de la Cola Normal");
+            }
 
         } else {
-            log_error(logger, "No hay ningun proceso en la cola READY o PRIMA");
-            pthread_mutex_unlock(&mutex_proceso_exec);
+            log_error(logger, "No hay ningún proceso en la cola READY o PRIMA");
         }
-        
-        if (!proceso_en_exec) {
-            log_error(logger, "Error al obtener un proceso de las colas");
-        }   
+
+        pthread_mutex_unlock(&mutex_proceso_exec);   
     
         pthread_mutex_lock(&mutex_proceso_exec);
         proceso_en_exec->estado = EXEC;
@@ -353,7 +376,7 @@ void* planificacion_cortoplazo_VRR() {
             proceso_en_exec->quantum = config_kernel->QUANTUM;
         }
         pthread_mutex_unlock(&mutex_proceso_exec);
-
+        
         enviar_proceso_a_cpu(proceso_en_exec);
 
         t_temporal* tiempo_de_ejecucion = temporal_create();
@@ -372,7 +395,10 @@ void* planificacion_cortoplazo_VRR() {
         temporal_destroy(tiempo_de_ejecucion);
 
         quantum_restante = proceso_en_exec->quantum - tiempo_ejecutado;
-        log_facu(logger, "Quantum Restante: %i", quantum_restante);
+        //log_facu(logger, "Quantum Restante: %i", quantum_restante);
+        if(esta_block == 1)
+            sem_post(&sem_vrr);
+        
     }
     
 }
@@ -466,6 +492,7 @@ void destruir_semaforos() {
     sem_destroy(&desalojo_proceso);
     sem_destroy(&hay_proceso_en_bloq);
     sem_destroy(&hay_proceso_exec);
+    sem_destroy(&sem_vrr);
 }
 
 
@@ -480,4 +507,3 @@ void mostrar_lista_de_pids(t_list* lista) {
 void mostrar_pid (t_pcb* pcb) {
     log_info(logger2, "Cola Ready: %i", pcb->pid);
 }
-

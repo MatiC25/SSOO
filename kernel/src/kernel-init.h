@@ -33,6 +33,6 @@ void iniciar_planificacion();
 void manejar_peticion_con_memoria();
 void manejar_peticion_con_cpu();
 void inicializar_lista();
-
+void finalizar_programa();
 
 #endif //KERNEL_INIT_H
