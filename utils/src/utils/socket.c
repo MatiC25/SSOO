@@ -70,7 +70,7 @@ int crear_conexion(const char* server_name, char* ip, char* puerto) {
     // Crea un socket con la informacion recibida (del primero, suficiente)
     int socket_cliente = socket(servinfo->ai_family, servinfo->ai_socktype, servinfo->ai_protocol);
 
-    printf("Socket cliente: %d\n", socket_cliente);
+   // printf("Socket cliente: %d\n", socket_cliente);
 
     // Fallo en crear el socket
     if(socket_cliente == -1) {
@@ -97,7 +97,7 @@ int esperar_cliente(const char* name, int socket_servidor) {
 
     int socket_cliente = accept(socket_servidor, (void*) &dir_cliente, &tam_direccion);
 
-    log_info(logger, "Cliente conectado (a %s)\n", name);
+    //log_info(logger, "Cliente conectado (a %s)\n", name);
 
     return socket_cliente;
 }

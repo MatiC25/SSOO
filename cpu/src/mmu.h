@@ -14,6 +14,7 @@
 #include <utils/instrucciones.h>
 #include "cpu.h"
 #include "cpu-estructuras.h"
+#include "cpu-ciclo-instrucciones.h"
 
 t_mmu_cpu* traducirDireccion(int direccionLogica , int tamanio);
 t_tabla_de_paginas_cpu* buscarEnTLB(int num_pagina);

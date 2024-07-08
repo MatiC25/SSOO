@@ -16,7 +16,7 @@
 #include "cpu.h"
 #include "cpu-estructuras.h"
 
-
+char* filtrar_nueva_linea(char* cadena);
 int recv_pagina(int socket);
 t_pcb_cpu* rcv_contexto_ejecucion_cpu(int socket_cliente);
 void enviar_pcb_a_kernel(t_paquete* paquete_a_kernel);
@@ -36,6 +36,7 @@ int comunicaciones_con_memoria_escritura(t_mmu_cpu* mmu, int valor);
 int comunicaciones_con_memoria_lectura(t_mmu_cpu* mmu);
 void solicitar_a_kernel_std(char* interfaz , t_mmu_cpu* mmu ,t_paquete* solicitar_std);
 void* recv_leer_memoria(int tamanio);
-
+char* comunicaciones_con_memoria_lectura_copy_string(t_mmu_cpu* mmu);
+int comunicaciones_con_memoria_escritura_copy_string(t_mmu_cpu* mmu, char* valor);
 
 #endif

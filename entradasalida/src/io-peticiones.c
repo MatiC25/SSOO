@@ -7,6 +7,8 @@ void interfaz_recibir_peticiones(t_interfaz * interfaz) {
         ejecutar_operacion_stdin(interfaz);
     else if(interfaz->tipo == STDOUT)
         ejecutar_operacion_stdout(interfaz);
+    else if(interfaz->tipo == DIALFS)
+        ejecutar_operaciones_dialFS(interfaz);
     else
         log_error(logger, "Tipo de interfaz no soportado");
 }
@@ -53,7 +55,12 @@ void ejecutar_operacion_stdin(t_interfaz *interfaz) {
         // Logeamos la operación:
         log_info(logger, "PID: %d - Operacion: %s", *pid_proceso, operacion);
 
-        // Obtenemos el input:
+    
+        int bytes_a_escribir = get_total_de_bytes(direcciones);
+
+        log_info(logger, "Bytes a escribir: %i", bytes_a_escribir);
+
+        // Leemos el input:
         input = readline("Ingrese un valor: ");
 
         if(input == NULL) {
@@ -61,9 +68,7 @@ void ejecutar_operacion_stdin(t_interfaz *interfaz) {
             exit(EXIT_FAILURE);
         }
 
-        int bytes_a_escribir = get_total_de_bytes(direcciones);
-
-        while(strlen(input) > bytes_a_escribir) {
+        while(strlen(input) > bytes_a_escribir || strlen(input) < bytes_a_escribir) {
             log_error(logger, "El input ingresado es mayor al tamaño de bytes a leer");
             input = readline("Ingrese un valor: ");
         }
@@ -71,7 +76,7 @@ void ejecutar_operacion_stdin(t_interfaz *interfaz) {
         int bytes_leidos = strlen(input);
 
         // Enviamos los bytes a escribir a memoria:
-        send_bytes_a_leer(interfaz, pid_proceso, direcciones, input, bytes_leidos);
+        send_bytes_a_leer(interfaz, *pid_proceso, direcciones, input, bytes_leidos);
         send_respuesta_a_kernel(1, interfaz);
 
         free(input);
@@ -79,7 +84,6 @@ void ejecutar_operacion_stdin(t_interfaz *interfaz) {
 }
 
 void ejecutar_operacion_stdout(t_interfaz *interfaz) {
-    
     while(1) {
         // Obtenemos los argumentos:
         t_list *argumentos = recibir_argumentos(interfaz, get_socket_kernel(interfaz));
@@ -90,8 +94,11 @@ void ejecutar_operacion_stdout(t_interfaz *interfaz) {
         t_list *direcciones = list_get(argumentos, 2);
         char *operacion = get_nombre_operacion(*tipo_operacion);
         
+        // Logeamos la operación:
+        log_info(logger, "PID: %d - Operacion: %s", *pid_proceso, operacion);
+
         // Solicitamos los bytes a memoria:
-        char *contenido_a_mostrar = rcv_contenido_a_mostrar(interfaz, direcciones);
+        char *contenido_a_mostrar = rcv_contenido_a_mostrar(interfaz, direcciones, *pid_proceso);
 
         // Mostramos el contenido:
         log_info(logger, "PID: %i - Contenido leido: %s", *pid_proceso, contenido_a_mostrar);
@@ -109,46 +116,47 @@ void ejecutar_operaciones_dialFS(t_interfaz *interfaz) {
     int tiempo_respuesta_retardo = get_tiempo_unidad(interfaz);
     int socket_kernel = get_socket_kernel(interfaz);
 
-    // Inicializamos archivos abiertos:
-    t_list *archivos_abiertos = traer_archivos_abiertos(interfaz);
+    // Inicializamos las estructuras necesarias:
+    t_list *archivos_ya_abiertos = obtener_archivos_ya_abiertos(interfaz);
+    int size = list_size(archivos_ya_abiertos);
 
-    // Inicializamos modo de apertura:
-    char *modo_de_apertura = get_modo_de_apertura(archivos_abiertos);
+    // Obtenemos el modo de apertura:
+    char *modo_de_apertura = get_modo_de_apertura(size);
 
-    // Inicializamos bloques:
-    FILE *bloques = iniciar_archivo_bloques(interfaz, modo_de_apertura);
-
-    // Inicializamos bitmap:
-    t_bitarray *bitmap = iniciar_bitmap(interfaz, modo_de_apertura);
-
-    // Traemos archivos persistidos:
-
-    if (!archivos_abiertos) // Si no hay archivos abiertos, inicializamos el bitmap
-        inicializar_bloques_vacios(bitmap, interfaz); // Inicializamos los bloques vacios
+    // Abrimos los archivos necesarios:
+    FILE *archivo_bloque = abrir_archivo_bloques(interfaz, modo_de_apertura);
+    t_bitarray *bitmap = crear_bitmap(interfaz, modo_de_apertura);
 
     while(1) {
         tipo_operacion operacion = recibir_operacion(socket_kernel);
         t_list *argumentos = recibir_argumentos_para_dial(interfaz, operacion);
 
+        // Obtenemos los pid y el tipo de operacion:
+        int *pid_proceso = list_get(argumentos, 0);
+        char *operacion_string = get_nombre_operacion(operacion);
+
+        // Logeamos la operación:
+        log_info(logger, "PID: %d - Operacion: %s", *pid_proceso, operacion_string);
+
         switch(operacion) {
             case IO_FS_CREATE_INT:
-                operacion_create_file(interfaz, bitmap, argumentos, archivos_abiertos);
+                operacion_create_file(interfaz, bitmap, argumentos, archivos_ya_abiertos);
                 send_respuesta_a_kernel(1, interfaz);
                 break;
             case IO_FS_READ_INT:
-                operacion_read_file(interfaz, bloques, argumentos, archivos_abiertos);
+                operacion_read_file(interfaz, archivo_bloque, argumentos, archivos_ya_abiertos);
                 send_respuesta_a_kernel(1, interfaz);
                 break;
             case IO_FS_DELETE_INT:
-                operacion_delete_file(interfaz, bitmap, argumentos, archivos_abiertos);
+                operacion_delete_file(interfaz, bitmap, argumentos, archivos_ya_abiertos);
                 send_respuesta_a_kernel(1, interfaz);
                 break;
             case IO_FS_WRITE_INT:
-                operacion_write_file(interfaz, bloques, argumentos, archivos_abiertos);
+                operacion_write_file(interfaz, archivo_bloque, argumentos, archivos_ya_abiertos);
                 send_respuesta_a_kernel(1, interfaz);
                 break;
             case IO_FS_TRUNCATE_INT:
-                operacion_truncate_file(interfaz, bloques, bitmap, argumentos, archivos_abiertos);
+                operacion_truncate_file(interfaz, archivo_bloque, bitmap, argumentos, archivos_ya_abiertos);
                 send_respuesta_a_kernel(1, interfaz);
                 break;
             default:
@@ -156,4 +164,3 @@ void ejecutar_operaciones_dialFS(t_interfaz *interfaz) {
         }
     }
 }
-

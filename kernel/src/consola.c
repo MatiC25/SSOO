@@ -188,10 +188,17 @@ void imprimir_proceso_exec() {
 
 void* multiprogramacion(void* args) {
     char *multiprogramacion = (char*) args;
-    int valor_multiprogramacion = atoi(multiprogramacion);
-
-    for (int i = 0; i < valor_multiprogramacion; i++)
-        sem_post(&sem_multiprogramacion);
+    int nuevo_grado_multiprogramacion = atoi(multiprogramacion);
+    int diferencia = nuevo_grado_multiprogramacion - config_kernel->GRADO_MULTIP;
+    if(diferencia < 0) {// O sea, se baja el grado de multi 
+        for(int i = 0; i < diferencia + 1; i++) 
+            sem_wait(&sem_multiprogramacion);
+    }
+    else {
+        for(int i = 0; i < diferencia + 1; i++)
+            sem_post(&sem_multiprogramacion);
+    }
+    config_kernel->GRADO_MULTIP = nuevo_grado_multiprogramacion;
     return NULL;
 }
 
@@ -228,7 +235,7 @@ void* ejecutar_script(void* args) {
         comando[strcspn(comando, CENTINELA)] = '\0';
         ejecutar_comando(comando);
     }
-
+    
     fclose(archivo_script);
     free(path_nuevo);
     return NULL;
@@ -246,18 +253,15 @@ void* finalizar_proceso(void* pid) {
     } else {
         pthread_mutex_unlock(&mutex_estado_exec);
 
-        pthread_mutex_lock(&mutex_estado_block);
         t_pcb* pcb = pcb_encontrado(cola_block, pid_buscado);
-        if (pcb != NULL) {
+        if (pcb && list_remove_element(cola_block, pcb)) {
+            eliminar_proceso_de_cola_recursos(pcb->pid);
             finalizar_por_invalidacion(pcb, "INTERRUPTED_BY_USER");
             log_info(logger, "Proceso a Finalizar encontrado en BLOCK");
-            pthread_mutex_unlock(&mutex_estado_block);
         } else {
-            pthread_mutex_unlock(&mutex_estado_block);
-
             pthread_mutex_lock(&mutex_estado_ready);
             pcb = pcb_encontrado(cola_ready, pid_buscado);
-            if (pcb != NULL) {
+            if (pcb && list_remove_element(cola_ready, pcb)) {
                 finalizar_por_invalidacion(pcb, "INTERRUPTED_BY_USER");
                 log_info(logger, "Proceso a Finalizar encontrado en READY");
                 pthread_mutex_unlock(&mutex_estado_ready);
@@ -266,7 +270,7 @@ void* finalizar_proceso(void* pid) {
 
                 pthread_mutex_lock(&mutex_cola_priori_vrr);
                 pcb = pcb_encontrado(cola_prima_VRR, pid_buscado);
-                if (pcb != NULL) {
+                if (pcb && list_remove_element(cola_prima_VRR, pcb)) {
                     finalizar_por_invalidacion(pcb, "INTERRUPTED_BY_USER");
                     log_info(logger, "Proceso a Finalizar encontrado en READY_VRR");
                     pthread_mutex_unlock(&mutex_cola_priori_vrr);
@@ -281,17 +285,20 @@ void* finalizar_proceso(void* pid) {
 }
 
 
-t_pcb* pcb_encontrado(t_list* cola_a_buscar_pid, int pid_buscado) {
-
-    pid_buscado_global = pid_buscado;
-    t_pcb* resultado = list_find(cola_a_buscar_pid, es_el_proceso_buscado);
-    return resultado;
+void eliminar_proceso_de_cola_recursos(int pid_buscado) {
+    for (int i = 0; i < tam_cola_resource; i++) {
+        t_pcb* pcb = pcb_encontrado(colas_resource_block[i], pid_buscado);
+        if (pcb && list_remove_element(colas_resource_block[i], pcb)) {
+            break;
+        }
+    }
 }
 
 
-bool existe_proceso_con_pid_ingresado(t_list* cola_a_buscar_pid, int pid_buscado) {
+t_pcb* pcb_encontrado(t_list* cola_a_buscar_pid, int pid_buscado) {
     pid_buscado_global = pid_buscado;
-    return list_any_satisfy(cola_a_buscar_pid, es_el_proceso_buscado);
+    t_pcb* resultado = list_find(cola_a_buscar_pid, es_el_proceso_buscado);
+    return resultado;
 }
 
 

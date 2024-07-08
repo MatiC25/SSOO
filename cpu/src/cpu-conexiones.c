@@ -3,26 +3,22 @@
 atomic_int interrupt_flag = ATOMIC_VAR_INIT(0);
 
 // GENERAMOS CONEXIONES DE CLIENTE A SERVER MEMORIA
-void* generar_conexion_a_memoria(void* arg) {
-    char* puerto_memoria = config_cpu->PUERTO_MEMORIA;
+void* generar_conexion_a_memoria() {
+char* puerto_memoria = config_cpu->PUERTO_MEMORIA;
     char* ip_memoria = config_cpu->IP_MEMORIA;
 
-
-    
-    if (!ip_memoria){
+    if (!ip_memoria) {
         log_error(logger, "IP_MEMORIA es NULL");
         return NULL;
     }
 
     int md_memoria = crear_conexion("MEMORIA", ip_memoria, puerto_memoria);
-    //log_warning(logger,"md_memoria: %i",md_memoria);
     if (md_memoria == -1) {
         log_error(logger, "Error al conectar con MEMORIA");
         return NULL;
     }
 
     config_cpu->SOCKET_MEMORIA = md_memoria;
-    
     generar_handshake(md_memoria, "MEMORIA", ip_memoria, puerto_memoria);
     generar_handshake_para_pagina(md_memoria, "MEMORIA", ip_memoria, puerto_memoria);
 
@@ -32,30 +28,23 @@ void* generar_conexion_a_memoria(void* arg) {
 
 
 void generar_handshake_para_pagina(int socket, char *server_name, char *ip, char *puerto) {
-    int32_t handshake = 1;
+       int32_t handshake = 1;
     int32_t result;
     op_code cod_op = HANDSHAKE_PAGINA;
 
     send(socket, &cod_op, sizeof(op_code), 0);
-
     send(socket, &handshake, sizeof(int32_t), 0);
-
     recv(socket, &result, sizeof(int32_t), MSG_WAITALL);
 
-    if (!result) { 
-        // Handshake exitoso
+    if (!result) {
         int tam_pagina;
         log_info(logger, "Handshake exitoso con página %s", server_name);
-        
         tam_pagina = recv_pagina(socket);
-       // log_info(logger, "Código de operación recibido: %i", cod_op);
-
         config_cpu->TAMANIO_PAGINA = tam_pagina;
         log_info(logger, "Tamaño de página recibido desde memoria: %i", tam_pagina);
     } else {
-        // Error en el handshake
         log_error(logger, "Error en el handshake con PAGINA %s", server_name);
-        exit(-1); 
+        exit(-1);
     }
 }
 
@@ -67,7 +56,6 @@ int generar_servidor_cpu_dispatch() {
     }
 
     int md_cpu_ds = iniciar_servidor("DISPATCH", NULL, puerto_dispatch);
-    free(puerto_dispatch);
 
     if (md_cpu_ds == -1) {
         log_error(logger, "Error al iniciar el servidor DISPATCH");
@@ -94,7 +82,6 @@ int generar_servidor_cpu_interrupt() {
     }
 
     int md_cpu_it = iniciar_servidor("INTERRUPT", NULL, puerto_interrupt);
-    free(puerto_interrupt);
 
     if (md_cpu_it == -1) {
         log_error(logger, "Error al iniciar el servidor INTERRUPT");
@@ -154,6 +141,7 @@ void* server_interrupt(void* args) {
                 case -1:
                     log_warning(logger, "Se desconectó el cliente Kernel (IT)");
                     close(socket_cliente);
+                    free(args);
                     return NULL;
                 default:
                     log_error(logger, "Operación desconocida");

@@ -14,6 +14,7 @@
 #include "kernel-peticiones-dispatch.h"
 #include "kernel-estructuras.h"
 
+
 #define CENTINELA "\n"
 #define MAX_COMMAND_LETTERS 100
 

@@ -123,7 +123,6 @@ void enviar_instruccion_a_cpu(int socket_cpu) {
 
     if(lista_de_instrucciones == NULL){
         log_error(logger, "No se encontró la lista de instrucciones para el PID %i", pid);
-        
     }
 
     t_paquete *paquete = crear_paquete(INSTRUCCION);
@@ -131,7 +130,6 @@ void enviar_instruccion_a_cpu(int socket_cpu) {
 
     for(int i = 0; i < list_size(parametros); i++){
         char *parametro = list_get(parametros, i);
-        //log_info(logger, "Enviando parametro: %s", parametro);
         agregar_a_paquete_string(paquete, parametro, strlen(parametro) + 1);
     }
 

@@ -21,7 +21,6 @@ typedef struct {
 
 typedef struct { 
     int pid;
-    int program_counter; 
     t_registro_cpu* registros;
 }t_pcb_cpu;
 
@@ -34,7 +33,7 @@ typedef struct {
 
 typedef struct {
     t_list* num_pagina; 
-    int ofset;
+    t_list* ofset;
     t_list* direccionFIsica;
     t_list* tamanio;
 }t_mmu_cpu;

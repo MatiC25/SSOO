@@ -1,67 +1,57 @@
 #include "instrucciones.h"
 
-void send_instruccion(int socket_cliente, char *instruccion, t_list *parametros) {
-    t_tipo_instruccion tipo_instruccion = obtener_tipo_instruccion(instruccion);
-    t_paquete *paquete = crear_paquete(tipo_instruccion);
-
-    agregar_a_paquete_lista_string(paquete, parametros);
-    eliminar_paquete(paquete);
-}
 
 
-t_instruccion* recv_instruccion(int socket_cliente){
+t_instruccion* recv_instruccion(int socket_cliente) {
     op_code operacion = recibir_operacion(socket_cliente);
     t_list *parametros = list_create();
 
     int size;
     int desplazamiento = 0;
-    
     void* buffer = recibir_buffer(&size, socket_cliente);
-    
+
     if(buffer == NULL) {
         log_error(logger, "Error al recibir el buffer del socket");
-        free(buffer);
+        return NULL;
     }
-    
-    int tamanio;
-    char *parametro;
 
-   while (desplazamiento < size) {
+    while (desplazamiento < size) {
         int tamanio;
-        // Copiar el tamaño del siguiente parámetro desde el buffer
         memcpy(&tamanio, buffer + desplazamiento, sizeof(int));
         desplazamiento += sizeof(int);
 
-        // Asignar memoria para el parámetro, incluyendo el carácter nulo
         char* parametro = malloc(tamanio + 1);
         if (parametro == NULL) {
-            perror("Error al asignar memoria");
+            log_error(logger,"Error al asignar memoria");
             exit(EXIT_FAILURE);
         }
 
-        // Copiar el parámetro desde el buffer
-        memcpy(parametro, buffer + desplazamiento, tamanio);
+        memcpy(parametro, buffer + desplazamiento, tamanio + 1);
         desplazamiento += tamanio + 1;
 
-        // Asegurarse de que la cadena esté terminada en nulo
         parametro[tamanio] = '\0';
 
-        // Loguear el parámetro y su tamaño
-        //log_info(logger, "Parametro: %s", parametro);
-        //log_info(logger, "Tamanio: %i", tamanio);
-
-        // Agregar el parámetro a la lista
         list_add(parametros, parametro);
     }
 
     free(buffer);
 
     t_instruccion *instruccion = crear_instrucciones(parametros);
+    list_destroy(parametros);
+
     return instruccion;
 }
 
 t_instruccion *crear_instrucciones(t_list *parametros) {
     t_instruccion *instruccion = malloc(sizeof(t_instruccion));
+    
+    instruccion->opcode = NULL;
+    instruccion->parametro1 = NULL;
+    instruccion->parametro2 = NULL;
+    instruccion->parametro3 = NULL;
+    instruccion->parametro4 = NULL;
+    instruccion->parametro5 = NULL;
+
 
     for(int i = 0; i < list_size(parametros); i++) {
         char *parametro = list_get(parametros, i);
@@ -94,7 +84,11 @@ void solicitar_instruccion(int socket_server, int PID, int program_counter) {
 }
 
 t_tipo_instruccion obtener_tipo_instruccion(char* instruccion) {
-    //log_warning(logger, "Operacion: %s|", instruccion);
+    if (instruccion == NULL){
+        log_error(logger, "Instruccion llego incorrectamente");
+        return -1;
+    }
+    
 
     if(strcmp(instruccion, "SET") == 0) {
         return SET;
@@ -128,10 +122,8 @@ t_tipo_instruccion obtener_tipo_instruccion(char* instruccion) {
         return IO_FS_DELETE;
     }else if(strcmp(instruccion, "IO_FS_TRUNCATE") == 0) {
         return IO_FS_TRUNCATE;
-    }else if(strcmp(instruccion, "IO_FS_TRUNCATE") == 0) {
-        return IO_FS_TRUNCATE;
-    }else if(strcmp(instruccion, "IO_FD_WRITE") == 0) {
-        return IO_FD_WRITE;
+    }else if(strcmp(instruccion, "IO_FS_WRITE") == 0) {
+        return IO_FS_WRITE;
     }else if(strcmp(instruccion, "IO_GEN_SLEEP") == 0) {
         return IO_GEN_SLEEP;
     }else if(strcmp(instruccion, "IO_FS_READ") == 0) {
@@ -140,7 +132,7 @@ t_tipo_instruccion obtener_tipo_instruccion(char* instruccion) {
         return EXIT;
     }else{
         log_error(logger, "Error en buscar la instruccion");
-        return 0;
+        return -1;
     }
 }
 

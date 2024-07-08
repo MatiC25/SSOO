@@ -28,7 +28,7 @@ void send_bytes_a_leer(t_interfaz *interfaz, int pid, t_list *direcciones, void 
 void send_bytes_a_grabar(t_interfaz * interfaz, int direccion_fisica, char *bytes, int bytes_a_leer);
 
 // Funciones para recibir mensajes de la memoria
-char *rcv_contenido_a_mostrar(t_interfaz *interfaz, t_list *direcciones_fisicas) ;
+char *rcv_contenido_a_mostrar(t_interfaz *interfaz, t_list *direcciones_fisicas, int pid_proceso);
 
 // Funciones auxiliares:
 char *parsear_string(void *buffer, int *desplazamiento);

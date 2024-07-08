@@ -170,7 +170,7 @@ void resize_proceso(int socket_cliente) {
     } // CHEQUEAR ESTO
 
     // Calcular el número de páginas necesarias
-    int num_paginas = ceil((double)tamanio_bytes / 32); // La funcion ceil redondea hacia arriba
+    int num_paginas = ceil((double)tamanio_bytes / config_memoria->tam_pagina); // La funcion ceil redondea hacia arriba
     int paginas_actuales = list_size(tabla_de_paginas); // Calculamos la cantidad de paginas que tiene la tabla
     log_mati(logger2, "El numero de pagians a ampliar es : %i", num_paginas);               
     if (num_paginas > paginas_actuales) { // Si la cantidad de paginas de la tabla actual son menos al calculo del resize -> se amplia 
@@ -245,7 +245,7 @@ void obtener_marco(int socket_cliente){
 
     if(list_size(tabla_de_paginas) > pagina){
         t_tabla_de_paginas* entrada = list_get(tabla_de_paginas, pagina);  //Obtenemos la pagina requerida
-        log_mati(logger2, "La entrada (pagina) que recibo para obtener el marco es: %i", entrada->nro_pagina);
+        log_mati(logger2, "La pagina que recibo para obtener el marco es: %i", entrada->nro_pagina);
         if(entrada->bit_validez == 1){// si la pagina existe, se la enviamos a cpu
     
             t_paquete* marco_paquete = crear_paquete(ACCEDER_TABLA_PAGINAS);                                                        
@@ -283,6 +283,12 @@ void liberar_marco(int marco) {
     bitarray_clean_bit(bitmap, marco); // Marca el bit como libre (pone 0)
 }
 
+void inicializar_bitmap(){
+    for(int i; i < bitarray_get_max_bit(bitmap); i++){
+        bitarray_clean_bit(bitmap, i);
+    }
+}
+
 //Acceso a espacio de usuario: "PID:" <PID> "- Accion:" <LEER / ESCRIBIR> "- Direccion fisica:" <DIRECCION_FISICA> "- Tamanio" <TAMANIO A LEER / ESCRIBIR>
 void acceso_lectura(int socket_cliente){
     int size;
@@ -292,17 +298,18 @@ void acceso_lectura(int socket_cliente){
     int pid;
     int direc_fisica;
     int tamanio_lectura;
-    log_warning(logger, "_______________________acceso_lectura_______________________");
+    
+    //log_warning(logger, "acceso_lectura");
+    
     memcpy(&pid, buffer + desplazamiento, sizeof(int));
     desplazamiento += sizeof(int);
-    log_warning(logger, "Pid : %i", pid);
+    log_warning(logger, "Pid : %d", pid);
     memcpy(&direc_fisica, buffer + desplazamiento, sizeof(int));
     desplazamiento += sizeof(int);
     log_warning(logger, "Direc_fisica : %i", direc_fisica);
     memcpy(&tamanio_lectura, buffer + desplazamiento, sizeof(int));
     desplazamiento += sizeof(int);
     log_warning(logger, "Tamanio a leer : %i", tamanio_lectura);
-
     // Asignar memoria para el contenido a leer
     void* contenido_leer = malloc(tamanio_lectura);
 
@@ -330,12 +337,14 @@ void acceso_lectura(int socket_cliente){
     // Realizar la lectura del espacio de usuario
     mem_hexdump(espacio_de_usuario + direc_fisica, tamanio_lectura);
     memcpy(contenido_leer, espacio_de_usuario + direc_fisica, tamanio_lectura);
-    log_info(logger, "Acceso a espacio de usuario: PID: %d - Accion: LEER - Direccion fisica: %d  - Tamaño: %d", pid, direc_fisica, tamanio_lectura);
-    mem_hexdump(espacio_de_usuario + direc_fisica, tamanio_lectura);
+    log_info(logger, "Acceso a espacio de usuario: PID: %d - Accion: LEER - Direccion fisica: %d - Tamaño: %d", pid, direc_fisica, tamanio_lectura);
+    //mem_hexdump(espacio_de_usuario + direc_fisica, tamanio_lectura);
+
 
     t_paquete* paquete = crear_paquete(EXITO);
     agregar_a_paquete(paquete, contenido_leer, tamanio_lectura);
     enviar_paquete(paquete, socket_cliente);
+
 
     eliminar_paquete(paquete);
     free(contenido_leer);
@@ -384,7 +393,7 @@ void acceso_escritura(int socket_cliente){
 
     memcpy(espacio_de_usuario + direc_fisica, contenido_a_escribir, tamanio_escritura);
     mem_hexdump(espacio_de_usuario + direc_fisica, tamanio_escritura);
-    log_info(logger, "Acceso a espacio de usuario: PID: %d - Accion: ESCRIBIR - Direccion fisica: %d  - Tamaño: %d", pid, direc_fisica, tamanio_escritura);
+    log_info(logger, "Acceso a espacio de usuario: PID: %d - Accion: ESCRIBIR - Direccion fisica: %d - Tamaño: %d", pid, direc_fisica, tamanio_escritura);
     
     t_paquete* paquete = crear_paquete(EXITO);
     agregar_a_paquete(paquete, &verificacion,sizeof(int));

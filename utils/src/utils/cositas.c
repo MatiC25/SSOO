@@ -15,7 +15,7 @@ static char *log_colors2[LOG_ENUM2_SIZE] = {
     "\x1B[38;2;222;98;255m", 
     "\x1B[38;2;200;25;73m",     
     "\x1B[38;2;44;145;222m", 
-    "\x1B[38;2;44;222;142m"
+    "\x1B[38;2;3;252;115m"
 };
 static char *reset_color2 = "\x1b[0m";
 
@@ -89,13 +89,24 @@ static void _log_write_in_level2(t_log2* logger, t_log_level2 level, const char*
         thread_id = pthread_self();
 
         // Format log entry
-        asprintf(&buffer, "[%s] %s %s/(%d:%d): %s\n",
+        // asprintf(&buffer, "[%s] %s %s/(%d:%d): %s\n",
+        //     enum_names2[level],
+        //     time_str,
+        //     logger2->program_name,
+        //     logger2->pid,
+        //     thread_id,
+        //     message);       
+
+        // // Write to file if it's open
+        // if (logger2->file != NULL) {
+        //     fputs(buffer, logger->file);
+        // }
+
+        asprintf(&buffer, "[%s] %s %s: %s\n",
             enum_names2[level],
             time_str,
             logger2->program_name,
-            logger2->pid,
-            thread_id,
-            message);
+            message);       
 
         // Write to file if it's open
         if (logger2->file != NULL) {
