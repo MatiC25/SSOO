@@ -160,7 +160,7 @@ int calcular_bloque_final(t_interfaz *interfaz, int bloque_inicial, int tamanio_
 int calcular_cantidad_bloques_asignados(t_interfaz *interfaz, int tamanio_archivo) {
     int cantidad_bloques = get_bloques_necesarios(interfaz, tamanio_archivo);
 
-    if(cantidad_bloques == 0 || cantidad_bloques == 1)
+    if(cantidad_bloques == 0)
         return 1;
     
     return cantidad_bloques;

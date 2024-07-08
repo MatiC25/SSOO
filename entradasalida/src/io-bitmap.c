@@ -105,6 +105,6 @@ void liberar_bloques_asignados(t_bitarray *bitmap, int bloque_inicial, int bloqu
 void set_bloques_como_ocupados_desde(t_bitarray *bitmap, int bloque_inicial, int bloques_necesarios) {
     int limite_de_bloques = bloque_inicial + bloques_necesarios - 1;
 
-    for(int i = bloque_inicial; i < limite_de_bloques; i++)
+    for(int i = bloque_inicial; i <= limite_de_bloques; i++)
         set_bloque_ocupado(bitmap, i);
 }
