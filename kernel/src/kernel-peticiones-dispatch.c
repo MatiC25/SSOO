@@ -207,7 +207,7 @@ void peticion_wait() {
         pthread_mutex_unlock(&mutex_proceso_exec);
 
         sem_post(&desalojo_proceso);
-        esta_block == 1;
+        esta_block = 1;
         pthread_mutex_lock(&mutex_proceso_exec);
         if(strcmp(config_kernel->ALGORITMO_PLANIFICACION, "VRR") == 0) {
             sem_wait(&sem_vrr);
@@ -223,7 +223,6 @@ void peticion_wait() {
         return;
     }
 
-    esta_block == 0;
     free(recurso);
 }
 
@@ -375,7 +374,7 @@ void peticion_IO() {
     pthread_mutex_unlock(&mutex_proceso_exec);
 
     sem_post(&desalojo_proceso);
-
+    esta_block = 1;
     if (!proceso_en_exec) {
         log_error(logger, "Error al recibir el contexto de ejecución para IO");
         return;
@@ -388,16 +387,17 @@ void peticion_IO() {
     // Recibimos la interfaz y los argumentos:
     int pid = proceso_en_exec->pid;
     t_list *interfaz_y_argumentos = recv_interfaz_y_argumentos(config_kernel->SOCKET_DISPATCH, pid);
-
+    
     // Obtenemos los argumentos:
     tipo_operacion *operacion = list_get(interfaz_y_argumentos, 0);
     char *nombre_interfaz = list_get(interfaz_y_argumentos, 1); 
     t_list *args = list_get(interfaz_y_argumentos, 2);
     
     log_info(logger, "Operación: %i - Interfaz: %s", *operacion, nombre_interfaz);
-    
+
     // Obtenemos la interfaz:
     interface_io* interface = get_interface_from_dict(nombre_interfaz);
+    log_error(logger, "LLEGO?");
 
     // Verificamos si la interfaz existe y si acepta la operación:
     if (!interface) {
@@ -405,27 +405,32 @@ void peticion_IO() {
         free(nombre_interfaz);
         return;
     }
+    log_error(logger, "LLEGO?");
 
     if (!acepta_operacion_interfaz(interface, *operacion)) {
         finalizar_por_invalidacion(proceso_en_exec, "INVALID_INTERFACE");
         free(nombre_interfaz);
         return;
     }
+    log_error(logger, "LLEGO?");
 
     if(!interface->esta_conectado) {
         finalizar_por_invalidacion(proceso_en_exec, "DISCONNECTED_INTERFACE");
         free(nombre_interfaz);
         return;
     }
+    log_error(logger, "LLEGO?");
 
-    esta_block = 1;
     if(strcmp(config_kernel->ALGORITMO_PLANIFICACION, "VRR") == 0) {
         sem_wait(&sem_vrr);
+        log_error(logger, "ADSAD");
         pthread_mutex_lock(&mutex_proceso_exec);
         proceso_en_exec->quantum = quantum_restante;
         pthread_mutex_unlock(&mutex_proceso_exec);
     }
-    
+    log_error(logger, "LLEGO?");
+    log_info(logger, "Interfaz: %s - PID: %i", nombre_interfaz, proceso_en_exec->pid);
+
     pthread_mutex_lock(&mutex_proceso_exec);
     mover_a_cola_block_general(proceso_en_exec, "INTERFAZ");
     pthread_mutex_unlock(&mutex_proceso_exec);
@@ -435,9 +440,9 @@ void peticion_IO() {
     queue_push(interface->args_process, args);
     sem_post(&interface->size_blocked);
 
-    esta_block == 0;
     // Liberamos recursos:
     puede_ejecutar_otro_proceso();
+
 }
 
 

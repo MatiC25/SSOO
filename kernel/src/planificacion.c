@@ -396,8 +396,13 @@ void* planificacion_cortoplazo_VRR() {
 
         quantum_restante = proceso_en_exec->quantum - tiempo_ejecutado;
         //log_facu(logger, "Quantum Restante: %i", quantum_restante);
-        if(esta_block == 1)
+        log_facu(logger, "ESTABLOCK= %i", esta_block);
+        if(esta_block == 1) {
             sem_post(&sem_vrr);
+            log_facu(logger, "SI?=");
+            esta_block = 0;
+        }
+            
         
     }
     

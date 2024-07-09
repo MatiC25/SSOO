@@ -229,6 +229,7 @@ void rcv_interfaz(char **interface_name, tipo_interfaz *tipo, int socket) {
     desplazamiento += sizeof(tipo_interfaz);
 
     rcv_nombre_interfaz(interface_name, buffer, &desplazamiento, &tamanio);
+    free(buffer);
 }
 
 void rcv_nombre_interfaz_dispatch(char **interface_name, int socket) {
@@ -238,6 +239,7 @@ void rcv_nombre_interfaz_dispatch(char **interface_name, int socket) {
     void *buffer = recibir_buffer(&size, socket);
 
     rcv_nombre_interfaz(interface_name, buffer, &desplazamiento, &tamanio);
+    free(buffer);
 }
 
 t_list * recv_interfaz_y_argumentos(int socket, int pid_proceso) {
@@ -264,7 +266,9 @@ t_list * recv_interfaz_y_argumentos(int socket, int pid_proceso) {
     t_list *argumentos = obtener_argumentos(buffer, &desplazamiento, size, operacion_a_realizar, pid_proceso);
     list_add(interfaz_y_argumentos, argumentos);
 
-
+    free(operacion_a_realizar);
+    free(nombre_interfaz);
+    free(buffer);
     return interfaz_y_argumentos;
 }
 

@@ -205,7 +205,7 @@ void* multiprogramacion(void* args) {
 
 void* ejecutar_script(void* args) {
     char *script_path = (char*) args;
-    char *path_inicial = "/home/utnso/c-comenta-pruebas-main/";
+    char *path_inicial = "/home/utnso/c-comenta-pruebas";
 
     // Calcular el tamaño necesario para path_nuevo
     size_t len_path_nuevo = strlen(path_inicial) + strlen(script_path) + 1;

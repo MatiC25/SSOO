@@ -81,6 +81,7 @@ void consumers_pcbs_blockeds(void *args) {
             return;
         }
 
+        log_info(logger, "Proceso: %d - Enviando a interfaz: %s", pcb->pid, interface_name);
         send_message_to_interface(interface, args_pcb, &response, socket_with_interface);
 
         if(response == 1) {
@@ -126,11 +127,10 @@ void create_interface(int socket) {
         sem_post(&semaforo_interfaces);
 
         create_consumer_thread(interface_name);
-
     } else {
         interface_io *interface_old = get_interface_from_dict(interface_name);
 
-        if(!interface_io->esta_conectado) {
+        if(!interface_old->esta_conectado) {
             log_info(logger, "Interfaz conectada de nuevo: %s", interface_name);
 
             interface_old->esta_conectado = 1;    
