@@ -412,7 +412,7 @@ void peticion_IO() {
         return;
     }
 
-    if(interface->esta_conectado) {
+    if(!interface->esta_conectado) {
         finalizar_por_invalidacion(proceso_en_exec, "DISCONNECTED_INTERFACE");
         free(nombre_interfaz);
         return;

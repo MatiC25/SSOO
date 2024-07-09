@@ -54,10 +54,8 @@ void create_consumer_thread(char *interface_name) {
 }
 
 void consumers_pcbs_blockeds(void *args) {
-    sem_wait(&semaforo_interfaces);
     char *interface_name = (char *) args;
     interface_io *interface = get_interface_from_dict(interface_name);
-    sem_post(&semaforo_interfaces);
 
     while(1) {
         sem_wait(&interface->semaforo_used);
@@ -69,13 +67,21 @@ void consumers_pcbs_blockeds(void *args) {
         int socket_with_interface = get_socket_interface(interface);
         int response = 0;
         
-        int sigue_conectado = send_message_to_interface(interface, args_pcb, &response, socket_with_interface);
-        
+        int buffer;
+        int sigue_conectado = recv(socket_with_interface, buffer, sizeof(int), MSG_PEEK | MSG_DONTWAIT);
+
         if(sigue_conectado == 0) {
             interface->esta_conectado = 0;  
             log_warning(logger,"Interfaz: %s - Desconectada", interface_name);
-            break;
+
+            sem_post(&interface->size_blocked);
+            queue_push(interface->process_blocked,pcb);
+            queue_push(interface->args_process, args_pcb);
+
+            return;
         }
+
+        send_message_to_interface(interface, args_pcb, &response, socket_with_interface);
 
         if(response == 1) {
             log_warning(logger, "Proceso: %d - Terminado por: %s", pcb->pid, interface_name);
@@ -108,7 +114,7 @@ void create_interface(int socket) {
     rcv_interfaz(&interface_name, &tipo, socket);
 
     sem_wait(&semaforo_interfaces);
-    if(!dictionary_has_key(interfaces, interface_name)) {
+    if(!esta_interfaz(interface_name)) {
     sem_post(&semaforo_interfaces);
         log_info(logger, "Nueva interfaz conectada: %s", interface_name);
         set_name_interface(interface, interface_name);
@@ -118,15 +124,21 @@ void create_interface(int socket) {
         sem_wait(&semaforo_interfaces);
         add_interface_to_dict(interface, interface_name);
         sem_post(&semaforo_interfaces);
-    } else {
-        log_info(logger, "Interfaz conectada de nuevo: %s", interface_name);
-        
-        sem_wait(&semaforo_interfaces);
-        interface_io *interface_old = get_interface_from_dict(interface_name);
-        sem_post(&semaforo_interfaces);
-        
-        interface->esta_conectado = 1;
-    }
 
-    create_consumer_thread(interface_name);
+        create_consumer_thread(interface_name);
+
+    } else {
+        interface_io *interface_old = get_interface_from_dict(interface_name);
+
+        if(!interface_io->esta_conectado) {
+            log_info(logger, "Interfaz conectada de nuevo: %s", interface_name);
+
+            interface_old->esta_conectado = 1;    
+
+            set_socket_interface(interface_old, socket);
+            sem_post(&interface_old->semaforo_used);
+            create_consumer_thread(interface_name);
+        } else 
+            close(socket);
+    }
 }
