@@ -4,7 +4,7 @@
 t_bitarray *crear_bitmap(t_interfaz *interfaz, char *modo_de_apertura) {
 
     // Obtengo el archivo bitmap:
-    FILE *archivo_bitmap = abrir_archivo_bitmap(interfaz, modo_de_apertura);
+    archivo_bitmap = abrir_archivo_bitmap(interfaz, modo_de_apertura);
     int size = get_block_count(interfaz) / 8;
 
     // Mapeo el archivo bitmap:

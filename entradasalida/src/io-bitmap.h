@@ -6,6 +6,7 @@
 #include "io-estructuras.h"
 #include "io-archivos.h"
 #include "io-utils.h"
+#include "io-variables-globales.h"
 
 // Funcion para crear un bitmap:
 t_bitarray *crear_bitmap(t_interfaz *interfaz, char *modo_de_apertura);

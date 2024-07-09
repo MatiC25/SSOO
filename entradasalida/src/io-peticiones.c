@@ -19,9 +19,9 @@ void ejecutar_operacion_generica(t_interfaz * interfaz) {
         t_list *argumentos = recibir_argumentos(interfaz, get_socket_kernel(interfaz));
 
         // Obtenemos los argumentos necesarios:
-        int *pid_proceso = list_get(argumentos, 0);
-        int *tipo_operacion = list_get(argumentos, 1);
-        int *tiempo_espera = list_get(argumentos, 2);
+        int *pid_proceso = list_remove(argumentos, 0);
+        int *tipo_operacion = list_remove(argumentos, 0);
+        int *tiempo_espera = list_remove(argumentos, 0);
         char *operacion = get_nombre_operacion(*tipo_operacion);
         int tiempo_unidad = get_tiempo_unidad(interfaz);
 
@@ -47,9 +47,9 @@ void ejecutar_operacion_stdin(t_interfaz *interfaz) {
         t_list *argumentos = recibir_argumentos(interfaz, get_socket_kernel(interfaz));
 
         // Obtenemos los argumentos necesarios:
-        int *pid_proceso = list_get(argumentos, 0);
-        int *tipo_operacion = list_get(argumentos, 1);
-        t_list *direcciones = list_get(argumentos, 2);
+        int *pid_proceso = list_remove(argumentos, 0);
+        int *tipo_operacion = list_remove(argumentos, 0);
+        t_list *direcciones = list_remove(argumentos, 0);
         char *operacion = get_nombre_operacion(*tipo_operacion);
 
         // Logeamos la operación:
@@ -89,9 +89,9 @@ void ejecutar_operacion_stdout(t_interfaz *interfaz) {
         t_list *argumentos = recibir_argumentos(interfaz, get_socket_kernel(interfaz));
 
         // Obtenemos los argumentos necesarios:
-        int *pid_proceso = list_get(argumentos, 0);
-        int *tipo_operacion = list_get(argumentos, 1);
-        t_list *direcciones = list_get(argumentos, 2);
+        int *pid_proceso = list_remove(argumentos, 0);
+        int *tipo_operacion = list_remove(argumentos, 0);
+        t_list *direcciones = list_remove(argumentos, 0);
         char *operacion = get_nombre_operacion(*tipo_operacion);
         
         // Logeamos la operación:
@@ -117,15 +117,15 @@ void ejecutar_operaciones_dialFS(t_interfaz *interfaz) {
     int socket_kernel = get_socket_kernel(interfaz);
 
     // Inicializamos las estructuras necesarias:
-    t_list *archivos_ya_abiertos = obtener_archivos_ya_abiertos(interfaz);
+    archivos_ya_abiertos = obtener_archivos_ya_abiertos(interfaz);
     int size = list_size(archivos_ya_abiertos);
 
     // Obtenemos el modo de apertura:
     char *modo_de_apertura = get_modo_de_apertura(size);
 
     // Abrimos los archivos necesarios:
-    FILE *archivo_bloque = abrir_archivo_bloques(interfaz, modo_de_apertura);
-    t_bitarray *bitmap = crear_bitmap(interfaz, modo_de_apertura);
+    archivo_bloque = abrir_archivo_bloques(interfaz, modo_de_apertura);
+    bitmap = crear_bitmap(interfaz, modo_de_apertura);
 
     while(1) {
         tipo_operacion operacion = recibir_operacion(socket_kernel);

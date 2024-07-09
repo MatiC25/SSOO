@@ -2,7 +2,7 @@
 
 void operacion_create_file(t_interfaz *interfaz, t_bitarray *bitmap, t_list *argumentos, t_list *archivos_ya_abiertos) {
 
-    char *nombre_archivo = list_get(argumentos, 1);
+    char *nombre_archivo = list_remove(argumentos, 0);
 
     if(ya_esta_abierto(archivos_ya_abiertos, nombre_archivo)) {
         log_error(logger, "El archivo ya se encuentra abierto");
@@ -33,10 +33,10 @@ void operacion_create_file(t_interfaz *interfaz, t_bitarray *bitmap, t_list *arg
 
 void operacion_write_file(t_interfaz *interfaz, FILE *bloques, t_list *argumentos, t_list *archivos_ya_abiertos) {
 
-    int *pid_proceso = list_get(argumentos, 0);
-    char *nombre_archivo = list_get(argumentos, 1);
-    int *offset  = list_get(argumentos, 2);
-    t_list *direcciones_fisicas = list_get(argumentos, 3);
+    int *pid_proceso = list_remove(argumentos, 0);
+    char *nombre_archivo = list_remove(argumentos, 0);
+    int *offset  = list_remove(argumentos, 0);
+    t_list *direcciones_fisicas = list_remove(argumentos, 0);
 
     log_info(logger, "Se va a escribir en el archivo %s", nombre_archivo);
 
@@ -63,10 +63,10 @@ void operacion_write_file(t_interfaz *interfaz, FILE *bloques, t_list *argumento
 
 void operacion_read_file(t_interfaz *interfaz, FILE *bloques, t_list *argumentos, t_list *archivos_ya_abiertos) {
 
-    int *pid_proceso = list_get(argumentos, 0);
-    char *nombre_archivo = list_get(argumentos, 1);
-    int *offset = list_get(argumentos, 2);
-    t_list *direcciones_fisicas = list_get(argumentos, 3);
+    int *pid_proceso = list_remove(argumentos, 0);
+    char *nombre_archivo = list_remove(argumentos, 0);
+    int *offset = list_remove(argumentos, 0);
+    t_list *direcciones_fisicas = list_remove(argumentos, 0);
 
     t_archivo_abierto *archivo_abierto = obtener_archivo_abierto(archivos_ya_abiertos, nombre_archivo);
 
@@ -117,9 +117,9 @@ void operacion_delete_file(t_interfaz *interfaz, t_bitarray *bitmap, t_list *arg
 }
 
 void operacion_truncate_file(t_interfaz *interfaz, FILE *bloques, t_bitarray *bitmap, t_list *argumentos, t_list *archivos_ya_abiertos) {
-    int *pid_proceso = list_get(argumentos, 0);
-    char *nombre_archivo = list_get(argumentos, 1);
-    int *nuevo_tamanio = list_get(argumentos, 2);
+    int *pid_proceso = list_remove(argumentos, 0);
+    char *nombre_archivo = list_remove(argumentos, 0);
+    int *nuevo_tamanio = list_remove(argumentos, 0);
 
     t_archivo_abierto *archivo_abierto = obtener_archivo_abierto(archivos_ya_abiertos, nombre_archivo);
 

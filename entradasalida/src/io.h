@@ -11,5 +11,6 @@
 #include "io-init.h"
 #include "io-peticiones.h"
 #include "io-protocolo.h"
+#include "io-variables-globales.h"
 
 #endif // IO_H
