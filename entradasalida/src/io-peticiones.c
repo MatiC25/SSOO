@@ -34,6 +34,15 @@ void ejecutar_operacion_generica(t_interfaz * interfaz) {
 
         // Enviamos la respuesta al kernel:
         send_respuesta_a_kernel(1, interfaz);
+
+        // Liberamos la memoria:
+        free(pid_proceso);
+        free(tipo_operacion);
+        free(tiempo_espera);
+        free(operacion);
+
+        // Liberamos la lista de argumentos:
+        list_destroy(argumentos);
     }
 }
 
@@ -55,7 +64,7 @@ void ejecutar_operacion_stdin(t_interfaz *interfaz) {
         // Logeamos la operación:
         log_info(logger, "PID: %d - Operacion: %s", *pid_proceso, operacion);
 
-    
+        // Obtenemos la cantidad de bytes a escribir:
         int bytes_a_escribir = get_total_de_bytes(direcciones);
 
         log_info(logger, "Bytes a escribir: %i", bytes_a_escribir);
@@ -79,7 +88,18 @@ void ejecutar_operacion_stdin(t_interfaz *interfaz) {
         send_bytes_a_leer(interfaz, *pid_proceso, direcciones, input, bytes_leidos);
         send_respuesta_a_kernel(1, interfaz);
 
+        // Liberamos la memoria:
+        free(pid_proceso);
+        free(tipo_operacion);
+        free(operacion);
         free(input);
+
+        // Liberamos las direcciones:
+        list_destroy_and_destroy_elements(direcciones, (void *) liberar_direccion_fisica);
+
+        // Liberamos la lista de argumentos
+        list_destroy(argumentos);
+        list_destroy(direcciones);
     }
 }
 
@@ -106,7 +126,17 @@ void ejecutar_operacion_stdout(t_interfaz *interfaz) {
         // Enviamos la respuesta:
         send_respuesta_a_kernel(1, interfaz);
 
+        // Liberamos la memoria:
         free(contenido_a_mostrar);
+        free(pid_proceso);
+        free(tipo_operacion);
+        free(operacion);
+
+        // Liberamos las direcciones:
+        list_destroy_and_destroy_elements(direcciones, (void *) liberar_direccion_fisica);
+
+        // Liberamos la lista de argumentos:
+        list_destroy(argumentos);
     }
 }
 
@@ -126,6 +156,9 @@ void ejecutar_operaciones_dialFS(t_interfaz *interfaz) {
     // Abrimos los archivos necesarios:
     archivo_bloque = abrir_archivo_bloques(interfaz, modo_de_apertura);
     bitmap = crear_bitmap(interfaz, modo_de_apertura);
+
+    // Liberamos el modo de apertura:
+    free(modo_de_apertura);
 
     while(1) {
         tipo_operacion operacion = recibir_operacion(socket_kernel);
@@ -162,5 +195,12 @@ void ejecutar_operaciones_dialFS(t_interfaz *interfaz) {
             default:
                 log_error(logger, "Operacion desconocida");
         }
+
+        // Liberamos la memoria:
+        free(pid_proceso);
+        free(operacion_string);
+
+        // Liberamos la lista de argumentos:
+        list_destroy(argumentos);
     }
 }

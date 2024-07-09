@@ -80,4 +80,13 @@ int comparar_bloque_inicial(void *archivo1, void *archivo2);
 // Funcion para eliminar un archivo del sistema:
 void eliminar_archivo_en_fs(t_interfaz *interfaz, char *nombre_archivo);
 
+// Funcion para cerrar los sockets:
+void cerrar_sockets(t_interfaz *interfaz);
+
+// Funcion para liberar la memoria de una interfaz:
+void liberar_interfaz(t_interfaz *interfaz);
+
+// Funcion para liberar una direccion fisica:
+void liberar_direccion_fisica(void *direccion);
+
 #endif // IO_UTILS_H

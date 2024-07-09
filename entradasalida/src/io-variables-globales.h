@@ -22,12 +22,11 @@ extern t_bitarray *bitmap;
 extern FILE *archivo_bitmap;
 extern FILE *archivo_bloque;
 extern t_interfaz *interfaz;
+extern char *name_interfaz;
+extern char *config_path;
 
 // Funcion para cerrar programa:
 void cerrar_programa(int signal);
-
-// Funcion para configurar la senial de cierre:
-void configurar_senial_cierre();
 
 #endif 
 

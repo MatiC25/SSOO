@@ -6,6 +6,7 @@
 #include <unistd.h>
 #include <sys/mman.h>
 #include <commons/string.h>
+#include <commons/collections/queue.h>
 
 #include "io-estructuras.h"
 #include "io-utils.h"
@@ -19,7 +20,7 @@ FILE *abrir_archivo_bitmap(t_interfaz *interfaz, char *modo_de_apertura);
 FILE *abrir_archivo(char *path, char *modo_de_apertura);
 FILE *persistir_archivo(t_interfaz *interfaz, char *name_file, char *modo_de_apertura, int tamanio_archivo);
 
-// Funciones de utilidad:
-int tiene_extension(const char *name_file, const char *extension);
+// Funcion para escribir en un archivo:
+void escribir_contenido_en_bloques(FILE *bloques, t_queue *buffers);
 
 #endif
