@@ -11,13 +11,13 @@
 #include "kernel-utils-interfaces.h"
 
 // Funciones para enviar mensajes a la interfaz:
-void send_message_to_interface(interface_io *interface, t_list *args, int *response, int socket);
-void send_message_to_generic_interface(int socket, t_list *args, int *response);
-void send_message_to_std_interface(int socket, t_list *args, int *response);
-void send_message_to_dialfs_interface(int socket, t_list *args, int *response);
-void send_message_to_dialfs_create_o_delete(int socket, t_list *args, int *response);
-void send_message_to_dialfs_read_o_write(int socket, t_list *args, int *response);
-void send_message_to_dialfs_truncate(int socket, t_list *args, int *response);
+int send_message_to_interface(interface_io *interface, t_list *args, int *response, int socket);
+int send_message_to_generic_interface(int socket, t_list *args, int *response);
+int send_message_to_std_interface(int socket, t_list *args, int *response);
+int send_message_to_dialfs_interface(int socket, t_list *args, int *response);
+int send_message_to_dialfs_create_o_delete(int socket, t_list *args, int *response);
+int send_message_to_dialfs_read_o_write(int socket, t_list *args, int *response);
+int send_message_to_dialfs_truncate(int socket, t_list *args, int *response);
 
 // Funciones para recibir mensajes de interfaces:
 void rcv_interfaz(char **interface_name, tipo_interfaz *tipo, int socket);

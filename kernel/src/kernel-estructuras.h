@@ -40,6 +40,7 @@ typedef struct {
     t_queue *args_process;
     sem_t semaforo_used;
     sem_t size_blocked;
+    int esta_conectado;
 } interface_io;
 
 

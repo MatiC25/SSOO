@@ -222,6 +222,7 @@ void peticion_wait() {
         free(recurso);
         return;
     }
+
     esta_block == 0;
     free(recurso);
 }
@@ -410,6 +411,13 @@ void peticion_IO() {
         free(nombre_interfaz);
         return;
     }
+
+    if(interface->esta_conectado) {
+        finalizar_por_invalidacion(proceso_en_exec, "DISCONNECTED_INTERFACE");
+        free(nombre_interfaz);
+        return;
+    }
+
     esta_block = 1;
     if(strcmp(config_kernel->ALGORITMO_PLANIFICACION, "VRR") == 0) {
         sem_wait(&sem_vrr);
@@ -418,7 +426,6 @@ void peticion_IO() {
         pthread_mutex_unlock(&mutex_proceso_exec);
     }
     
-
     pthread_mutex_lock(&mutex_proceso_exec);
     mover_a_cola_block_general(proceso_en_exec, "INTERFAZ");
     pthread_mutex_unlock(&mutex_proceso_exec);

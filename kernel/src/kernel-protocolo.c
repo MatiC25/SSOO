@@ -2,25 +2,29 @@
 
 // 1. Funciones para enviar mensajes a interfaces:
 
-void send_message_to_interface(interface_io *interface, t_list *args, int *response, int socket) {
+int send_message_to_interface(interface_io *interface, t_list *args, int *response, int socket) {
+    int sigue_conectado;
+
     switch(interface->tipo) {
         case GENERICA:
-            send_message_to_generic_interface(socket, args, response);
+            sigue_conectado = send_message_to_generic_interface(socket, args, response);
             break;
         case STDIN:
         case STDOUT:
-            send_message_to_std_interface(socket, args, response);
+            sigue_conectado = send_message_to_std_interface(socket, args, response);
             break;
         case DIALFS:
-            send_message_to_dialfs_interface(socket, args, response);
+            sigue_conectado = send_message_to_dialfs_interface(socket, args, response);
             break;
         default:
             // Manejo de error o caso por defecto
             break;
     }
+
+    return sigue_conectado;
 }
 
-void send_message_to_generic_interface(int socket, t_list *args, int *response) {
+int send_message_to_generic_interface(int socket, t_list *args, int *response) {
 
     // Obtenemos los argumentos:
     int *pid_proceso_ptr = list_get(args, 0);
@@ -52,13 +56,12 @@ void send_message_to_generic_interface(int socket, t_list *args, int *response) 
         return;
     }
 
-    if (recv(socket, response, sizeof(int), 0) == -1) {
-        perror("Error al recibir la respuesta");
-        return;
-    }
+    // Recibimos la respuesta:
+    int verificacion_de_que_sigue_conectado = recv(socket, response, sizeof(int), 0);
+    return verificacion_de_que_sigue_conectado;
 }
 
-void send_message_to_std_interface(int socket, t_list *args, int *response) {
+int send_message_to_std_interface(int socket, t_list *args, int *response) {
     int *pid_proceso_ptr = list_get(args, 0);
     int *operacion_a_realizar_ptr = list_get(args, 1);
     t_list *direcciones_fisicas_y_bytes = list_get(args, 2);
@@ -107,37 +110,38 @@ void send_message_to_std_interface(int socket, t_list *args, int *response) {
     }
 
     // Enviamos un -1 para indicar que terminamos de enviar las direcciones físicas y bytes a leer:
-    if (recv(socket, response, sizeof(int), 0) == -1) {
-        perror("Error al recibir la respuesta");
-        return;
-    }
+    int verificacion_de_que_sigue_conectado = recv(socket, response, sizeof(int), 0);
+    return verificacion_de_que_sigue_conectado;
 }
 
-void send_message_to_dialfs_interface(int socket, t_list *args, int *response) {
+int send_message_to_dialfs_interface(int socket, t_list *args, int *response) {
 
     // Obtenemos el operacion_a_realizar:
     int *operacion_a_realizar = list_get(args, 1);
+    int sigue_conectado;
 
     // Enviamos el mensaje a la interfaz correspondiente:
     switch(*operacion_a_realizar) {
         case IO_FS_CREATE_INT:
         case IO_FS_DELETE_INT:
-            send_message_to_dialfs_create_o_delete(socket, args, response);
+            sigue_conectado = send_message_to_dialfs_create_o_delete(socket, args, response);
             break;
         case IO_FS_READ_INT:
         case IO_FS_WRITE_INT:
-            send_message_to_dialfs_read_o_write(socket, args, response);
+            sigue_conectado = send_message_to_dialfs_read_o_write(socket, args, response);
             break;
         case IO_FS_TRUNCATE_INT:
-            send_message_to_dialfs_truncate(socket, args, response);
+            sigue_conectado = send_message_to_dialfs_truncate(socket, args, response);
             break;
         default:
             // Manejo de error o caso por defecto
             break;
     }
+
+    return sigue_conectado;
 }
 
-void send_message_to_dialfs_create_o_delete(int socket, t_list *args, int *response) {
+int send_message_to_dialfs_create_o_delete(int socket, t_list *args, int *response) {
 
     // Obtenemos los argumentos:
     int *pid_proceso_ptr = list_get(args, 0);
@@ -152,13 +156,11 @@ void send_message_to_dialfs_create_o_delete(int socket, t_list *args, int *respo
     eliminar_paquete(paquete);
 
     // Recibimos la respuesta:
-    if (recv(socket, response, sizeof(int), 0) == -1) {
-        perror("Error al recibir la respuesta");
-        return;
-    }
+    int verificacion_de_que_sigue_conectado = recv(socket, response, sizeof(int), 0);
+    return verificacion_de_que_sigue_conectado;
 }
 
-void send_message_to_dialfs_read_o_write(int socket, t_list *args, int *response) {
+int send_message_to_dialfs_read_o_write(int socket, t_list *args, int *response) {
 
     // Obtenemos los argumentos:
     int *pid_proceso_ptr = list_get(args, 0);
@@ -188,13 +190,11 @@ void send_message_to_dialfs_read_o_write(int socket, t_list *args, int *response
     eliminar_paquete(paquete);
 
     // Recibimos la respuesta:
-    if (recv(socket, response, sizeof(int), 0) == -1) {
-        perror("Error al recibir la respuesta");
-        return;
-    }
+    int verificacion_de_que_sigue_conectado = recv(socket, response, sizeof(int), 0);
+    return verificacion_de_que_sigue_conectado;
 }
 
-void send_message_to_dialfs_truncate(int socket, t_list *args, int *response) {
+int send_message_to_dialfs_truncate(int socket, t_list *args, int *response) {
     
     // Obtenemos los argumentos:
     int *pid_proceso_ptr = list_get(args, 0);
@@ -211,10 +211,8 @@ void send_message_to_dialfs_truncate(int socket, t_list *args, int *response) {
     eliminar_paquete(paquete);
 
     // Recibimos la respuesta:
-    if (recv(socket, response, sizeof(int), 0) == -1) {
-        perror("Error al recibir la respuesta");
-        return;
-    }
+    int verificacion_de_que_sigue_conectado = recv(socket, response, sizeof(int), 0);
+    return verificacion_de_que_sigue_conectado;
 }
 
 // 2. Funciones para recibir mensajes de interfaces:
