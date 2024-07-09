@@ -8,21 +8,23 @@
 #include <unistd.h>
 #include <commons/collections/list.h>
 #include <commons/bitarray.h>
+#include <utils/socket.h>
 
 // Incluimos bibliotecas propias:
 #include "io-archivos-abiertos.h"
 #include "io-archivos.h"
 #include "io-estructuras.h"
+#include "io-utils.h"
 
 // Definimos las variables globales:
-extern t_list *archivos_abiertos;
-extern t_bitarray *bitarray;
+extern t_list *archivos_ya_abiertos;
+extern t_bitarray *bitmap;
 extern FILE *archivo_bitmap;
-extern FILE *archivo_bloques;
+extern FILE *archivo_bloque;
 extern t_interfaz *interfaz;
 
 // Funcion para cerrar programa:
-void cerrar_programa(int);
+void cerrar_programa(int signal);
 
 // Funcion para configurar la senial de cierre:
 void configurar_senial_cierre();

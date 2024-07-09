@@ -1,4 +1,4 @@
-#include "io-variables-globales.c"
+#include "io-variables-globales.h"
 
 // Definimos las variables globales:
 t_list *archivos_ya_abiertos = NULL;
@@ -11,6 +11,9 @@ t_interfaz *interfaz = NULL;
 void cerrar_programa(int signal) {
     if(signal == SIGINT) {
         log_info(logger, "Cerrando programa...");
+
+        cerrar_sockets();
+
         exit(0);
     }
 }
@@ -26,4 +29,13 @@ void configurar_senial_cierre() {
         perror("Error al configurar la senial de cierre");
         exit(1);
     }
+}
+
+// Funcion para cerrar sockets:
+void cerrar_sockets() {
+    int socket_memoria = get_socket_memory(interfaz);
+    int socket_kernel = get_socket_kernel(interfaz);
+
+    liberar_conexion(socket_kernel);
+    liberar_conexion(socket_memoria);
 }

@@ -62,7 +62,7 @@ void* escuchar_peticiones(void* args){
             break;
         case -1:
             log_info(logger,"Se desconecto el cliente");
-            exit(-1); //a facu le gusta exit(-1) pero nico nos amenaza para poner return
+            return;
         default:
             log_error(logger, "Operacion desconocida");
         }

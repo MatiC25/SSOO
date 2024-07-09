@@ -60,21 +60,15 @@ void consumers_pcbs_blockeds(void *args) {
     sem_post(&semaforo_interfaces);
 
     while(1) {
-        // Esperamos que la interfaz no este bloqueada:
         sem_wait(&interface->semaforo_used);
-        sem_wait(&interface->size_blocked); // Esperamos que haya procesos bloqueados
+        sem_wait(&interface->size_blocked);
 
-        // Sacamos el primer proceso de la cola de bloqueados:
         t_pcb *pcb = queue_pop(interface->process_blocked);
-        t_list *args_pcb = queue_pop(interface->args_process); // Obtenemos los argumentos del proceso
+        t_list *args_pcb = queue_pop(interface->args_process);
 
-        //log_warning(logger, "Sacando Proceso: %i - Bloqueado por interfaz", pcb->pid);
-
-        // Obtenemos el socket de la interfaz:
         int socket_with_interface = get_socket_interface(interface);
         int response = 0;
         
-        // Esto tenemos que cambiarlo, es solo para probar:
         send_message_to_interface(interface, args_pcb, &response, socket_with_interface);
         
         if(response == 1) {
@@ -103,22 +97,15 @@ void create_interface(int socket) {
     tipo_interfaz tipo;
     char *interface_name;
 
-    // Inicializamos interfaz:
     interface_io *interface = initialize_interface();
 
-    // Recibimos el nombre de la interfaz y el tipo:
     rcv_interfaz(&interface_name, &tipo, socket);
+    log_info(logger, "Interfaz conectada: %s", interface_name);
 
-    // Seteamos nombre de la interfaz:
     set_name_interface(interface, interface_name);
-
-    // Seteamos las operaciones validas:
     set_tipo_interfaz(interface, tipo);
-    
-    // Seteamos socket de la interfaz:
     set_socket_interface(interface, socket);
 
-    // Agregamos interfaz al dccionario:
     sem_wait(&semaforo_interfaces);
     add_interface_to_dict(interface, interface_name);
     sem_post(&semaforo_interfaces);

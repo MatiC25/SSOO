@@ -34,8 +34,4 @@ typedef struct {
     char *name_file;
 } t_archivo_abierto;
 
-extern t_config_io* config_io;
-extern t_interfaz *interfaz;
-
-
 #endif //IO_ESTRUCTURAS_H
