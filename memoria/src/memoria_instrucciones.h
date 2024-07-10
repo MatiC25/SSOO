@@ -18,8 +18,7 @@
 #include <utils/socket.h>
 #include <utils/shared.h>
 #include <utils/logger.h>
-#include "memoria_estructuras_compartidas.h"
-#include "memoria_peticiones.h"
+#include "memoria.h"
 
 
 extern pthread_mutex_t mutex_instrucciones;
@@ -30,6 +29,7 @@ void enviar_instruccion_a_cpu(int socket_cpu);
 void agregar_a_diccionario_instrucciones(int pid, t_list *lista_de_instrucciones);
 t_list* obtener_lista_instrucciones(int pid);
 void inicializacion_semaforos();
+void liberar_lista_parametros(void *parametros);
 //void recibir_archi_pid(int socket_kernel, int *tam, char **archivo_path, int *pid);
 
 

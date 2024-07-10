@@ -64,6 +64,7 @@ void* escuchar_peticiones(void* args){
             break;
         case -1:
             log_info(logger,"Se desconecto el cliente");
+            free(args);
             return;
         default:
             log_error(logger, "Operacion desconocida");
@@ -92,14 +93,6 @@ void enviar_respuesta_a_kernel(int socket_cliente) {
 
 //Creacion / destruccion de Tabla de Paginas: "PID:" <PID> "- Tamanio:" <CANTIDAD_PAGINAS>
 void crear_proceso(int pid){
-// void crear_proceso(int socket_cliente){
-//     int size;
-// 	void* buffer = recibir_buffer(&size, socket_cliente);
-// 	int tamanio;
-// 	int pid;
-// 	memcpy(&pid, buffer, sizeof(int)); // creo que recibimos primero el pid, cambie el orden de los datos
-// 	memcpy(&tamanio, buffer + sizeof(int), sizeof(int));
-
     //Creamos una nueva tabla de páginas
     t_list* tabla_de_paginas = list_create();
 
@@ -107,6 +100,7 @@ void crear_proceso(int pid){
     char* pid_string=string_itoa(pid);
 
     dictionary_put(diccionario_paginas_porPID, pid_string, tabla_de_paginas);
+    free(pid_string);
 
     // Liberar el buffer recibido
     //free(buffer);  
@@ -124,6 +118,7 @@ void terminar_proceso(int socket_cliente){
 
     // Obtener la tabla de páginas del diccionario
     t_list* tabla_de_paginas = dictionary_get(diccionario_paginas_porPID, pid_string);
+    free(pid_string);
     if (!tabla_de_paginas) {
         log_error(logger, "Error: No se encontró la tabla de páginas para el PID %d\n", pid);
         free(buffer);
@@ -162,6 +157,7 @@ void resize_proceso(int socket_cliente) {
 
     // Obtener la tabla de páginas del diccionario
     t_list* tabla_de_paginas = dictionary_get(diccionario_paginas_porPID, pid_string); //obtenemos la tabla de paginas del proceso que vamos a modificar
+    free(pid_string);
     if (!tabla_de_paginas) {
         log_error(logger, "Error: No se encontró la tabla de páginas para el PID %d\n", pid);
         t_paquete* paquete = crear_paquete(OUT_OF_MEMORY);
@@ -240,6 +236,7 @@ void obtener_marco(int socket_cliente){
     char* pid_string = string_itoa(pid);
 
     t_list* tabla_de_paginas = dictionary_get(diccionario_paginas_porPID , pid_string); //Buscamos la tabla de paginas del PID requerido
+    free(pid_string);
     if (!tabla_de_paginas) {
         log_error(logger, "Error: No se encontró la tabla de páginas para el PID %d\n", pid);
         exit(-1);
@@ -286,7 +283,7 @@ void liberar_marco(int marco) {
 }
 
 void inicializar_bitmap(){
-    for(int i; i < bitarray_get_max_bit(bitmap); i++){
+    for(int i = 0; i < bitarray_get_max_bit(bitmap); i++){
         bitarray_clean_bit(bitmap, i);
     }
 }

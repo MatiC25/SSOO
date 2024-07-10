@@ -17,8 +17,7 @@
 #include <utils/protocolo.h>
 #include <utils/logger.h>
 #include <commons/memory.h>
-#include "memoria_estructuras_compartidas.h"
-#include "memoria_instrucciones.h"
+#include "memoria.h"
 
 extern sem_t enviar_instruc;
 extern sem_t sem_lectura_archivo;

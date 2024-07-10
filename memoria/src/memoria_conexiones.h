@@ -14,9 +14,7 @@
 #include <utils/shared.h>
 #include <utils/logger.h>
 #include <utils/protocolo.h>
-#include "memoria_estructuras_compartidas.h"
-#include "memoria_peticiones.h"
-
+#include "memoria.h"
 
 // Funcion para cargar configuraciones de Memoria:
 t_config_memoria* inicializar_config_memoria(void);

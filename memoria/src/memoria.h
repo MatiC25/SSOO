@@ -6,8 +6,6 @@
 #include "memoria_peticiones.h"
 #include "memoria_instrucciones.h"
 #include "memoria_estructuras_compartidas.h"
-
-
-void inicializacion_diccionario();
+#include "memoria_globales.h"
 
 #endif //MEMORIA_H

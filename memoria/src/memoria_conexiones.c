@@ -24,7 +24,6 @@ int iniciar_modulo(t_config_memoria* config_memoria) {
             *args_hilo = socket_cliente; // Asignamos el socket cliente a los argumentos
             //log_info(logger, "Se creo el hilo en %i" ,socket_cliente);
             pthread_create(&hilo_memoria, NULL, escuchar_peticiones, (void*) args_hilo);
-            
             pthread_detach(hilo_memoria);
         }
     }
@@ -35,5 +34,3 @@ void cerrar_programa(t_config_memoria* config_memoria, int socket_server) {
     config_destroy_version_memoria(config_memoria);
     close(socket_server);
 }
-
-

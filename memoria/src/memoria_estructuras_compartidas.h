@@ -34,14 +34,5 @@ typedef struct {
     int bit_validez;
 } t_tabla_de_paginas;
 
-extern t_dictionary* lista_instrucciones_porPID;
-extern t_dictionary * diccionario_paginas_porPID;
-
-extern t_tabla_de_paginas* tabla_de_paginas;
-extern t_bitarray* bitmap;
-extern void* espacio_de_usuario;
-
-extern char* path_proceso;
-extern t_config_memoria* config_memoria;
 
 #endif // MEMORIA_ESTRUCTURAS_COMPARTIDAS_H

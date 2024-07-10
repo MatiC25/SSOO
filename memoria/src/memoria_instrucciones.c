@@ -1,8 +1,6 @@
 #include "memoria_instrucciones.h"
 
 pthread_mutex_t mutex_instrucciones;
-t_dictionary* lista_instrucciones_porPID;
-
 
 void inicializacion_semaforos() {
     pthread_mutex_init(&mutex_instrucciones, NULL);
@@ -92,10 +90,15 @@ void leer_archivoPseudo(int socket_kernel) {
 
     agregar_a_diccionario_instrucciones(pid, lista_de_instrucciones);
 
+    free(cadena);
     free(archivo_path);
     fclose(archivo);
 }
 
+void liberar_lista_parametros(void *parametros) {
+    t_list *lista = parametros;
+    list_destroy_and_destroy_elements(lista, free);
+}
 
 void enviar_instruccion_a_cpu(int socket_cpu) {
 
@@ -132,6 +135,8 @@ void enviar_instruccion_a_cpu(int socket_cpu) {
 
     enviar_paquete(paquete, socket_cpu);
     eliminar_paquete(paquete);
+
+    free(buffer);
 }
 
 void agregar_a_diccionario_instrucciones(int pid, t_list *lista_de_instrucciones) {
@@ -139,39 +144,18 @@ void agregar_a_diccionario_instrucciones(int pid, t_list *lista_de_instrucciones
 
     //log_warning(logger, "Agregando lista de instrucciones para el PID %s", pid_en_string);
     dictionary_put(lista_instrucciones_porPID, pid_en_string, lista_de_instrucciones);
+    free(pid_en_string);
 }
 
-    t_list* obtener_lista_instrucciones(int pid) {
+t_list* obtener_lista_instrucciones(int pid) {
     char *pid_en_string = string_itoa(pid);
 
     if(!dictionary_has_key(lista_instrucciones_porPID, pid_en_string)){
         log_error(logger, "Esta key no esta en el diccionario pelotudos %i", pid);
         return NULL;        
     }
-
+    t_list* lista_de_instrucciones = dictionary_get(lista_instrucciones_porPID, pid_en_string);
+    free(pid_en_string);
     //log_warning(logger, "Obteniendo lista de instrucciones para el PID %i", pid);
-    return dictionary_get(lista_instrucciones_porPID, pid_en_string);   
+    return lista_de_instrucciones;
 }       
-
-// void recibir_archi_pid(int socket_kernel, int* tam, char** archivo_path, int *pid) {
-//     int size;
-//     void *buffer = recibir_buffer(&size, socket_kernel);
-
-//     int desplazamiento = 0;
-
-//     // Recibimos el PID:
-//     memcpy(pid, buffer + desplazamiento, sizeof(int));
-//     desplazamiento += sizeof(int);
-
-//     // Recibimos el tamaño del nombre del archivo:
-//     memcpy(tam, buffer + desplazamiento, sizeof(int));
-//     desplazamiento += sizeof(int);
-
-//     // Recibimos el nombre del archivo:
-//     *archivo_path = malloc(*tam); // Usar *tam para obtener el valor al que apunta tam
-
-//     memcpy(*archivo_path, buffer + desplazamiento, *tam);
-
-//     // Liberar el buffer después de usarlo
-//     free(buffer);
-// }
