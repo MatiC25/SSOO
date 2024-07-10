@@ -194,17 +194,19 @@ void eliminar_archivo_en_fs(t_interfaz *interfaz, char *nombre_archivo) {
 
 // Funcion para cerrar los sockets:
 void cerrar_sockets(t_interfaz *interfaz) {
-    int socket_memoria = get_socket_memory(interfaz);
     int socket_kernel = get_socket_kernel(interfaz);
 
+    if(interfaz->tipo != GENERICA) {
+        int socket_memoria = get_socket_memory(interfaz);
+        liberar_conexion(socket_memoria);
+    }
+
     liberar_conexion(socket_kernel);
-    liberar_conexion(socket_memoria);
 }
 
 // Funcion para liberar la memoria de una interfaz:
 void liberar_interfaz(t_interfaz *interfaz) {
     liberar_config_io(interfaz->config);
-    free(interfaz->nombre);
     free(interfaz);
 }
 

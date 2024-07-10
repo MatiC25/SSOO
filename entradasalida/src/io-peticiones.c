@@ -22,8 +22,9 @@ void ejecutar_operacion_generica(t_interfaz * interfaz) {
         int *pid_proceso = list_remove(argumentos, 0);
         int *tipo_operacion = list_remove(argumentos, 0);
         int *tiempo_espera = list_remove(argumentos, 0);
-        char *operacion = get_nombre_operacion(*tipo_operacion);
         int tiempo_unidad = get_tiempo_unidad(interfaz);
+        char *operacion = string_new();
+        string_append(&operacion, get_nombre_operacion(*tipo_operacion));
 
         // Logeamos la operación:
         log_info(logger, "PID: %d - Operacion: %s", *pid_proceso, operacion);

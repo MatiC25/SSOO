@@ -17,6 +17,8 @@ void send_interfaz_a_kernel(t_interfaz * interfaz) {
     agregar_a_paquete(paquete, &interfaz->tipo, sizeof(tipo_interfaz));
     agregar_a_paquete_string(paquete, interfaz->nombre, strlen(interfaz->nombre) + 1);
     enviar_paquete(paquete, socket_cliente);
+
+    eliminar_paquete(paquete);
 }
 
 // Funciones recibir mensajes de kernel:

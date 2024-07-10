@@ -130,7 +130,7 @@ void create_interface(int socket) {
     } else {
         interface_io *interface_old = get_interface_from_dict(interface_name);
 
-        if(!interface_io->esta_conectado) {
+        if(!interface_old->esta_conectado) {
             log_info(logger, "Interfaz conectada de nuevo: %s", interface_name);
 
             interface_old->esta_conectado = 1;    

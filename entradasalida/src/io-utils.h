@@ -4,6 +4,7 @@
 // Incluimos las librerias externas:
 #include <stdio.h>
 #include <math.h>
+#include <utils/socket.h>
 
 // Incluimos las librerias necesarias:
 #include "io-config.h"

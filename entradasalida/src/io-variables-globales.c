@@ -15,15 +15,16 @@ void cerrar_programa(int signal) {
         log_info(logger, "Cerrando programa...");
         
         // Finalizamos el programa:
-        cerrar_todos_los_archivos_abiertos(archivos_ya_abiertos);
-        cerrar_bitmap(bitmap);
+        if(interfaz->tipo == DIALFS) {
+            cerrar_todos_los_archivos_abiertos(archivos_ya_abiertos);
+            cerrar_bitmap(bitmap);
+            fclose(archivo_bitmap);
+            fclose(archivo_bloque);
+        }
+
         cerrar_sockets(interfaz);
         liberar_interfaz(interfaz);
-        fclose(archivo_bitmap);
-        fclose(archivo_bloque);
-        free(name_interfaz);
-        free(config_path);
-
+        
         exit(0);
     }
 }

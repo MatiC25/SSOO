@@ -13,8 +13,8 @@ t_list *obtener_archivos_ya_abiertos(t_interfaz *interfaz) {
 
     // Inicializamos la lista de archivos:
     t_list *archivos_abiertos = list_create();
-    const char *name_de_archivo_bloque = "bloques";
-    const char *name_de_archivo_bitmap = "bitmap";
+    char *name_de_archivo_bloque = "bloques";
+    char *name_de_archivo_bitmap = "bitmap";
 
     // Iteramos sobre los archivos del directorio:
     struct dirent *archivo;
@@ -42,11 +42,6 @@ t_list *obtener_archivos_ya_abiertos(t_interfaz *interfaz) {
 
     // Cerramos el directorio:
     closedir(directorio);
-
-    // Liberamos la memoria utilizada:
-    free(path_directorio);
-    free(name_de_archivo_bloque);
-    free(name_de_archivo_bitmap);
 
     return archivos_abiertos;
 }
@@ -128,7 +123,6 @@ void cerrar_archivo_abierto(t_list *archivos_abiertos, char *nombre_archivo) {
 
         if (strncmp(nombre_archivo_abierto, nombre_archivo, cantidad_de_caracteres) == 0) {
             list_remove(archivos_abiertos, i);
-            free(nombre_archivo_abierto);
             free(archivo_abierto);
 
             return;
@@ -147,8 +141,7 @@ void cerrar_todos_los_archivos_abiertos(t_list *archivos_abiertos) {
 
         // Cerramos el archivo:
         config_destroy(archivo_metadata);
-        free(nombre_archivo);
-        free(archivo_abierto);
+        free(archivo_abierto); 
     }
 
     list_destroy(archivos_abiertos);

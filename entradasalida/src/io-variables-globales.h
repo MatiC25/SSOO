@@ -14,6 +14,7 @@
 #include "io-archivos-abiertos.h"
 #include "io-archivos.h"
 #include "io-estructuras.h"
+#include "io-bitmap.h"
 #include "io-utils.h"
 
 // Definimos las variables globales:
@@ -27,6 +28,9 @@ extern char *config_path;
 
 // Funcion para cerrar programa:
 void cerrar_programa(int signal);
+
+// Funcion para configurar la senial de cierre:
+void configurar_senial_cierre();
 
 #endif 
 
