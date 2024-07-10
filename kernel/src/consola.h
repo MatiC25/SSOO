@@ -19,7 +19,7 @@
 #define MAX_COMMAND_LETTERS 100
 
 extern int pid_buscado_global;
-
+extern COMMAND *comandos;
 typedef struct {
     char* nombre;
     void* (*funcion)(void*); // Firma de las funciones!

@@ -89,6 +89,10 @@ const char* transformar_motivos_a_exit(t_tipo_instruccion* motivo_inicial) {
 void peticion_fin_quantum() {
 
     pthread_mutex_lock(&mutex_proceso_exec);
+    if (proceso_en_exec != NULL) {
+        liberar_pcb(proceso_en_exec);
+        proceso_en_exec = NULL;
+    }
     proceso_en_exec = rcv_contexto_ejecucion(config_kernel->SOCKET_DISPATCH);
     pthread_mutex_unlock(&mutex_proceso_exec);
     
@@ -99,6 +103,7 @@ void peticion_fin_quantum() {
     
     if (proceso_finalizado_por_consola == 1) {
         proceso_finalizado_por_consola = 0;
+        liberar_pcb(proceso_en_exec);
         return;
     }
 
@@ -389,15 +394,14 @@ void peticion_IO() {
     t_list *interfaz_y_argumentos = recv_interfaz_y_argumentos(config_kernel->SOCKET_DISPATCH, pid);
     
     // Obtenemos los argumentos:
-    tipo_operacion *operacion = list_get(interfaz_y_argumentos, 0);
-    char *nombre_interfaz = list_get(interfaz_y_argumentos, 1); 
-    t_list *args = list_get(interfaz_y_argumentos, 2);
+    tipo_operacion *operacion = list_remove(interfaz_y_argumentos, 0);
+    char *nombre_interfaz = list_remove(interfaz_y_argumentos, 0); 
+    t_list *args = list_remove(interfaz_y_argumentos, 0);
     
     log_info(logger, "Operación: %i - Interfaz: %s", *operacion, nombre_interfaz);
 
     // Obtenemos la interfaz:
     interface_io* interface = get_interface_from_dict(nombre_interfaz);
-    log_error(logger, "LLEGO?");
 
     // Verificamos si la interfaz existe y si acepta la operación:
     if (!interface) {
@@ -405,30 +409,26 @@ void peticion_IO() {
         free(nombre_interfaz);
         return;
     }
-    log_error(logger, "LLEGO?");
 
     if (!acepta_operacion_interfaz(interface, *operacion)) {
         finalizar_por_invalidacion(proceso_en_exec, "INVALID_INTERFACE");
         free(nombre_interfaz);
         return;
     }
-    log_error(logger, "LLEGO?");
 
     if(!interface->esta_conectado) {
         finalizar_por_invalidacion(proceso_en_exec, "DISCONNECTED_INTERFACE");
         free(nombre_interfaz);
         return;
     }
-    log_error(logger, "LLEGO?");
 
     if(strcmp(config_kernel->ALGORITMO_PLANIFICACION, "VRR") == 0) {
         sem_wait(&sem_vrr);
-        log_error(logger, "ADSAD");
         pthread_mutex_lock(&mutex_proceso_exec);
         proceso_en_exec->quantum = quantum_restante;
         pthread_mutex_unlock(&mutex_proceso_exec);
     }
-    log_error(logger, "LLEGO?");
+
     log_info(logger, "Interfaz: %s - PID: %i", nombre_interfaz, proceso_en_exec->pid);
 
     pthread_mutex_lock(&mutex_proceso_exec);
@@ -441,8 +441,9 @@ void peticion_IO() {
     sem_post(&interface->size_blocked);
 
     // Liberamos recursos:
+    free(nombre_interfaz);
+    list_destroy(interfaz_y_argumentos);
     puede_ejecutar_otro_proceso();
-
 }
 
 
@@ -465,7 +466,8 @@ void rcv_nombre_recurso(char** recurso, int socket) {
     
         memcpy(*recurso, buffer + desplazamiento, tamanio);
         desplazamiento += tamanio + 1;
-          
+        
+    free(buffer);     
 }
 
 

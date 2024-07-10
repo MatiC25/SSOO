@@ -322,7 +322,7 @@ void* planificador_corto_plazo_RoundRobin(void* arg) {
 
 
 void* planificacion_cortoplazo_VRR() {
-        sem_wait(&habilitar_corto_plazo);
+    sem_wait(&habilitar_corto_plazo);
 
     while (1) {
         pthread_mutex_lock(&reanudar_plani);
@@ -396,10 +396,9 @@ void* planificacion_cortoplazo_VRR() {
 
         quantum_restante = proceso_en_exec->quantum - tiempo_ejecutado;
         //log_facu(logger, "Quantum Restante: %i", quantum_restante);
-        log_facu(logger, "ESTABLOCK= %i", esta_block);
+
         if(esta_block == 1) {
             sem_post(&sem_vrr);
-            log_facu(logger, "SI?=");
             esta_block = 0;
         }
             
@@ -450,34 +449,57 @@ void enviar_proceso_a_cpu(t_pcb* pcbproceso) {
 
 
 void prevent_from_memory_leaks() {
-
     log_warning(logger, "Limpiando todas las estructuras ...");
 
-    if(cola_prima_VRR) {
-        list_destroy_and_destroy_elements(cola_prima_VRR, free); // Liberar los elementos de la lista
+    if (cola_prima_VRR) {
+        list_destroy_and_destroy_elements(cola_prima_VRR, (void*)free); // Liberar los elementos de la lista
+        cola_prima_VRR = NULL;
     }
 
-    if(cola_block) {
-        list_destroy_and_destroy_elements(cola_block, free); // Liberar los elementos de la lista
+    if (cola_block) {
+        list_destroy_and_destroy_elements(cola_block, (void*)free); // Liberar los elementos de la lista
+        cola_block = NULL;
     }
 
     if (cola_new) {
-        list_destroy_and_destroy_elements(cola_new, free); // Liberar los elementos de la lista
+        list_destroy_and_destroy_elements(cola_new, (void*)free); // Liberar los elementos de la lista
+        cola_new = NULL;
     }
 
     if (cola_ready) {
-        list_destroy_and_destroy_elements(cola_ready, free); // Liberar los elementos de la lista
+        list_destroy_and_destroy_elements(cola_ready, (void*)free); // Liberar los elementos de la lista
+        cola_ready = NULL;
     }
 
-    if(cola_exit) {
-        list_destroy_and_destroy_elements(cola_exit, free); // Liberar los elementos de la lista
+    if (cola_exit) {
+        list_destroy_and_destroy_elements(cola_exit, (void*)free); // Liberar los elementos de la lista
+        cola_exit = NULL;
     }
 
-    for(int i = 0; i < string_array_size(config_kernel->RECURSOS); i++) {
-        if(list_size(colas_resource_block[i]) > 0) {
-            list_destroy_and_destroy_elements(colas_resource_block[i], free);
+    if (colas_resource_block) {
+        for (int i = 0; i < string_array_size(config_kernel->RECURSOS); i++) {
+            if (colas_resource_block[i]) {
+                list_destroy_and_destroy_elements(colas_resource_block[i], (void*)free);
+                colas_resource_block[i] = NULL;
+            }
+        }
+        free(colas_resource_block);
+        colas_resource_block = NULL;
+    }
+
+    liberar_vector_recursos_pedidos();
+}
+
+
+void liberar_vector_recursos_pedidos() {
+    for (int i = 0; i < tam_vector_recursos_pedidos; i++) {
+        if (vector_recursos_pedidos[i].recurso != NULL) {
+            free(vector_recursos_pedidos[i].recurso);
+            vector_recursos_pedidos[i].recurso = NULL;
         }
     }
+    free(vector_recursos_pedidos);
+    vector_recursos_pedidos = NULL;
 }
 
 

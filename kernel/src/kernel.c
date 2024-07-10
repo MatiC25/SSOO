@@ -20,6 +20,7 @@ int main(int argc, char *argv[]) {
     iniciar_consola();
 
     finalizar_programa();
-
+    liberar_comandos(comandos);
+    
     return 0;
 }

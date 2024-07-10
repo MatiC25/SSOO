@@ -1,7 +1,7 @@
 #include "io.h"
 
 int main(int argc, char *argv[]) {
-    char *name_interfaz = "MONITOR";
+    char *name_interfaz = "GENERICA";
     char *config_path = "./entradasalida.config";
 
     logger = log_create("io.log", "IO", 1, LOG_LEVEL_TRACE);

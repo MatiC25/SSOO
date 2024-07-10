@@ -43,6 +43,7 @@ void iniciar_consola() {
         }
 
         free(linea);
+        free(operacion); //cambiado
     }
 }
 
@@ -76,7 +77,7 @@ int ejecutar_comando(char* linea) {
     palabra = linea + i;
 
     ((comando->funcion)(palabra));
-
+    free(palabra); //cambiado
     return 1;
 }
 
@@ -108,7 +109,7 @@ char** completar_CComenta(const char* texto, int inicio, int fin) {
 
 
 char* generador_de_comandos(const char* texto, int estado) {
-    static int lista_index, len;
+    static int lista_index, len; //liberar
     char* nombre;
 
     if (!estado) {
@@ -122,6 +123,7 @@ char* generador_de_comandos(const char* texto, int estado) {
         if (strncmp(nombre, texto, len) == 0)
             return strdup(nombre);
     }
+    free(nombre);
 
     return NULL;
 }
@@ -130,7 +132,17 @@ char* generador_de_comandos(const char* texto, int estado) {
 void* iniciar_proceso(void* args) {
     char *path = (char*) args; // Path del archivo a ejecutar
 
-    creacion_proceso(path); // Invocamos a la función que crea el proceso
+    // Copiar el path si es necesario, para evitar usar directamente el puntero args
+    char *path_copy = strdup(path);
+    if (!path_copy) {
+        log_error(logger, "Error al duplicar el path del proceso");
+        return NULL;
+    }
+
+    creacion_proceso(path_copy); // Invocamos a la función que crea el proceso
+
+    free(path_copy); // Liberamos el path duplicado después de su uso
+    free(path);
     return NULL;
 }
 
@@ -155,6 +167,7 @@ void* proceso_estado(void* args) {
     pthread_mutex_lock(&mutex_exit);
     imprimir_procesos_en_cola("EXIT", cola_exit);
     pthread_mutex_unlock(&mutex_exit);
+
 
     return NULL;
 }
@@ -200,6 +213,7 @@ void* multiprogramacion(void* args) {
     }
     config_kernel->GRADO_MULTIP = nuevo_grado_multiprogramacion;
     return NULL;
+    free(multiprogramacion);
 }
 
 
@@ -226,17 +240,19 @@ void* ejecutar_script(void* args) {
     FILE* archivo_script = fopen(path_nuevo, "r");
     if (!archivo_script) {
         log_error(logger, "¡Archivo de script erroneo!");
-        free(path_nuevo);
+        free(path_nuevo); // Liberar path_nuevo en caso de error
         return NULL;
     }
 
     char comando[MAX_COMMAND_LETTERS];
     while (fgets(comando, sizeof(comando), archivo_script)) {
-        comando[strcspn(comando, CENTINELA)] = '\0';
+        comando[strcspn(comando, "\n")] = '\0'; // Eliminar el salto de línea si existe
         ejecutar_comando(comando);
     }
     
     fclose(archivo_script);
+    free(script_path);
+    free(path_inicial);
     free(path_nuevo);
     return NULL;
 }
@@ -248,13 +264,10 @@ void* finalizar_proceso(void* pid) {
     pthread_mutex_lock(&mutex_estado_exec);
     if (proceso_en_exec != NULL && pid_buscado == proceso_en_exec->pid) {
         proceso_finalizado_por_consola = 1;
-        //sem_wait(&desalojo_proceso);
         informar_a_memoria_liberacion_proceso(pid_buscado);
         finalizar_por_invalidacion(proceso_en_exec, "INTERRUPTED_BY_USER");
         log_info(logger, "Proceso a Finalizar encontrado en EXEC");
         pthread_mutex_unlock(&mutex_estado_exec);
-        //sem_post(&desalojo_proceso);
-        // liberar_pcb(proceso_en_exec); //si libero me rompe todo
     } else {
         pthread_mutex_unlock(&mutex_estado_exec);
 
@@ -288,7 +301,9 @@ void* finalizar_proceso(void* pid) {
                 }
             }
         }
+        liberar_pcb(pcb);
     }
+    
     return NULL;
 }
 
