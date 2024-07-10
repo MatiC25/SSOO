@@ -67,7 +67,7 @@ void cargar_configuraciones(t_config_kernel* config_kernel, char *path_config) {
 	cargar_valores_de_grado_multiprogramacion(config, config_kernel);
 
 	info_config(config);
-	config_destroy(config);
+	//config_destroy(config);
 }
 // Funciones para cargar valores:
 

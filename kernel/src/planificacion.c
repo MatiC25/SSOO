@@ -16,6 +16,7 @@ sem_t desalojo_proceso;
 sem_t hay_proceso_exec;
 sem_t hay_proceso_en_bloq;
 sem_t sem_vrr;
+sem_t sem_proceso_create;
 
 int pid = 0;
 int pid_buscado_temporal = 0;
@@ -49,6 +50,7 @@ void inicializacion_semaforos() {
     sem_init(&hay_proceso_exec, 0, 1);
     sem_init(&hay_proceso_en_bloq, 0, 0);
     sem_init(&sem_vrr, 0, 0);
+    sem_init(&sem_proceso_create, 0, 1);
 }
 
 
@@ -86,14 +88,26 @@ void creacion_proceso(char *archivo_de_proceso) {
 
     pcb->quantum = config_kernel->QUANTUM;
     pcb->estado = NEW;
-    
+    pcb->registros->PC = 0;
+    pcb->registros->AX = 0;
+    pcb->registros->BX = 0;
+    pcb->registros->CX = 0;
+    pcb->registros->DX = 0;
+    pcb->registros->EAX = 0;
+    pcb->registros->EBX = 0;
+    pcb->registros->ECX = 0;
+    pcb->registros->EDX = 0;
+    pcb->registros->SI = 0;
+    pcb->registros->DI = 0;
+
     log_info(logger, "Se crea el proceso %i en NEW \n", pcb->pid);
     informar_a_memoria_creacion_proceso(archivo_de_proceso, pcb->pid);
 
     int response;
     int socket_memoria = config_kernel->SOCKET_MEMORIA;
 
-    recv(socket_memoria, &response, sizeof(int), 0);
+    recv(socket_memoria, &response, sizeof(int), MSG_WAITALL);
+    log_facu(logger, "Respuesta: %i", response);
 
     if (response == 1) {
         agregar_a_cola_estado_new(pcb);

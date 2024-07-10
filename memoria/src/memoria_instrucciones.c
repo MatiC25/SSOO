@@ -44,7 +44,7 @@ void leer_archivoPseudo(int socket_kernel) {
     desplazamiento += sizeof(int);
 
     // Recibimos el nombre del archivo:
-    char* archivo_path = malloc(tam);
+    char* archivo_path = malloc(tam + 1);
     memcpy(archivo_path, buffer + desplazamiento, tam);
     log_info(logger, "Nombre del archivo recibido: %s", archivo_path);
 
@@ -92,8 +92,6 @@ void leer_archivoPseudo(int socket_kernel) {
 
     agregar_a_diccionario_instrucciones(pid, lista_de_instrucciones);
 
-    free(path);
-    free(buffer);
     free(archivo_path);
     fclose(archivo);
 }

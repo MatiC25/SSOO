@@ -29,10 +29,12 @@ void* escuchar_peticiones(void* args){
             handshake_desde_memoria(socket_cliente);
             break;
         case INICIAR_PROCESO:
+            // sem_wait(&sem_lectura_archivo);
             log_info(logger, "Iniciando proceso");
             retardo_pedido(config_memoria -> retardo_respuesta);
             leer_archivoPseudo(socket_cliente);
             enviar_respuesta_a_kernel(socket_cliente);
+            // sem_wait(&sem_lectura_archivo);
             break;
         case FINALIZAR_PROCESO:
             retardo_pedido(config_memoria -> retardo_respuesta);
@@ -83,7 +85,7 @@ void handshake_desde_memoria(int socket_cliente) {
 void enviar_respuesta_a_kernel(int socket_cliente) {
     int respuesta = 1;
 
-    send(socket_cliente, &respuesta, sizeof(int), 0);
+    send(socket_cliente, &respuesta, sizeof(int), MSG_WAITALL);
 }
 
 

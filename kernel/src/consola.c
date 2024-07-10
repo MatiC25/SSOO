@@ -43,7 +43,7 @@ void iniciar_consola() {
         }
 
         free(linea);
-        free(operacion); //cambiado
+        //free(operacion); //cambiado
     }
 }
 
@@ -77,7 +77,7 @@ int ejecutar_comando(char* linea) {
     palabra = linea + i;
 
     ((comando->funcion)(palabra));
-    free(palabra); //cambiado
+ //cambiado
     return 1;
 }
 
@@ -143,7 +143,7 @@ void* iniciar_proceso(void* args) {
     creacion_proceso(path_copy); // Invocamos a la función que crea el proceso
 
     free(path_copy); // Liberamos el path duplicado después de su uso
-    free(path);  // Liberar el argumento original
+    //free(path);  // Liberar el argumento original
     return NULL;
 }
 
@@ -188,7 +188,7 @@ void imprimir_procesos_en_cola(char* estado, t_list* cola) {
 
 void imprimir_proceso_exec() {
     pthread_mutex_lock(&mutex_estado_exec);
-    if(proceso_en_exec->estado == EXEC) {
+    if(proceso_en_exec && proceso_en_exec->estado == EXEC) {
         log_info(logger, "Estado EXEC:\n");
         if (proceso_en_exec) {
             log_info(logger, "Proceso en EXEC: %d\n", proceso_en_exec->pid);
@@ -231,12 +231,14 @@ void* ejecutar_script(void* args) {
         log_error(logger, "Error al asignar memoria para path_nuevo");
         return NULL;
     }
-
+    log_warning(logger, "PATH: %s", script_path);
+    log_warning(logger, "PATH2: %s", path_inicial);
     // Copiar path_inicial a path_nuevo
     strcpy(path_nuevo, path_inicial);
 
     // Concatenar script_path a path_nuevo
     strcat(path_nuevo, script_path);
+    log_warning(logger, "PATH2: %s", path_inicial);
 
     FILE* archivo_script = fopen(path_nuevo, "r");
     if (!archivo_script) {
@@ -248,13 +250,13 @@ void* ejecutar_script(void* args) {
     char comando[MAX_COMMAND_LETTERS];
     while (fgets(comando, sizeof(comando), archivo_script)) {
         comando[strcspn(comando, "\n")] = '\0'; // Eliminar el salto de línea si existe
+        log_nico(logger2, "Ejecutando comando: %s", comando);
         ejecutar_comando(comando);
     }
     
     fclose(archivo_script);
-    free(script_path);
-    free(path_inicial);
     free(path_nuevo);
+
     return NULL;
 }
 
@@ -265,7 +267,6 @@ void* finalizar_proceso(void* pid) {
     pthread_mutex_lock(&mutex_estado_exec);
     if (proceso_en_exec != NULL && pid_buscado == proceso_en_exec->pid) {
         proceso_finalizado_por_consola = 1;
-        informar_a_memoria_liberacion_proceso(pid_buscado);
         finalizar_por_invalidacion(proceso_en_exec, "INTERRUPTED_BY_USER");
         log_info(logger, "Proceso a Finalizar encontrado en EXEC");
         pthread_mutex_unlock(&mutex_estado_exec);
@@ -276,14 +277,12 @@ void* finalizar_proceso(void* pid) {
         if (pcb && list_remove_element(cola_block, pcb)) {
             eliminar_proceso_de_cola_recursos(pcb->pid);
             finalizar_por_invalidacion(pcb, "INTERRUPTED_BY_USER");
-            informar_a_memoria_liberacion_proceso(pid_buscado);
             log_info(logger, "Proceso a Finalizar encontrado en BLOCK");
         } else {
             pthread_mutex_lock(&mutex_estado_ready);
             pcb = pcb_encontrado(cola_ready, pid_buscado);
             if (pcb && list_remove_element(cola_ready, pcb)) {
                 finalizar_por_invalidacion(pcb, "INTERRUPTED_BY_USER");
-                informar_a_memoria_liberacion_proceso(pid_buscado);
                 log_info(logger, "Proceso a Finalizar encontrado en READY");
                 pthread_mutex_unlock(&mutex_estado_ready);
             } else {
@@ -293,7 +292,6 @@ void* finalizar_proceso(void* pid) {
                 pcb = pcb_encontrado(cola_prima_VRR, pid_buscado);
                 if (pcb && list_remove_element(cola_prima_VRR, pcb)) {
                     finalizar_por_invalidacion(pcb, "INTERRUPTED_BY_USER");
-                    informar_a_memoria_liberacion_proceso(pid_buscado);
                     log_info(logger, "Proceso a Finalizar encontrado en READY_VRR");
                     pthread_mutex_unlock(&mutex_cola_priori_vrr);
                 } else {
@@ -302,9 +300,9 @@ void* finalizar_proceso(void* pid) {
                 }
             }
         }
-        liberar_procesos(pcb);
+            liberar_procesos(pcb);
     }
-    
+
     return NULL;
 }
 
