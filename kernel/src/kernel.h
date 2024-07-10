@@ -7,4 +7,8 @@
 #include "kernel-conexiones.h"
 #include "consola.h"
 
+
+
+
+
 #endif // KERNEL_H

@@ -49,7 +49,11 @@ void manage_interface(void *socket_cliente) {
 void create_consumer_thread(char *interface_name) {
     pthread_t consumer_thread;
 
-    pthread_create(&consumer_thread, NULL, (void*) consumers_pcbs_blockeds, (void *) interface_name);
+    // Crear un hilo consumidor y manejar cualquier error de creación
+    if (pthread_create(&consumer_thread, NULL, consumers_pcbs_blockeds, (void *) interface_name) != 0) {
+        perror("Error al crear el hilo consumidor");
+        exit(EXIT_FAILURE);
+    }
     pthread_detach(consumer_thread);
 }
 
@@ -68,29 +72,34 @@ void consumers_pcbs_blockeds(void *args) {
         int response = 0;
         
         int buffer;
-        int sigue_conectado = recv(socket_with_interface, buffer, sizeof(int), MSG_PEEK | MSG_DONTWAIT);
+        int sigue_conectado = recv(socket_with_interface, &buffer, sizeof(int), MSG_PEEK | MSG_DONTWAIT);
 
-        if(sigue_conectado == 0) {
+        if (sigue_conectado == 0) {
             interface->esta_conectado = 0;  
-            log_warning(logger,"Interfaz: %s - Desconectada", interface_name);
+            log_warning(logger, "Interfaz: %s - Desconectada", interface_name);
 
             sem_post(&interface->size_blocked);
-            queue_push(interface->process_blocked,pcb);
+            queue_push(interface->process_blocked, pcb);
             queue_push(interface->args_process, args_pcb);
 
-            return;
+            break; // Cambiar return a break para salir del loop y limpiar
         }
 
         log_info(logger, "Proceso: %d - Enviando a interfaz: %s", pcb->pid, interface_name);
         send_message_to_interface(interface, args_pcb, &response, socket_with_interface);
 
-        if(response == 1) {
+        if (response == 1) {
             log_warning(logger, "Proceso: %d - Terminado por: %s", pcb->pid, interface_name);
             mover_procesos_de_bloqueado_a_ready(pcb);
         }
 
         sem_post(&interface->semaforo_used);
+        list_destroy_and_destroy_elements(args_pcb, free);
+        liberar_pcb(pcb); // Corrección: liberar pcb en lugar de args_pcb
     }
+
+    // Limpiar recursos cuando se desconecta
+    pthread_exit(NULL); // Finaliza el hilo limpiamente
 }
 
 // Funciones manipuladoras de interfaz:

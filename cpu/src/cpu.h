@@ -11,7 +11,6 @@
 #include "cpu-ciclo-instrucciones.h"
 
 
-void limpiar_recursos ();
 
 //extern t_pcb* pcb;
 extern t_config_cpu* config_cpu;

@@ -18,6 +18,17 @@
     "kernel-estructuras.h": "c",
     "kernel-peticiones-dispatch.h": "c",
     "kernel-protocolo.h": "c",
-    "dictionary.h": "c"
+    "dictionary.h": "c",
+    "kernel.h": "c",
+    "math.h": "c",
+    "protocolo.h": "c",
+    "cpu.h": "c",
+    "cpu-estructuras.h": "c",
+    "signal.h": "c",
+    "socket.h": "c",
+    "string.h": "c",
+    "unistd.h": "c",
+    "stdio.h": "c",
+    "stdlib.h": "c"
   }
 }

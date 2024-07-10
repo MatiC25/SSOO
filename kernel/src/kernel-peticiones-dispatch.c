@@ -87,23 +87,31 @@ const char* transformar_motivos_a_exit(t_tipo_instruccion* motivo_inicial) {
 
 
 void peticion_fin_quantum() {
-
     pthread_mutex_lock(&mutex_proceso_exec);
     if (proceso_en_exec != NULL) {
         liberar_pcb(proceso_en_exec);
         proceso_en_exec = NULL;
     }
-    proceso_en_exec = rcv_contexto_ejecucion(config_kernel->SOCKET_DISPATCH);
+
+    t_pcb *pcb_temp = rcv_contexto_ejecucion(config_kernel->SOCKET_DISPATCH);
+    if (pcb_temp != NULL) {
+        proceso_en_exec = pcb_temp;
+    }
+    
     pthread_mutex_unlock(&mutex_proceso_exec);
     
     if (!proceso_en_exec) {
         log_error(logger, "Dispatch acaba de recibir algo inexistente!");
+        if (pcb_temp != NULL) {
+            liberar_pcb(pcb_temp);
+        }
         return;
     }
     
     if (proceso_finalizado_por_consola == 1) {
         proceso_finalizado_por_consola = 0;
         liberar_pcb(proceso_en_exec);
+        proceso_en_exec = NULL; // Reiniciar el puntero después de liberar
         return;
     }
 
@@ -118,7 +126,6 @@ void peticion_fin_quantum() {
     sem_post(&desalojo_proceso);
 
     log_warning(logger, "PID: %i - Desalojado por fin de Quantum", proceso_en_exec->pid);
-
 
     sem_post(&hay_en_estado_ready);
     puede_ejecutar_otro_proceso();
@@ -291,14 +298,12 @@ void peticion_signal() {
 }
 
 
-void liberar_pcb(t_pcb* pcb){
-  if (pcb != NULL) {
+void liberar_pcb(t_pcb* pcb) {
+    if (pcb != NULL) {
         if (pcb->registros != NULL) {
-            if (pcb->registros != NULL) {
-                free(pcb->registros); // Liberar el arreglo dentro de Registros
-            }
+            free(pcb->registros);
         }
-        free(pcb); // Liberar la estructura PCB
+        free(pcb);
     }
 }
 
@@ -441,7 +446,6 @@ void peticion_IO() {
     sem_post(&interface->size_blocked);
 
     // Liberamos recursos:
-    free(nombre_interfaz);
     list_destroy(interfaz_y_argumentos);
     puede_ejecutar_otro_proceso();
 }

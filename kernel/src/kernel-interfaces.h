@@ -17,7 +17,6 @@
 
 // Variables globales:
 extern sem_t semaforo_interfaces;
-
 // Funciones de manejo de interfaz desde el lado del kernel:
 void handle_new_interface(void* arg);
 void manage_interface(void *socket_cliente);

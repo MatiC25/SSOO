@@ -342,7 +342,7 @@ void* planificacion_cortoplazo_VRR() {
             pthread_mutex_unlock(&mutex_cola_priori_vrr);
             
             if (proceso_en_exec) {
-                log_facu(logger, "¡Se encontró un proceso en Cola Prima!");
+                log_info(logger, "¡Se encontró un proceso en Cola Prima!");
             } else {
                 log_error(logger, "Error al obtener un proceso de la Cola Prima");
             }
@@ -355,7 +355,7 @@ void* planificacion_cortoplazo_VRR() {
             pthread_mutex_unlock(&mutex_estado_ready);
             
             if (proceso_en_exec) {
-                log_facu(logger, "¡Se encontró un proceso en Cola Normal!");
+                log_info(logger, "¡Se encontró un proceso en Cola Normal!");
             } else {
                 log_error(logger, "Error al obtener un proceso de la Cola Normal");
             }
@@ -395,16 +395,13 @@ void* planificacion_cortoplazo_VRR() {
         temporal_destroy(tiempo_de_ejecucion);
 
         quantum_restante = proceso_en_exec->quantum - tiempo_ejecutado;
-        //log_facu(logger, "Quantum Restante: %i", quantum_restante);
 
-        if(esta_block == 1) {
+        if (esta_block == 1) {
             sem_post(&sem_vrr);
             esta_block = 0;
         }
-            
-        
     }
-    
+    return NULL;
 }
 
 

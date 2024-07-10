@@ -72,7 +72,7 @@ char* comunicaciones_con_memoria_lectura_copy_string(t_mmu_cpu* mmu) {
 
     char* palabra = malloc(total_tam + 1);
     if (palabra == NULL) {
-        log_warning(logger, "NO HAY MEMORIA TONTISSS");
+        log_warning(logger, "No hay sufifiente espacio");
         return NULL;
     }
 
@@ -188,7 +188,7 @@ int comunicaciones_con_memoria_escritura_copy_string(t_mmu_cpu* mmu, char* valor
         free(palabra_parte);
     }
 
-    log_info(logger, "PALABRA RECONSTRUIDA: %s", palbara_reconstruida);
+    log_info(logger, "Palabra reconstruida: %s", palbara_reconstruida);
     free(palbara_reconstruida);
     return verificador;
     
@@ -253,7 +253,7 @@ int comunicaciones_con_memoria_escritura(t_mmu_cpu* mmu, int valor) {
         free(registro_parte);
     }
 
-    log_info(logger, "VALOR RECONSTRUIDO: %i", registro_reconstruido);
+    log_info(logger, "Valor reconstruido: %i", registro_reconstruido);
     return verificador;
 }
 
@@ -285,51 +285,39 @@ t_pcb_cpu* rcv_contexto_ejecucion_cpu(int socket_cliente) {
 
     memcpy(&proceso->pid, buffer + desplazamiento, sizeof(int));
     desplazamiento += sizeof(int);
-    //log_info(logger,"PID: %i", proceso->pid);
 
     memcpy(&proceso->registros->PC, buffer + desplazamiento, sizeof(uint32_t));
     desplazamiento += sizeof(uint32_t);
-    //log_info(logger,"Reg PC:%i",proceso->registros->PC);
 
     memcpy(&proceso->registros->AX, buffer + desplazamiento, sizeof(uint8_t));
     desplazamiento += sizeof(uint8_t);
-    //log_info(logger,"Reg AX:%i",proceso->registros->AX);
 
     memcpy(&proceso->registros->BX, buffer + desplazamiento, sizeof(uint8_t));
     desplazamiento += sizeof(uint8_t);
-    //log_info(logger,"Reg BX:%i",proceso->registros->BX);
 
     memcpy(&proceso->registros->CX, buffer + desplazamiento, sizeof(uint8_t));
     desplazamiento += sizeof(uint8_t);
-    //log_info(logger,"Reg CX:%i",proceso->registros->CX);
 
     memcpy(&proceso->registros->DX, buffer + desplazamiento, sizeof(uint8_t));
     desplazamiento += sizeof(uint8_t);
-   //log_info(logger,"Reg DX:%i",proceso->registros->DX);
 
     memcpy(&proceso->registros->EAX, buffer + desplazamiento, sizeof(uint32_t));
     desplazamiento += sizeof(uint32_t);
-    //log_info(logger,"Reg EAX:%i",proceso->registros->EAX);
 
     memcpy(&proceso->registros->EBX, buffer + desplazamiento, sizeof(uint32_t));
     desplazamiento += sizeof(uint32_t);
-    //log_info(logger,"Reg EBX:%i",proceso->registros->EBX);
 
     memcpy(&proceso->registros->ECX, buffer + desplazamiento, sizeof(uint32_t));
     desplazamiento += sizeof(uint32_t);
-    //log_info(logger,"Reg ECX:%i",proceso->registros->ECX);
 
     memcpy(&proceso->registros->EDX, buffer + desplazamiento, sizeof(uint32_t));
     desplazamiento += sizeof(uint32_t);
-    //log_info(logger,"Reg EDX:%i",proceso->registros->EDX);
 
     memcpy(&proceso->registros->SI, buffer + desplazamiento, sizeof(uint32_t));
     desplazamiento += sizeof(uint32_t);
-    //log_info(logger,"Reg SI:%i",proceso->registros->SI);
 
     memcpy(&proceso->registros->DI, buffer + desplazamiento, sizeof(uint32_t));
     desplazamiento += sizeof(uint32_t);
-    //log_info(logger,"Reg DI:%i",proceso->registros->DI);
 
     free(buffer);
     return proceso;
@@ -360,11 +348,8 @@ t_pcb_cpu* rcv_contexto_ejecucion_cpu(int socket_cliente) {
 void enviar_a_leer_memoria(int pid,int direccionFIsica, int tamanio){
     t_paquete* solicitud_lectura = crear_paquete(ACCESO_A_LECTURA);
     agregar_a_paquete(solicitud_lectura, &pid , sizeof(int));
-    log_warning(logger, "PID:%i", pid);
     agregar_a_paquete(solicitud_lectura, &direccionFIsica,sizeof(int));
-    log_warning(logger, "DIRECCION FISICA:%i", direccionFIsica);
     agregar_a_paquete(solicitud_lectura, &tamanio,sizeof(int));
-    log_warning(logger, "TAMAÑO DE LECTURA:%i", tamanio);
     enviar_paquete(solicitud_lectura, config_cpu->SOCKET_MEMORIA);
     eliminar_paquete(solicitud_lectura);
 }
@@ -413,9 +398,7 @@ void solicitar_tablas_a_memoria(int numero_pagina){
 
     t_paquete* paquete_tablas = crear_paquete(ACCEDER_TABLA_PAGINAS);
     agregar_a_paquete(paquete_tablas,&pcb->pid,sizeof(int));
-    //log_warning(logger, "PID: %i", pcb->pid);
     agregar_a_paquete(paquete_tablas,&numero_pagina,sizeof(int));
-    //log_warning(logger, "Nro PAgina: %i", numero_pagina);
     enviar_paquete(paquete_tablas, config_cpu->SOCKET_MEMORIA);
 
     eliminar_paquete(paquete_tablas);
@@ -440,12 +423,6 @@ t_tabla_de_paginas_cpu* recv_tablas(){
         free(tabla);
         return NULL;
     }
-    // memcpy(&tabla->pid, buffer + desplazamiento, sizeof(int));
-    // desplazamiento += sizeof(int);
-
-    // memcpy(&tabla->nropagina, buffer + desplazamiento, sizeof(int));
-    // desplazamiento += sizeof(int);
-
     memcpy(&tabla->marco, buffer + desplazamiento, sizeof(int));
     desplazamiento += sizeof(int);
 
@@ -498,7 +475,6 @@ void solicitar_a_kernel_std(char* interfaz , t_mmu_cpu* mmu ,t_paquete* solicita
 
     int respuesta;
     recv(config_cpu->SOCKET_KERNEL, &respuesta , sizeof(int), MSG_WAITALL);
-    log_warning(logger, "RESPUESTA:%d", respuesta);
     if(respuesta == 1) {
         //log_info(logger, "Hola!");
         agregar_a_paquete_string(solicitar_std ,interfaz,strlen(interfaz) + 1);
@@ -509,17 +485,12 @@ void solicitar_a_kernel_std(char* interfaz , t_mmu_cpu* mmu ,t_paquete* solicita
             int tamanio = *ptr_tamanio;
             int direc_fisica = *direccion_fisica;
 
-            log_info(logger, "DIRECCION FISICA:%i", direc_fisica);
-            log_info(logger, "TAMANIO: %i", tamanio);
-
             agregar_a_paquete(solicitar_std, &direc_fisica, sizeof(int));
             agregar_a_paquete(solicitar_std, &tamanio, sizeof(int));
         }
 
         enviar_paquete(solicitar_std, config_cpu->SOCKET_KERNEL);
         eliminar_paquete(solicitar_std);
-       // mostrar_pcb(pcb);
-        //log_info(logger, "Hola!");
     } else
         log_error(logger , "Erro en la respuesta de desalojo de I/O");
 }
@@ -555,3 +526,5 @@ char* filtrar_nueva_linea(char* cadena) {
     resultado[j] = '\0';
     return resultado;
 }
+
+

@@ -11,6 +11,7 @@ int main(int argc, char *argv[]) {
     logger2 = log_create2("kernel.log", "KERNEL", 1, LOG_LEVEL_MATI);
     config_kernel = cargar_config_kernel(config_path);
 
+    close_signal();
     // Generar conexiones con memoria y cpu:
     generar_conexiones_con();
     
@@ -18,9 +19,7 @@ int main(int argc, char *argv[]) {
     int socket_servidor = crear_servidor_kernel();
     iniciar_modulo_kernel(socket_servidor);
     iniciar_consola();
-
     finalizar_programa();
-    liberar_comandos(comandos);
     
     return 0;
 }

@@ -242,7 +242,7 @@ void rcv_nombre_interfaz_dispatch(char **interface_name, int socket) {
     free(buffer);
 }
 
-t_list * recv_interfaz_y_argumentos(int socket, int pid_proceso) {
+t_list *recv_interfaz_y_argumentos(int socket, int pid_proceso) {
     int size;
     int desplazamiento = 0;
 
@@ -266,11 +266,11 @@ t_list * recv_interfaz_y_argumentos(int socket, int pid_proceso) {
     t_list *argumentos = obtener_argumentos(buffer, &desplazamiento, size, operacion_a_realizar, pid_proceso);
     list_add(interfaz_y_argumentos, argumentos);
 
-    free(operacion_a_realizar);
-    free(nombre_interfaz);
+    // No liberamos `operacion_a_realizar` ni `nombre_interfaz` aquí porque ya están en la lista y se deben liberar al destruir la lista.
     free(buffer);
     return interfaz_y_argumentos;
 }
+
 
 // 3. Funciones auxiliares:
 
