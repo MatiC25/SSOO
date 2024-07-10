@@ -31,7 +31,7 @@ void ejecutar_operacion_generica(t_interfaz * interfaz) {
         log_info(logger, "Tiempo de espera de segundos: %d", *tiempo_espera * tiempo_unidad);
 
         // Esperamos el tiempo de espera:
-        sleep(*tiempo_espera * tiempo_unidad);
+        usleep(*tiempo_espera * tiempo_unidad);
 
         // Enviamos la respuesta al kernel:
         send_respuesta_a_kernel(1, interfaz);
@@ -60,7 +60,8 @@ void ejecutar_operacion_stdin(t_interfaz *interfaz) {
         int *pid_proceso = list_remove(argumentos, 0);
         int *tipo_operacion = list_remove(argumentos, 0);
         t_list *direcciones = list_remove(argumentos, 0);
-        char *operacion = get_nombre_operacion(*tipo_operacion);
+        char *operacion = string_new();
+        string_append(&operacion, get_nombre_operacion(*tipo_operacion));
 
         // Logeamos la operación:
         log_info(logger, "PID: %d - Operacion: %s", *pid_proceso, operacion);
@@ -100,7 +101,6 @@ void ejecutar_operacion_stdin(t_interfaz *interfaz) {
 
         // Liberamos la lista de argumentos
         list_destroy(argumentos);
-        list_destroy(direcciones);
     }
 }
 
@@ -152,13 +152,14 @@ void ejecutar_operaciones_dialFS(t_interfaz *interfaz) {
     int size = list_size(archivos_ya_abiertos);
 
     // Obtenemos el modo de apertura:
-    char *modo_de_apertura = get_modo_de_apertura(size);
+    char *modo_de_apertura = string_new();
+    string_append(&modo_de_apertura, get_modo_de_apertura(size));
 
     // Abrimos los archivos necesarios:
     archivo_bloque = abrir_archivo_bloques(interfaz, modo_de_apertura);
     bitmap = crear_bitmap(interfaz, modo_de_apertura);
 
-    // Liberamos el modo de apertura:
+    // Liberamos la memoria:
     free(modo_de_apertura);
 
     while(1) {
@@ -167,7 +168,8 @@ void ejecutar_operaciones_dialFS(t_interfaz *interfaz) {
 
         // Obtenemos los pid y el tipo de operacion:
         int *pid_proceso = list_get(argumentos, 0);
-        char *operacion_string = get_nombre_operacion(operacion);
+        char *operacion_string = string_new();
+        string_append(&operacion_string, get_nombre_operacion(operacion));
 
         // Logeamos la operación:
         log_info(logger, "PID: %d - Operacion: %s", *pid_proceso, operacion_string);

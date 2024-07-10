@@ -1,11 +1,18 @@
 #include "io-operaciones-dialfs.h"
 
 void operacion_create_file(t_interfaz *interfaz, t_bitarray *bitmap, t_list *argumentos, t_list *archivos_ya_abiertos) {
+    int *pid_proceso = list_remove(argumentos, 0);
     char *nombre_archivo = list_remove(argumentos, 0);
+
+    // Logeamos la operación:
+    log_info(logger, "PID: %i - Crear Archivo: %s", *pid_proceso, nombre_archivo);
 
     // Primero verificamos si el archivo ya se encuentra abierto:
     if(ya_esta_abierto(archivos_ya_abiertos, nombre_archivo)) {
         log_error(logger, "El archivo ya se encuentra abierto");
+
+        // Liberamos la memoria utilizada:
+        free(nombre_archivo);
 
         return;
     }
@@ -32,10 +39,6 @@ void operacion_create_file(t_interfaz *interfaz, t_bitarray *bitmap, t_list *arg
     // Logeamos la operación:
     log_info(logger, "Se creo el archivo %s", nombre_archivo);
     log_info(logger, "Bloque inicial: %d", bloque_inicial);
-
-    // Liberamos la memoria utilizada:
-    free(nombre_archivo);
-    free(archivo_metadata);
 }
 
 void operacion_write_file(t_interfaz *interfaz, FILE *bloques, t_list *argumentos, t_list *archivos_ya_abiertos) {
@@ -43,15 +46,24 @@ void operacion_write_file(t_interfaz *interfaz, FILE *bloques, t_list *argumento
     char *nombre_archivo = list_remove(argumentos, 0);
     int *offset  = list_remove(argumentos, 0);
     t_list *direcciones_fisicas = list_remove(argumentos, 0);
+    int cantidad_de_bytes = get_total_de_bytes(direcciones_fisicas);
 
     // Logeamos la operación:
-    log_info(logger, "Se va a escribir en el archivo %s", nombre_archivo);
+    log_info(logger, "PID: %i - Escribir Archivo: %s - Tamaño a Escribir: %i - Puntero Archivo: %i", *pid_proceso, nombre_archivo, cantidad_de_bytes, *offset);
 
     // Verificamos si el archivo se encuentra abierto:
     t_archivo_abierto *archivo_abierto = obtener_archivo_abierto(archivos_ya_abiertos, nombre_archivo);
 
     if(!archivo_abierto) {
         log_error(logger, "El archivo no se encuentra abierto");
+
+        // Liberamos la memoria utilizada:
+        free(pid_proceso);
+        free(offset);
+        free(nombre_archivo);
+
+        // Liberamos las direcciones fisicas:
+        list_destroy_and_destroy_elements(direcciones_fisicas, (void *) liberar_direccion_fisica);
 
         return;
     }
@@ -63,7 +75,7 @@ void operacion_write_file(t_interfaz *interfaz, FILE *bloques, t_list *argumento
 
     // Escribimos el contenido en el archivo:
     fseek(bloques, bloque_inicial * get_block_size(interfaz) + *offset , SEEK_SET);
-    fwrite(contenido, sizeof(char), strlen(contenido), bloques);
+    fwrite(contenido, cantidad_de_bytes, 1, bloques);
     fseek(bloques, 0, SEEK_SET);
 
     // Logeamos la operación:
@@ -85,12 +97,25 @@ void operacion_read_file(t_interfaz *interfaz, FILE *bloques, t_list *argumentos
     char *nombre_archivo = list_remove(argumentos, 0);
     int *offset = list_remove(argumentos, 0);
     t_list *direcciones_fisicas = list_remove(argumentos, 0);
+    int cantidad_de_bytes = get_total_de_bytes(direcciones_fisicas);
+
+    // Logeamos la operación:
+    log_info(logger, "PID: %i - Leer Archivo: %s - Tamaño a Leer: %i - Puntero Archivo: %i", *pid_proceso, nombre_archivo, cantidad_de_bytes, *offset);
 
     // Verificamos si el archivo se encuentra abierto:
     t_archivo_abierto *archivo_abierto = obtener_archivo_abierto(archivos_ya_abiertos, nombre_archivo);
 
     if(!archivo_abierto) {
         log_error(logger, "El archivo no se encuentra abierto");
+
+        // Liberamos la memoria utilizada:
+        free(contenido);
+        free(pid_proceso);
+        free(offset);
+        free(nombre_archivo);
+
+        // Liberamos las direcciones fisicas:
+        list_destroy_and_destroy_elements(direcciones_fisicas, (void *) liberar_direccion_fisica);
 
         return;
     }
@@ -125,12 +150,20 @@ void operacion_read_file(t_interfaz *interfaz, FILE *bloques, t_list *argumentos
 }
 
 void operacion_delete_file(t_interfaz *interfaz, t_bitarray *bitmap, t_list *argumentos, t_list *archivos_ya_abiertos) {
-    char *nombre_archivo = list_get(argumentos, 1);
+    int *pid_proceso = list_remove(argumentos, 0);
+    char *nombre_archivo = list_remove(argumentos, 0);
 
+    // Logeamos la operación:
+    log_info(logger, "PID: %i - Eliminar Archivo: %s", *pid_proceso, nombre_archivo);
+
+    // Verificamos si el archivo se encuentra abierto:
     t_archivo_abierto *archivo_abierto = obtener_archivo_abierto(archivos_ya_abiertos, nombre_archivo);
 
     if(!archivo_abierto) {
         log_error(logger, "El archivo no se encuentra abierto");
+
+        // Liberamos la memoria utilizada:
+        free(nombre_archivo);
 
         return;
     }
@@ -150,11 +183,9 @@ void operacion_delete_file(t_interfaz *interfaz, t_bitarray *bitmap, t_list *arg
 
     // Logeamos la operación:
     log_info(logger, "Se elimino el archivo %s", nombre_archivo);
-
+    
     // Liberamos la memoria utilizada:
     free(nombre_archivo);
-    free(archivo_abierto);
-    free(archivo_metadata);
 }
 
 void operacion_truncate_file(t_interfaz *interfaz, FILE *bloques, t_bitarray *bitmap, t_list *argumentos, t_list *archivos_ya_abiertos) {
@@ -162,10 +193,19 @@ void operacion_truncate_file(t_interfaz *interfaz, FILE *bloques, t_bitarray *bi
     char *nombre_archivo = list_remove(argumentos, 0);
     int *nuevo_tamanio = list_remove(argumentos, 0);
 
+    // Logeamos la operación:
+    log_info(logger, "PID: %i - Truncar Archivo: %s - Tamanio: %i", *pid_proceso, nombre_archivo, *nuevo_tamanio);
+
+    // Verificamos si el archivo se encuentra abierto:
     t_archivo_abierto *archivo_abierto = obtener_archivo_abierto(archivos_ya_abiertos, nombre_archivo);
 
     if(!archivo_abierto) {
         log_error(logger, "El archivo no se encuentra abierto");
+
+        // Liberamos la memoria utilizada:
+        free(nombre_archivo);
+        free(pid_proceso);
+        free(nuevo_tamanio);
 
         return;
     }
@@ -200,6 +240,7 @@ void operacion_truncate_file(t_interfaz *interfaz, FILE *bloques, t_bitarray *bi
         } else {
             log_info(logger, "PID: %i - Inicio Compactación.", *pid_proceso);
             compactar_fs(interfaz, bloques, bitmap, archivos_ya_abiertos, archivo_metadata, bloques_necesarios, bloque_inicial, tam_resultante);
+            retardo_compactacion(interfaz);
             log_info(logger, "PID: %i - Fin Compactación.", *pid_proceso);
         }
     }
@@ -220,6 +261,4 @@ void operacion_truncate_file(t_interfaz *interfaz, FILE *bloques, t_bitarray *bi
     free(pid_proceso);
     free(nuevo_tamanio);
     free(nombre_archivo);
-    free(archivo_abierto);
-    free(archivo_metadata);
 }

@@ -124,7 +124,8 @@ void cerrar_archivo_abierto(t_list *archivos_abiertos, char *nombre_archivo) {
         if (strncmp(nombre_archivo_abierto, nombre_archivo, cantidad_de_caracteres) == 0) {
             list_remove(archivos_abiertos, i);
             free(archivo_abierto);
-
+            free(nombre_archivo_abierto);
+            
             return;
         }
     }

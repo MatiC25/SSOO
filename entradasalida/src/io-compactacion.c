@@ -52,9 +52,6 @@ void compactar_fs(t_interfaz  *interfaz, FILE *bloques, t_bitarray *bitmap, t_li
 
                 // Agregamos el buffer a la cola:
                 queue_push(buffers, buffer);
-
-                // Liberamos la memoria utilizada:
-                free(buffer);
             } else {
                 buffer_archivo_a_compactar = malloc(tamanio_archivo_archivo_actual);
                 buffer_archivo_a_compactar = buffer;
@@ -74,7 +71,6 @@ void compactar_fs(t_interfaz  *interfaz, FILE *bloques, t_bitarray *bitmap, t_li
 
     // Liberamos la memoria utilizada:
     cerrar_todos_los_archivos_abiertos(archivos_ordenados);
-    free(buffer_archivo_a_compactar);
 
     // Cambiamos el contenido de los bloques:
     escribir_contenido_en_bloques(bloques, buffers);

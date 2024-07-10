@@ -108,6 +108,11 @@ char *get_nombre_operacion(tipo_operacion operacion) {
     }
 }
 
+// Devuelve la retardo de compactacion:
+int get_retardo_compactacion(t_interfaz *interfaz) {
+    return interfaz->config->RETARDO_COMPACTACION;
+}
+
 // Devuelve si una dirección es mayor, menor o igual a otra:
 int ordenar_direcciones_por_tamanio(void *direccion1, void *direccion2) {
     t_direccion_fisica *dir1 = direccion1;
@@ -213,4 +218,11 @@ void liberar_interfaz(t_interfaz *interfaz) {
 // Funcion para liberar una direccion fisica:
 void liberar_direccion_fisica(void *direccion) {
     free(direccion);
+}
+
+// Funcion para retardo de compactacion:
+void retardo_compactacion(t_interfaz *interfaz) {
+    int retardo = get_retardo_compactacion(interfaz);
+
+    usleep(retardo * 1000);
 }
