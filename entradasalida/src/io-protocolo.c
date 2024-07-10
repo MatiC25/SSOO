@@ -17,6 +17,8 @@ void send_interfaz_a_kernel(t_interfaz * interfaz) {
     agregar_a_paquete(paquete, &interfaz->tipo, sizeof(tipo_interfaz));
     agregar_a_paquete_string(paquete, interfaz->nombre, strlen(interfaz->nombre) + 1);
     enviar_paquete(paquete, socket_cliente);
+
+    eliminar_paquete(paquete);
 }
 
 // Funciones recibir mensajes de kernel:
@@ -157,6 +159,7 @@ void send_bytes_a_leer(t_interfaz *interfaz, int pid, t_list *direcciones, void 
     int bytes_mandados = 0;
     int index = 0;
     int respuesta;
+    unsigned *buffer; 
 
     // Enviamos el input a memoria:
     while(bytes_mandados < bytes_leidos) {
@@ -171,7 +174,7 @@ void send_bytes_a_leer(t_interfaz *interfaz, int pid, t_list *direcciones, void 
         agregar_a_paquete(paquete, &tamanio, sizeof(int));
 
         // Creamos el buffer a enviar:
-        unsigned *buffer = malloc(tamanio);
+        buffer = malloc(tamanio);
         memcpy(buffer, input + bytes_mandados, tamanio);
 
         // Logueamos el buffer:
@@ -201,6 +204,7 @@ void send_bytes_a_leer(t_interfaz *interfaz, int pid, t_list *direcciones, void 
     }
 
     log_info(logger, "Se escribieron %d bytes en memoria", bytes_leidos);
+
 }
 
 // Funciones recibir mensajes de memoria:
@@ -230,7 +234,6 @@ char *rcv_contenido_a_mostrar(t_interfaz *interfaz, t_list *direcciones_fisicas,
         // Asegúrate de enviar el paquete a la memoria usando socket_memoria
         enviar_paquete(paquete, socket_memoria);
 
-
         // Liberar la memoria usada para el paquete
         eliminar_paquete(paquete);
 
@@ -253,6 +256,10 @@ char *rcv_contenido_a_mostrar(t_interfaz *interfaz, t_list *direcciones_fisicas,
         // Copiamos el contenido al buffer a mostrar:
         memcpy(contenido_a_mostrar + desplazamiento_interno, contenido, tamanio);
         desplazamiento_interno += tamanio;
+
+        // Liberamos la memoria usada para el contenido y el buffer:
+        free(contenido);
+        free(buffer);
     }
 
     return contenido_a_mostrar;

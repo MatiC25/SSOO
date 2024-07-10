@@ -39,15 +39,18 @@ FILE *persistir_archivo(t_interfaz *interfaz, char *name_file, char *modo_de_ape
     return archivo;
 }
 
-// Funciones de utilidad:
+// Funcion para escribir en un archivo:
+void escribir_contenido_en_bloques(FILE *bloques, t_queue *buffers) {
+    
+    // Iteramos sobre los buffers:
+    while(!queue_is_empty(buffers)) {
+        unsigned char *buffer = queue_pop(buffers);
+        int bytes_a_escribir = sizeof(buffer); 
 
-int tiene_extension(const char *name_file, const char *extension) {
-    size_t len_filename = strlen(name_file);
-    size_t len_extension = strlen(extension);
-
-    if (len_filename >= len_extension) {
-        return strcmp(name_file + len_filename - len_extension, extension) == 0;
+        fwrite(buffer, bytes_a_escribir, 1, bloques);
+        free(buffer);
     }
 
-    return 0;
+    // Liberamos la memoria utilizada:
+    queue_destroy(buffers);
 }

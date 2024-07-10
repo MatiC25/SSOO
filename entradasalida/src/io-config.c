@@ -15,6 +15,8 @@ t_config_io* inicializar_config_io() {
     return config_io;
 }
 
+// Funciones para configurar:
+
 void configurar_valores_kernel(t_config_io *config_io, t_config *config) {
     copiar_valor(&config_io->IP_KERNEL, config_get_string_value(config, "IP_KERNEL"));
     copiar_valor(&config_io->PUERTO_KERNEL, config_get_string_value(config, "PUERTO_KERNEL"));
@@ -34,4 +36,14 @@ void configurar_valores_dialfs(t_config_io *config_io, t_config *config){
     config_io->BLOCK_SIZE = config_get_int_value(config, "BLOCK_SIZE");
     config_io->BLOCK_COUNT = config_get_int_value(config, "BLOCK_COUNT");
     config_io->RETRASO_COMPACTACION = config_get_int_value(config, "RETRASO_COMPACTACION");
+}
+
+// Funciones para liberar:
+void liberar_config_io(t_config_io *config_io) {
+    free(config_io->IP_KERNEL);
+    free(config_io->PUERTO_KERNEL);
+    free(config_io->IP_MEMORIA);
+    free(config_io->PUERTO_MEMORIA);
+    free(config_io->PATH_BASE_DIALFS);
+    free(config_io);
 }

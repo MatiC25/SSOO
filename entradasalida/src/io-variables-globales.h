@@ -14,6 +14,7 @@
 #include "io-archivos-abiertos.h"
 #include "io-archivos.h"
 #include "io-estructuras.h"
+#include "io-bitmap.h"
 #include "io-utils.h"
 
 // Definimos las variables globales:
@@ -22,6 +23,8 @@ extern t_bitarray *bitmap;
 extern FILE *archivo_bitmap;
 extern FILE *archivo_bloque;
 extern t_interfaz *interfaz;
+extern char *name_interfaz;
+extern char *config_path;
 
 // Funcion para cerrar programa:
 void cerrar_programa(int signal);

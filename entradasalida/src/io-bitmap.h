@@ -41,4 +41,7 @@ void liberar_bloques_asignados(t_bitarray *bitmap, int bloque_inicial, int bloqu
 // Funcion para setear bloques como ocupados desde un bloque inicial:
 void set_bloques_como_ocupados_desde(t_bitarray *bitmap, int bloque_inicial, int bloques_necesarios);
 
+// Funcion para cerrar el bitmap:
+void cerrar_bitmap(t_bitarray *bitmap);
+
 #endif

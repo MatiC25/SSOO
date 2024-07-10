@@ -1,8 +1,8 @@
 #include "io.h"
 
 int main(int argc, char *argv[]) {
-    char *name_interfaz = "SLP1";
-    char *config_path = "./entradasalida.config";
+    name_interfaz = argv[1];
+    config_path = argv[2];
 
     logger = log_create("io.log", "IO", 1, LOG_LEVEL_TRACE);
     interfaz = inicializar_interfaz(name_interfaz, config_path);

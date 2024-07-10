@@ -13,14 +13,14 @@ t_list *obtener_archivos_ya_abiertos(t_interfaz *interfaz) {
 
     // Inicializamos la lista de archivos:
     t_list *archivos_abiertos = list_create();
-    const char *archivo_bloques = "bloques";
-    const char *archivo_bitmap = "bitmap";
+    char *name_de_archivo_bloque = "bloques";
+    char *name_de_archivo_bitmap = "bitmap";
 
     // Iteramos sobre los archivos del directorio:
     struct dirent *archivo;
     while(archivo = readdir(directorio)) {
         if(archivo->d_type == DT_REG) {
-            if(strncmp(archivo->d_name, archivo_bloques, 7) != 0 && strncmp(archivo->d_name, archivo_bitmap, 6) != 0) {
+            if(strncmp(archivo->d_name, name_de_archivo_bloque, 7) != 0 && strncmp(archivo->d_name, name_de_archivo_bitmap, 6) != 0) {
     
                 // Inicializamos el archivo abierto:
                 t_config *archivo_metadata = abrir_archivo_metadata_config(interfaz, archivo->d_name, "r");
@@ -35,8 +35,12 @@ t_list *obtener_archivos_ya_abiertos(t_interfaz *interfaz) {
                     list_add(archivos_abiertos, archivo_abierto);
             }
         }
+
+        // Liberamos la memoria utilizada:
+        free(archivo);
     }
 
+    // Cerramos el directorio:
     closedir(directorio);
 
     return archivos_abiertos;
@@ -119,7 +123,27 @@ void cerrar_archivo_abierto(t_list *archivos_abiertos, char *nombre_archivo) {
 
         if (strncmp(nombre_archivo_abierto, nombre_archivo, cantidad_de_caracteres) == 0) {
             list_remove(archivos_abiertos, i);
+            free(archivo_abierto);
+            free(nombre_archivo_abierto);
+            
             return;
         }
     }
 }
+
+// Funciones para cerrar todos los archivos abiertos:
+void cerrar_todos_los_archivos_abiertos(t_list *archivos_abiertos) {
+    int size = list_size(archivos_abiertos);
+
+    for (int i = 0; i < size; i++) {
+        t_archivo_abierto *archivo_abierto = list_get(archivos_abiertos, i);
+        t_config *archivo_metadata = archivo_abierto->archivo_metadata;
+        char *nombre_archivo = archivo_abierto->name_file;
+
+        // Cerramos el archivo:
+        config_destroy(archivo_metadata);
+        free(archivo_abierto); 
+    }
+
+    list_destroy(archivos_abiertos);
+}   

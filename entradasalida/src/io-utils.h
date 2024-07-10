@@ -4,6 +4,7 @@
 // Incluimos las librerias externas:
 #include <stdio.h>
 #include <math.h>
+#include <utils/socket.h>
 
 // Incluimos las librerias necesarias:
 #include "io-config.h"
@@ -50,6 +51,9 @@ int get_block_size(t_interfaz *interfaz);
 // Devuelve el total de bytes de una lista de direcciones:
 int get_total_de_bytes(t_list *direcciones);
 
+// Devuelve el retardo de compactacion:
+int get_retardo_compactacion(t_interfaz *interfaz);
+
 // Devuelve el nombre de una operación:
 char *get_nombre_operacion(tipo_operacion operacion);
 
@@ -79,5 +83,17 @@ int comparar_bloque_inicial(void *archivo1, void *archivo2);
 
 // Funcion para eliminar un archivo del sistema:
 void eliminar_archivo_en_fs(t_interfaz *interfaz, char *nombre_archivo);
+
+// Funcion para cerrar los sockets:
+void cerrar_sockets(t_interfaz *interfaz);
+
+// Funcion para liberar la memoria de una interfaz:
+void liberar_interfaz(t_interfaz *interfaz);
+
+// Funcion para liberar una direccion fisica:
+void liberar_direccion_fisica(void *direccion);
+
+// Funcion para retardo de compactacion:
+void retardo_compactacion(t_interfaz *interfaz);
 
 #endif // IO_UTILS_H

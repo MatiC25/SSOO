@@ -108,3 +108,11 @@ void set_bloques_como_ocupados_desde(t_bitarray *bitmap, int bloque_inicial, int
     for(int i = bloque_inicial; i <= limite_de_bloques; i++)
         set_bloque_ocupado(bitmap, i);
 }
+
+// Funcion para cerrar el bitmap:
+void cerrar_bitmap(t_bitarray *bitmap) {
+    int size = bitarray_get_max_bit(bitmap);
+
+    munmap(bitmap->bitarray, size);
+    bitarray_destroy(bitmap);
+}

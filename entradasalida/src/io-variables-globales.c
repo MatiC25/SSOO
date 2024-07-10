@@ -6,14 +6,25 @@ t_bitarray *bitmap = NULL;
 FILE *archivo_bitmap = NULL;
 FILE *archivo_bloque = NULL;
 t_interfaz *interfaz = NULL;
+char *name_interfaz = NULL;
+char *config_path = NULL;
 
 // Funcion para cerrar programa:
 void cerrar_programa(int signal) {
     if(signal == SIGINT) {
         log_info(logger, "Cerrando programa...");
+        
+        // Finalizamos el programa:
+        if(interfaz->tipo == DIALFS) {
+            cerrar_todos_los_archivos_abiertos(archivos_ya_abiertos);
+            cerrar_bitmap(bitmap);
+            fclose(archivo_bitmap);
+            fclose(archivo_bloque);
+        }
 
-        cerrar_sockets();
-
+        cerrar_sockets(interfaz);
+        liberar_interfaz(interfaz);
+        
         exit(0);
     }
 }
@@ -29,13 +40,4 @@ void configurar_senial_cierre() {
         perror("Error al configurar la senial de cierre");
         exit(1);
     }
-}
-
-// Funcion para cerrar sockets:
-void cerrar_sockets() {
-    int socket_memoria = get_socket_memory(interfaz);
-    int socket_kernel = get_socket_kernel(interfaz);
-
-    liberar_conexion(socket_kernel);
-    liberar_conexion(socket_memoria);
 }
