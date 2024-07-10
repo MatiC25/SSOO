@@ -20,7 +20,7 @@
 #include "kernel-interfaces.h"
 #include "planificacion.h"
 #include "consola.h"
-
+extern volatile sig_atomic_t terminate_program;
 
 void iniciar_modulo_kernel(int socket_servidor);
 void aceptar_interfaces(int socket_servidor);

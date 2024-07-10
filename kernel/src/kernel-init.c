@@ -1,5 +1,7 @@
 #include "kernel-init.h"
 
+volatile sig_atomic_t terminate_program = 0;
+
 void iniciar_modulo_kernel(int socket_servidor) {
     hilo_motivo_de_desalojo();
     inicializar_lista();
@@ -55,24 +57,50 @@ void finalizar_programa() {
     pthread_mutex_destroy(&reanudar_ds);
     pthread_mutex_destroy(&reanudar_largo);
     pthread_mutex_destroy(&reanudar_plani);
-    free(config_kernel->IP_CPU);
-    free(config_kernel->IP_KERNEL);
-    free(config_kernel->IP_MEMORIA);
-    free(config_kernel->RECURSOS);
-    free(config_kernel->INST_RECURSOS);
-    free(config_kernel->PUERTO_CPU_DS);
-    free(config_kernel->PUERTO_MEMORIA);
-    free(config_kernel->PUERTO_ESCUCHA);
-    free(config_kernel->PUERTO_CPU_IT);
-    free(config_kernel->PUERTO_KERNEL);
-    free(config_kernel);
+    liberar_config_kernel(config_kernel);
 
+}
+
+
+void liberar_config_kernel(t_config_kernel *config_kernel) {
+    if (config_kernel == NULL) return;
+
+    if (config_kernel->IP_MEMORIA) {
+        free(config_kernel->IP_MEMORIA);
+        config_kernel->IP_MEMORIA = NULL;
+    }
+    if (config_kernel->IP_CPU) {
+        free(config_kernel->IP_CPU);
+        config_kernel->IP_CPU = NULL;
+    }
+    if (config_kernel->ALGORITMO_PLANIFICACION) {
+        free(config_kernel->ALGORITMO_PLANIFICACION);
+        config_kernel->ALGORITMO_PLANIFICACION = NULL;
+    }
+    if (config_kernel->RECURSOS) {
+        liberar_array(config_kernel->RECURSOS);
+        config_kernel->RECURSOS = NULL;
+    }
+    if (config_kernel->INST_RECURSOS) {
+        liberar_array(config_kernel->INST_RECURSOS);
+        config_kernel->INST_RECURSOS = NULL;
+    }
+    if (config_kernel->PUERTO_CPU_DS) {
+        free(config_kernel->PUERTO_CPU_DS);
+        config_kernel->PUERTO_CPU_DS = NULL;
+    }
+    if (config_kernel->PUERTO_CPU_IT) {
+        free(config_kernel->PUERTO_CPU_IT);
+        config_kernel->PUERTO_CPU_IT = NULL;
+    }
+    free(config_kernel);
 }
 
 
 void cerrar_programa(int signal) {
     if (signal == SIGINT) {
-        log_info(logger, "Cerrando programa...");
+        terminate_program = 1;
+        log_mati(logger2, "Cerrando programa...");
         
         destruir_semaforos();
         prevent_from_memory_leaks();
@@ -86,22 +114,9 @@ void cerrar_programa(int signal) {
         pthread_mutex_destroy(&reanudar_largo);
         pthread_mutex_destroy(&reanudar_plani);
         
-        if (config_kernel != NULL) {
-            free(config_kernel->IP_CPU);
-            free(config_kernel->IP_KERNEL);
-            free(config_kernel->IP_MEMORIA);
-            free(config_kernel->RECURSOS);
-            free(config_kernel->INST_RECURSOS);
-            free(config_kernel->PUERTO_CPU_DS);
-            free(config_kernel->PUERTO_MEMORIA);
-            free(config_kernel->PUERTO_ESCUCHA);
-            free(config_kernel->PUERTO_CPU_IT);
-            free(config_kernel->PUERTO_KERNEL);
-            free(config_kernel);
-        }
-
+        liberar_config_kernel(config_kernel);
         dictionary_destroy_and_destroy_elements(dictionary_interfaces, (void*)liberar_interface_io);
-        liberar_pcb(proceso_en_exec);
+        liberar_procesos(proceso_en_exec);
         exit(0);
     }
 }
@@ -141,7 +156,7 @@ void liberar_interface_io(interface_io *interface) {
     if (interface->process_blocked != NULL) {
         while (!queue_is_empty(interface->process_blocked)) {
             t_pcb *pcb = queue_pop(interface->process_blocked);
-            liberar_pcb(pcb);
+            liberar_procesos(pcb);
         }
         queue_destroy(interface->process_blocked);
     }
@@ -164,3 +179,10 @@ void liberar_interface_io(interface_io *interface) {
 }
 
 
+void liberar_array(char** array) {
+    if (array == NULL) return;
+    for (int i = 0; array[i] != NULL; i++) {
+        free(array[i]);
+    }
+    free(array);
+}

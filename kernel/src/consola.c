@@ -136,13 +136,14 @@ void* iniciar_proceso(void* args) {
     char *path_copy = strdup(path);
     if (!path_copy) {
         log_error(logger, "Error al duplicar el path del proceso");
+        free(path);  // Liberar path si strdup falla
         return NULL;
     }
 
     creacion_proceso(path_copy); // Invocamos a la función que crea el proceso
 
     free(path_copy); // Liberamos el path duplicado después de su uso
-    free(path);
+    free(path);  // Liberar el argumento original
     return NULL;
 }
 
@@ -301,7 +302,7 @@ void* finalizar_proceso(void* pid) {
                 }
             }
         }
-        liberar_pcb(pcb);
+        liberar_procesos(pcb);
     }
     
     return NULL;

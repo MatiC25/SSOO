@@ -87,82 +87,80 @@ const char* transformar_motivos_a_exit(t_tipo_instruccion* motivo_inicial) {
 
 
 void peticion_fin_quantum() {
-    pthread_mutex_lock(&mutex_proceso_exec);
-    if (proceso_en_exec != NULL) {
-        liberar_pcb(proceso_en_exec);
-        proceso_en_exec = NULL;
-    }
+    t_pcb_cpu *pcb_temp = rcv_contexto_ejecucion_cpu(config_kernel->SOCKET_DISPATCH);
 
-    t_pcb *pcb_temp = rcv_contexto_ejecucion(config_kernel->SOCKET_DISPATCH);
-    if (pcb_temp != NULL) {
-        proceso_en_exec = pcb_temp;
-    }
-    
-    pthread_mutex_unlock(&mutex_proceso_exec);
-    
-    if (!proceso_en_exec) {
+    if (!pcb_temp) {
         log_error(logger, "Dispatch acaba de recibir algo inexistente!");
-        if (pcb_temp != NULL) {
-            liberar_pcb(pcb_temp);
-        }
         return;
     }
-    
+
+    pthread_mutex_lock(&mutex_proceso_exec);
+    t_pcb* pcb_quantum = proceso_en_exec;
+    actualizar_pcb(pcb_quantum, pcb_temp);
+    pthread_mutex_unlock(&mutex_proceso_exec);
+
     if (proceso_finalizado_por_consola == 1) {
         proceso_finalizado_por_consola = 0;
-        liberar_pcb(proceso_en_exec);
+        liberar_procesos(pcb_quantum);
         proceso_en_exec = NULL; // Reiniciar el puntero después de liberar
+        liberar_procesos(pcb_temp); // Liberar pcb_temp ya que no se necesita más
         return;
     }
 
     pthread_mutex_lock(&mutex_estado_ready);
     pthread_mutex_lock(&mutex_proceso_exec);
-    proceso_en_exec->quantum = config_kernel->QUANTUM;
-    list_add(cola_ready, proceso_en_exec);
-    log_info(logger, "PID: %i - Estado Anterior: EXEC - Estado Actual: READY \n", proceso_en_exec->pid);
+    pcb_quantum->quantum = config_kernel->QUANTUM;
+    list_add(cola_ready, pcb_quantum);
+    log_info(logger, "PID: %i - Estado Anterior: EXEC - Estado Actual: READY \n", pcb_quantum->pid);
     pthread_mutex_unlock(&mutex_proceso_exec);
     pthread_mutex_unlock(&mutex_estado_ready);
 
     sem_post(&desalojo_proceso);
 
-    log_warning(logger, "PID: %i - Desalojado por fin de Quantum", proceso_en_exec->pid);
+    log_warning(logger, "PID: %i - Desalojado por fin de Quantum", pcb_quantum->pid);
 
     sem_post(&hay_en_estado_ready);
+    liberar_procesos(pcb_temp); // Liberar pcb_temp ya que no se necesita más
     puede_ejecutar_otro_proceso();
 }
 
 
 void peticion_exit(const char *tipo_de_exit) {
 
-    pthread_mutex_lock(&mutex_proceso_exec);
-    proceso_en_exec = rcv_contexto_ejecucion(config_kernel->SOCKET_DISPATCH);
-    //mostrar_pcb(pcb);
-    if (!proceso_en_exec) {
+
+    t_pcb_cpu* contexto = rcv_contexto_ejecucion_cpu(config_kernel->SOCKET_DISPATCH);
+
+    if (!contexto) {
         log_error(logger, "Dispatch acaba de recibir algo inexistente!");
         return;
     }
+
+    pthread_mutex_lock(&mutex_proceso_exec);
+    t_pcb* pcb_quantum = proceso_en_exec;
+    actualizar_pcb(pcb_quantum, contexto);
     pthread_mutex_unlock(&mutex_proceso_exec);
 
     sem_post(&desalojo_proceso);
 
-    log_warning(logger, "Finaliza el proceso %i - Motivo: %s", proceso_en_exec->pid, tipo_de_exit);
+    log_warning(logger, "Finaliza el proceso %i - Motivo: %s", pcb_quantum->pid, tipo_de_exit);
 
     pthread_mutex_lock(&mutex_proceso_exec);
-    proceso_en_exec->estado = EXITT;
-    proceso_en_exec->quantum = 0;
+    pcb_quantum->estado = EXITT;
+    pcb_quantum->quantum = 0;
 
     pthread_mutex_lock(&mutex_exit);
-    list_add(cola_exit, proceso_en_exec);
+    list_add(cola_exit, pcb_quantum);
     pthread_mutex_unlock(&mutex_exit);
     pthread_mutex_unlock(&mutex_proceso_exec);
 
     log_info(logger, "Se manda a Memoria para liberar el Proceso");
-    informar_a_memoria_liberacion_proceso(proceso_en_exec->pid);
+    informar_a_memoria_liberacion_proceso(pcb_quantum->pid);
     log_info(logger, "Aumentamos Grado de Multiprogramacion por EXIT \n");
 
     pthread_mutex_lock(&mutex_proceso_exec);
-    liberar_recurso_por_exit(proceso_en_exec);
+    liberar_recurso_por_exit(pcb_quantum);
     pthread_mutex_unlock(&mutex_proceso_exec);
+    liberar_procesos(contexto);
     puede_ejecutar_otro_proceso();
 }
 
@@ -298,16 +296,6 @@ void peticion_signal() {
 }
 
 
-void liberar_pcb(t_pcb* pcb) {
-    if (pcb != NULL) {
-        if (pcb->registros != NULL) {
-            free(pcb->registros);
-        }
-        free(pcb);
-    }
-}
-
-
 void mover_a_bloqueado_por_wait(t_pcb* pcb, char* recurso) {
 
     int indice_recurso = obtener_indice_recurso(recurso);
@@ -372,37 +360,50 @@ t_pcb* recibir_contexto_y_recurso(char** recurso) {
 
 
 void peticion_IO() {
-    
-    pthread_mutex_lock(&mutex_proceso_exec);
-    proceso_en_exec = rcv_contexto_ejecucion(config_kernel->SOCKET_DISPATCH);
-    pthread_mutex_unlock(&mutex_proceso_exec);
+    t_pcb_cpu* contexto = rcv_contexto_ejecucion_cpu(config_kernel->SOCKET_DISPATCH);
 
-    log_warning(logger, "¡Peticion I/O, desalojando Proceso: %i", proceso_en_exec->pid);
-
-    pthread_mutex_lock(&mutex_proceso_exec);
-    proceso_en_exec->quantum = config_kernel->QUANTUM;
-    pthread_mutex_unlock(&mutex_proceso_exec);
-
-    sem_post(&desalojo_proceso);
-    esta_block = 1;
-    if (!proceso_en_exec) {
+    if (!contexto) {
         log_error(logger, "Error al recibir el contexto de ejecución para IO");
         return;
     }
 
+    log_warning(logger, "¡Peticion I/O, desalojando Proceso: %i", contexto->pid);
+
+    pthread_mutex_lock(&mutex_proceso_exec);
+    t_pcb* pcb = proceso_en_exec;
+    actualizar_pcb(pcb, contexto);
+    pcb->quantum = config_kernel->QUANTUM;
+    pthread_mutex_unlock(&mutex_proceso_exec);
+    
+    sem_post(&desalojo_proceso);
+    esta_block = 1;
+
     // Enviamos un mensaje de confirmación al Dispatch:
     int response = 1;
     send(config_kernel->SOCKET_DISPATCH, &response, sizeof(int), 0);
-    
+
     // Recibimos la interfaz y los argumentos:
-    int pid = proceso_en_exec->pid;
+    int pid = pcb->pid;
     t_list *interfaz_y_argumentos = recv_interfaz_y_argumentos(config_kernel->SOCKET_DISPATCH, pid);
-    
+    if (!interfaz_y_argumentos) {
+        log_error(logger, "Error al recibir la interfaz y los argumentos");
+        return;
+    }
+
     // Obtenemos los argumentos:
     tipo_operacion *operacion = list_remove(interfaz_y_argumentos, 0);
     char *nombre_interfaz = list_remove(interfaz_y_argumentos, 0); 
     t_list *args = list_remove(interfaz_y_argumentos, 0);
-    
+
+    if (!operacion || !nombre_interfaz || !args) {
+        log_error(logger, "Error en los datos recibidos de interfaz y argumentos");
+        free(operacion);
+        free(nombre_interfaz);
+        if (args) list_destroy(args);
+        list_destroy(interfaz_y_argumentos);
+        return;
+    }
+
     log_info(logger, "Operación: %i - Interfaz: %s", *operacion, nombre_interfaz);
 
     // Obtenemos la interfaz:
@@ -410,43 +411,55 @@ void peticion_IO() {
 
     // Verificamos si la interfaz existe y si acepta la operación:
     if (!interface) {
-        finalizar_por_invalidacion(proceso_en_exec, "INVALID_INTERFACE");
+        finalizar_por_invalidacion(pcb, "INVALID_INTERFACE");
         free(nombre_interfaz);
+        free(operacion);
+        list_destroy(args);
+        list_destroy(interfaz_y_argumentos);
         return;
     }
 
     if (!acepta_operacion_interfaz(interface, *operacion)) {
-        finalizar_por_invalidacion(proceso_en_exec, "INVALID_INTERFACE");
+        finalizar_por_invalidacion(pcb, "INVALID_INTERFACE");
         free(nombre_interfaz);
+        free(operacion);
+        list_destroy(args);
+        list_destroy(interfaz_y_argumentos);
         return;
     }
 
-    if(!interface->esta_conectado) {
-        finalizar_por_invalidacion(proceso_en_exec, "DISCONNECTED_INTERFACE");
+    if (!interface->esta_conectado) {
+        finalizar_por_invalidacion(pcb, "DISCONNECTED_INTERFACE");
         free(nombre_interfaz);
+        free(operacion);
+        list_destroy(args);
+        list_destroy(interfaz_y_argumentos);
         return;
     }
 
-    if(strcmp(config_kernel->ALGORITMO_PLANIFICACION, "VRR") == 0) {
+    if (strcmp(config_kernel->ALGORITMO_PLANIFICACION, "VRR") == 0) {
         sem_wait(&sem_vrr);
         pthread_mutex_lock(&mutex_proceso_exec);
-        proceso_en_exec->quantum = quantum_restante;
+        pcb->quantum = quantum_restante;
         pthread_mutex_unlock(&mutex_proceso_exec);
     }
 
-    log_info(logger, "Interfaz: %s - PID: %i", nombre_interfaz, proceso_en_exec->pid);
+    log_info(logger, "Interfaz: %s - PID: %i", nombre_interfaz, pcb->pid);
 
     pthread_mutex_lock(&mutex_proceso_exec);
-    mover_a_cola_block_general(proceso_en_exec, "INTERFAZ");
+    mover_a_cola_block_general(pcb, "INTERFAZ");
     pthread_mutex_unlock(&mutex_proceso_exec);
 
     // Agregamos el proceso a la cola de bloqueados:
-    queue_push(interface->process_blocked, proceso_en_exec);
+    queue_push(interface->process_blocked, pcb);
     queue_push(interface->args_process, args);
     sem_post(&interface->size_blocked);
 
     // Liberamos recursos:
-    list_destroy(interfaz_y_argumentos);
+    free(nombre_interfaz);
+    free(operacion);
+    list_destroy_and_destroy_elements(interfaz_y_argumentos, free);
+    liberar_procesos(contexto);
     puede_ejecutar_otro_proceso();
 }
 
@@ -566,6 +579,18 @@ void liberar_recurso_por_exit(t_pcb* pcb) {
 }
 
 
+void liberar_procesos(t_pcb* pcb) {
+    if (!pcb) return;
+    
+    if (pcb->registros) {
+        free(pcb->registros);
+        pcb->registros = NULL;
+    }
+    
+    free(pcb);
+}
+
+
 void mostrar_pcb(t_pcb* pcb){
     log_info(logger,"PID: %i", pcb->pid);
     log_info(logger,"Reg PC:%i",pcb->registros->PC);
@@ -581,3 +606,30 @@ void mostrar_pcb(t_pcb* pcb){
     log_info(logger,"Reg DI:%i",pcb->registros->DI);
 }
 
+
+void actualizar_pcb(t_pcb* proceso_a_actualizar, t_pcb_cpu* contexto) {
+    if(contexto) {
+        proceso_a_actualizar->pid = contexto->pid;
+        if(contexto->registros) {
+            proceso_a_actualizar->registros->PC = contexto->registros->PC;
+
+            proceso_a_actualizar->registros->AX = contexto->registros->AX;
+            proceso_a_actualizar->registros->BX = contexto->registros->BX;
+            proceso_a_actualizar->registros->CX = contexto->registros->CX;
+            proceso_a_actualizar->registros->DX = contexto->registros->DX;
+
+            proceso_a_actualizar->registros->EAX = contexto->registros->EAX;
+            proceso_a_actualizar->registros->EBX = contexto->registros->EBX;
+            proceso_a_actualizar->registros->ECX = contexto->registros->ECX;
+            proceso_a_actualizar->registros->EDX = contexto->registros->EDX;
+
+            proceso_a_actualizar->registros->SI = contexto->registros->SI;
+            proceso_a_actualizar->registros->DI = contexto->registros->DI;
+        }
+        else 
+            log_error(logger, "¡Registros nulos!");
+      
+    }
+    else
+        log_error(logger, "¡PCB Nula!");
+}

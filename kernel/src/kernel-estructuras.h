@@ -10,7 +10,7 @@
 
 typedef struct {
     char* PUERTO_ESCUCHA;
-    char *IP_MEMORIA;
+    char* IP_MEMORIA;
     char* PUERTO_MEMORIA;
     char *IP_CPU;
     char *ALGORITMO_PLANIFICACION;
@@ -43,6 +43,10 @@ typedef struct {
     int esta_conectado;
 } interface_io;
 
+typedef struct { 
+    int pid;
+    t_registro_cpu* registros;
+}t_pcb_cpu;
 
 extern t_config_kernel* config_kernel;
 
@@ -50,7 +54,6 @@ extern t_list* cola_new;
 extern t_list* cola_ready; 
 extern t_list* cola_prima_VRR;
 extern t_list* cola_block;
-extern t_list* cola_exec;
 extern t_list* cola_exit;
 
 extern pthread_mutex_t reanudar_plani;

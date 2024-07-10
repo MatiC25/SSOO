@@ -18,7 +18,7 @@ t_config_kernel* inicializar_config_kernel() {
 	config_kernel->GRADO_MULTIP = 0;
 	config_kernel->PUERTO_CPU_DS = NULL;
 	config_kernel->PUERTO_CPU_IT = NULL;
-	config_kernel->IP_KERNEL = 0;
+	config_kernel->IP_KERNEL = NULL;
 
 	return config_kernel;
 }
@@ -67,14 +67,14 @@ void cargar_configuraciones(t_config_kernel* config_kernel, char *path_config) {
 	cargar_valores_de_grado_multiprogramacion(config, config_kernel);
 
 	info_config(config);
+	config_destroy(config);
 }
-
 // Funciones para cargar valores:
 
 void cargar_valores_de_memoria(t_config *config, t_config_kernel *config_kernel) {
-	copiar_valor(&config_kernel->IP_MEMORIA, config_get_string_value(config, "IP_MEMORIA"));
-	copiar_valor(&config_kernel->PUERTO_MEMORIA, config_get_string_value(config, "PUERTO_MEMORIA"));
-	copiar_valor(&config_kernel->PUERTO_ESCUCHA, config_get_string_value(config, "PUERTO_ESCUCHA"));
+    copiar_valor(&config_kernel->IP_MEMORIA, config_get_string_value(config, "IP_MEMORIA"));
+    copiar_valor(&config_kernel->PUERTO_MEMORIA, config_get_string_value(config, "PUERTO_MEMORIA"));
+    copiar_valor(&config_kernel->PUERTO_ESCUCHA, config_get_string_value(config, "PUERTO_ESCUCHA"));
 }
 
 void cargar_valores_de_cpu(t_config *config, t_config_kernel *config_kernel) {
@@ -89,8 +89,13 @@ void cargar_valores_de_planificacion(t_config *config, t_config_kernel *config_k
 }
 
 void cargar_valores_de_recursos(t_config *config, t_config_kernel *config_kernel) {
-	crear_vector_dinamico_char(&config_kernel->RECURSOS, config_get_array_value(config, "RECURSOS"));
-	crear_vector_dinamico_int(&config_kernel->INST_RECURSOS, config_get_array_value(config, "INSTANCIAS_RECURSOS"));
+    char** recursos = config_get_array_value(config, "RECURSOS");
+    crear_vector_dinamico_char(&config_kernel->RECURSOS, recursos);
+    liberar_array(recursos); // Liberar el array de recursos
+
+    char** instancias_recursos = config_get_array_value(config, "INSTANCIAS_RECURSOS");
+    crear_vector_dinamico_int(&config_kernel->INST_RECURSOS, instancias_recursos);
+    liberar_array(instancias_recursos); // Liberar el array de instancias de recursos
 }
 
 void cargar_valores_de_grado_multiprogramacion(t_config *config, t_config_kernel *config_kernel) {

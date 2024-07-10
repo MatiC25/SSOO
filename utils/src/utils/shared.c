@@ -68,10 +68,16 @@ void liberar_espacios_de_memoria(void** vector) // Funcion: libera todos los esp
     free(vector);
 } // Comentario: tipo de dato (cualquiera)** nombre de la variable = array de punteros
 
-void copiar_valor(char** destino, char* valor) // Funcion: copia el valor de una variable a otra
-{ 
-    *destino = malloc(strlen(valor) + 1);
-    strcpy(*destino, valor);
+void copiar_valor(char **destino, char *valor) {
+    if (*destino) {
+        free(*destino);
+        *destino = NULL; // Asegurar que el puntero no apunte a una dirección inválida
+    }
+    if (valor) {
+        *destino = strdup(valor);
+    } else {
+        *destino = NULL;
+    }
 }
 
 void crear_vector_dinamico_char(char*** vector, char* informacion[]) {

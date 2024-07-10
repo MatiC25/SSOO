@@ -95,7 +95,7 @@ void consumers_pcbs_blockeds(void *args) {
 
         sem_post(&interface->semaforo_used);
         list_destroy_and_destroy_elements(args_pcb, free);
-        liberar_pcb(pcb); // Corrección: liberar pcb en lugar de args_pcb
+        //liberar_pcb(pcb); 
     }
 
     // Limpiar recursos cuando se desconecta

@@ -27,7 +27,6 @@ t_list* cola_new;
 t_list* cola_ready; 
 t_list* cola_prima_VRR;
 t_list* cola_block;
-t_list* cola_exec;
 t_list* cola_exit;
 t_recursos_pedidos* vector_recursos_pedidos;
 int tam_vector_recursos_pedidos;
@@ -72,14 +71,14 @@ void informar_a_memoria_creacion_proceso(char* archivo_de_proceso, int pid) {
 void creacion_proceso(char *archivo_de_proceso) {
     t_pcb* pcb = malloc(sizeof(t_pcb)); 
     
-    if (pcb == NULL) {
+    if (!pcb) {
         log_error(logger, "Error al asignar memoria a la creación de PCB");
         return;
     }
 
     pcb->pid = generar_pid_unico();
-    pcb->registros = calloc(1, sizeof(t_registro_cpu));  // Usar calloc para inicializar los registros a 0
-    if (pcb->registros == NULL) {
+    pcb->registros = malloc(sizeof(t_registro_cpu));
+    if (!pcb->registros) {
         log_error(logger, "Error al asignar memoria a los registros del proceso");
         free(pcb);
         return;
@@ -96,12 +95,13 @@ void creacion_proceso(char *archivo_de_proceso) {
 
     recv(socket_memoria, &response, sizeof(int), 0);
 
-    if(response == 1) {
+    if (response == 1) {
         agregar_a_cola_estado_new(pcb);
     } else {
         log_error(logger, "Error al intentar agregar un nuevo proceso.");
+        liberar_procesos(pcb); // Asegura que se libere la memoria en caso de error
     }
-} 
+}
 
 
 void agregar_a_cola_estado_new(t_pcb* proceso) { //NEW
@@ -205,44 +205,56 @@ void informar_a_memoria_liberacion_proceso(int pid) {
 
 
 void* elegir_algoritmo_corto_plazo() {
-    if(strcmp(config_kernel->ALGORITMO_PLANIFICACION, "FIFO") == 0) {
-        hilo_planificador_cortoplazo_fifo();
-    } else if(strcmp(config_kernel->ALGORITMO_PLANIFICACION, "RR") == 0) {
-        hilo_planificador_cortoplazo_RoundRobin();
-    } else if(strcmp(config_kernel->ALGORITMO_PLANIFICACION, "VRR") == 0) {
-        hilo_planificador_cortoplazo_VRR();
-    } else {
-        log_error(logger, "El algoritmo no coincide con los algoritmos" );
+    if(terminate_program != 1) {
+        if(strcmp(config_kernel->ALGORITMO_PLANIFICACION, "FIFO") == 0) {
+            hilo_planificador_cortoplazo_fifo();
+        } else if(strcmp(config_kernel->ALGORITMO_PLANIFICACION, "RR") == 0) {
+            hilo_planificador_cortoplazo_RoundRobin();
+        } else if(strcmp(config_kernel->ALGORITMO_PLANIFICACION, "VRR") == 0) {
+            hilo_planificador_cortoplazo_VRR();
+        } else {
+            log_error(logger, "El algoritmo no coincide con los algoritmos" );
+        }
     }
+    else
+        log_info(logger, "Cerrando Hilos ...");
     return NULL;
 }
 
 
 void hilo_planificador_largoplazo() {
-    pthread_t hilo_p_largo;
-    pthread_create(&hilo_p_largo, NULL, agregar_a_cola_ready, NULL);
-    pthread_detach(hilo_p_largo); // Detach para evitar necesidad de join, hace q los hilos sean independientes y libera los recursos una vez terminada la ejecucion del mismo
+    if(terminate_program != 1) {
+        pthread_t hilo_p_largo;
+        pthread_create(&hilo_p_largo, NULL, agregar_a_cola_ready, NULL);
+        pthread_detach(hilo_p_largo); // Detach para evitar necesidad de join, hace q los hilos sean independientes y libera los recursos una vez terminada la ejecucion del mismo
+    }
 }
 
 
 void hilo_planificador_cortoplazo_fifo() {
-    pthread_t hilo_fifo;
-    pthread_create(&hilo_fifo, NULL, planificador_cortoplazo_fifo, NULL);
-    pthread_detach(hilo_fifo); // Detach para evitar necesidad de join, hace q los hilos sean independientes y libera los recursos una vez terminada la ejecucion del mismo
+    if(terminate_program != 1) {
+        pthread_t hilo_fifo;
+        pthread_create(&hilo_fifo, NULL, planificador_cortoplazo_fifo, NULL);
+        pthread_detach(hilo_fifo); // Detach para evitar necesidad de join, hace q los hilos sean independientes y libera los recursos una vez terminada la ejecucion del mismo
+    }
 }
 
 
 void hilo_planificador_cortoplazo_RoundRobin() {
-    pthread_t hilo_RoundRobin;
-    pthread_create(&hilo_RoundRobin, NULL, planificador_corto_plazo_RoundRobin, NULL);
-    pthread_detach(hilo_RoundRobin);
+    if(terminate_program != 1) {
+        pthread_t hilo_RoundRobin;
+        pthread_create(&hilo_RoundRobin, NULL, planificador_corto_plazo_RoundRobin, NULL);
+        pthread_detach(hilo_RoundRobin);
+    }
 }
 
 
 void hilo_planificador_cortoplazo_VRR() {
-    pthread_t hilo_VRR;
-    pthread_create(&hilo_VRR, NULL, planificacion_cortoplazo_VRR, NULL);
-    pthread_detach(hilo_VRR);
+    if(terminate_program != 1) {
+        pthread_t hilo_VRR;
+        pthread_create(&hilo_VRR, NULL, planificacion_cortoplazo_VRR, NULL);
+        pthread_detach(hilo_VRR);
+    }
 }
 
 
@@ -449,34 +461,34 @@ void prevent_from_memory_leaks() {
     log_warning(logger, "Limpiando todas las estructuras ...");
 
     if (cola_prima_VRR) {
-        list_destroy_and_destroy_elements(cola_prima_VRR, (void*)free); // Liberar los elementos de la lista
+        list_destroy_and_destroy_elements(cola_prima_VRR, (void*)liberar_procesos); // Usar liberar_pcb en lugar de free
         cola_prima_VRR = NULL;
     }
 
     if (cola_block) {
-        list_destroy_and_destroy_elements(cola_block, (void*)free); // Liberar los elementos de la lista
+        list_destroy_and_destroy_elements(cola_block, (void*)liberar_procesos); // Usar liberar_pcb en lugar de free
         cola_block = NULL;
     }
 
     if (cola_new) {
-        list_destroy_and_destroy_elements(cola_new, (void*)free); // Liberar los elementos de la lista
+        list_destroy_and_destroy_elements(cola_new, (void*)liberar_procesos); // Usar liberar_pcb en lugar de free
         cola_new = NULL;
     }
 
     if (cola_ready) {
-        list_destroy_and_destroy_elements(cola_ready, (void*)free); // Liberar los elementos de la lista
+        list_destroy_and_destroy_elements(cola_ready, (void*)liberar_procesos); // Usar liberar_pcb en lugar de free
         cola_ready = NULL;
     }
 
     if (cola_exit) {
-        list_destroy_and_destroy_elements(cola_exit, (void*)free); // Liberar los elementos de la lista
+        list_destroy_and_destroy_elements(cola_exit, (void*)liberar_procesos); // Usar liberar_pcb en lugar de free
         cola_exit = NULL;
     }
 
     if (colas_resource_block) {
         for (int i = 0; i < string_array_size(config_kernel->RECURSOS); i++) {
             if (colas_resource_block[i]) {
-                list_destroy_and_destroy_elements(colas_resource_block[i], (void*)free);
+                list_destroy_and_destroy_elements(colas_resource_block[i], (void*)liberar_procesos); // Usar liberar_pcb en lugar de free
                 colas_resource_block[i] = NULL;
             }
         }
@@ -486,7 +498,6 @@ void prevent_from_memory_leaks() {
 
     liberar_vector_recursos_pedidos();
 }
-
 
 void liberar_vector_recursos_pedidos() {
     for (int i = 0; i < tam_vector_recursos_pedidos; i++) {
@@ -498,6 +509,7 @@ void liberar_vector_recursos_pedidos() {
     free(vector_recursos_pedidos);
     vector_recursos_pedidos = NULL;
 }
+
 
 
 void destruir_semaforos() {
@@ -530,4 +542,71 @@ void mostrar_lista_de_pids(t_list* lista) {
 
 void mostrar_pid (t_pcb* pcb) {
     log_info(logger2, "Cola Ready: %i", pcb->pid);
+}
+
+
+t_pcb_cpu* rcv_contexto_ejecucion_cpu(int socket_cliente) {
+    
+    t_pcb_cpu* proceso = (t_pcb_cpu*)malloc(sizeof(t_pcb_cpu));
+    if (proceso == NULL) {
+        log_error(logger, "Error al asignar memoria para el proceso");
+        return NULL;
+    }
+
+    proceso->registros = (t_registro_cpu*)malloc(sizeof(t_registro_cpu));
+    if (proceso->registros == NULL) {
+        log_error(logger, "Error al asignar memoria para los registros del proceso");
+        free(proceso);
+        return NULL;
+    }
+
+    int size;
+    int desplazamiento = 0;
+    
+    void* buffer = recibir_buffer(&size, socket_cliente);
+    if (buffer == NULL) {
+        log_error(logger, "Error al recibir el buffer del socket");
+        free(proceso->registros);
+        free(proceso);
+        return NULL;
+    }
+
+    memcpy(&proceso->pid, buffer + desplazamiento, sizeof(int));
+    desplazamiento += sizeof(int);
+
+    memcpy(&proceso->registros->PC, buffer + desplazamiento, sizeof(uint32_t));
+    desplazamiento += sizeof(uint32_t);
+
+    memcpy(&proceso->registros->AX, buffer + desplazamiento, sizeof(uint8_t));
+    desplazamiento += sizeof(uint8_t);
+
+    memcpy(&proceso->registros->BX, buffer + desplazamiento, sizeof(uint8_t));
+    desplazamiento += sizeof(uint8_t);
+
+    memcpy(&proceso->registros->CX, buffer + desplazamiento, sizeof(uint8_t));
+    desplazamiento += sizeof(uint8_t);
+
+    memcpy(&proceso->registros->DX, buffer + desplazamiento, sizeof(uint8_t));
+    desplazamiento += sizeof(uint8_t);
+
+    memcpy(&proceso->registros->EAX, buffer + desplazamiento, sizeof(uint32_t));
+    desplazamiento += sizeof(uint32_t);
+
+    memcpy(&proceso->registros->EBX, buffer + desplazamiento, sizeof(uint32_t));
+    desplazamiento += sizeof(uint32_t);
+
+    memcpy(&proceso->registros->ECX, buffer + desplazamiento, sizeof(uint32_t));
+    desplazamiento += sizeof(uint32_t);
+
+    memcpy(&proceso->registros->EDX, buffer + desplazamiento, sizeof(uint32_t));
+    desplazamiento += sizeof(uint32_t);
+
+    memcpy(&proceso->registros->SI, buffer + desplazamiento, sizeof(uint32_t));
+    desplazamiento += sizeof(uint32_t);
+
+    memcpy(&proceso->registros->DI, buffer + desplazamiento, sizeof(uint32_t));
+    desplazamiento += sizeof(uint32_t);
+
+    free(buffer);
+    return proceso;
 }

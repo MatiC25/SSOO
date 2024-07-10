@@ -60,5 +60,7 @@ void mostrar_pid (t_pcb* pcb);
 void ingresar_a_exec(t_pcb* pcb);
 void puede_ejecutar_otro_proceso();
 void liberar_vector_recursos_pedidos();
+t_pcb_cpu* rcv_contexto_ejecucion_cpu(int socket_cliente);
+
 
 #endif
