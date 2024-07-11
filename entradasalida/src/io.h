@@ -3,6 +3,7 @@
 
 // Incluye las bibliotecas necesarias externas:
 #include <utils/logger.h>
+#include <commons/string.h>
 
 // Incluye las bibliotecas necesarias internas:
 #include "io-config.h"

@@ -1,6 +1,7 @@
 #include "cpu-ciclo-instrucciones.h"
 
 t_pcb_cpu* pcb;
+t_mmu_cpu* mmu;
 
 void iniciar_ciclo_de_ejecucion(int socket_server ,int socket_cliente) {
 
@@ -341,13 +342,13 @@ void ejecutar_MOV_IN(char* registro_Datos ,char* registro_Direccion){
 
     int direccionLogica = encontrar_int(reg_Direccion, tamanio_registro_direcion);
 
-    t_mmu_cpu* mmu_mov_in = traducirDireccion(direccionLogica, tamanio_registro);
+    mmu = traducirDireccion(direccionLogica, tamanio_registro);
 
-    int valor = comunicaciones_con_memoria_lectura(mmu_mov_in);
+    int valor = comunicaciones_con_memoria_lectura();
     log_info(logger,"valor enviada por memoria: %i", valor);
 
     operar_con_registros(reg_Datos,NULL,registro_Datos,"set",valor);
-    liberar_mmu(mmu_mov_in);
+    liberar_mmu();
     tengoAlgunaInterrupcion();
 }
 
@@ -361,15 +362,15 @@ void ejecutar_MOV_OUT(char* Registro_Direccion, char* Registro_Datos) {
     int direccionLogica = encontrar_int(reg_Direc, tamanio_logica);
     int regDAtos = encontrar_int(reg_Datos, tamanio_registro);   
 
-    t_mmu_cpu* mmu_mov_out = traducirDireccion(direccionLogica, tamanio_registro);
+    mmu = traducirDireccion(direccionLogica, tamanio_registro);
 
-    if (comunicaciones_con_memoria_escritura(mmu_mov_out, regDAtos) == 1) {
+    if (comunicaciones_con_memoria_escritura(regDAtos) == 1) {
         log_info(logger, "Se pudo escribir correctamente");
     } else {
         log_error(logger, "No se pudo escribir en memoria");
     }
 
-    liberar_mmu(mmu_mov_out);
+    liberar_mmu();
     tengoAlgunaInterrupcion();
 }
 
@@ -399,19 +400,19 @@ void ejecutar_COPY_STRING(char* tam){
     int registerSI = encontrar_int(registroSI, 4);
     int registreDI =  encontrar_int(registroDI, 4);
     
-    t_mmu_cpu* mmu_copiar_string_SI = traducirDireccion(registerSI, tamanio);
+    mmu = traducirDireccion(registerSI, tamanio);
 
     char* valor = malloc(tamanio + 1);
-    valor = comunicaciones_con_memoria_lectura_copy_string(mmu_copiar_string_SI);
+    valor = comunicaciones_con_memoria_lectura_copy_string(mmu);
     log_warning(logger, "La palabra es %s", valor);
     //liberar_mmu(mmu_copiar_string_SI);
     int tamm = strlen(valor);
     log_warning(logger, "tamm :%i", tamm);
     log_warning(logger, "tamanio :%i", tamanio);
 
-    t_mmu_cpu* mmu_copiar_string_DI = traducirDireccion(registreDI, tamm);
+    mmu = traducirDireccion(registreDI, tamm);
 
-        if(comunicaciones_con_memoria_escritura_copy_string(mmu_copiar_string_DI, valor) == 1){
+        if(comunicaciones_con_memoria_escritura_copy_string( valor) == 1){
         log_info(logger,"Se puedo escribir correctamente");
     }else{
         log_error(logger,"No se pudo escribir en memoria");
@@ -477,7 +478,7 @@ void ejecutar_IO_STDIN_READ(char* interfaz, char* registro_direccion, char* regi
     int reg_Tamanio =  encontrar_int(registroTamanio, tamanio_registro);
     //mostrar_pcb(pcb);
 
-    t_mmu_cpu * mmu_io_stdin_read = traducirDireccion(reg_Direc,reg_Tamanio);
+    mmu = traducirDireccion(reg_Direc,reg_Tamanio);
     //mostrar_pcb(pcb);
     t_paquete* paquete_std = crear_paquete(OPERACION_IO); // dejo asi 
     enviar_pcb_a_kernel(paquete_std);   
@@ -485,8 +486,8 @@ void ejecutar_IO_STDIN_READ(char* interfaz, char* registro_direccion, char* regi
     eliminar_paquete(paquete_std);
 
     t_paquete* paquete_stdin = crear_paquete(IO_STDIN_READ_INT);
-    solicitar_a_kernel_std(interfaz,mmu_io_stdin_read ,paquete_stdin);
-    liberar_mmu(mmu_io_stdin_read);
+    solicitar_a_kernel_std(interfaz, paquete_stdin);
+    liberar_mmu();
 }
 
 void ejecutar_IO_STDOUT_WRITE(char* interfaz, char* registro_direccion, char* registro_tamanio){
@@ -499,7 +500,7 @@ void ejecutar_IO_STDOUT_WRITE(char* interfaz, char* registro_direccion, char* re
     int reg_Direc = encontrar_int(registroDireccion, tamanio_logica );
     int reg_Tamanio =  encontrar_int(registroTamanio, tamanio_registro);
 
-    t_mmu_cpu * mmu_io_stdout_write = traducirDireccion(reg_Direc,reg_Tamanio);
+    mmu = traducirDireccion(reg_Direc,reg_Tamanio);
     //mostrar_pcb(pcb);
     t_paquete* paquete_std = crear_paquete(OPERACION_IO); // dejo asi 
     enviar_pcb_a_kernel(paquete_std);   
@@ -507,8 +508,8 @@ void ejecutar_IO_STDOUT_WRITE(char* interfaz, char* registro_direccion, char* re
     eliminar_paquete(paquete_std);
 
     t_paquete* paquete_stdout = crear_paquete(IO_STDOUT_WRITE_INT); // dejo asi 
-    solicitar_a_kernel_std(interfaz, mmu_io_stdout_write, paquete_stdout);
-    liberar_mmu(mmu_io_stdout_write);
+    solicitar_a_kernel_std(interfaz,  paquete_stdout);
+    liberar_mmu();
 }
 
 
@@ -589,7 +590,7 @@ void ejecutar_IO_FD_WRITE(char* interfaz, char* nombre_archivo, char* registro_d
     int reg_Archi = encontrar_int(registroArchivo, tamanio3);
     log_warning(logger, "reg_Archi: %i", reg_Archi);
 
-    t_mmu_cpu * mmu_io_fs_write = traducirDireccion(reg_Direc,reg_Tamanio);
+    mmu = traducirDireccion(reg_Direc,reg_Tamanio);
 
     t_paquete* paquete_IO = crear_paquete(OPERACION_IO);
     enviar_pcb_a_kernel(paquete_IO);
@@ -607,9 +608,9 @@ void ejecutar_IO_FD_WRITE(char* interfaz, char* nombre_archivo, char* registro_d
         agregar_a_paquete_string(paquete, nombre_archivo, strlen(nombre_archivo) + 1);
         agregar_a_paquete(paquete,&reg_Tamanio, sizeof(int));
 
-        while (!list_is_empty(mmu_io_fs_write->direccionFIsica)){
-            int* direccion_fisica = list_remove(mmu_io_fs_write->direccionFIsica, 0);
-            int* ptr_tamanio = list_remove(mmu_io_fs_write->tamanio, 0);
+        while (!list_is_empty(mmu->direccionFIsica)){
+            int* direccion_fisica = list_remove(mmu->direccionFIsica, 0);
+            int* ptr_tamanio = list_remove(mmu->tamanio, 0);
             int tamanio = *ptr_tamanio;
             int direc_fisica = *direccion_fisica;
 
@@ -626,7 +627,7 @@ void ejecutar_IO_FD_WRITE(char* interfaz, char* nombre_archivo, char* registro_d
     }
     
  
-    liberar_mmu(mmu_io_fs_write);
+    liberar_mmu();
 }
 
 
@@ -643,7 +644,7 @@ void ejecutar_IO_FS_READ(char* interfaz, char* nombre_archivo, char* registro_di
     int tamanio3 = espacio_de_registro(registro_puntero_archivo);
     int reg_Archi = encontrar_int(registroArchivo, tamanio3);
 
-    t_mmu_cpu * mmu_io_fs_read = traducirDireccion(reg_Direc,reg_Tamanio);
+    mmu = traducirDireccion(reg_Direc,reg_Tamanio);
     t_paquete* paquete_IO = crear_paquete(OPERACION_IO);
     enviar_pcb_a_kernel(paquete_IO);
     enviar_paquete(paquete_IO, config_cpu->SOCKET_KERNEL);
@@ -656,9 +657,9 @@ void ejecutar_IO_FS_READ(char* interfaz, char* nombre_archivo, char* registro_di
     agregar_a_paquete_string(paquete, nombre_archivo, strlen(interfaz) + 1);
     agregar_a_paquete(paquete,&reg_Tamanio, sizeof(int));
 
-    while (!list_is_empty(mmu_io_fs_read->direccionFIsica)){
-        int* direccion_fisica = list_remove(mmu_io_fs_read->direccionFIsica, 0);
-        int* ptr_tamanio = list_remove(mmu_io_fs_read->tamanio, 0);
+    while (!list_is_empty(mmu->direccionFIsica)){
+        int* direccion_fisica = list_remove(mmu->direccionFIsica, 0);
+        int* ptr_tamanio = list_remove(mmu->tamanio, 0);
         int tamanio = *ptr_tamanio;
         int direc_fisica = *direccion_fisica;
 
@@ -672,7 +673,7 @@ void ejecutar_IO_FS_READ(char* interfaz, char* nombre_archivo, char* registro_di
     enviar_paquete(paquete, config_cpu->SOCKET_KERNEL);
     eliminar_paquete(paquete);
 
-    liberar_mmu(mmu_io_fs_read);
+    liberar_mmu();
 }
 
 void liberar_pcb(){
@@ -686,8 +687,8 @@ void liberar_pcb(){
     }
 }
 
-void liberar_mmu(t_mmu_cpu* mmu){
-  if (mmu == NULL) {
+void liberar_mmu() {
+    if (mmu == NULL) {
         return;
     }
     if (mmu->num_pagina != NULL) {
@@ -702,7 +703,6 @@ void liberar_mmu(t_mmu_cpu* mmu){
     if (mmu->tamanio != NULL) {
         list_destroy_and_destroy_elements(mmu->tamanio, free);
     }
-
     free(mmu);
 }
 

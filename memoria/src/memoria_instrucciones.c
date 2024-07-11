@@ -6,20 +6,25 @@ void inicializacion_semaforos() {
     pthread_mutex_init(&mutex_instrucciones, NULL);
 }
 
-char* crear_path_instrucciones(char* archivo_path){
-
+char* crear_path_instrucciones(char* archivo_path) {
     char *path = string_new();
     string_append(&path, config_memoria->path_instrucciones);
     string_append(&path, archivo_path);
-    if(string_contains(path ,"./")){
+    
+    if (string_contains(path, "./")) {
         char *buffer = malloc(100 * sizeof(char));
         getcwd(buffer, 100);
         string_append(&buffer, "/");
+        char *old_path = path;
         path = string_replace(path, "./", buffer);
+        free(old_path);
+        free(buffer);
+    } else if (string_contains(path, "~/")) {
+        char *old_path = path;
+        path = string_replace(path, "~/", "/home/utnso/");
+        free(old_path);
     }
-    else if(string_contains(path, "~/")){
-		path = string_replace(path, "~/", "/home/utnso/");
-	}
+
     return path;
 }
 // Obtenemos las instrucciones de los archivos de pseudocódigo
@@ -45,7 +50,7 @@ void leer_archivoPseudo(int socket_kernel) {
     char* archivo_path = malloc(tam + 1);
     memcpy(archivo_path, buffer + desplazamiento, tam);
     log_info(logger, "Nombre del archivo recibido: %s", archivo_path);
-
+    free(buffer);
     //creamos el proceso asignado al PID
     crear_proceso(pid);
 
@@ -90,6 +95,7 @@ void leer_archivoPseudo(int socket_kernel) {
 
     agregar_a_diccionario_instrucciones(pid, lista_de_instrucciones);
 
+    free(path);
     free(cadena);
     free(archivo_path);
     fclose(archivo);

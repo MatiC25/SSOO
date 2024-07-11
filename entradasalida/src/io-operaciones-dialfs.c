@@ -109,7 +109,6 @@ void operacion_read_file(t_interfaz *interfaz, FILE *bloques, t_list *argumentos
         log_error(logger, "El archivo no se encuentra abierto");
 
         // Liberamos la memoria utilizada:
-        free(contenido);
         free(pid_proceso);
         free(offset);
         free(nombre_archivo);

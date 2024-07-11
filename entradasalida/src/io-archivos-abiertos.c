@@ -35,9 +35,6 @@ t_list *obtener_archivos_ya_abiertos(t_interfaz *interfaz) {
                     list_add(archivos_abiertos, archivo_abierto);
             }
         }
-
-        // Liberamos la memoria utilizada:
-        free(archivo);
     }
 
     // Cerramos el directorio:

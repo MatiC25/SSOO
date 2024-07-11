@@ -110,7 +110,7 @@ char *get_nombre_operacion(tipo_operacion operacion) {
 
 // Devuelve la retardo de compactacion:
 int get_retardo_compactacion(t_interfaz *interfaz) {
-    return interfaz->config->RETARDO_COMPACTACION;
+    return interfaz->config->RETRASO_COMPACTACION;
 }
 
 // Devuelve si una dirección es mayor, menor o igual a otra:

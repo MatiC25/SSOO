@@ -71,23 +71,27 @@ void ejecutar_operacion_stdin(t_interfaz *interfaz) {
 
         log_info(logger, "Bytes a escribir: %i", bytes_a_escribir);
 
-        // Leemos el input:
-        input = readline("Ingrese un valor: ");
-
-        if(input == NULL) {
-            log_error(logger, "Error al leer el input");
-            exit(EXIT_FAILURE);
-        }
-
-        while(strlen(input) > bytes_a_escribir || strlen(input) < bytes_a_escribir) {
-            log_error(logger, "El input ingresado es mayor al tamaño de bytes a leer");
+        if(bytes_a_escribir != 0) {
+        
+            // Leemos el input:
             input = readline("Ingrese un valor: ");
+
+            if(input == NULL) {
+                log_error(logger, "Error al leer el input");
+                exit(EXIT_FAILURE);
+            }
+
+            while(strlen(input) > bytes_a_escribir || strlen(input) < bytes_a_escribir) {
+                log_error(logger, "El input ingresado es mayor al tamaño de bytes a leer");
+                input = readline("Ingrese un valor: ");
+            }
+
+            int bytes_leidos = strlen(input);
+
+            // Enviamos los bytes a escribir a memoria:
+            send_bytes_a_leer(interfaz, *pid_proceso, direcciones, input, bytes_leidos);
         }
 
-        int bytes_leidos = strlen(input);
-
-        // Enviamos los bytes a escribir a memoria:
-        send_bytes_a_leer(interfaz, *pid_proceso, direcciones, input, bytes_leidos);
         send_respuesta_a_kernel(1, interfaz);
 
         // Liberamos la memoria:
@@ -131,10 +135,6 @@ void ejecutar_operacion_stdout(t_interfaz *interfaz) {
         free(contenido_a_mostrar);
         free(pid_proceso);
         free(tipo_operacion);
-        free(operacion);
-
-        // Liberamos las direcciones:
-        list_destroy_and_destroy_elements(direcciones, (void *) liberar_direccion_fisica);
 
         // Liberamos la lista de argumentos:
         list_destroy(argumentos);

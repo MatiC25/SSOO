@@ -181,7 +181,7 @@ void send_bytes_a_leer(t_interfaz *interfaz, int pid, t_list *direcciones, void 
         log_info(logger, "Se manda el buffer: %s", buffer);
 
         // Agregamos el buffer al paquete:
-        agregar_a_paquete(paquete, buffer, tamanio);
+        agregar_a_paquete_string(paquete, buffer, tamanio);
 
         // Enviamos el paquete a memoria:
         enviar_paquete(paquete, socket_memoria);
@@ -215,13 +215,14 @@ char *rcv_contenido_a_mostrar(t_interfaz *interfaz, t_list *direcciones_fisicas,
     int size = list_size(direcciones_fisicas);
     int socket_memoria = get_socket_memory(interfaz);
     int cantidad_bytes = get_total_de_bytes(direcciones_fisicas);
+    int index = 0;
 
     // Creamos el buffer a mostrar:
     char *contenido_a_mostrar = malloc(cantidad_bytes);
     int desplazamiento_interno = 0;
 
-    for (int i = 0; i < size; i++) {
-        t_direccion_fisica *direccion = list_get(direcciones_fisicas, i);
+    while(index < size) {
+        t_direccion_fisica *direccion = list_remove(direcciones_fisicas, 0);
         int direccion_fisica = direccion->direccion_fisica;
         int tamanio = direccion->tamanio;
     
@@ -244,22 +245,27 @@ char *rcv_contenido_a_mostrar(t_interfaz *interfaz, t_list *direcciones_fisicas,
             exit(EXIT_FAILURE);
         }
 
-        // Recibimos el buffer:
-        int desplazamiento = 0;
+        log_info(logger, "Dirección física leída: %d", direccion_fisica);
+        log_info(logger, "Tamaño leído: %d", tamanio);
+
+        // Recibimos el buffer de memoria:
         int size;
         void *buffer = recibir_buffer(&size, socket_memoria);
 
         // Parseamos el buffer para obtener el contenido:
         char *contenido = malloc(size);
-        memcpy(contenido, buffer + desplazamiento, size);
+        memcpy(contenido, buffer, size);
 
         // Copiamos el contenido al buffer a mostrar:
         memcpy(contenido_a_mostrar + desplazamiento_interno, contenido, tamanio);
         desplazamiento_interno += tamanio;
 
         // Liberamos la memoria usada para el contenido y el buffer:
-        free(contenido);
         free(buffer);
+        free(contenido);
+
+        // Actualizamos el índice:
+        index++;
     }
 
     return contenido_a_mostrar;

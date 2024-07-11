@@ -378,19 +378,17 @@ void peticion_IO() {
     sem_post(&desalojo_proceso);
     esta_block = 1;
 
-    // Enviamos un mensaje de confirmación al Dispatch:
     int response = 1;
     send(config_kernel->SOCKET_DISPATCH, &response, sizeof(int), 0);
 
-    // Recibimos la interfaz y los argumentos:
     int pid = pcb->pid;
     t_list *interfaz_y_argumentos = recv_interfaz_y_argumentos(config_kernel->SOCKET_DISPATCH, pid);
     if (!interfaz_y_argumentos) {
         log_error(logger, "Error al recibir la interfaz y los argumentos");
+        liberar_procesos(contexto);  // Liberar contexto aquí si hay un error
         return;
     }
 
-    // Obtenemos los argumentos:
     tipo_operacion *operacion = list_remove(interfaz_y_argumentos, 0);
     char *nombre_interfaz = list_remove(interfaz_y_argumentos, 0); 
     t_list *args = list_remove(interfaz_y_argumentos, 0);
@@ -399,23 +397,23 @@ void peticion_IO() {
         log_error(logger, "Error en los datos recibidos de interfaz y argumentos");
         free(operacion);
         free(nombre_interfaz);
-        if (args) list_destroy(args);
-        list_destroy(interfaz_y_argumentos);
+        if (args) list_destroy_and_destroy_elements(args, free);
+        list_destroy_and_destroy_elements(interfaz_y_argumentos, free);
+        liberar_procesos(contexto);  // Liberar contexto aquí si hay un error
         return;
     }
 
     log_info(logger, "Operación: %i - Interfaz: %s", *operacion, nombre_interfaz);
 
-    // Obtenemos la interfaz:
     interface_io* interface = get_interface_from_dict(nombre_interfaz);
 
-    // Verificamos si la interfaz existe y si acepta la operación:
     if (!interface) {
         finalizar_por_invalidacion(pcb, "INVALID_INTERFACE");
         free(nombre_interfaz);
         free(operacion);
-        list_destroy(args);
-        list_destroy(interfaz_y_argumentos);
+        list_destroy_and_destroy_elements(args, free);
+        list_destroy_and_destroy_elements(interfaz_y_argumentos, free);
+        liberar_procesos(contexto);  // Liberar contexto aquí si hay un error
         return;
     }
 
@@ -423,8 +421,9 @@ void peticion_IO() {
         finalizar_por_invalidacion(pcb, "INVALID_INTERFACE");
         free(nombre_interfaz);
         free(operacion);
-        list_destroy(args);
-        list_destroy(interfaz_y_argumentos);
+        list_destroy_and_destroy_elements(args, free);
+        list_destroy_and_destroy_elements(interfaz_y_argumentos, free);
+        liberar_procesos(contexto);  // Liberar contexto aquí si hay un error
         return;
     }
 
@@ -432,8 +431,9 @@ void peticion_IO() {
         finalizar_por_invalidacion(pcb, "DISCONNECTED_INTERFACE");
         free(nombre_interfaz);
         free(operacion);
-        list_destroy(args);
-        list_destroy(interfaz_y_argumentos);
+        list_destroy_and_destroy_elements(args, free);
+        list_destroy_and_destroy_elements(interfaz_y_argumentos, free);
+        liberar_procesos(contexto);  // Liberar contexto aquí si hay un error
         return;
     }
 
@@ -450,16 +450,14 @@ void peticion_IO() {
     mover_a_cola_block_general(pcb, "INTERFAZ");
     pthread_mutex_unlock(&mutex_proceso_exec);
 
-    // Agregamos el proceso a la cola de bloqueados:
     queue_push(interface->process_blocked, pcb);
     queue_push(interface->args_process, args);
     sem_post(&interface->size_blocked);
 
-    // Liberamos recursos:
     free(nombre_interfaz);
     free(operacion);
-    list_destroy_and_destroy_elements(interfaz_y_argumentos, free);
-    liberar_procesos(contexto);
+    list_destroy(interfaz_y_argumentos);
+    liberar_procesos(contexto);  // Liberar contexto aquí después de su uso
     puede_ejecutar_otro_proceso();
 }
 

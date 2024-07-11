@@ -560,7 +560,6 @@ void mostrar_pid (t_pcb* pcb) {
 
 
 t_pcb_cpu* rcv_contexto_ejecucion_cpu(int socket_cliente) {
-    
     t_pcb_cpu* proceso = (t_pcb_cpu*)malloc(sizeof(t_pcb_cpu));
     if (proceso == NULL) {
         log_error(logger, "Error al asignar memoria para el proceso");
@@ -576,7 +575,7 @@ t_pcb_cpu* rcv_contexto_ejecucion_cpu(int socket_cliente) {
 
     int size;
     int desplazamiento = 0;
-    
+
     void* buffer = recibir_buffer(&size, socket_cliente);
     if (buffer == NULL) {
         log_error(logger, "Error al recibir el buffer del socket");

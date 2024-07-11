@@ -17,7 +17,7 @@ int recv_pagina(int socket){
 
 
 
-int comunicaciones_con_memoria_lectura(t_mmu_cpu* mmu){
+int comunicaciones_con_memoria_lectura(){
     int valor_final = 0;
     int desplazamiento = 0;
     
@@ -61,7 +61,7 @@ int comunicaciones_con_memoria_lectura(t_mmu_cpu* mmu){
     return valor_final;
 }
 
-char* comunicaciones_con_memoria_lectura_copy_string(t_mmu_cpu* mmu) {
+char* comunicaciones_con_memoria_lectura_copy_string() {
     int desplazamiento = 0;
     int total_tam = 0;
 
@@ -118,9 +118,8 @@ char* comunicaciones_con_memoria_lectura_copy_string(t_mmu_cpu* mmu) {
     return resultado_filtrado;
 }
 
-int comunicaciones_con_memoria_escritura_copy_string(t_mmu_cpu* mmu, char* valor){
+int comunicaciones_con_memoria_escritura_copy_string(char* valor){
     int verificador;
-    char* palabra;
     int desplazamiento = 0;
     int des = 0;
     int longitud = strlen(valor);
@@ -194,7 +193,7 @@ int comunicaciones_con_memoria_escritura_copy_string(t_mmu_cpu* mmu, char* valor
     
     }
 
-int comunicaciones_con_memoria_escritura(t_mmu_cpu* mmu, int valor) {
+int comunicaciones_con_memoria_escritura(int valor) {
     int verificador = -1;
     uint32_t registro_reconstruido = 0; 
     int desplazamiento = 0;
@@ -321,6 +320,18 @@ t_pcb_cpu* rcv_contexto_ejecucion_cpu(int socket_cliente) {
 
     free(buffer);
     return proceso;
+}
+
+void configurar_senial_cierre_cpu() {
+    struct sigaction sa;
+    sa.sa_handler = limpiar_recursos;
+    sa.sa_flags = 0;
+    sigemptyset(&sa.sa_mask);
+
+    if (sigaction(SIGINT, &sa, NULL) == -1) {
+        perror("Error al configurar la senial de cierre");
+        exit(1);
+    }
 }
 
 
@@ -471,14 +482,14 @@ char* recv_escribir_memoria_string(int tamanio){
     return valor;
 }   
 
-void solicitar_a_kernel_std(char* interfaz , t_mmu_cpu* mmu ,t_paquete* solicitar_std){
+void solicitar_a_kernel_std(char* interfaz ,t_paquete* solicitar_std){
 
     int respuesta;
     recv(config_cpu->SOCKET_KERNEL, &respuesta , sizeof(int), MSG_WAITALL);
     if(respuesta == 1) {
         //log_info(logger, "Hola!");
         agregar_a_paquete_string(solicitar_std ,interfaz,strlen(interfaz) + 1);
-        log_warning(logger, "interfaz:%s", interfaz);
+        //log_warning(logger, "interfaz:%s", interfaz);
         while (!list_is_empty(mmu->direccionFIsica)){
             int* direccion_fisica = list_remove(mmu->direccionFIsica, 0);
             int* ptr_tamanio = list_remove(mmu->tamanio, 0);

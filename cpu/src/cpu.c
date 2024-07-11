@@ -19,18 +19,23 @@ int main(void) {
 
     config_cpu = inicializar_config();
     cargar_configuraciones(config_cpu);
+    configurar_senial_cierre_cpu();
 
     pthread_t hilo_memoria;
     pthread_create(&hilo_memoria, NULL, generar_conexion_a_memoria, NULL); 
     pthread_join(hilo_memoria, NULL);
 
     crear_servidores_cpu(&md_cpu_ds, &md_cpu_it);
-    limpiar_recursos();
+    
 
     return EXIT_SUCCESS;
 }
 
-void limpiar_recursos() {
+void limpiar_recursos(int signal) {
+     if(signal == SIGINT) {
+
+    log_nico(logger2, "Cerrando programa ...");
+
     if (config_cpu) {
         free(config_cpu->IP_MEMORIA);
         free(config_cpu->PUERTO_MEMORIA);
@@ -43,4 +48,10 @@ void limpiar_recursos() {
     if (tlb) {list_destroy_and_destroy_elements(tlb, (void (*)(void*)) free);}
     if (logger) {log_destroy(logger);}
     if (logger2) {log_destroy(logger2);}
+
+    liberar_mmu();
+    liberar_pcb();
+
+    exit(0);
+    }
 }
