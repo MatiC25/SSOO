@@ -13,6 +13,7 @@ int main()
 	}
 
     crear_config_memoria();
+    configurar_senial_cierre();
     
     //Inicializamos conexiones
     if (cargar_configuraciones_memoria(config_memoria) != 1)
@@ -21,23 +22,22 @@ int main()
 
         return EXIT_FAILURE;
     }
-    
+
+    //Creamos el diccionario de instrucciones por PID     
     inicializacion_diccionario();
 
-    //Creamos el diccionario de paginas por PID 
-    crear_diccionario_paginas_porPID();
-
+    //Creamos el diccionario de paginas por PID  
+    crear_diccionario_tabla_de_paginas_porPID();
+    
     // memoria de usuario y bitmap
     crear_bitmap();
     crear_espacio_usuario();
 
     inicializar_bitmap();
 
-    configurar_senial_cierre();
-
     //abrimos el servidor
     iniciar_modulo(config_memoria);
-    //cerrar_programa(config_memoria,)
+ 
 
     return 0;
 }

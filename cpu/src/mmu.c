@@ -3,12 +3,7 @@ int posicion_fifo = 0;
 
 
 t_mmu_cpu* traducirDireccion(int direccionLogica, int tamanio) {
-    // Si mmu ya está asignada, liberarla antes de reasignar
-    if (mmu != NULL) {
-        liberar_mmu();
-    }
-
-    mmu = (t_mmu_cpu*) malloc(sizeof(t_mmu_cpu));
+    mmu = (t_mmu_cpu*) malloc(sizeof(t_mmu_cpu)); //linea 6
     if (!mmu) {
         log_error(logger, "Error al asignar memoria para MMU");
         return NULL;
@@ -36,6 +31,7 @@ t_mmu_cpu* traducirDireccion(int direccionLogica, int tamanio) {
     list_add(mmu->ofset, offset_ptr);
 
     int tamanio_Actualizado = config_cpu->TAMANIO_PAGINA - offset;
+    //int* tamanio_ptr = malloc(sizeof(int)); //LINEA 34
     int* tamanio_ptr = malloc(sizeof(int)); //LINEA 34
     if (!tamanio_ptr) {
         log_error(logger, "Error al asignar memoria para tamanio");
@@ -52,7 +48,7 @@ t_mmu_cpu* traducirDireccion(int direccionLogica, int tamanio) {
 
     while (config_cpu->TAMANIO_PAGINA <= tamanio_Actualizado) {
         int* pagina_ptrr = malloc(sizeof(int));
-        int* offset_ptrr = malloc(sizeof(int));
+        int* offset_ptrr = malloc(sizeof(int)); //linea 52
         int* tamanio_ptrr = malloc(sizeof(int));
 
         if (!pagina_ptrr || !offset_ptrr || !tamanio_ptrr) {
@@ -76,7 +72,7 @@ t_mmu_cpu* traducirDireccion(int direccionLogica, int tamanio) {
 
     if (tamanio_Actualizado > 0) {
         int* pagina_ptrrr = malloc(sizeof(int));
-        int* offset_ptrrr = malloc(sizeof(int));
+        int* offset_ptrrr = malloc(sizeof(int)); // linea 76
         int* tamanio_ptrrr = malloc(sizeof(int));
 
         if (!pagina_ptrrr || !offset_ptrrr || !tamanio_ptrrr) {
@@ -115,7 +111,7 @@ t_mmu_cpu* traducirDireccion(int direccionLogica, int tamanio) {
                 }
 
                 int dirc_fisica = tab->marco * config_cpu->TAMANIO_PAGINA + offset;
-                int* ptr_dirc_fisica = malloc(sizeof(int));
+                int* ptr_dirc_fisica = malloc(sizeof(int)); // linea 114
                 if (!ptr_dirc_fisica) {
                     log_error(logger, "Error al asignar memoria para ptr_dirc_fisica");
                     liberar_mmu();

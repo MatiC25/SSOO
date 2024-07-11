@@ -99,9 +99,6 @@ void ejecutar_operacion_stdin(t_interfaz *interfaz) {
         free(operacion);
         free(input);
 
-        // Liberamos las direcciones:
-        list_destroy_and_destroy_elements(direcciones, (void *) liberar_direccion_fisica);
-
         // Liberamos la lista de argumentos
         list_destroy(argumentos);
     }
@@ -143,7 +140,6 @@ void ejecutar_operacion_stdout(t_interfaz *interfaz) {
 void ejecutar_operaciones_dialFS(t_interfaz *interfaz) {
 
     // Inicializamos las variables:
-    int tiempo_respuesta_retardo = get_tiempo_unidad(interfaz);
     int socket_kernel = get_socket_kernel(interfaz);
 
     // Inicializamos las estructuras necesarias:

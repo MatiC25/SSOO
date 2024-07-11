@@ -4,6 +4,7 @@
 // #include "planificacion.h"
 #include <commons/collections/list.h>
 #include <commons/collections/queue.h>
+#include <commons/collections/dictionary.h>
 #include <utils/logger.h>
 #include <kernel.h>
 #include <stdint.h>

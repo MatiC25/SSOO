@@ -29,6 +29,7 @@ extern sem_t desalojo_proceso;
 extern sem_t hay_proceso_en_bloq;
 extern sem_t sem_vrr;
 
+extern int esta_finalizado;
 extern t_pcb* proceso_en_exec;
 extern int quantum_restante;
 

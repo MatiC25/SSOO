@@ -8,16 +8,16 @@ t_bitarray *crear_bitmap(t_interfaz *interfaz, char *modo_de_apertura) {
     int size = get_block_count(interfaz) / 8;
 
     // Mapeo el archivo bitmap:
-    void *bitmap = mmap(NULL, size, PROT_READ | PROT_WRITE, MAP_SHARED, fileno(archivo_bitmap), 0);
+    bitmap_data = mmap(NULL, size, PROT_READ | PROT_WRITE, MAP_SHARED, fileno(archivo_bitmap), 0);
 
     // Verifico que se haya mapeado correctamente:
-    if(bitmap == MAP_FAILED) {
+    if(bitmap_data == MAP_FAILED) {
         log_info(logger, "No se pudo mapear el archivo bitmap");
         return NULL;
     }
 
     // Creo el bitmap:
-    t_bitarray *bitarray = bitarray_create_with_mode(bitmap, size, LSB_FIRST);
+    t_bitarray *bitarray = bitarray_create_with_mode(bitmap_data, size, LSB_FIRST);
 
     if(strcmp(modo_de_apertura, "wb+") == 0)
         inicializar_bitmap(bitarray);

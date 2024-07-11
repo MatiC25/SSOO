@@ -2,7 +2,6 @@
 
 t_config_kernel *config_kernel; // La declaros como variable global, y la vez instanciar aca!
 
-
 int main(int argc, char *argv[]) {
     char *config_path = argv[1];
     
@@ -19,7 +18,7 @@ int main(int argc, char *argv[]) {
     int socket_servidor = crear_servidor_kernel();
     iniciar_modulo_kernel(socket_servidor);
     iniciar_consola();
-    finalizar_programa();
+    // finalizar_programa();
     
     return 0;
 }

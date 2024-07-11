@@ -7,6 +7,7 @@
 
 // Incluyendo bibliotecas necesarias internas:
 #include "kernel-estructuras.h"
+#include "kernel-peticiones-dispatch.h"
 
 extern t_dictionary *dictionary_interfaces;
 

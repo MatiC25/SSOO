@@ -8,6 +8,7 @@ FILE *archivo_bloque = NULL;
 t_interfaz *interfaz = NULL;
 char *name_interfaz = NULL;
 char *config_path = NULL;
+void *bitmap_data = NULL;
 
 // Funcion para cerrar programa:
 void cerrar_programa(int signal) {
@@ -20,8 +21,10 @@ void cerrar_programa(int signal) {
             cerrar_bitmap(bitmap);
             fclose(archivo_bitmap);
             fclose(archivo_bloque);
+            free(bitmap_data);
         }
 
+        log_destroy(logger);
         cerrar_sockets(interfaz);
         liberar_interfaz(interfaz);
         

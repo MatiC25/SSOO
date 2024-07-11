@@ -9,9 +9,9 @@
 #include <pthread.h>
 
 typedef struct {
-    char* PUERTO_ESCUCHA;
-    char* IP_MEMORIA;
-    char* PUERTO_MEMORIA;
+    char *PUERTO_ESCUCHA;
+    char *IP_MEMORIA;
+    char *PUERTO_MEMORIA;
     char *IP_CPU;
     char *ALGORITMO_PLANIFICACION;
     int QUANTUM;
@@ -23,8 +23,6 @@ typedef struct {
     int SOCKET_MEMORIA;
     char* PUERTO_CPU_DS;
     char* PUERTO_CPU_IT;
-    int PUERTO_KERNEL;
-    char* IP_KERNEL;
 } t_config_kernel;
 
 typedef struct {

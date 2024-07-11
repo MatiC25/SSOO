@@ -19,7 +19,7 @@ void compactar_fs(t_interfaz  *interfaz, FILE *bloques, t_bitarray *bitmap, t_li
     for(int i =  0; i < cantidad_archivos_abiertos; i++) {
 
         // Obtenemos el archivo actual:
-        t_archivo_abierto *archivo_abierto_actual = list_get(archivos_ordenados, i);
+        t_archivo_abierto *archivo_abierto_actual = list_remove(archivos_ordenados, 0);
         t_config *archivo_metadata_archivo_actual = get_archivo_metadata(archivo_abierto_actual);
 
         // Obtenemos los datos necesarios:
@@ -57,6 +57,10 @@ void compactar_fs(t_interfaz  *interfaz, FILE *bloques, t_bitarray *bitmap, t_li
                 buffer_archivo_a_compactar = buffer;
             }
         }
+
+        // Liberamos la memoria utilizada:
+        free(archivo_abierto_actual);
+        free(archivo_abierto_actual->name_file);
     }
 
     queue_push(buffers, buffer_archivo_a_compactar);
@@ -69,9 +73,9 @@ void compactar_fs(t_interfaz  *interfaz, FILE *bloques, t_bitarray *bitmap, t_li
     set_bloques_como_ocupados_desde(bitmap, nuevo_bloque_libre, cantidad_bloques_asignados);
     set_bloque_inicial_en_archivo_metadata(archivo_metadata, nuevo_bloque_libre);
 
-    // Liberamos la memoria utilizada:
-    cerrar_todos_los_archivos_abiertos(archivos_ordenados);
-
     // Cambiamos el contenido de los bloques:
     escribir_contenido_en_bloques(bloques, buffers);
+
+    // Liberamos la memoria utilizada:
+    list_destroy(archivos_ordenados);
 }

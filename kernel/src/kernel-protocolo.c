@@ -269,6 +269,7 @@ t_list *recv_interfaz_y_argumentos(int socket, int pid_proceso) {
 
     // No liberamos `operacion_a_realizar` ni `nombre_interfaz` aquí porque ya están en la lista y se deben liberar al destruir la lista.
     free(buffer);
+    
     return interfaz_y_argumentos;
 }
 

@@ -19,7 +19,14 @@ t_instruccion* recv_instruccion(int socket_cliente) {
         int tamanio;
         memcpy(&tamanio, buffer + desplazamiento, sizeof(int));
         desplazamiento += sizeof(int);
-
+        if (tamanio == -1){
+            t_instruccion* instruccion;
+            instruccion->opcode = "Desalojo de usuario.";
+            free(buffer);
+            list_destroy(parametros);
+            return instruccion;
+        }
+        
         char* parametro = malloc(tamanio + 1);
         if (parametro == NULL) {
             log_error(logger,"Error al asignar memoria");

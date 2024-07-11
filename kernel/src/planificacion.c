@@ -21,6 +21,7 @@ sem_t sem_proceso_create;
 int pid = 0;
 int pid_buscado_temporal = 0;
 int quantum_restante;
+int esta_finalizado;
 
 t_pcb* proceso_en_exec = NULL;
 
@@ -107,7 +108,6 @@ void creacion_proceso(char *archivo_de_proceso) {
     int socket_memoria = config_kernel->SOCKET_MEMORIA;
 
     recv(socket_memoria, &response, sizeof(int), MSG_WAITALL);
-    log_facu(logger, "Respuesta: %i", response);
 
     if (response == 1) {
         agregar_a_cola_estado_new(pcb);
@@ -177,6 +177,7 @@ void mover_procesos_de_bloqueado_a_ready(t_pcb* proceso) {
                 log_facu(logger, "Quantum Restante: %i", pcb_a_ready->quantum);
                 list_add(cola_ready, pcb_a_ready);
                 pthread_mutex_unlock(&mutex_estado_ready);
+                sem_post(&hay_en_estado_ready);
             }
             else {
                 pthread_mutex_lock(&mutex_cola_priori_vrr);
@@ -185,6 +186,7 @@ void mover_procesos_de_bloqueado_a_ready(t_pcb* proceso) {
                 log_facu(logger, "Quantum Restante: %i", pcb_a_ready->quantum);
                 list_add(cola_prima_VRR, pcb_a_ready);
                 pthread_mutex_unlock(&mutex_cola_priori_vrr);
+                sem_post(&hay_en_estado_ready);
             }
 
         } else {
@@ -193,8 +195,9 @@ void mover_procesos_de_bloqueado_a_ready(t_pcb* proceso) {
             list_add(cola_ready, pcb_a_ready);
             log_info(logger2, "PID: %i - Estado Anterior: BLOCK - Estado Actual: READY", pcb_a_ready->pid);
             pthread_mutex_unlock(&mutex_estado_ready);
+            sem_post(&hay_en_estado_ready);
         }
-        sem_post(&hay_en_estado_ready);
+        
     }
 }
 
@@ -292,6 +295,10 @@ void* planificador_cortoplazo_fifo(void* arg) {
 
         enviar_proceso_a_cpu(proceso_en_exec);
         sem_wait(&desalojo_proceso);
+        if(esta_finalizado == 1) {
+            sem_wait(&hay_proceso_exec);
+            esta_finalizado = 0;
+        }
     }
     return NULL;
 }
@@ -313,10 +320,13 @@ void* planificador_corto_plazo_RoundRobin(void* arg) {
         sem_wait(&hay_en_estado_ready);  // Espera hasta que haya procesos en READY
         sem_wait(&hay_proceso_exec);
         
+        pthread_mutex_lock(&mutex_proceso_exec);
+        proceso_en_exec = NULL;
         pthread_mutex_lock(&mutex_estado_ready);
         proceso_en_exec = list_remove(cola_ready, 0); 
         pthread_mutex_unlock(&mutex_estado_ready);
-
+        pthread_mutex_unlock(&mutex_proceso_exec);
+        
         if (proceso_en_exec) {
 
             pthread_mutex_lock(&mutex_proceso_exec);
@@ -325,8 +335,8 @@ void* planificador_corto_plazo_RoundRobin(void* arg) {
             pthread_mutex_unlock(&mutex_proceso_exec);
 
             enviar_proceso_a_cpu(proceso_en_exec);
-            log_info(logger2, "Enviando proceso %i a CPU", proceso_en_exec->pid);
-            log_info(logger2, "PID: %i - Estado Anterior: READY - Estado Actual: EXEC", proceso_en_exec->pid);
+            log_info(logger, "Enviando proceso %i a CPU", proceso_en_exec->pid);
+            log_info(logger, "PID: %i - Estado Anterior: READY - Estado Actual: EXEC", proceso_en_exec->pid);
 
             pthread_t hilo_quantum; // Crear un hilo para manejar el quantum
             if (pthread_create(&hilo_quantum, NULL, quantum_handler, (void*)proceso_en_exec) != 0) { //mandarle el contador global
@@ -402,7 +412,7 @@ void* planificacion_cortoplazo_VRR() {
             proceso_en_exec->quantum = config_kernel->QUANTUM;
         }
         pthread_mutex_unlock(&mutex_proceso_exec);
-        
+        mostrar_pcb(proceso_en_exec);
         enviar_proceso_a_cpu(proceso_en_exec);
 
         t_temporal* tiempo_de_ejecucion = temporal_create();
@@ -434,11 +444,11 @@ void* planificacion_cortoplazo_VRR() {
 void* quantum_handler(void* arg) {
     t_pcb* proceso = (t_pcb*)arg;
     // log_warning(logger, "En ejecución %d milisegundos...", config_kernel->QUANTUM);
-    log_info(logger2, "En ejecución %d milisegundos...", proceso->quantum);
+    log_info(logger, "En ejecución %d milisegundos...", proceso->quantum);
     usleep(proceso->quantum * 1000); // Dormir por el tiempo del quantum
-    op_code codigo = FINQUANTUM;
-    send(config_kernel->SOCKET_INTERRUPT, &codigo, sizeof(int), 0); // Enviar interrupción al final del quantum
-
+    int codigo = FINQUANTUM;
+    send(config_kernel->SOCKET_INTERRUPT, &codigo, sizeof(int), MSG_WAITALL); // Enviar interrupción al final del quantum
+    liberar_procesos(proceso);
     return NULL;
 }
 
@@ -472,7 +482,6 @@ void enviar_proceso_a_cpu(t_pcb* pcbproceso) {
 
 
 void prevent_from_memory_leaks() {
-    log_warning(logger, "Limpiando todas las estructuras ...");
 
     if (cola_prima_VRR) {
         list_destroy_and_destroy_elements(cola_prima_VRR, (void*)liberar_procesos); // Usar liberar_pcb en lugar de free

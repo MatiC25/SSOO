@@ -25,7 +25,7 @@ void peticion_signal();
 void mover_a_bloqueado_por_wait(t_pcb* pcb, char* recurso);
 int obtener_indice_recurso(char* recurso);
 bool recurso_existe(char* recurso);
-t_pcb* recibir_contexto_y_recurso(char** recurso);
+t_pcb_cpu* recibir_contexto_y_recurso(char** recurso);
 void peticion_IO();
 void rcv_nombre_recurso(char** recurso, int socket);
 void inicializar_vector_recursos_pedidos();

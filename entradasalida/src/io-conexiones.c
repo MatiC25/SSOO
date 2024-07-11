@@ -35,6 +35,5 @@ void generar_conexion(int *socket, char *nombre_interfaz, char *ip, char *puerto
     if(*socket == 0 || *socket == -1)
         exit(EXIT_FAILURE);
 
-
     generar_handshake(*socket, nombre_interfaz, ip, puerto);
 }

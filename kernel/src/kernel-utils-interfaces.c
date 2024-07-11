@@ -40,31 +40,48 @@ int ya_esta_conectada_interface(char *name) {
 }
 
 void liberar_interfaces() {
-    dictionary_destroy_and_destroy_elements(dictionary_interfaces, liberar_interfaz);
+    log_info(logger, "Liberando interfaces");
+    if (dictionary_interfaces) {
+        dictionary_destroy_and_destroy_elements(dictionary_interfaces, liberar_interfaz);
+        dictionary_interfaces = NULL;
+    }
 }
 
 void liberar_interfaz(void *interface) {
     interface_io *interface_a_liberar = (interface_io *) interface;
+    if (interface_a_liberar) {
+        // Liberamos memoria:
+        free(interface_a_liberar->name);
+        interface_a_liberar->name = NULL;
 
-    // Liberamos memoria:
-    free(interface_a_liberar->name);
-    queue_clean_and_destroy_elements(interface_a_liberar->process_blocked, liberar_proceso_bloqueado);
-    queue_clean_and_destroy_elements(interface_a_liberar->args_process, liberar_argumentos_proceso);
+        if (!queue_is_empty(interface_a_liberar->args_process)) {
+            log_info(logger, "Liberando procesos bloqueados en la interfaz %s", interface_a_liberar->name);
 
-    // Liberamos semaforos:
-    sem_destroy(&interface_a_liberar->semaforo_used);
-    sem_destroy(&interface_a_liberar->size_blocked);
+            queue_destroy_and_destroy_elements(interface_a_liberar->args_process, (void*) liberar_procesos);
+        } else {
+            log_info(logger, "No hay argumentos de procesos bloqueados en la interfaz %s", interface_a_liberar->name);
 
-    // Liberamos la interfaz:
-    free(interface_a_liberar);
-}
+            queue_destroy(interface_a_liberar->args_process);
+        }
 
-void liberar_proceso_bloqueado(void *proceso) {
-    t_pcb *proceso_a_liberar = (t_pcb *) proceso;
+        if (!queue_is_empty(interface_a_liberar->process_blocked)) {
+            log_info(logger, "Liberando argumentos de procesos bloqueados en la interfaz %s", interface_a_liberar->name);
 
-    // Liberamos memoria:
-    free(proceso_a_liberar->registros);
-    free(proceso_a_liberar);
+            queue_destroy_and_destroy_elements(interface_a_liberar->process_blocked, liberar_argumentos_proceso);
+        } else {
+            log_info(logger, "No hay procesos bloqueados en la interfaz %s", interface_a_liberar->name);
+
+            queue_destroy(interface_a_liberar->process_blocked);
+        }
+
+        // Liberamos semaforos:
+        sem_destroy(&interface_a_liberar->semaforo_used);
+        sem_destroy(&interface_a_liberar->size_blocked);
+
+        // Liberamos la interfaz:
+        free(interface_a_liberar);
+        interface_a_liberar = NULL;
+    }
 }
 
 void liberar_argumentos_proceso(void *argumentos) {

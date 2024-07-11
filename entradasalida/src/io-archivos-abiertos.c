@@ -138,6 +138,7 @@ void cerrar_todos_los_archivos_abiertos(t_list *archivos_abiertos) {
 
         // Cerramos el archivo:
         config_destroy(archivo_metadata);
+        free(nombre_archivo);
         free(archivo_abierto); 
     }
 

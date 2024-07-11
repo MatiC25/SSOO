@@ -18,7 +18,6 @@ t_config_kernel* inicializar_config_kernel() {
 	config_kernel->GRADO_MULTIP = 0;
 	config_kernel->PUERTO_CPU_DS = NULL;
 	config_kernel->PUERTO_CPU_IT = NULL;
-	config_kernel->IP_KERNEL = NULL;
 
 	return config_kernel;
 }
@@ -67,25 +66,44 @@ void cargar_configuraciones(t_config_kernel* config_kernel, char *path_config) {
 	cargar_valores_de_grado_multiprogramacion(config, config_kernel);
 
 	info_config(config);
-	//config_destroy(config);
 }
 // Funciones para cargar valores:
 
 void cargar_valores_de_memoria(t_config *config, t_config_kernel *config_kernel) {
-    copiar_valor(&config_kernel->IP_MEMORIA, config_get_string_value(config, "IP_MEMORIA"));
-    copiar_valor(&config_kernel->PUERTO_MEMORIA, config_get_string_value(config, "PUERTO_MEMORIA"));
-    copiar_valor(&config_kernel->PUERTO_ESCUCHA, config_get_string_value(config, "PUERTO_ESCUCHA"));
+	char *ip_memoria = config_get_string_value(config, "IP_MEMORIA");
+	char *puerto_memoria = config_get_string_value(config, "PUERTO_MEMORIA");
+	char *puerto_escucha = config_get_string_value(config, "PUERTO_ESCUCHA");
+
+    copiar_valor(&config_kernel->IP_MEMORIA, ip_memoria);
+    copiar_valor(&config_kernel->PUERTO_MEMORIA, puerto_memoria);
+    copiar_valor(&config_kernel->PUERTO_ESCUCHA, puerto_escucha);
+
+	free(ip_memoria);
+	free(puerto_memoria);
+	free(puerto_escucha);
 }
 
 void cargar_valores_de_cpu(t_config *config, t_config_kernel *config_kernel) {
-	copiar_valor(&config_kernel->IP_CPU, config_get_string_value(config, "IP_CPU"));
-	copiar_valor(&config_kernel->PUERTO_CPU_DS, config_get_string_value(config, "PUERTO_CPU_DISPATCH"));
-	copiar_valor(&config_kernel->PUERTO_CPU_IT, config_get_string_value(config, "PUERTO_CPU_INTERRUPT"));
+	char *ip_cpu = config_get_string_value(config, "IP_CPU");
+	char *puerto_cpu_ds = config_get_string_value(config, "PUERTO_CPU_DISPATCH");
+	char *puerto_cpu_it = config_get_string_value(config, "PUERTO_CPU_INTERRUPT");
+
+	copiar_valor(&config_kernel->IP_CPU, ip_cpu);
+	copiar_valor(&config_kernel->PUERTO_CPU_DS, puerto_cpu_ds);
+	copiar_valor(&config_kernel->PUERTO_CPU_IT, puerto_cpu_it);
+
+	free(ip_cpu);
+	free(puerto_cpu_ds);
+	free(puerto_cpu_it);
 }
 
 void cargar_valores_de_planificacion(t_config *config, t_config_kernel *config_kernel) {
-	copiar_valor(&config_kernel->ALGORITMO_PLANIFICACION, config_get_string_value(config, "ALGORITMO_PLANIFICACION"));
+	char *algoritmo_planificacion = config_get_string_value(config, "ALGORITMO_PLANIFICACION");
+
+	copiar_valor(&config_kernel->ALGORITMO_PLANIFICACION, algoritmo_planificacion);
 	config_kernel->QUANTUM = config_get_int_value(config, "QUANTUM");
+
+	free(algoritmo_planificacion);
 }
 
 void cargar_valores_de_recursos(t_config *config, t_config_kernel *config_kernel) {

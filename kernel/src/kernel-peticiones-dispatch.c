@@ -168,18 +168,22 @@ void peticion_exit(const char *tipo_de_exit) {
 void peticion_wait() {
 
     char* recurso;
-    pthread_mutex_lock(&mutex_proceso_exec);
-    proceso_en_exec = recibir_contexto_y_recurso(&recurso);
-    if (!proceso_en_exec) {
+    t_pcb_cpu* contexto = recibir_contexto_y_recurso(&recurso);
+    if (!contexto) {
         log_error(logger, "Dispatch acaba de recibir algo inexistente!");
         puede_ejecutar_otro_proceso();
+        free(recurso);
         return;
     }
+
+    pthread_mutex_lock(&mutex_proceso_exec);
+    t_pcb* pcb = proceso_en_exec;
+    actualizar_pcb(pcb, contexto);
     pthread_mutex_unlock(&mutex_proceso_exec);
-    
+
     if (!recurso_existe(recurso)) {
         log_error(logger, "El recurso solicitado no existe!");
-        finalizar_por_invalidacion(proceso_en_exec, "INVALID_RESOURCE");
+        finalizar_por_invalidacion(pcb, "INVALID_RESOURCE");
         free(recurso);
         puede_ejecutar_otro_proceso();
         return;
@@ -194,14 +198,14 @@ void peticion_wait() {
         // Guardar el pid y el recurso en el vector
         for (int i = 0; i < tam_vector_recursos_pedidos; i++) {
             if (vector_recursos_pedidos[i].PID == -1) {
-                vector_recursos_pedidos[i].PID = proceso_en_exec->pid;
+                vector_recursos_pedidos[i].PID = pcb->pid;
                 vector_recursos_pedidos[i].recurso = strdup(recurso);
-                log_facu(logger, "PID: %i - Asignado: %s", proceso_en_exec->pid, recurso, i);
+                log_facu(logger, "PID: %i - Asignado: %s", pcb->pid, recurso, i);
+                log_facu(logger, "¡WAIT exitoso!\n");
                 break;
             }
         }
         
-        log_facu(logger, "¡WAIT exitoso!\n");
         int wait_exitoso = 1;
         send(config_kernel->SOCKET_DISPATCH, &wait_exitoso, sizeof(int),  MSG_WAITALL);
 
@@ -213,26 +217,26 @@ void peticion_wait() {
         send(config_kernel->SOCKET_DISPATCH, &wait_fallido, sizeof(int),  MSG_WAITALL);
         
         pthread_mutex_lock(&mutex_proceso_exec);
-        proceso_en_exec->quantum = config_kernel->QUANTUM;
+        pcb->quantum = config_kernel->QUANTUM;
         pthread_mutex_unlock(&mutex_proceso_exec);
 
         sem_post(&desalojo_proceso);
         esta_block = 1;
+
         pthread_mutex_lock(&mutex_proceso_exec);
         if(strcmp(config_kernel->ALGORITMO_PLANIFICACION, "VRR") == 0) {
             sem_wait(&sem_vrr);
             pthread_mutex_lock(&mutex_proceso_exec);
-            proceso_en_exec->quantum = quantum_restante;
+            pcb->quantum = quantum_restante;
             pthread_mutex_unlock(&mutex_proceso_exec);
         }
-        mover_a_bloqueado_por_wait(proceso_en_exec, recurso);
+        mover_a_bloqueado_por_wait(pcb, recurso);
         pthread_mutex_unlock(&mutex_proceso_exec);
 
         puede_ejecutar_otro_proceso();
-        free(recurso);
         return;
     }
-
+    liberar_procesos(contexto);
     free(recurso);
 }
 
@@ -240,20 +244,24 @@ void peticion_wait() {
 void peticion_signal() {
     int signal_fallido = 0;
     char* recurso;
-    pthread_mutex_lock(&mutex_proceso_exec);
-    proceso_en_exec = recibir_contexto_y_recurso(&recurso);
-    if (!proceso_en_exec) {
+    
+    t_pcb_cpu* contexto = recibir_contexto_y_recurso(&recurso);
+    if (!contexto) {
         log_error(logger, "Dispatch acaba de recibir algo inexistente!");
         send(config_kernel->SOCKET_DISPATCH, &signal_fallido, sizeof(int), MSG_WAITALL);
         puede_ejecutar_otro_proceso();
         return;
     }
+    pthread_mutex_lock(&mutex_proceso_exec);
+    t_pcb* pcb = proceso_en_exec;
+    actualizar_pcb(pcb, contexto);
     pthread_mutex_unlock(&mutex_proceso_exec);
+
     sem_post(&desalojo_proceso);
 
     if (!recurso_existe(recurso)) {
         log_error(logger, "El recurso solicitado no existe!");
-        finalizar_por_invalidacion(proceso_en_exec, "INVALID_RESOURCE");
+        finalizar_por_invalidacion(pcb, "INVALID_RESOURCE");
         send(config_kernel->SOCKET_DISPATCH, &signal_fallido, sizeof(int), MSG_WAITALL);
         free(recurso);
         puede_ejecutar_otro_proceso();
@@ -269,8 +277,9 @@ void peticion_signal() {
     config_kernel->INST_RECURSOS[indice_recurso]++;
     // Liberar el pid y el recurso en el vector
     for (int i = 0; i < tam_vector_recursos_pedidos; i++) {
-        if (vector_recursos_pedidos[i].PID == proceso_en_exec->pid && strncmp(vector_recursos_pedidos[i].recurso, recurso, 2) == 0) {
-            log_facu(logger, "Proceso: %i - Devuelve: %s", proceso_en_exec->pid, recurso);
+        int size = strlen(config_kernel->RECURSOS[indice_recurso]);
+        if (vector_recursos_pedidos[i].PID == pcb->pid && strncmp(vector_recursos_pedidos[i].recurso, recurso, size) == 0) {
+            log_facu(logger, "Proceso: %i - Devuelve: %s", pcb->pid, recurso);
             vector_recursos_pedidos[i].PID = -1;
             free(vector_recursos_pedidos[i].recurso);
             vector_recursos_pedidos[i].recurso = NULL;
@@ -280,7 +289,6 @@ void peticion_signal() {
     log_facu(logger, "¡SIGNAL exitoso!");
     int signal_exitoso = 1;
     send(config_kernel->SOCKET_DISPATCH, &signal_exitoso, sizeof(int), MSG_WAITALL);
-    
 
     if (!list_is_empty(colas_resource_block[indice_recurso])) {
         pthread_mutex_lock(&mutex_estado_block);
@@ -292,6 +300,7 @@ void peticion_signal() {
     }
 
     free(recurso);
+    liberar_procesos(contexto);
     //sem_post(&pedidos);
 }
 
@@ -325,7 +334,8 @@ void mover_a_cola_block_general(t_pcb* pcb, char* motivo) {
 
 int obtener_indice_recurso(char* recurso) {
     for (int i = 0; i < string_array_size(config_kernel->RECURSOS); i++) {
-        if (strncmp(config_kernel->RECURSOS[i], recurso, 2) == 0) { //ACORDATE DE CAMBIARLOOOO!!! TODO
+        int size = strlen(config_kernel->RECURSOS[i]);
+        if (strncmp(config_kernel->RECURSOS[i], recurso, size) == 0) { //ACORDATE DE CAMBIARLOOOO!!! TODO
             return i;
         }
     }
@@ -338,8 +348,8 @@ bool recurso_existe(char* recurso) {
 }
 
 
-t_pcb* recibir_contexto_y_recurso(char** recurso) {
-    t_pcb* proceso = rcv_contexto_ejecucion(config_kernel->SOCKET_DISPATCH);
+t_pcb_cpu* recibir_contexto_y_recurso(char** recurso) {
+    t_pcb_cpu* proceso = rcv_contexto_ejecucion_cpu(config_kernel->SOCKET_DISPATCH);
     if (!proceso) {
         log_error(logger, "Error al recibir el contexto de ejecución");
         return NULL;
@@ -400,19 +410,20 @@ void peticion_IO() {
 
     interface_io* interface = get_interface_from_dict(nombre_interfaz);
     
-    if(!interface || !acepta_operacion_interfaz(interface, *operacion) || !estado_de_conexion_interface(interface)) {
-
+    if (!interface || !acepta_operacion_interfaz(interface, *operacion) || !estado_de_conexion_interface(interface)) {
         // Logueamos el error:
         log_error(logger, "La interfaz %s no acepta la operación %i o no está conectada", nombre_interfaz, *operacion);
-
+        puede_ejecutar_otro_proceso();
         // Finalizamos el proceso por invalidación:
         finalizar_por_invalidacion(pcb, "INVALID_INTERFACE");
-        liberar_procesos(contexto);
 
         // Liberamos memoria de los elementos que ya no se necesitan:
         free(nombre_interfaz);
         free(operacion);
         list_destroy_and_destroy_elements(args, free);
+        list_destroy(interfaz_y_argumentos);
+
+        liberar_procesos(contexto);
 
         return;
     } 
@@ -439,7 +450,7 @@ void peticion_IO() {
     free(nombre_interfaz);
     free(operacion);
     liberar_procesos(contexto);
-
+    list_destroy(interfaz_y_argumentos);
     // Avisamos al planificador que puede ejecutar otro proceso:
     puede_ejecutar_otro_proceso();
 }
@@ -452,18 +463,18 @@ void rcv_nombre_recurso(char** recurso, int socket) {
     int tamanio = 0;
 
     void* buffer = recibir_buffer(&size, socket);
-        if(buffer == NULL){
+        if(!buffer){
             log_error(logger, "Error al recibir el bufer en WAIT");
             return;
         }
         
-        memcpy(&tamanio, buffer + desplazamiento, sizeof(int));
-        desplazamiento += sizeof(int);
+    memcpy(&tamanio, buffer + desplazamiento, sizeof(int));
+    desplazamiento += sizeof(int);
 
-        *recurso = malloc(tamanio + 1);
-    
-        memcpy(*recurso, buffer + desplazamiento, tamanio);
-        desplazamiento += tamanio + 1;
+    *recurso = malloc(tamanio + 1);
+
+    memcpy(*recurso, buffer + desplazamiento, tamanio);
+    desplazamiento += tamanio + 1;
         
     free(buffer);     
 }
@@ -501,7 +512,7 @@ void inicializar_cola_resource_block() {
     tam_cola_resource = inicializar_tam_cola_resources();
     
     // Asignar memoria para el array de punteros a colas
-    colas_resource_block = malloc(tam_cola_resource * sizeof(t_queue*));
+    colas_resource_block = malloc(tam_cola_resource * sizeof(t_list*));
     if (colas_resource_block == NULL) {
         // Manejar error de asignación de memoria
         log_error(logger, "No se pudo asignar memoria para colas_resource_block");
@@ -555,19 +566,19 @@ void liberar_recurso_por_exit(t_pcb* pcb) {
             vector_recursos_pedidos[i].recurso = NULL;
         }
     }
-    //puede_ejecutar_otro_proceso();
+    sem_post(&desalojo_proceso);
     sem_post(&sem_multiprogramacion);
 }
 
 
 void liberar_procesos(t_pcb* pcb) {
     if (!pcb) return;
-    
+
     if (pcb->registros) {
         free(pcb->registros);
         pcb->registros = NULL;
     }
-    
+
     free(pcb);
 }
 

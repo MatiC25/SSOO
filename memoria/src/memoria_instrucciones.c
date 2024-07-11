@@ -30,9 +30,8 @@ char* crear_path_instrucciones(char* archivo_path) {
 // Obtenemos las instrucciones de los archivos de pseudocódigo
 
 void leer_archivoPseudo(int socket_kernel) {
-    
     int size;
-    int tam;
+    int tam = 0;
     int pid;
     int desplazamiento = 0;
     void *buffer = recibir_buffer(&size, socket_kernel);
@@ -41,7 +40,6 @@ void leer_archivoPseudo(int socket_kernel) {
     memcpy(&pid, buffer + desplazamiento, sizeof(int));
     desplazamiento += sizeof(int);
 
-    // recv_archi_pid(socket_kernel, &archivo_path, &pid);
     // Recibimos el tamaño del archivo:
     memcpy(&tam, buffer + desplazamiento, sizeof(int));
     desplazamiento += sizeof(int);
@@ -49,18 +47,20 @@ void leer_archivoPseudo(int socket_kernel) {
     // Recibimos el nombre del archivo:
     char* archivo_path = malloc(tam + 1);
     memcpy(archivo_path, buffer + desplazamiento, tam);
+    archivo_path[tam] = '\0'; // Añadir el terminador nulo
     log_info(logger, "Nombre del archivo recibido: %s", archivo_path);
     free(buffer);
     //creamos el proceso asignado al PID
     crear_proceso(pid);
 
     char* path = crear_path_instrucciones(archivo_path);
+    free(archivo_path);
 
     //Abrimos archivo_path para leer broOOOOoooOoder
     FILE *archivo = fopen(path, "r");
 
     log_info(logger, "Abriendo archivo: %s", path);
-	    //Comprobar si el archivo existe
+    //Comprobar si el archivo existe
     if(archivo == NULL){
         log_error(logger, "Error en la apertura del archivo: Error");
         free(path);
@@ -97,9 +97,9 @@ void leer_archivoPseudo(int socket_kernel) {
 
     free(path);
     free(cadena);
-    free(archivo_path);
     fclose(archivo);
 }
+
 
 void liberar_lista_parametros(void *parametros) {
     t_list *lista = parametros;
@@ -129,6 +129,13 @@ void enviar_instruccion_a_cpu(int socket_cpu) {
 
     if(lista_de_instrucciones == NULL){
         log_error(logger, "No se encontró la lista de instrucciones para el PID %i", pid);
+        t_paquete *paquete = crear_paquete(INSTRUCCION);
+        int error = -1;
+        agregar_a_paquete(paquete, &error, sizeof(int));
+        enviar_paquete(paquete, socket_cpu);
+        eliminar_paquete(paquete);
+        free(buffer);
+        return;
     }
 
     t_paquete *paquete = crear_paquete(INSTRUCCION);
@@ -149,18 +156,19 @@ void agregar_a_diccionario_instrucciones(int pid, t_list *lista_de_instrucciones
     char *pid_en_string = string_itoa(pid);
 
     //log_warning(logger, "Agregando lista de instrucciones para el PID %s", pid_en_string);
-    dictionary_put(lista_instrucciones_porPID, pid_en_string, lista_de_instrucciones);
+    dictionary_put(diccionario_de_instrucciones_porPID, pid_en_string, lista_de_instrucciones);
     free(pid_en_string);
 }
 
 t_list* obtener_lista_instrucciones(int pid) {
     char *pid_en_string = string_itoa(pid);
 
-    if(!dictionary_has_key(lista_instrucciones_porPID, pid_en_string)){
+    if(!dictionary_has_key(diccionario_de_instrucciones_porPID, pid_en_string)){
         log_error(logger, "Esta key no esta en el diccionario pelotudos %i", pid);
+        free(pid_en_string);
         return NULL;        
     }
-    t_list* lista_de_instrucciones = dictionary_get(lista_instrucciones_porPID, pid_en_string);
+    t_list* lista_de_instrucciones = dictionary_get(diccionario_de_instrucciones_porPID, pid_en_string);
     free(pid_en_string);
     //log_warning(logger, "Obteniendo lista de instrucciones para el PID %i", pid);
     return lista_de_instrucciones;

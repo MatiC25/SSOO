@@ -58,41 +58,26 @@ void finalizar_programa() {
     pthread_mutex_destroy(&reanudar_largo);
     pthread_mutex_destroy(&reanudar_plani);
     liberar_config_kernel(config_kernel);
-
 }
 
 
 void liberar_config_kernel(t_config_kernel *config_kernel) {
-    if (config_kernel == NULL) return;
 
-    if (config_kernel->IP_MEMORIA) {
-        free(config_kernel->IP_MEMORIA);
-        config_kernel->IP_MEMORIA = NULL;
-    }
-    if (config_kernel->IP_CPU) {
-        free(config_kernel->IP_CPU);
-        config_kernel->IP_CPU = NULL;
-    }
-    if (config_kernel->ALGORITMO_PLANIFICACION) {
-        free(config_kernel->ALGORITMO_PLANIFICACION);
-        config_kernel->ALGORITMO_PLANIFICACION = NULL;
-    }
-    if (config_kernel->RECURSOS) {
-        liberar_array(config_kernel->RECURSOS);
-        config_kernel->RECURSOS = NULL;
-    }
-    if (config_kernel->INST_RECURSOS) {
-        liberar_array(config_kernel->INST_RECURSOS);
-        config_kernel->INST_RECURSOS = NULL;
-    }
-    if (config_kernel->PUERTO_CPU_DS) {
-        free(config_kernel->PUERTO_CPU_DS);
-        config_kernel->PUERTO_CPU_DS = NULL;
-    }
-    if (config_kernel->PUERTO_CPU_IT) {
-        free(config_kernel->PUERTO_CPU_IT);
-        config_kernel->PUERTO_CPU_IT = NULL;
-    }
+    // Liberamos memoria de memoria:
+    free(config_kernel->ALGORITMO_PLANIFICACION);
+    free(config_kernel->IP_MEMORIA);
+    free(config_kernel->PUERTO_MEMORIA);
+
+    // Liberamos memoria de recursos:
+    free(config_kernel->INST_RECURSOS);
+    string_array_destroy(config_kernel->RECURSOS);
+    free(config_kernel->PUERTO_ESCUCHA);
+
+    // Liberamos memoria de CPU:
+    free(config_kernel->IP_CPU);
+    free(config_kernel->PUERTO_CPU_DS);
+    free(config_kernel->PUERTO_CPU_IT);
+
     free(config_kernel);
 }
 
@@ -100,11 +85,13 @@ void liberar_config_kernel(t_config_kernel *config_kernel) {
 void cerrar_programa(int signal) {
     if (signal == SIGINT) {
         terminate_program = 1;
-        log_mati(logger2, "Cerrando programa...");
+        log_fede(logger2, "Cerrando programa...");
         
         destruir_semaforos();
         prevent_from_memory_leaks();
-        
+        liberar_config_kernel(config_kernel);
+        liberar_interfaces();
+        liberar_procesos(proceso_en_exec);
         log_destroy(logger);
         log_destroy(logger2);
         
@@ -114,9 +101,6 @@ void cerrar_programa(int signal) {
         pthread_mutex_destroy(&reanudar_largo);
         pthread_mutex_destroy(&reanudar_plani);
         
-        liberar_config_kernel(config_kernel);
-        liberar_interfaces();
-        liberar_procesos(proceso_en_exec);
         exit(0);
     }
 }
@@ -180,7 +164,7 @@ void liberar_interface_io(interface_io *interface) {
 
 
 void liberar_array(char** array) {
-    if (array == NULL) return;
+    if (!array) return;
     for (int i = 0; array[i] != NULL; i++) {
         free(array[i]);
     }

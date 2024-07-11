@@ -98,11 +98,10 @@ void crear_proceso(int pid){
     // Agregar la tabla de páginas al diccionario
     char* pid_string=string_itoa(pid);
 
-    dictionary_put(diccionario_paginas_porPID, pid_string, tabla_de_paginas);
+    dictionary_put(diccionario_tabla_de_paginas_porPID, pid_string, tabla_de_paginas);
     free(pid_string);
 
-    // Liberar el buffer recibido
-    //free(buffer);  
+    log_mati(logger2, "Creacion de Tabla de Paginas: PID: %i - Tamanio: %i", pid, list_size(tabla_de_paginas));
 }
 
 
@@ -116,8 +115,7 @@ void terminar_proceso(int socket_cliente){
     char* pid_string = string_itoa(pid);
 
     // Obtener la tabla de páginas del diccionario
-    t_list* tabla_de_paginas = dictionary_get(diccionario_paginas_porPID, pid_string);
-    free(pid_string);
+    t_list* tabla_de_paginas = dictionary_remove(diccionario_tabla_de_paginas_porPID, pid_string);
     if (!tabla_de_paginas) {
         log_error(logger, "Error: No se encontró la tabla de páginas para el PID %d\n", pid);
         free(buffer);
@@ -134,8 +132,10 @@ void terminar_proceso(int socket_cliente){
         bitarray_clean_bit(bitmap, pag_a_eliminar->marco); //marco en el bitmap la pagina [i] como "libre"
         free(pag_a_eliminar); //libero la pagina [i]
     }
-    list_destroy(tabla_de_paginas); //destruyo la tabla de paginas
-    log_facu(logger,  "Destruccion -> PID: %d - Tamaño: %d", pid, cantidad_de_paginas); // Log minimo y obligatorio
+    list_destroy_and_destroy_elements(tabla_de_paginas, free);//destruyo la tabla de paginas
+    dictionary_remove_and_destroy(diccionario_de_instrucciones_porPID, pid_string, free);
+    log_mati(logger2, "Destruccion de Tabla de Paginas: PID: %i - Tamanio: %i", pid, cantidad_de_paginas); // Log minimo y obligatorio
+    free(pid_string);
     free(buffer);
 }
 
@@ -155,7 +155,7 @@ void resize_proceso(int socket_cliente) {
     char* pid_string = string_itoa(pid);
 
     // Obtener la tabla de páginas del diccionario
-    t_list* tabla_de_paginas = dictionary_get(diccionario_paginas_porPID, pid_string); //obtenemos la tabla de paginas del proceso que vamos a modificar
+    t_list* tabla_de_paginas = dictionary_get(diccionario_tabla_de_paginas_porPID, pid_string); //obtenemos la tabla de paginas del proceso que vamos a modificar
     free(pid_string);
     if (!tabla_de_paginas) {
         log_error(logger, "Error: No se encontró la tabla de páginas para el PID %d\n", pid);
@@ -203,7 +203,7 @@ void resize_proceso(int socket_cliente) {
 
     } else if (num_paginas < paginas_actuales) {
         // Reducir el tamaño del proceso
-        log_fede(logger2, "PID: %d - Tamaño Actual: %d - Tamaño a Reducir: %d ", pid, paginas_actuales*4 ,tamanio_bytes); // Log minimo y obligatorio
+        log_mati(logger2, "PID: %d - Tamaño Actual: %d - Tamaño a Reducir: %d ", pid, paginas_actuales*4 ,tamanio_bytes); // Log minimo y obligatorio
         for (int i = paginas_actuales - 1; i >= num_paginas; i--) {
             t_tabla_de_paginas* pagina_a_eliminar = list_remove(tabla_de_paginas, i);
             liberar_marco(pagina_a_eliminar->marco); // Liberar el marco
@@ -234,7 +234,7 @@ void obtener_marco(int socket_cliente){
     // Pasamos el pid a string xq dictionary_get recibe si o si un string
     char* pid_string = string_itoa(pid);
 
-    t_list* tabla_de_paginas = dictionary_get(diccionario_paginas_porPID , pid_string); //Buscamos la tabla de paginas del PID requerido
+    t_list* tabla_de_paginas = dictionary_get(diccionario_tabla_de_paginas_porPID , pid_string); //Buscamos la tabla de paginas del PID requerido
     free(pid_string);
     if (!tabla_de_paginas) {
         log_error(logger, "Error: No se encontró la tabla de páginas para el PID %d\n", pid);
@@ -243,7 +243,7 @@ void obtener_marco(int socket_cliente){
 
     if(list_size(tabla_de_paginas) > pagina){
         t_tabla_de_paginas* entrada = list_get(tabla_de_paginas, pagina);  //Obtenemos la pagina requerida
-        log_mati(logger2, "La pagina que recibo para obtener el marco es: %i", entrada->nro_pagina);
+        log_facu(logger2, "La pagina que recibo para obtener el marco es: %i", entrada->nro_pagina);
         if(entrada->bit_validez == 1){// si la pagina existe, se la enviamos a cpu
     
             t_paquete* marco_paquete = crear_paquete(ACCEDER_TABLA_PAGINAS);                                                        
@@ -335,14 +335,14 @@ void acceso_lectura(int socket_cliente){
     // Realizar la lectura del espacio de usuario
     mem_hexdump(espacio_de_usuario + direc_fisica, tamanio_lectura);
     memcpy(contenido_leer, espacio_de_usuario + direc_fisica, tamanio_lectura);
-    log_info(logger, "Acceso a espacio de usuario: PID: %d - Accion: LEER - Direccion fisica: %d - Tamaño: %d", pid, direc_fisica, tamanio_lectura);
+    log_fede(logger2, "Lo que leemos es: %s ", (char*)contenido_leer);
+    log_mati(logger2, "Acceso a espacio de usuario: PID: %d - Accion: LEER - Direccion fisica: %d - Tamaño: %d", pid, direc_fisica, tamanio_lectura);
     //mem_hexdump(espacio_de_usuario + direc_fisica, tamanio_lectura);
 
 
     t_paquete* paquete = crear_paquete(EXITO);
     agregar_a_paquete(paquete, contenido_leer, tamanio_lectura);
     enviar_paquete(paquete, socket_cliente);
-
 
     eliminar_paquete(paquete);
     free(contenido_leer);
@@ -372,7 +372,7 @@ void acceso_escritura(int socket_cliente){
     contenido_a_escribir = malloc(tamanio_escritura); // Asignar memoria para el contenido a escribir
     memcpy(contenido_a_escribir, buffer + desplazamiento, tamanio_escritura);
     
-    //log_warning(logger, "Contenido a escribir : %s", (int*)contenido_a_escribir);
+    log_fede(logger2, "Lo que escribimos es: %s", (char*)contenido_a_escribir);
 
     
     int verificacion = 1;
@@ -391,7 +391,7 @@ void acceso_escritura(int socket_cliente){
 
     memcpy(espacio_de_usuario + direc_fisica, contenido_a_escribir, tamanio_escritura);
     mem_hexdump(espacio_de_usuario + direc_fisica, tamanio_escritura);
-    log_info(logger, "Acceso a espacio de usuario: PID: %d - Accion: ESCRIBIR - Direccion fisica: %d - Tamaño: %d", pid, direc_fisica, tamanio_escritura);
+    log_mati(logger2, "Acceso a espacio de usuario: PID: %d - Accion: ESCRIBIR - Direccion fisica: %d - Tamaño: %d", pid, direc_fisica, tamanio_escritura);
     
     t_paquete* paquete = crear_paquete(EXITO);
     agregar_a_paquete(paquete, &verificacion,sizeof(int));

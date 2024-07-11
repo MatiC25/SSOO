@@ -267,8 +267,10 @@ void* finalizar_proceso(void* pid) {
     pthread_mutex_lock(&mutex_estado_exec);
     if (proceso_en_exec != NULL && pid_buscado == proceso_en_exec->pid) {
         proceso_finalizado_por_consola = 1;
+        esta_finalizado = 1;
+        puede_ejecutar_otro_proceso();
         finalizar_por_invalidacion(proceso_en_exec, "INTERRUPTED_BY_USER");
-        log_info(logger, "Proceso a Finalizar encontrado en EXEC");
+        log_info(logger, "¡Proceso a Finalizar encontrado en EXEC!");
         pthread_mutex_unlock(&mutex_estado_exec);
     } else {
         pthread_mutex_unlock(&mutex_estado_exec);
@@ -276,12 +278,16 @@ void* finalizar_proceso(void* pid) {
         t_pcb* pcb = pcb_encontrado(cola_block, pid_buscado);
         if (pcb && list_remove_element(cola_block, pcb)) {
             eliminar_proceso_de_cola_recursos(pcb->pid);
+            esta_finalizado = 1;
+            puede_ejecutar_otro_proceso();
             finalizar_por_invalidacion(pcb, "INTERRUPTED_BY_USER");
             log_info(logger, "Proceso a Finalizar encontrado en BLOCK");
         } else {
             pthread_mutex_lock(&mutex_estado_ready);
             pcb = pcb_encontrado(cola_ready, pid_buscado);
             if (pcb && list_remove_element(cola_ready, pcb)) {
+                puede_ejecutar_otro_proceso();
+                esta_finalizado = 1;
                 finalizar_por_invalidacion(pcb, "INTERRUPTED_BY_USER");
                 log_info(logger, "Proceso a Finalizar encontrado en READY");
                 pthread_mutex_unlock(&mutex_estado_ready);
@@ -291,6 +297,8 @@ void* finalizar_proceso(void* pid) {
                 pthread_mutex_lock(&mutex_cola_priori_vrr);
                 pcb = pcb_encontrado(cola_prima_VRR, pid_buscado);
                 if (pcb && list_remove_element(cola_prima_VRR, pcb)) {
+                    puede_ejecutar_otro_proceso();
+                    esta_finalizado = 1;
                     finalizar_por_invalidacion(pcb, "INTERRUPTED_BY_USER");
                     log_info(logger, "Proceso a Finalizar encontrado en READY_VRR");
                     pthread_mutex_unlock(&mutex_cola_priori_vrr);

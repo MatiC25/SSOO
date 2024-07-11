@@ -11,7 +11,10 @@ t_config *abrir_archivo_metadata_config(t_interfaz *interfaz, char *name_file, c
     FILE *archivo = abrir_archivo(path, modo_de_apertura);
     t_config *config = config_create(path);
 
+    // Liberamos memoria:
     fclose(archivo);
+    free(path);
+
     return config;
 }
 

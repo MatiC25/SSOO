@@ -39,6 +39,10 @@ void operacion_create_file(t_interfaz *interfaz, t_bitarray *bitmap, t_list *arg
     // Logeamos la operación:
     log_info(logger, "Se creo el archivo %s", nombre_archivo);
     log_info(logger, "Bloque inicial: %d", bloque_inicial);
+
+    // Liberamos la memoria utilizada:
+    free(pid_proceso);
+    free(nombre_archivo);
 }
 
 void operacion_write_file(t_interfaz *interfaz, FILE *bloques, t_list *argumentos, t_list *archivos_ya_abiertos) {
@@ -87,9 +91,6 @@ void operacion_write_file(t_interfaz *interfaz, FILE *bloques, t_list *argumento
     free(pid_proceso);
     free(offset);
     free(nombre_archivo);
-
-    // Liberamos las direcciones fisicas:
-    list_destroy_and_destroy_elements(direcciones_fisicas, (void *) liberar_direccion_fisica);
 }
 
 void operacion_read_file(t_interfaz *interfaz, FILE *bloques, t_list *argumentos, t_list *archivos_ya_abiertos) {
@@ -143,9 +144,6 @@ void operacion_read_file(t_interfaz *interfaz, FILE *bloques, t_list *argumentos
     free(pid_proceso);
     free(offset);
     free(nombre_archivo);
-
-    // Liberamos las direcciones fisicas:
-    list_destroy_and_destroy_elements(direcciones_fisicas, (void *) liberar_direccion_fisica);
 }
 
 void operacion_delete_file(t_interfaz *interfaz, t_bitarray *bitmap, t_list *argumentos, t_list *archivos_ya_abiertos) {

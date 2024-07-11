@@ -104,7 +104,6 @@ void consumers_pcbs_blockeds(void *args) {
 
         // Libereamos recursos, y habilitamos a la interfaz para que pueda seguir consumiendo:
         sem_post(&interface->semaforo_used);
-        list_destroy(args_pcb);
     }
 
     // Limpiar recursos cuando se desconecta
@@ -151,7 +150,7 @@ void create_interface(int socket) {
 
         // Liberamos recursos:
         free(buffer);
-        freed(name_interface);
+        free(name_interface);
 
         return;
     }   
@@ -163,12 +162,19 @@ void create_interface(int socket) {
     set_name_interface(interface, name_interface);
     set_socket_interface(interface, socket);
     set_tipo_interfaz(interface, tipo_interfaz);
+    set_estado_de_conexion_interface(interface, 1);
+
+    // Logeamos la creación de la interfaz:
+    log_info(logger, "Interfaz: %s - Creada", name_interface);
 
     // Agregamos la interfaz al diccionario:
     sem_wait(&semaforo_interfaces);
     add_interface_to_dict(interface, name_interface);
     sem_post(&semaforo_interfaces);
 
+    // Liberamos recursos:
+    free(buffer);
+    
     // Creamos el hilo consumidor:
     create_consumer_thread(name_interface);
 }

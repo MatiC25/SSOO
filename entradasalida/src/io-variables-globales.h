@@ -25,6 +25,7 @@ extern FILE *archivo_bloque;
 extern t_interfaz *interfaz;
 extern char *name_interfaz;
 extern char *config_path;
+extern void *bitmap_data;
 
 // Funcion para cerrar programa:
 void cerrar_programa(int signal);

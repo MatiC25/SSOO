@@ -14,8 +14,8 @@ void send_interfaz_a_kernel(t_interfaz * interfaz) {
     t_paquete *paquete = crear_paquete(CREAR_INTERFAZ);
     int socket_cliente = get_socket_kernel(interfaz);
 
-    agregar_a_paquete(paquete, &interfaz->tipo, sizeof(tipo_interfaz));
     agregar_a_paquete_string(paquete, interfaz->nombre, strlen(interfaz->nombre) + 1);
+    agregar_a_paquete(paquete, &interfaz->tipo, sizeof(tipo_interfaz));
     enviar_paquete(paquete, socket_cliente);
 
     eliminar_paquete(paquete);
@@ -75,7 +75,7 @@ t_list *recibir_argumentos_para_dial(t_interfaz * interfaz, tipo_operacion tipo)
     int *pid = malloc(sizeof(int));
     *pid = parsear_int(buffer, &desplazamiento);
     list_add(argumentos, pid);
-    
+
     // Parseamos el buffer para obtener los argumentos:
     char *file = parsear_string(buffer, &desplazamiento);
     list_add(argumentos, file); // Agregamos el archivo a la lista de argumentos
@@ -157,13 +157,12 @@ void send_bytes_a_leer(t_interfaz *interfaz, int pid, t_list *direcciones, void 
 
     // Inicializamos las variables:
     int bytes_mandados = 0;
-    int index = 0;
     int respuesta;
-    unsigned *buffer; 
+    void *buffer;
 
     // Enviamos el input a memoria:
     while(bytes_mandados < bytes_leidos) {
-        t_direccion_fisica *direccion = list_get(direcciones, index);
+        t_direccion_fisica *direccion = list_remove(direcciones, 0);
         int direccion_fisica = direccion->direccion_fisica;
         int tamanio = direccion->tamanio;
 
@@ -181,7 +180,7 @@ void send_bytes_a_leer(t_interfaz *interfaz, int pid, t_list *direcciones, void 
         log_info(logger, "Se manda el buffer: %s", buffer);
 
         // Agregamos el buffer al paquete:
-        agregar_a_paquete_string(paquete, buffer, tamanio);
+        agregar_a_paquete(paquete, buffer, tamanio);
 
         // Enviamos el paquete a memoria:
         enviar_paquete(paquete, socket_memoria);
@@ -196,15 +195,18 @@ void send_bytes_a_leer(t_interfaz *interfaz, int pid, t_list *direcciones, void 
 
         // Liberamos la memoria usada para el buffer y el paquete:
         free(buffer);
+        free(direccion);
         eliminar_paquete(paquete);
 
         // Actualizamos las variables:
         bytes_mandados += tamanio;
-        index++;
     }
 
+    // Logueamos la cantidad de bytes escritos:
     log_info(logger, "Se escribieron %d bytes en memoria", bytes_leidos);
 
+    // Liberamos la memoria usada para las direcciones físicas:
+    list_destroy(direcciones);
 }
 
 // Funciones recibir mensajes de memoria:
@@ -218,14 +220,14 @@ char *rcv_contenido_a_mostrar(t_interfaz *interfaz, t_list *direcciones_fisicas,
     int index = 0;
 
     // Creamos el buffer a mostrar:
-    char *contenido_a_mostrar = malloc(cantidad_bytes);
+    char *contenido_a_mostrar = malloc(cantidad_bytes + 1);
     int desplazamiento_interno = 0;
 
     while(index < size) {
         t_direccion_fisica *direccion = list_remove(direcciones_fisicas, 0);
         int direccion_fisica = direccion->direccion_fisica;
         int tamanio = direccion->tamanio;
-    
+
         // Enviamos la dirección física a memoria:
         t_paquete *paquete = crear_paquete(ACCESO_A_LECTURA);
         agregar_a_paquete(paquete, &pid_proceso, sizeof(int));
@@ -239,7 +241,7 @@ char *rcv_contenido_a_mostrar(t_interfaz *interfaz, t_list *direcciones_fisicas,
         eliminar_paquete(paquete);
 
         int respuesta = recibir_entero(socket_memoria);
-        
+
         if(respuesta == -1) {
             log_error(logger, "Error al leer en memoria");
             exit(EXIT_FAILURE);
@@ -252,21 +254,20 @@ char *rcv_contenido_a_mostrar(t_interfaz *interfaz, t_list *direcciones_fisicas,
         int size;
         void *buffer = recibir_buffer(&size, socket_memoria);
 
-        // Parseamos el buffer para obtener el contenido:
-        char *contenido = malloc(size);
-        memcpy(contenido, buffer, size);
-
         // Copiamos el contenido al buffer a mostrar:
-        memcpy(contenido_a_mostrar + desplazamiento_interno, contenido, tamanio);
+        memcpy(contenido_a_mostrar + desplazamiento_interno, buffer, tamanio);
         desplazamiento_interno += tamanio;
 
         // Liberamos la memoria usada para el contenido y el buffer:
         free(buffer);
-        free(contenido);
+        free(direccion);
 
         // Actualizamos el índice:
         index++;
     }
+
+    // Liberamos la memoria usada para las direcciones físicas:
+    list_destroy(direcciones_fisicas);
 
     return contenido_a_mostrar;
 }
@@ -274,7 +275,7 @@ char *rcv_contenido_a_mostrar(t_interfaz *interfaz, t_list *direcciones_fisicas,
 
 // Funciones auxiliares:
 
-char *parsear_string(void *buffer, int *desplazamiento) {   
+char *parsear_string(void *buffer, int *desplazamiento) {
     int tam;
 
     // Copiamos el tamaño del string:
@@ -285,7 +286,7 @@ char *parsear_string(void *buffer, int *desplazamiento) {
     char *string = malloc(tam + 1);
     memcpy(string, buffer + *desplazamiento, tam);
     *desplazamiento += tam + 1;
-    
+
     string[tam] = '\0';
 
     return string;
@@ -307,3 +308,4 @@ int recibir_entero(int socket) {
 
     return dato;
 }
+
