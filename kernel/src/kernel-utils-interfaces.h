@@ -19,10 +19,18 @@ interface_io *get_interface_from_dict(char *key);
 int consulta_existencia_interfaz(interface_io *interface); 
 void set_socket_interface(interface_io *interface, int socket);
 void set_tipo_interfaz(interface_io *interface, tipo_interfaz tipo);
-int esta_interfaz(char *name);
+int ya_esta_conectada_interface(char *name);
 
 // Funciones para pedir operaciones a la interfaz
 int consulta_interfaz_para_aceptacion_de_operacion(interface_io *interface);
 int acepta_operacion_interfaz(interface_io *interface, tipo_operacion operacion);
+
+int set_estado_de_conexion_interface(interface_io *interface, int estado);
+int estado_de_conexion_interface(interface_io *interface);
+
+void liberar_interfaces();
+void liberar_interfaz(void *interface);
+void liberar_proceso_bloqueado(void *proceso);
+void liberar_argumentos_proceso(void *argumentos);
 
 #endif // KERNEL_UTILS_INTERFACES_H

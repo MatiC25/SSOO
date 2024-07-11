@@ -63,12 +63,11 @@ void ejecutar_operacion_stdin(t_interfaz *interfaz) {
         char *operacion = string_new();
         string_append(&operacion, get_nombre_operacion(*tipo_operacion));
 
-        // Logeamos la operación:
-        log_info(logger, "PID: %d - Operacion: %s", *pid_proceso, operacion);
-
         // Obtenemos la cantidad de bytes a escribir:
         int bytes_a_escribir = get_total_de_bytes(direcciones);
 
+        // Logeamos la operación:
+        log_info(logger, "PID: %d - Operacion: %s", *pid_proceso, operacion);
         log_info(logger, "Bytes a escribir: %i", bytes_a_escribir);
 
         if(bytes_a_escribir != 0) {

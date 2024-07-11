@@ -122,7 +122,6 @@ void cerrar_archivo_abierto(t_list *archivos_abiertos, char *nombre_archivo) {
             list_remove(archivos_abiertos, i);
             free(archivo_abierto);
             free(nombre_archivo_abierto);
-            
             return;
         }
     }

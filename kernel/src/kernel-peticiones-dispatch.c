@@ -360,6 +360,8 @@ t_pcb* recibir_contexto_y_recurso(char** recurso) {
 
 
 void peticion_IO() {
+
+    // Recibimos el contexto de ejecución:
     t_pcb_cpu* contexto = rcv_contexto_ejecucion_cpu(config_kernel->SOCKET_DISPATCH);
 
     if (!contexto) {
@@ -367,78 +369,55 @@ void peticion_IO() {
         return;
     }
 
-    log_warning(logger, "¡Peticion I/O, desalojando Proceso: %i", contexto->pid);
-
+    // Actualizamos el PCB con el contexto recibido:
     pthread_mutex_lock(&mutex_proceso_exec);
     t_pcb* pcb = proceso_en_exec;
     actualizar_pcb(pcb, contexto);
     pcb->quantum = config_kernel->QUANTUM;
     pthread_mutex_unlock(&mutex_proceso_exec);
     
+    // Desalojamos el proceso actual:
     sem_post(&desalojo_proceso);
     esta_block = 1;
 
+    // Esperamos una respuesta de CPU para poder seguir con la ejecución:
     int response = 1;
     send(config_kernel->SOCKET_DISPATCH, &response, sizeof(int), 0);
 
+    // Recibimos la interfaz y los argumentos:
     int pid = pcb->pid;
     t_list *interfaz_y_argumentos = recv_interfaz_y_argumentos(config_kernel->SOCKET_DISPATCH, pid);
-    if (!interfaz_y_argumentos) {
-        log_error(logger, "Error al recibir la interfaz y los argumentos");
-        liberar_procesos(contexto);  // Liberar contexto aquí si hay un error
-        return;
-    }
 
+    // Obtenemos los argumentos de la interfaz:
     tipo_operacion *operacion = list_remove(interfaz_y_argumentos, 0);
     char *nombre_interfaz = list_remove(interfaz_y_argumentos, 0); 
     t_list *args = list_remove(interfaz_y_argumentos, 0);
 
-    if (!operacion || !nombre_interfaz || !args) {
-        log_error(logger, "Error en los datos recibidos de interfaz y argumentos");
-        free(operacion);
-        free(nombre_interfaz);
-        if (args) list_destroy_and_destroy_elements(args, free);
-        list_destroy_and_destroy_elements(interfaz_y_argumentos, free);
-        liberar_procesos(contexto);  // Liberar contexto aquí si hay un error
-        return;
-    }
-
+    // Logueamos:
+    log_warning(logger, "¡Peticion I/O, desalojando Proceso: %i", contexto->pid);
     log_info(logger, "Operación: %i - Interfaz: %s", *operacion, nombre_interfaz);
+    log_info(logger, "Interfaz: %s - PID: %i", nombre_interfaz, pcb->pid);
 
     interface_io* interface = get_interface_from_dict(nombre_interfaz);
+    
+    if(!interface || !acepta_operacion_interfaz(interface, *operacion) || !estado_de_conexion_interface(interface)) {
 
-    if (!interface) {
-        log_info(logger, "Entre en el primer if");
+        // Logueamos el error:
+        log_error(logger, "La interfaz %s no acepta la operación %i o no está conectada", nombre_interfaz, *operacion);
+
+        // Finalizamos el proceso por invalidación:
         finalizar_por_invalidacion(pcb, "INVALID_INTERFACE");
+        liberar_procesos(contexto);
+
+        // Liberamos memoria de los elementos que ya no se necesitan:
         free(nombre_interfaz);
         free(operacion);
         list_destroy_and_destroy_elements(args, free);
-        list_destroy_and_destroy_elements(interfaz_y_argumentos, free);
-        liberar_procesos(contexto);  // Liberar contexto aquí si hay un error
-        return;
-    }
 
-    if (!acepta_operacion_interfaz(interface, *operacion)) {
-        log_info(logger, "Entre en el segundo");
-        finalizar_por_invalidacion(pcb, "INVALID_INTERFACE");
-        free(nombre_interfaz);
-        free(operacion);
-        list_destroy_and_destroy_elements(args, free);
-        list_destroy_and_destroy_elements(interfaz_y_argumentos, free);
-        liberar_procesos(contexto);  // Liberar contexto aquí si hay un error
         return;
-    }
+    } 
 
-    if (!interface->esta_conectado) {
-        finalizar_por_invalidacion(pcb, "DISCONNECTED_INTERFACE");
-        free(nombre_interfaz);
-        free(operacion);
-        list_destroy_and_destroy_elements(args, free);
-        list_destroy_and_destroy_elements(interfaz_y_argumentos, free);
-        liberar_procesos(contexto);  // Liberar contexto aquí si hay un error
-        return;
-    }
-
+    // Si el planificador es VRR, se le asigna el quantum restante al proceso:
     if (strcmp(config_kernel->ALGORITMO_PLANIFICACION, "VRR") == 0) {
         sem_wait(&sem_vrr);
         pthread_mutex_lock(&mutex_proceso_exec);
@@ -446,20 +425,22 @@ void peticion_IO() {
         pthread_mutex_unlock(&mutex_proceso_exec);
     }
 
-    log_info(logger, "Interfaz: %s - PID: %i", nombre_interfaz, pcb->pid);
-
+    // Movemos el proceso a la cola de bloqueados:
     pthread_mutex_lock(&mutex_proceso_exec);
     mover_a_cola_block_general(pcb, "INTERFAZ");
     pthread_mutex_unlock(&mutex_proceso_exec);
 
+    // Agregamos el proceso junto a sus argumentos a la cola de bloqueados:
     queue_push(interface->process_blocked, pcb);
     queue_push(interface->args_process, args);
     sem_post(&interface->size_blocked);
 
+    // Liberamos memoria de los elementos que ya no se necesitan:
     free(nombre_interfaz);
     free(operacion);
-    list_destroy(interfaz_y_argumentos);
-    liberar_procesos(contexto);  // Liberar contexto aquí después de su uso
+    liberar_procesos(contexto);
+
+    // Avisamos al planificador que puede ejecutar otro proceso:
     puede_ejecutar_otro_proceso();
 }
 

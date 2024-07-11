@@ -35,8 +35,43 @@ void set_tipo_interfaz(interface_io *interface, tipo_interfaz tipo) {
     interface->tipo = tipo;
 }
 
-int esta_interfaz(char *name) {
+int ya_esta_conectada_interface(char *name) {
     return dictionary_has_key(dictionary_interfaces, name);
+}
+
+void liberar_interfaces() {
+    dictionary_destroy_and_destroy_elements(dictionary_interfaces, liberar_interfaz);
+}
+
+void liberar_interfaz(void *interface) {
+    interface_io *interface_a_liberar = (interface_io *) interface;
+
+    // Liberamos memoria:
+    free(interface_a_liberar->name);
+    queue_clean_and_destroy_elements(interface_a_liberar->process_blocked, liberar_proceso_bloqueado);
+    queue_clean_and_destroy_elements(interface_a_liberar->args_process, liberar_argumentos_proceso);
+
+    // Liberamos semaforos:
+    sem_destroy(&interface_a_liberar->semaforo_used);
+    sem_destroy(&interface_a_liberar->size_blocked);
+
+    // Liberamos la interfaz:
+    free(interface_a_liberar);
+}
+
+void liberar_proceso_bloqueado(void *proceso) {
+    t_pcb *proceso_a_liberar = (t_pcb *) proceso;
+
+    // Liberamos memoria:
+    free(proceso_a_liberar->registros);
+    free(proceso_a_liberar);
+}
+
+void liberar_argumentos_proceso(void *argumentos) {
+    t_list *argumentos_a_liberar = (t_list *) argumentos;
+
+    // Liberamos memoria:
+    list_destroy_and_destroy_elements(argumentos_a_liberar, free);
 }
 
 // Funciones para pedir operaciones a la interfaz:
@@ -65,4 +100,12 @@ int acepta_operacion_interfaz(interface_io *interface, tipo_operacion operacion)
         return operacion == operaciones[3] || operacion == operaciones[4] || operacion == operaciones[5] || operacion == operaciones[6] || operacion == operaciones[7];
     else
         return 0; // Operacion invalida
+}
+
+int set_estado_de_conexion_interface(interface_io *interface, int estado) {
+    interface->esta_conectado = estado;
+}
+
+int estado_de_conexion_interface(interface_io *interface) {
+    return interface->esta_conectado;
 }

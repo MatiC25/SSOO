@@ -115,7 +115,7 @@ void cerrar_programa(int signal) {
         pthread_mutex_destroy(&reanudar_plani);
         
         liberar_config_kernel(config_kernel);
-        dictionary_destroy_and_destroy_elements(dictionary_interfaces, (void*)liberar_interface_io);
+        liberar_interfaces();
         liberar_procesos(proceso_en_exec);
         exit(0);
     }

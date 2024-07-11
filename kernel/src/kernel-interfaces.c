@@ -58,44 +58,53 @@ void create_consumer_thread(char *interface_name) {
 }
 
 void consumers_pcbs_blockeds(void *args) {
+    // Obtenemos la interfaz a la que se le asignará el hilo consumidor:
     char *interface_name = (char *) args;
     interface_io *interface = get_interface_from_dict(interface_name);
 
     while(1) {
+
+        // Esperamos a que haya procesos en la cola de bloqueados, y que la interfaz no esté siendo usada:
         sem_wait(&interface->semaforo_used);
         sem_wait(&interface->size_blocked);
 
+        // Initialize variables:
+        int buffer;
+        int response = 0;
+        int socket_with_interface = get_socket_interface(interface);
+
+        // Obtenemos el PCB y los argumentos del proceso bloqueado:
         t_pcb *pcb = queue_pop(interface->process_blocked);
         t_list *args_pcb = queue_pop(interface->args_process);
 
-        int socket_with_interface = get_socket_interface(interface);
-        int response = 0;
-        
-        int buffer;
+        // Verificamos si la interfaz sigue conectada:
         int sigue_conectado = recv(socket_with_interface, &buffer, sizeof(int), MSG_PEEK | MSG_DONTWAIT);
 
-        if (sigue_conectado == 0) {
-            interface->esta_conectado = 0;  
+        // Si la interfaz se desconecta, movemos el proceso a la cola de bloqueados:
+        if (!sigue_conectado) {
+            set_estado_de_conexion_interface(interface, 0);
             log_warning(logger, "Interfaz: %s - Desconectada", interface_name);
 
             sem_post(&interface->size_blocked);
             queue_push(interface->process_blocked, pcb);
             queue_push(interface->args_process, args_pcb);
 
-            break; // Cambiar return a break para salir del loop y limpiar
+            break;
         }
 
+        // Enviamos el PCB y los argumentos a la interfaz:
         log_info(logger, "Proceso: %d - Enviando a interfaz: %s", pcb->pid, interface_name);
         send_message_to_interface(interface, args_pcb, &response, socket_with_interface);
 
-        if (response == 1) {
+        // Esperamos la respuesta de la interfaz:
+        if (response) {
             log_warning(logger, "Proceso: %d - Terminado por: %s", pcb->pid, interface_name);
             mover_procesos_de_bloqueado_a_ready(pcb);
         }
 
+        // Libereamos recursos, y habilitamos a la interfaz para que pueda seguir consumiendo:
         sem_post(&interface->semaforo_used);
-        // list_destroy_and_destroy_elements(args_pcb, free);
-        //liberar_pcb(pcb); 
+        list_destroy(args_pcb);
     }
 
     // Limpiar recursos cuando se desconecta
@@ -117,40 +126,49 @@ interface_io *initialize_interface() {
 }
 
 void create_interface(int socket) {
+    // Recibimos el buffer:
     int size;
     int desplazamiento = 0;
     void *buffer = recibir_buffer(&size, socket);
 
-    tipo_interfaz tipo = parsear_int(buffer, &desplazamiento);
-    char *interface_name = parsear_string (buffer, &desplazamiento);
+    // Parseamos el nombre de la interfaz y el tipo:
+    char *name_interface = parsear_string(buffer, &desplazamiento);
+    int tipo_interfaz = parsear_int(buffer, &desplazamiento);
 
+    // Verificamos si la interfaz ya está conectada:
+    if (ya_esta_conectada_interface(name_interface)) {
+        interface_io *interface_existente = get_interface_from_dict(name_interface);
+
+        if(!estado_de_conexion_interface(interface_existente)) {
+            set_socket_interface(interface_existente, socket);
+            set_estado_de_conexion_interface(interface_existente, 1);
+            create_consumer_thread(name_interface);
+            log_info(logger, "Interfaz: %s - Reconectada", name_interface);
+        } else {
+            log_error(logger, "Interfaz: %s - Ya está conectada", name_interface);
+            close(socket);
+        }
+
+        // Liberamos recursos:
+        free(buffer);
+        freed(name_interface);
+
+        return;
+    }   
+
+    // Creamos la interfaz:
     interface_io *interface = initialize_interface();
 
+    // Seteamos el nombre y el socket de la interfaz:
+    set_name_interface(interface, name_interface);
+    set_socket_interface(interface, socket);
+    set_tipo_interfaz(interface, tipo_interfaz);
+
+    // Agregamos la interfaz al diccionario:
     sem_wait(&semaforo_interfaces);
-    if(!esta_interfaz(interface_name)) {
+    add_interface_to_dict(interface, name_interface);
     sem_post(&semaforo_interfaces);
-        log_info(logger, "Nueva interfaz conectada: %s", interface_name);
-        set_name_interface(interface, interface_name);
-        set_tipo_interfaz(interface, tipo);
-        set_socket_interface(interface, socket);
 
-        sem_wait(&semaforo_interfaces);
-        add_interface_to_dict(interface, interface_name);
-        sem_post(&semaforo_interfaces);
-
-        create_consumer_thread(interface_name);
-    } else {
-        interface_io *interface_old = get_interface_from_dict(interface_name);
-
-        if(!interface_old->esta_conectado) {
-            log_info(logger, "Interfaz conectada de nuevo: %s", interface_name);
-
-            interface_old->esta_conectado = 1;    
-
-            set_socket_interface(interface_old, socket);
-            sem_post(&interface_old->semaforo_used);
-            create_consumer_thread(interface_name);
-        } else 
-            close(socket);
-    }
+    // Creamos el hilo consumidor:
+    create_consumer_thread(name_interface);
 }

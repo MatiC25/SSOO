@@ -55,6 +55,11 @@ void send_message_to_generic_interface(int socket, t_list *args, int *response) 
         return;
     }
 
+    // Liberamos la memoria de los argumentos:
+    free(pid_proceso_ptr);
+    free(operacion_a_realizar_ptr);
+    free(tiempo_sleep_ptr);
+
     if (recv(socket, response, sizeof(int), 0) == -1) {
         perror("Error al recibir la respuesta");
         return;
@@ -64,10 +69,9 @@ void send_message_to_generic_interface(int socket, t_list *args, int *response) 
 void send_message_to_std_interface(int socket, t_list *args, int *response) {
     int *pid_proceso_ptr = list_remove(args, 0);
     int *operacion_a_realizar_ptr = list_remove(args, 0);
-    t_list *direcciones_fisicas_y_bytes = list_remove(args, 0);
-
+    
     // Enviamos la cantidad de bytes a enviar:
-    int cant_de_bytes = sizeof(int) * list_size(direcciones_fisicas_y_bytes) + sizeof(int) * 2;
+    int cant_de_bytes = sizeof(int) * list_size(args) + sizeof(int) * 2;
     if(send(socket, &cant_de_bytes, sizeof(int), 0) == -1) {
         perror("Error al enviar la cantidad de bytes a enviar");
         return;
@@ -87,30 +91,30 @@ void send_message_to_std_interface(int socket, t_list *args, int *response) {
         return;
     }
 
-    int size = list_size(direcciones_fisicas_y_bytes) / 2;
-    for (int i = 0; i < size; i++) {
+    // Enviamos los argumentos:
+    while(!list_is_empty(args)) {
+        int *direccion_fisica = list_remove(args, 0);
+        int *bytes_a_leer_o_escribir = list_remove(args, 0);
 
         // Enviamos la dirección física:
-        int *direccion_fisica = list_remove(direcciones_fisicas_y_bytes, 0);
-
         if (send(socket, direccion_fisica, sizeof(int), 0) == -1) {
             perror("Error al enviar la dirección física");
             return;
         }
 
-        // Enviamos los bytes a leer:
-        int *bytes_a_leer = list_remove(direcciones_fisicas_y_bytes, 0);
-
-        log_info(logger, "Se envían los bytes a leer %d al proceso %d", *bytes_a_leer, pid_proceso);
-
-        if (send(socket, bytes_a_leer, sizeof(int), 0) == -1) {
-            perror("Error al enviar los bytes a leer");
+        // Enviamos los bytes a leer o escribir:
+        if (send(socket, bytes_a_leer_o_escribir, sizeof(int), 0) == -1) {
+            perror("Error al enviar los bytes a leer o escribir");
             return;
         }
+
+        free(direccion_fisica);
+        free(bytes_a_leer_o_escribir);
     }
 
-    // Liberamos la memoria de las direcciones físicas y bytes a leer/escribir:
-    list_destroy(direcciones_fisicas_y_bytes);
+    // Liberamos la memoria de los argumentos:
+    free(pid_proceso_ptr);
+    free(operacion_a_realizar_ptr);
 
     // Enviamos un -1 para indicar que terminamos de enviar las direcciones físicas y bytes a leer:
     if (recv(socket, response, sizeof(int), 0) == -1) {
@@ -146,7 +150,6 @@ void send_message_to_dialfs_interface(int socket, t_list *args, int *response) {
 }
 
 void send_message_to_dialfs_create_o_delete(int socket, t_list *args, int *response) {
-
     // Obtenemos los argumentos:
     int *pid_proceso_ptr = list_remove(args, 0);
     int *operacion_a_realizar_ptr = list_remove(args, 0);
@@ -159,6 +162,11 @@ void send_message_to_dialfs_create_o_delete(int socket, t_list *args, int *respo
     enviar_paquete(paquete, socket);
     eliminar_paquete(paquete);
 
+    // Liberamos la memoria de los argumentos:
+    free(pid_proceso_ptr);
+    free(operacion_a_realizar_ptr);
+    free(nombre_archivo);
+
     // Recibimos la respuesta:
     if (recv(socket, response, sizeof(int), 0) == -1) {
         perror("Error al recibir la respuesta");
@@ -167,13 +175,11 @@ void send_message_to_dialfs_create_o_delete(int socket, t_list *args, int *respo
 }
 
 void send_message_to_dialfs_read_o_write(int socket, t_list *args, int *response) {
-
     // Obtenemos los argumentos:
     int *pid_proceso_ptr = list_remove(args, 0);
     int *operacion_a_realizar_ptr =list_remove(args, 0);
     char *nombre_archivo = list_remove(args, 0);
     int *offset = list_remove(args, 0);
-    t_list *direcciones_fisicas_y_bytes = list_remove(args, 0);
 
     // Enviamos el paquete:
     t_paquete *paquete = crear_paquete(*operacion_a_realizar_ptr);
@@ -181,32 +187,34 @@ void send_message_to_dialfs_read_o_write(int socket, t_list *args, int *response
     agregar_a_paquete_string(paquete, nombre_archivo, strlen(nombre_archivo) + 1);
     agregar_a_paquete(paquete, offset, sizeof(int));
 
-    // Agregamos las direcciones físicas y bytes a leer/escribir:
-    int size = list_size(direcciones_fisicas_y_bytes) / 2;
-
-    for (int i = 0; i < size; i++) {
-        int *direccion_fisica = list_remove(direcciones_fisicas_y_bytes, 0);
-        int *bytes_a_leer_o_escribir = list_remove(direcciones_fisicas_y_bytes, 0);
+    while(!list_is_empty(args)) {
+        int *direccion_fisica = list_remove(args, 0);
+        int *bytes_a_leer_o_escribir = list_remove(args, 0);
 
         agregar_a_paquete(paquete, direccion_fisica, sizeof(int)); 
-        agregar_a_paquete(paquete, bytes_a_leer_o_escribir, sizeof(int));  
+        agregar_a_paquete(paquete, bytes_a_leer_o_escribir, sizeof(int));
+
+        free(direccion_fisica);
+        free(bytes_a_leer_o_escribir); 
     }
 
     enviar_paquete(paquete, socket);
     eliminar_paquete(paquete);
+
+    // Liberamos la memoria de los argumentos:
+    free(pid_proceso_ptr);
+    free(operacion_a_realizar_ptr);
+    free(offset);
+    free(nombre_archivo);
 
     // Recibimos la respuesta:
     if (recv(socket, response, sizeof(int), 0) == -1) {
         perror("Error al recibir la respuesta");
         return;
     }
-
-    // Liberamos la memoria de las direcciones físicas y bytes a leer/escribir:
-    list_destroy(direcciones_fisicas_y_bytes);
 }
 
 void send_message_to_dialfs_truncate(int socket, t_list *args, int *response) {
-    
     // Obtenemos los argumentos:
     int *pid_proceso_ptr = list_remove(args, 0);
     int *operacion_a_realizar_ptr = list_remove(args, 0);
@@ -221,6 +229,12 @@ void send_message_to_dialfs_truncate(int socket, t_list *args, int *response) {
     enviar_paquete(paquete, socket);
     eliminar_paquete(paquete);
 
+    // Liberamos la memoria de los argumentos:
+    free(pid_proceso_ptr);
+    free(operacion_a_realizar_ptr);
+    free(nombre_archivo);
+    free(tamanio);
+
     // Recibimos la respuesta:
     if (recv(socket, response, sizeof(int), 0) == -1) {
         perror("Error al recibir la respuesta");
@@ -229,33 +243,6 @@ void send_message_to_dialfs_truncate(int socket, t_list *args, int *response) {
 }
 
 // 2. Funciones para recibir mensajes de interfaces:
-
-void rcv_interfaz(char **interface_name, tipo_interfaz *tipo, int socket) {
-    int size = 0;
-    int desplazamiento = 0;
-    int tamanio;
-    void *buffer = recibir_buffer(&size, socket);
-
-    memcpy(tipo, buffer + desplazamiento, sizeof(tipo_interfaz));
-    desplazamiento += sizeof(tipo_interfaz);
-
-    char *nombre = parsear_string(buffer, desplazamiento);
-
-    log_info(logger, "nombre %s", nombre);
-    
-    free(buffer);
-}
-
-void rcv_nombre_interfaz_dispatch(char **interface_name, int socket) {
-    int tamanio;
-    int desplazamiento = 0;
-    int size = 0;
-    void *buffer = recibir_buffer(&size, socket);
-
-    rcv_nombre_interfaz(interface_name, buffer, &desplazamiento, &tamanio);
-    free(buffer);
-}
-
 t_list *recv_interfaz_y_argumentos(int socket, int pid_proceso) {
     int size;
     int desplazamiento = 0;
@@ -284,8 +271,6 @@ t_list *recv_interfaz_y_argumentos(int socket, int pid_proceso) {
     free(buffer);
     return interfaz_y_argumentos;
 }
-
-
 
 // 3. Funciones auxiliares:
 
@@ -357,87 +342,62 @@ t_list *obtener_argumentos(void *buffer, int *desplazamiento, int size, int oper
 }
 
 void obtener_argumentos_generica(t_list *argumentos, void *buffer, int *desplazamiento) {
-    
     // Obtenemos el tiempo de sleep:
     int *tiempo_sleep = malloc(sizeof(int));
     *tiempo_sleep = parsear_int(buffer, desplazamiento);
 
     list_add(argumentos, tiempo_sleep);
-
-    free(tiempo_sleep);
 }
 
 void obtener_argumentos_std(t_list *argumentos, void *buffer, int *desplazamiento, int size) {
     int desplazamiento_inicial = *desplazamiento;
 
-    t_list *direcciones_fisicas_y_bytes = list_create();
-
+    // Obtenemos las direcciones físicas y los bytes a leer o escribir:
     while (desplazamiento_inicial < size) {
         int *direccion_fisica_ptr = malloc(sizeof(int));
         int *bytes_a_leer_ptr = malloc(sizeof(int));
 
-        if (!direccion_fisica_ptr || !bytes_a_leer_ptr) {
-            log_error(logger, "Error al asignar memoria");
-            if (direccion_fisica_ptr) free(direccion_fisica_ptr);
-            if (bytes_a_leer_ptr) free(bytes_a_leer_ptr);
-            list_destroy_and_destroy_elements(direcciones_fisicas_y_bytes, free);
-            return;
-        }
-
         *direccion_fisica_ptr = parsear_int(buffer, &desplazamiento_inicial);
         *bytes_a_leer_ptr = parsear_int(buffer, &desplazamiento_inicial);
 
-        list_add(direcciones_fisicas_y_bytes, direccion_fisica_ptr);
-        list_add(direcciones_fisicas_y_bytes, bytes_a_leer_ptr);
+        list_add(argumentos, direccion_fisica_ptr);
+        list_add(argumentos, bytes_a_leer_ptr);
     }
 
-    list_add(argumentos, direcciones_fisicas_y_bytes);
     *desplazamiento = desplazamiento_inicial;
 }
 
 
 void obtener_argumentos_dialfs_create_o_delete(t_list *argumentos, void *buffer, int *desplazamiento) {
-
     // Obtenemos el nombre del archivo:
     char *nombre_archivo = parsear_string(buffer, desplazamiento);
     list_add(argumentos, nombre_archivo);
 }
 
 void obtener_argumentos_dialfs_read_o_write(t_list *argumentos, void *buffer, int *desplazamiento, int size) {
-
     // Obtenemos el nombre del archivo:
     char *nombre_archivo = parsear_string(buffer, desplazamiento);
     list_add(argumentos, nombre_archivo);
-
-    log_info(logger, "Se obtiene el nombre del archivo %s", nombre_archivo);
 
     // Obtenemos el offset:
     int *offset = malloc(sizeof(int));
     *offset = parsear_int(buffer, desplazamiento);
     list_add(argumentos, offset);
 
-    log_info(logger, "Se obtiene el offset %d", *offset);
-
     // Obtenemos la dirección física y los bytes a leer o escribir:
     int *direccion_fisica = malloc(sizeof(int));
     int *bytes_a_leer_o_escribir = malloc(sizeof(int));
-
-    // Creamos la lista de direcciones físicas y bytes a leer/escribir:
-    t_list *direcciones_fisicas_y_bytes = list_create();
 
     while(*desplazamiento < size) {
         *direccion_fisica = parsear_int(buffer, desplazamiento);
         *bytes_a_leer_o_escribir = parsear_int(buffer, desplazamiento);
 
-        list_add(direcciones_fisicas_y_bytes, direccion_fisica);
-        list_add(direcciones_fisicas_y_bytes, bytes_a_leer_o_escribir);
+        list_add(argumentos, direccion_fisica);
+        list_add(argumentos, bytes_a_leer_o_escribir);
     }
-
-    list_add(argumentos, direcciones_fisicas_y_bytes);
 }
 
 void obtener_argumentos_dialfs_truncate(t_list *argumentos, void *buffer, int *desplazamiento) {
-
     // Obtenemos el nombre del archivo:
     char *nombre_archivo = parsear_string(buffer, desplazamiento);
     list_add(argumentos, nombre_archivo);
@@ -446,21 +406,4 @@ void obtener_argumentos_dialfs_truncate(t_list *argumentos, void *buffer, int *d
     int *tamanio = malloc(sizeof(int));
     *tamanio = parsear_int(buffer, desplazamiento);
     list_add(argumentos, tamanio);
-}
-
-void rcv_nombre_interfaz(char **interface_name, void *buffer, int *desplazamiento, int *size) { 
-
-    memcpy(size, buffer + *desplazamiento, sizeof(int));
-
-    *desplazamiento += sizeof(int);
-    *interface_name = malloc(*size + 1);
-
-    if (*interface_name == NULL) {
-        log_error(logger, "Error al reservar memoria para el nombre de la interfaz");
-        return;
-    }
-
-    memcpy(*interface_name, buffer + *desplazamiento, *size);    
-    *interface_name[*size] = '\0';
-    *desplazamiento += *size;
 }
