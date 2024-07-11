@@ -408,6 +408,7 @@ void peticion_IO() {
     interface_io* interface = get_interface_from_dict(nombre_interfaz);
 
     if (!interface) {
+        log_info(logger, "Entre en el primer if");
         finalizar_por_invalidacion(pcb, "INVALID_INTERFACE");
         free(nombre_interfaz);
         free(operacion);
@@ -418,6 +419,7 @@ void peticion_IO() {
     }
 
     if (!acepta_operacion_interfaz(interface, *operacion)) {
+        log_info(logger, "Entre en el segundo");
         finalizar_por_invalidacion(pcb, "INVALID_INTERFACE");
         free(nombre_interfaz);
         free(operacion);

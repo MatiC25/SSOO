@@ -94,7 +94,7 @@ void consumers_pcbs_blockeds(void *args) {
         }
 
         sem_post(&interface->semaforo_used);
-        list_destroy_and_destroy_elements(args_pcb, free);
+        // list_destroy_and_destroy_elements(args_pcb, free);
         //liberar_pcb(pcb); 
     }
 
@@ -117,11 +117,14 @@ interface_io *initialize_interface() {
 }
 
 void create_interface(int socket) {
-    tipo_interfaz tipo;
-    char *interface_name;
+    int size;
+    int desplazamiento = 0;
+    void *buffer = recibir_buffer(&size, socket);
+
+    tipo_interfaz tipo = parsear_int(buffer, &desplazamiento);
+    char *interface_name = parsear_string (buffer, &desplazamiento);
 
     interface_io *interface = initialize_interface();
-    rcv_interfaz(&interface_name, &tipo, socket);
 
     sem_wait(&semaforo_interfaces);
     if(!esta_interfaz(interface_name)) {

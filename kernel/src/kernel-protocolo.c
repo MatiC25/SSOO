@@ -124,6 +124,8 @@ void send_message_to_dialfs_interface(int socket, t_list *args, int *response) {
     // Obtenemos el operacion_a_realizar:
     int *operacion_a_realizar = list_get(args, 1);
 
+    log_info(logger, "Operacion: %i", *operacion_a_realizar);
+
     // Enviamos el mensaje a la interfaz correspondiente:
     switch(*operacion_a_realizar) {
         case IO_FS_CREATE_INT:
@@ -237,7 +239,10 @@ void rcv_interfaz(char **interface_name, tipo_interfaz *tipo, int socket) {
     memcpy(tipo, buffer + desplazamiento, sizeof(tipo_interfaz));
     desplazamiento += sizeof(tipo_interfaz);
 
-    rcv_nombre_interfaz(interface_name, buffer, &desplazamiento, &tamanio);
+    char *nombre = parsear_string(buffer, desplazamiento);
+
+    log_info(logger, "nombre %s", nombre);
+    
     free(buffer);
 }
 
@@ -293,21 +298,19 @@ int parsear_int(void *buffer, int *desplazamiento) {
     return dato;
 }
 
-char *parsear_string(void *buffer, int *desplazamiento) {
-    int tamanio;
-    char *string;
+char *parsear_string(void *buffer, int *desplazamiento) {   
+    int tam;
 
-    memcpy(&tamanio, buffer + *desplazamiento, sizeof(int));
+    // Copiamos el tamaño del string:
+    memcpy(&tam, buffer + *desplazamiento, sizeof(int));
     *desplazamiento += sizeof(int);
 
-    string = malloc(tamanio);
-    if (string == NULL) {
-        log_error(logger, "Error al reservar memoria para el string");
-        return NULL;
-    }
-
-    memcpy(string, buffer + *desplazamiento, tamanio);
-    *desplazamiento += tamanio + 1;
+    // Copiamos el string:
+    char *string = malloc(tam + 1);
+    memcpy(string, buffer + *desplazamiento, tam);
+    *desplazamiento += tam + 1;
+    
+    string[tam] = '\0';
 
     return string;
 }
@@ -349,10 +352,6 @@ t_list *obtener_argumentos(void *buffer, int *desplazamiento, int size, int oper
             // Manejo de error o caso por defecto
             break;
     }
-
-    // Liberamos la memoria: 
-    free(operacion_a_realizar_ptr);
-    free(pid_proceso_ptr);
 
     return argumentos;
 }
@@ -454,7 +453,7 @@ void rcv_nombre_interfaz(char **interface_name, void *buffer, int *desplazamient
     memcpy(size, buffer + *desplazamiento, sizeof(int));
 
     *desplazamiento += sizeof(int);
-    *interface_name = malloc(*size);
+    *interface_name = malloc(*size + 1);
 
     if (*interface_name == NULL) {
         log_error(logger, "Error al reservar memoria para el nombre de la interfaz");
@@ -462,5 +461,6 @@ void rcv_nombre_interfaz(char **interface_name, void *buffer, int *desplazamient
     }
 
     memcpy(*interface_name, buffer + *desplazamiento, *size);    
+    *interface_name[*size] = '\0';
     *desplazamiento += *size;
 }
