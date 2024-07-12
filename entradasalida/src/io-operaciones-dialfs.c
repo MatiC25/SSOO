@@ -1,6 +1,8 @@
 #include "io-operaciones-dialfs.h"
 
 void operacion_create_file(t_interfaz *interfaz, t_bitarray *bitmap, t_list *argumentos, t_list *archivos_ya_abiertos) {
+
+    // Obtenemos los argumentos:
     int *pid_proceso = list_remove(argumentos, 0);
     char *nombre_archivo = list_remove(argumentos, 0);
 
@@ -44,7 +46,9 @@ void operacion_create_file(t_interfaz *interfaz, t_bitarray *bitmap, t_list *arg
     free(pid_proceso);
 }
 
-void operacion_write_file(t_interfaz *interfaz, FILE *bloques, t_list *argumentos, t_list *archivos_ya_abiertos) {
+void operacion_write_file(t_interfaz *interfaz, void *bloques, t_list *argumentos, t_list *archivos_ya_abiertos) {
+
+    // Obtenemos los argumentos:
     int *pid_proceso = list_remove(argumentos, 0);
     char *nombre_archivo = list_remove(argumentos, 0);
     int *offset  = list_remove(argumentos, 0);
@@ -71,15 +75,29 @@ void operacion_write_file(t_interfaz *interfaz, FILE *bloques, t_list *argumento
         return;
     }
 
+    // Verificamos si el tamaño supera el tamaño del archivo:
+    if(cantidad_de_bytes + *offset > get_tamanio_archivo(get_archivo_metadata(archivo_abierto))) {
+        log_error(logger, "No se puede escribir en el archivo, el tamanio a escribir supera el tamanio del archivo");
+
+        // Liberamos la memoria utilizada:
+        free(pid_proceso);
+        free(offset);
+        free(nombre_archivo);
+
+        // Liberamos las direcciones fisicas:
+        list_destroy_and_destroy_elements(direcciones_fisicas, (void *) liberar_direccion_fisica);
+
+        return;
+    }
+
     // Obtenemos los datos necesarios:
     t_config *archivo_metadata = get_archivo_metadata(archivo_abierto);
     int bloque_inicial = get_bloque_inicial(archivo_metadata);
     char *contenido = rcv_contenido_a_mostrar(interfaz, direcciones_fisicas, *pid_proceso);
 
     // Escribimos el contenido en el archivo:
-    fseek(bloques, bloque_inicial * get_block_size(interfaz) + *offset , SEEK_SET);
-    fwrite(contenido, cantidad_de_bytes, 1, bloques);
-    fseek(bloques, 0, SEEK_SET);
+    memcpy(bloques, bloque_inicial * get_block_size(interfaz) + *offset, contenido, cantidad_de_bytes);
+    msync(bloques, get_block_size(interfaz) * get_block_count(interfaz), MS_SYNC);
 
     // Logeamos la operación:
     log_info(logger, "Se escribio en el archivo %s", nombre_archivo);
@@ -92,7 +110,9 @@ void operacion_write_file(t_interfaz *interfaz, FILE *bloques, t_list *argumento
     free(nombre_archivo);
 }
 
-void operacion_read_file(t_interfaz *interfaz, FILE *bloques, t_list *argumentos, t_list *archivos_ya_abiertos) {
+void operacion_read_file(t_interfaz *interfaz, void *bloques, t_list *argumentos, t_list *archivos_ya_abiertos) {
+
+    // Obtenemos los argumentos:
     int *pid_proceso = list_remove(argumentos, 0);
     char *nombre_archivo = list_remove(argumentos, 0);
     int *offset = list_remove(argumentos, 0);
@@ -119,6 +139,21 @@ void operacion_read_file(t_interfaz *interfaz, FILE *bloques, t_list *argumentos
         return;
     }
 
+    // Verificamos si el tamaño supera el tamaño del archivo:
+    if(*offset + cantidad_de_bytes > get_tamanio_archivo(get_archivo_metadata(archivo_abierto))) {
+        log_error(logger, "No se puede leer el archivo, el tamanio a leer supera el tamanio del archivo");
+
+        // Liberamos la memoria utilizada:
+        free(pid_proceso);
+        free(offset);
+        free(nombre_archivo);
+
+        // Liberamos las direcciones fisicas:
+        list_destroy_and_destroy_elements(direcciones_fisicas, (void *) liberar_direccion_fisica);
+
+        return;
+    }
+
     t_config *archivo_metadata = get_archivo_metadata(archivo_abierto);
 
     // Obtenemos los datos necesarios:
@@ -127,9 +162,7 @@ void operacion_read_file(t_interfaz *interfaz, FILE *bloques, t_list *argumentos
     char *contenido = malloc(bytes_a_escribir);
 
     // Leemos el contenido del archivo:
-    fseek(bloques, bloque_inicial * get_block_size(interfaz) + *offset, SEEK_SET);
-    fread(contenido, sizeof(char), bytes_a_escribir, bloques);
-    fseek(bloques, 0, SEEK_SET);
+    memcpy(contenido, bloques + bloque_inicial * get_block_size(interfaz) + *offset, bytes_a_escribir);
 
     // Enviamos los bytes leidos a memoria:
     send_bytes_a_leer(interfaz, *pid_proceso, direcciones_fisicas, contenido, bytes_a_escribir);
@@ -146,6 +179,8 @@ void operacion_read_file(t_interfaz *interfaz, FILE *bloques, t_list *argumentos
 }
 
 void operacion_delete_file(t_interfaz *interfaz, t_bitarray *bitmap, t_list *argumentos, t_list *archivos_ya_abiertos) {
+
+    // Obtenemos los argumentos:
     int *pid_proceso = list_remove(argumentos, 0);
     char *nombre_archivo = list_remove(argumentos, 0);
 
@@ -184,7 +219,9 @@ void operacion_delete_file(t_interfaz *interfaz, t_bitarray *bitmap, t_list *arg
     free(nombre_archivo);
 }
 
-void operacion_truncate_file(t_interfaz *interfaz, FILE *bloques, t_bitarray *bitmap, t_list *argumentos, t_list *archivos_ya_abiertos) {
+void operacion_truncate_file(t_interfaz *interfaz, void *bloques, t_bitarray *bitmap, t_list *argumentos, t_list *archivos_ya_abiertos) {
+
+    // Obtenemos los argumentos:
     int *pid_proceso = list_remove(argumentos, 0);
     char *nombre_archivo = list_remove(argumentos, 0);
     int *nuevo_tamanio = list_remove(argumentos, 0);

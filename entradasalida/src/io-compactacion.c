@@ -1,6 +1,6 @@
 #include "io-compactacion.h"
 
-void compactar_fs(t_interfaz  *interfaz, FILE *bloques, t_bitarray *bitmap, t_list *archivos_ya_abiertos, t_config *archivo_metadata, int cantidad_bloques_asignados_a_archivo_compactar, int bloque_inicial_archivo_a_compactar, int tam_nuevo_archivo_a_compactar) {
+void compactar_fs(t_interfaz  *interfaz, void *bloques, t_bitarray *bitmap, t_list *archivos_ya_abiertos, t_config *archivo_metadata, int cantidad_bloques_asignados_a_archivo_compactar, int bloque_inicial_archivo_a_compactar, int tam_nuevo_archivo_a_compactar) {
 
     // Ordenamos los archivos abiertos por bloque inicial:
     int cantidad_archivos_abiertos = list_size(archivos_ya_abiertos);
@@ -41,9 +41,7 @@ void compactar_fs(t_interfaz  *interfaz, FILE *bloques, t_bitarray *bitmap, t_li
             unsigned char *buffer = malloc(tamanio_archivo_archivo_actual);
 
             // Obtenemos los datos del archivo:
-            fseek(bloques, bloque_inicial_archivo_actual * get_block_size(interfaz), SEEK_SET);
-            fread(buffer, tamanio_archivo_archivo_actual, 1, bloques);
-            fseek(bloques, 0, SEEK_SET);
+            memcpy(buffer, bloques + bloque_inicial_archivo_actual * get_block_size(interfaz), tamanio_archivo_archivo_actual);
         
             if(bloque_inicial_archivo_actual != bloque_inicial_archivo_a_compactar) {
                 bloque_final_anterior = calcular_bloque_final(interfaz, nuevo_bloque_libre, tamanio_archivo_archivo_actual);

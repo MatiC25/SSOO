@@ -17,11 +17,22 @@ FILE *abrir_archivo_bitmap(t_interfaz *interfaz, char *modo_de_apertura) {
     return archivo;
 }
 
-FILE *abrir_archivo_bloques(t_interfaz *interfaz, char *modo_de_apertura) {
-    int tamanio_archivo = interfaz->config->BLOCK_SIZE * interfaz->config->BLOCK_COUNT;
-    FILE *archivo = persistir_archivo(interfaz, "bloques.bin", modo_de_apertura, tamanio_archivo);
+void *mapear_archivo_bloques(t_interfaz *interfaz, char *modo_de_apertura) {
 
-    return archivo;
+    // Obtenemos el archivo de bloques:
+    int tamanio_archivo = get_block_size(interfaz) * get_block_count(interfaz);
+    archivo_bloque = persistir_archivo(interfaz, "bloques.bin", modo_de_apertura, tamanio_archivo);
+
+    // Mapeamos el archivo:
+    void *region_bloques_en_memoria = mmap(NULL, tamanio_archivo, PROT_READ | PROT_WRITE, MAP_SHARED, fileno(archivo), 0);
+
+    // Verifico que se haya mapeado correctamente:
+    if(region_bloques == MAP_FAILED) {
+        log_info(logger, "No se pudo mapear el archivo bloques");
+        exit(1);
+    }
+
+    return region_bloques_en_memoria;
 }
 
 FILE *persistir_archivo(t_interfaz *interfaz, char *name_file, char *modo_de_apertura, int tamanio_archivo) {
@@ -50,7 +61,10 @@ FILE *abrir_archivo(char *path, char *modo_de_apertura) {
 }
 
 // Funcion para escribir en un archivo:
-void escribir_contenido_en_bloques(FILE *bloques, t_queue *buffers) {
+void escribir_contenido_en_bloques(void *bloques, t_queue *buffers) {
+
+    // Inicializamos el desplazamiento:
+    int desplazamiento = 0;
     
     // Iteramos sobre los buffers:
     while(!queue_is_empty(buffers)) {
@@ -58,7 +72,9 @@ void escribir_contenido_en_bloques(FILE *bloques, t_queue *buffers) {
         unsigned char *buffer = queue_pop(buffers);
         int *bytes_a_escribir = queue_pop(buffers);
 
-        fwrite(buffer, *bytes_a_escribir, 1, bloques);
+        // Escribimos el contenido en los bloques:
+        memcpy(bloques + desplazamiento, buffer, *bytes_a_escribir);
+        desplazamiento += *bytes_a_escribir;
 
         // Liberamos la memoria utilizada:
         free(buffer);
@@ -67,4 +83,13 @@ void escribir_contenido_en_bloques(FILE *bloques, t_queue *buffers) {
 
     // Liberamos la memoria utilizada:
     queue_destroy(buffers);
+}
+
+// Funcion para liberar region de memoria mapeada:
+void liberar_region_memoria_bloques(void *region, t_interfaz *interfaz) {
+    int block_size = get_block_size(interfaz);
+    int block_count = get_block_count(interfaz);
+    int tamanio = bloque_size * block_count;
+
+    munmap(region, tamanio);
 }

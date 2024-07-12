@@ -9,6 +9,7 @@ t_interfaz *interfaz = NULL;
 char *name_interfaz = NULL;
 char *config_path = NULL;
 void *bitmap_data = NULL;
+void *region_bloques = NULL;
 
 // Funcion para cerrar programa:
 void cerrar_programa(int signal) {
@@ -19,9 +20,9 @@ void cerrar_programa(int signal) {
         if(interfaz->tipo == DIALFS) {
             cerrar_todos_los_archivos_abiertos(archivos_ya_abiertos);
             cerrar_bitmap(bitmap);
+            liberar_region_memoria_bloques(region_bloques, interfaz);
             fclose(archivo_bitmap);
             fclose(archivo_bloque);
-            free(bitmap_data);
         }
 
         log_destroy(logger);

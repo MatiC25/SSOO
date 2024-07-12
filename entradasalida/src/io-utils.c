@@ -211,7 +211,7 @@ void cerrar_sockets(t_interfaz *interfaz) {
 
 // Funcion para liberar la memoria de una interfaz:
 void liberar_interfaz(t_interfaz *interfaz) {
-    liberar_config_io(interfaz->config);
+    liberar_config_io(interfaz, interfaz->config);
     free(interfaz);
 }
 
@@ -225,4 +225,9 @@ void retardo_compactacion(t_interfaz *interfaz) {
     int retardo = get_retardo_compactacion(interfaz);
 
     usleep(retardo * 1000);
+}
+
+// Funcion para aplicar unidad de trabajo:
+void aplicar_unidad_trabajo(t_interfaz *interfaz) {
+    usleep(get_tiempo_unidad(interfaz) * 1000);
 }

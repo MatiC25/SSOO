@@ -26,6 +26,7 @@ extern t_interfaz *interfaz;
 extern char *name_interfaz;
 extern char *config_path;
 extern void *bitmap_data;
+extern void *region_bloques;
 
 // Funcion para cerrar programa:
 void cerrar_programa(int signal);

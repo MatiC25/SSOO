@@ -151,7 +151,7 @@ void ejecutar_operaciones_dialFS(t_interfaz *interfaz) {
     string_append(&modo_de_apertura, get_modo_de_apertura(size));
 
     // Abrimos los archivos necesarios:
-    archivo_bloque = abrir_archivo_bloques(interfaz, modo_de_apertura);
+    region_bloques = mapear_archivo_bloques(interfaz, modo_de_apertura);
     bitmap = crear_bitmap(interfaz, modo_de_apertura);
 
     // Liberamos la memoria:
@@ -172,22 +172,27 @@ void ejecutar_operaciones_dialFS(t_interfaz *interfaz) {
         switch(operacion) {
             case IO_FS_CREATE_INT:
                 operacion_create_file(interfaz, bitmap, argumentos, archivos_ya_abiertos);
+                aplicar_unidad_trabajo(interfaz);
                 send_respuesta_a_kernel(1, interfaz);
                 break;
             case IO_FS_READ_INT:
-                operacion_read_file(interfaz, archivo_bloque, argumentos, archivos_ya_abiertos);
+                operacion_read_file(interfaz, region_bloques, argumentos, archivos_ya_abiertos);
+                aplicar_unidad_trabajo(interfaz);
                 send_respuesta_a_kernel(1, interfaz);
                 break;
             case IO_FS_DELETE_INT:
                 operacion_delete_file(interfaz, bitmap, argumentos, archivos_ya_abiertos);
+                aplicar_unidad_trabajo(interfaz);
                 send_respuesta_a_kernel(1, interfaz);
                 break;
             case IO_FS_WRITE_INT:
-                operacion_write_file(interfaz, archivo_bloque, argumentos, archivos_ya_abiertos);
+                operacion_write_file(interfaz, region_bloques, argumentos, archivos_ya_abiertos);
+                aplicar_unidad_trabajo(interfaz);
                 send_respuesta_a_kernel(1, interfaz);
                 break;
             case IO_FS_TRUNCATE_INT:
-                operacion_truncate_file(interfaz, archivo_bloque, bitmap, argumentos, archivos_ya_abiertos);
+                operacion_truncate_file(interfaz, region_bloques, bitmap, argumentos, archivos_ya_abiertos);
+                aplicar_unidad_trabajo(interfaz);
                 send_respuesta_a_kernel(1, interfaz);
                 break;
             default:

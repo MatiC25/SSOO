@@ -20,6 +20,6 @@ void configurar_tiempo_unidad(t_config_io* config_io, t_config* config);
 void configurar_valores_dialfs(t_config_io* config_io, t_config* config);
 
 // Funciones para liberar:
-void liberar_config_io(t_config_io *config_io);
+void liberar_config_io(t_interfaz *interfaz, t_config_io *config_io) ;
 
 #endif // IO_CONFIG_H

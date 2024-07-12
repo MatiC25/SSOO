@@ -39,11 +39,21 @@ void configurar_valores_dialfs(t_config_io *config_io, t_config *config){
 }
 
 // Funciones para liberar:
-void liberar_config_io(t_config_io *config_io) {
+void liberar_config_io(t_interfaz *interfaz, t_config_io *config_io) {
+
+    // Liberamos valores de kernel:
     free(config_io->IP_KERNEL);
     free(config_io->PUERTO_KERNEL);
-    free(config_io->IP_MEMORIA);
-    free(config_io->PUERTO_MEMORIA);
-    free(config_io->PATH_BASE_DIALFS);
+
+    // Liberamos valores de memoria:
+    if(interfaz-> tipo == STDIN || interfaz->tipo == STDOUT || interfaz->tipo == DIALFS) {
+        free(config_io->IP_MEMORIA);
+        free(config_io->PUERTO_MEMORIA);
+    }
+
+    // Liberamos valores de dialfs:
+    if(interfaz->tipo == DIALFS) 
+        free(config_io->PATH_BASE_DIALFS);
+
     free(config_io);
 }

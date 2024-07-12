@@ -96,4 +96,7 @@ void liberar_direccion_fisica(void *direccion);
 // Funcion para retardo de compactacion:
 void retardo_compactacion(t_interfaz *interfaz);
 
+// Funcion para aplicar unidad de trabajo:
+void aplicar_unidad_trabajo(t_interfaz *interfaz);
+
 #endif // IO_UTILS_H
