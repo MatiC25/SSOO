@@ -124,7 +124,7 @@ void terminar_proceso(int socket_cliente){
 
     int cantidad_de_paginas = list_size(tabla_de_paginas);//averiguamos cuantas paginas tiene
     for(int i = 0; i < cantidad_de_paginas; i++){ 
-        t_tabla_de_paginas* pag_a_eliminar = list_get(tabla_de_paginas, i); //obtengo la pagina [i]
+        t_tabla_de_paginas* pag_a_eliminar = list_remove(tabla_de_paginas, 0); //obtengo la pagina [i]
         if(pag_a_eliminar == NULL){
             log_error(logger, "No se encontró la pagina %i", i);
             exit(-1);
@@ -132,7 +132,7 @@ void terminar_proceso(int socket_cliente){
         bitarray_clean_bit(bitmap, pag_a_eliminar->marco); //marco en el bitmap la pagina [i] como "libre"
         free(pag_a_eliminar); //libero la pagina [i]
     }
-    list_destroy_and_destroy_elements(tabla_de_paginas, free);//destruyo la tabla de paginas
+    list_destroy(tabla_de_paginas); //libero la tabla de paginas
     dictionary_remove_and_destroy(diccionario_de_instrucciones_porPID, pid_string, free);
     log_mati(logger2, "Destruccion de Tabla de Paginas: PID: %i - Tamanio: %i", pid, cantidad_de_paginas); // Log minimo y obligatorio
     free(pid_string);

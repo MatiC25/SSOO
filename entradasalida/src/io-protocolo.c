@@ -172,6 +172,9 @@ void send_bytes_a_leer(t_interfaz *interfaz, int pid, t_list *direcciones, void 
         agregar_a_paquete(paquete, &direccion_fisica, sizeof(int));
         agregar_a_paquete(paquete, &tamanio, sizeof(int));
 
+        log_info(logger, "Dirección física a escribir: %d", direccion_fisica);
+        log_info(logger, "Tamaño a escribir: %d", tamanio);
+
         // Creamos el buffer a enviar:
         buffer = malloc(tamanio);
         memcpy(buffer, input + bytes_mandados, tamanio);
@@ -253,6 +256,9 @@ char *rcv_contenido_a_mostrar(t_interfaz *interfaz, t_list *direcciones_fisicas,
         // Recibimos el buffer de memoria:
         int size;
         void *buffer = recibir_buffer(&size, socket_memoria);
+
+        // Logueamos el buffer recibido:
+        log_info(logger, "Se recibe el buffer: %s", buffer);
 
         // Copiamos el contenido al buffer a mostrar:
         memcpy(contenido_a_mostrar + desplazamiento_interno, buffer, tamanio);

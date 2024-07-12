@@ -1,5 +1,6 @@
 #include "kernel-config.h"
 
+t_config* config;
 // Funciones para inicializar:
 
 t_config_kernel* inicializar_config_kernel() {
@@ -32,9 +33,9 @@ t_config_kernel *cargar_config_kernel(char *path_config) {
 // Funciones para cargar configuraciones:
 
 void cargar_configuraciones(t_config_kernel* config_kernel, char *path_config) {
-	t_config *config = config_create("kernel.config"); //path_config
+	config = config_create("kernel.config"); //path_config
 
-	if (config == NULL) {
+	if (!config) {
 		log_info(logger, "No se pudo abrir el archivo de configuraciones!");
 
 		exit(-1);

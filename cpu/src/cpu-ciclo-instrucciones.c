@@ -155,7 +155,6 @@ void ejecutar_instruccion(int socket_cliente) {
     t_instruccion *instruccion = recv_instruccion(socket_cliente);
     if (strncmp(instruccion->opcode, "Desalojo de usuario.", 20) == 0){
         log_warning(logger, "Desalojo de usuario");
-        free(instruccion->opcode);
         liberar_pcb();
         return; //En caso de que kenrel pida desalojar y para que no explote.
     }
@@ -403,12 +402,14 @@ void ejecutar_COPY_STRING(char* tam){
     
     mmu = traducirDireccion(registerSI, tamanio);
 
-    char* valor = malloc(tamanio); //linea 406
+    char* valor = malloc(tamanio + 1); //linea 406
     valor = comunicaciones_con_memoria_lectura_copy_string(mmu);
     log_warning(logger, "La palabra es %s", valor);
     liberar_mmu();
     int tamm = strlen(valor);
+    log_warning(logger, "tamm %i", tamm);
 
+      log_nico(logger2,"registroDI");
     mmu = traducirDireccion(registreDI, tamm);
 
         if(comunicaciones_con_memoria_escritura_copy_string(valor) == 1){

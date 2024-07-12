@@ -13,7 +13,6 @@ t_config *abrir_archivo_metadata_config(t_interfaz *interfaz, char *name_file, c
 
     // Liberamos memoria:
     fclose(archivo);
-    free(path);
 
     return config;
 }

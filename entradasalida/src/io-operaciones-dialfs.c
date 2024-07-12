@@ -42,7 +42,6 @@ void operacion_create_file(t_interfaz *interfaz, t_bitarray *bitmap, t_list *arg
 
     // Liberamos la memoria utilizada:
     free(pid_proceso);
-    free(nombre_archivo);
 }
 
 void operacion_write_file(t_interfaz *interfaz, FILE *bloques, t_list *argumentos, t_list *archivos_ya_abiertos) {

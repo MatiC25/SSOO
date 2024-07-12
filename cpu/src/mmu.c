@@ -40,6 +40,8 @@ t_mmu_cpu* traducirDireccion(int direccionLogica, int tamanio) {
     }
 
     *tamanio_ptr = tamanio_Actualizado < tamanio ? tamanio_Actualizado : tamanio;
+    log_warning(logger, "*tamanio_Actualizad: %i ", tamanio_Actualizado);
+    log_warning(logger, "*tamanio_ptr: %i ", *tamanio_ptr);
     list_add(mmu->tamanio, tamanio_ptr);
 
     int pagina_actualizada = pagina + 1;
@@ -47,6 +49,7 @@ t_mmu_cpu* traducirDireccion(int direccionLogica, int tamanio) {
     tamanio_Actualizado = tamanio - tamanio_Actualizado;
 
     while (config_cpu->TAMANIO_PAGINA <= tamanio_Actualizado) {
+        log_warning(logger, "*tamanio_Actualizad: %i ", tamanio_Actualizado);
         int* pagina_ptrr = malloc(sizeof(int));
         int* offset_ptrr = malloc(sizeof(int)); //linea 52
         int* tamanio_ptrr = malloc(sizeof(int));
@@ -60,6 +63,7 @@ t_mmu_cpu* traducirDireccion(int direccionLogica, int tamanio) {
         *pagina_ptrr = pagina_actualizada;
         *offset_ptrr = 0;
         *tamanio_ptrr = config_cpu->TAMANIO_PAGINA;
+        log_warning(logger, "*tamanio_ptr: %i ", *tamanio_ptrr);
 
         list_add(mmu->num_pagina, pagina_ptrr);
         list_add(mmu->ofset, offset_ptrr);
@@ -71,6 +75,7 @@ t_mmu_cpu* traducirDireccion(int direccionLogica, int tamanio) {
     }
 
     if (tamanio_Actualizado > 0) {
+        log_warning(logger, "*tamanio_Actualizad: %i ", tamanio_Actualizado);
         int* pagina_ptrrr = malloc(sizeof(int));
         int* offset_ptrrr = malloc(sizeof(int)); // linea 76
         int* tamanio_ptrrr = malloc(sizeof(int));
@@ -84,6 +89,7 @@ t_mmu_cpu* traducirDireccion(int direccionLogica, int tamanio) {
         *pagina_ptrrr = pagina_actualizada;
         *offset_ptrrr = 0;
         *tamanio_ptrrr = tamanio_Actualizado;
+        log_warning(logger, "*tamanio_ptrrr: %i ", *tamanio_ptrrr);
 
         list_add(mmu->num_pagina, pagina_ptrrr);
         list_add(mmu->ofset, offset_ptrrr);

@@ -191,11 +191,11 @@ void send_message_to_dialfs_read_o_write(int socket, t_list *args, int *response
         int *direccion_fisica = list_remove(args, 0);
         int *bytes_a_leer_o_escribir = list_remove(args, 0);
 
+        log_info(logger, "Direccion fisica: %i", *direccion_fisica);
+        log_info(logger, "Bytes a leer o escribir: %i", *bytes_a_leer_o_escribir);
+
         agregar_a_paquete(paquete, direccion_fisica, sizeof(int)); 
         agregar_a_paquete(paquete, bytes_a_leer_o_escribir, sizeof(int));
-
-        free(direccion_fisica);
-        free(bytes_a_leer_o_escribir); 
     }
 
     enviar_paquete(paquete, socket);
@@ -392,6 +392,9 @@ void obtener_argumentos_dialfs_read_o_write(t_list *argumentos, void *buffer, in
     while(*desplazamiento < size) {
         *direccion_fisica = parsear_int(buffer, desplazamiento);
         *bytes_a_leer_o_escribir = parsear_int(buffer, desplazamiento);
+
+        log_info(logger, "Direccion fisica: %i", *direccion_fisica);
+        log_info(logger, "Bytes a leer o escribir: %i", *bytes_a_leer_o_escribir);
 
         list_add(argumentos, direccion_fisica);
         list_add(argumentos, bytes_a_leer_o_escribir);

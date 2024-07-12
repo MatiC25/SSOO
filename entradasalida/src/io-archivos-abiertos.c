@@ -58,7 +58,7 @@ void set_nuevo_archivo_abierto(t_list *archivos_abiertos, char *name_file, t_con
     archivo_abierto->name_file = name_file;
     archivo_abierto->archivo_metadata = archivo_metadata;
 
-    list_add(archivos_abiertos, archivo_abierto);
+    list_add_sorted(archivos_abiertos, archivo_abierto, comparar_bloque_inicial);
 }
 
 // Funciones para gettear los datos del archivo abierto:

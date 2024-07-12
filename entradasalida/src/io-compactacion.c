@@ -1,10 +1,9 @@
 #include "io-compactacion.h"
 
 void compactar_fs(t_interfaz  *interfaz, FILE *bloques, t_bitarray *bitmap, t_list *archivos_ya_abiertos, t_config *archivo_metadata, int cantidad_bloques_asignados_a_archivo_compactar, int bloque_inicial_archivo_a_compactar, int tam_nuevo_archivo_a_compactar) {
+    
+    // Variables auxiliares:
     int cantidad_archivos_abiertos = list_size(archivos_ya_abiertos);
-
-    // Creamos una lista y una cola para ordenar los archivos:
-    t_list *archivos_ordenados = list_sorted(archivos_ya_abiertos, (void *) comparar_bloque_inicial);
     t_queue *buffers = queue_create();
 
     // Variables auxiliares:
@@ -19,7 +18,7 @@ void compactar_fs(t_interfaz  *interfaz, FILE *bloques, t_bitarray *bitmap, t_li
     for(int i =  0; i < cantidad_archivos_abiertos; i++) {
 
         // Obtenemos el archivo actual:
-        t_archivo_abierto *archivo_abierto_actual = list_remove(archivos_ordenados, 0);
+        t_archivo_abierto *archivo_abierto_actual = list_get(archivos_ya_abiertos, i);
         t_config *archivo_metadata_archivo_actual = get_archivo_metadata(archivo_abierto_actual);
 
         // Obtenemos los datos necesarios:
@@ -57,10 +56,6 @@ void compactar_fs(t_interfaz  *interfaz, FILE *bloques, t_bitarray *bitmap, t_li
                 buffer_archivo_a_compactar = buffer;
             }
         }
-
-        // Liberamos la memoria utilizada:
-        free(archivo_abierto_actual);
-        free(archivo_abierto_actual->name_file);
     }
 
     queue_push(buffers, buffer_archivo_a_compactar);
@@ -75,7 +70,4 @@ void compactar_fs(t_interfaz  *interfaz, FILE *bloques, t_bitarray *bitmap, t_li
 
     // Cambiamos el contenido de los bloques:
     escribir_contenido_en_bloques(bloques, buffers);
-
-    // Liberamos la memoria utilizada:
-    list_destroy(archivos_ordenados);
 }

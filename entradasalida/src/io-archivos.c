@@ -26,9 +26,6 @@ FILE *abrir_archivo(char *path, char *modo_de_apertura) {
         return NULL;
     }
 
-    // Liberamos la memoria utilizada:
-    free(path);
-
     return archivo;
 }
 
@@ -40,7 +37,7 @@ FILE *persistir_archivo(t_interfaz *interfaz, char *name_file, char *modo_de_ape
         ftruncate(fileno(archivo), tamanio_archivo);
     
     // Liberamos la memoria utilizada:
-    free(path);
+    //free(path);
 
     return archivo;
 }

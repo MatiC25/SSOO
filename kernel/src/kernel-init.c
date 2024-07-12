@@ -58,6 +58,7 @@ void finalizar_programa() {
     pthread_mutex_destroy(&reanudar_largo);
     pthread_mutex_destroy(&reanudar_plani);
     liberar_config_kernel(config_kernel);
+    config_destroy(config);
 }
 
 

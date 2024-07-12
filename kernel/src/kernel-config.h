@@ -10,7 +10,7 @@
 // Funciones para inicializar:
 t_config_kernel* inicializar_config_kernel();
 t_config_kernel *cargar_config_kernel(char *path_config);
-
+extern t_config* config;
 // Funciones para cargar configuraciones:
 void cargar_configuraciones(t_config_kernel* config_kernel, char *path_config);
 

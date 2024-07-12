@@ -123,7 +123,7 @@ int comunicaciones_con_memoria_escritura_copy_string(char* valor){
     int desplazamiento = 0;
     int des = 0;
     int longitud = strlen(valor);
-    char* palbara_reconstruida = (char*)malloc(longitud + 1);
+    char* palbara_reconstruida = (char*) malloc(longitud + 1);
 
     if (palbara_reconstruida == NULL){
             log_warning(logger, "ERRORE ASIGNAR MEMORIA");
@@ -133,6 +133,8 @@ int comunicaciones_con_memoria_escritura_copy_string(char* valor){
     while (!list_is_empty(mmu->direccionFIsica)) {
         int* direccionFIsicaa = (int*)list_remove(mmu->direccionFIsica, 0);
         int* tamanio = (int*)list_remove(mmu->tamanio, 0);
+            log_warning(logger, "*direccionFIsicaa : %i ", *direccionFIsicaa );
+            log_warning(logger, "*tamanio: %i ", *tamanio);
 
         if (!direccionFIsicaa || !tamanio) {
             log_error(logger, "Error al obtener dirección física o tamaño");
@@ -144,6 +146,8 @@ int comunicaciones_con_memoria_escritura_copy_string(char* valor){
 
         int tam = *tamanio;
         int direc = *direccionFIsicaa;
+        log_warning(logger, "direc : %i ", direc );
+        log_warning(logger, "*tam: %i ", tam);
 
         // Reservar memoria para la parte del valor
         char* palabra_parte = (char*)malloc(tam);
