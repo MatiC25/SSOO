@@ -1,0 +1,166 @@
+==4445== Invalid read of size 1
+==4445==    at 0x48534F0: mempcpy (in /usr/libexec/valgrind/vgpreload_memcheck-amd64-linux.so)
+==4445==    by 0x4A3B664: _IO_new_file_xsputn (fileops.c:1235)
+==4445==    by 0x4A3B664: _IO_file_xsputn@@GLIBC_2.2.5 (fileops.c:1196)
+==4445==    by 0x4A2FFD6: fwrite (iofwrite.c:39)
+==4445==    by 0x10DCEF: escribir_contenido_en_bloques (io-archivos.c:50)
+==4445==    by 0x10E8F0: compactar_fs (io-compactacion.c:75)
+==4445==    by 0x10D5C6: operacion_truncate_file (io-operaciones-dialfs.c:239)
+==4445==    by 0x10CB31: ejecutar_operaciones_dialFS (io-peticiones.c:190)
+==4445==    by 0x10C3D7: interfaz_recibir_peticiones (io-peticiones.c:11)
+==4445==    by 0x10BDF4: main (main.c:19)
+==4445==  Address 0x4c76c10 is 0 bytes after a block of size 0 alloc'd
+==4445==    at 0x4848899: malloc (in /usr/libexec/valgrind/vgpreload_memcheck-amd64-linux.so)
+==4445==    by 0x10E79B: compactar_fs (io-compactacion.c:40)
+==4445==    by 0x10D5C6: operacion_truncate_file (io-operaciones-dialfs.c:239)
+==4445==    by 0x10CB31: ejecutar_operaciones_dialFS (io-peticiones.c:190)
+==4445==    by 0x10C3D7: interfaz_recibir_peticiones (io-peticiones.c:11)
+==4445==    by 0x10BDF4: main (main.c:19)
+==4445== 
+==4445== Invalid read of size 1
+==4445==    at 0x48534FE: mempcpy (in /usr/libexec/valgrind/vgpreload_memcheck-amd64-linux.so)
+==4445==    by 0x4A3B664: _IO_new_file_xsputn (fileops.c:1235)
+==4445==    by 0x4A3B664: _IO_file_xsputn@@GLIBC_2.2.5 (fileops.c:1196)
+==4445==    by 0x4A2FFD6: fwrite (iofwrite.c:39)
+==4445==    by 0x10DCEF: escribir_contenido_en_bloques (io-archivos.c:50)
+==4445==    by 0x10E8F0: compactar_fs (io-compactacion.c:75)
+==4445==    by 0x10D5C6: operacion_truncate_file (io-operaciones-dialfs.c:239)
+==4445==    by 0x10CB31: ejecutar_operaciones_dialFS (io-peticiones.c:190)
+==4445==    by 0x10C3D7: interfaz_recibir_peticiones (io-peticiones.c:11)
+==4445==    by 0x10BDF4: main (main.c:19)
+==4445==  Address 0x4c76c12 is 2 bytes after a block of size 0 alloc'd
+==4445==    at 0x4848899: malloc (in /usr/libexec/valgrind/vgpreload_memcheck-amd64-linux.so)
+==4445==    by 0x10E79B: compactar_fs (io-compactacion.c:40)
+==4445==    by 0x10D5C6: operacion_truncate_file (io-operaciones-dialfs.c:239)
+==4445==    by 0x10CB31: ejecutar_operaciones_dialFS (io-peticiones.c:190)
+==4445==    by 0x10C3D7: interfaz_recibir_peticiones (io-peticiones.c:11)
+==4445==    by 0x10BDF4: main (main.c:19)
+==4445== 
+[INFO] 03:33:46:146 IO/(4445:4445): PID: 0 - Fin Compactación.
+[INFO] 03:33:46:147 IO/(4445:4445): Se truncó el archivo cronologico.txt
+[INFO] 03:33:46:147 IO/(4445:4445): Nuevo tamanio: 80
+[INFO] 03:33:46:147 IO/(4445:4445): Cantidad de nuevos bloques asignados: 5
+[INFO] 03:33:46:148 IO/(4445:4445): Cantidad de bloques actuales: 5
+^C[INFO] 03:34:05:847 IO/(4445:4445): Cerrando programa...
+==4445== 
+==4445== HEAP SUMMARY:
+==4445==     in use at exit: 204,331 bytes in 239 blocks
+==4445==   total heap usage: 1,203 allocs, 964 frees, 355,693 bytes allocated
+==4445== 
+==4445== 0 bytes in 2 blocks are definitely lost in loss record 1 of 73
+==4445==    at 0x4848899: malloc (in /usr/libexec/valgrind/vgpreload_memcheck-amd64-linux.so)
+==4445==    by 0x10E86C: compactar_fs (io-compactacion.c:58)
+==4445==    by 0x10D5C6: operacion_truncate_file (io-operaciones-dialfs.c:239)
+==4445==    by 0x10CB31: ejecutar_operaciones_dialFS (io-peticiones.c:190)
+==4445==    by 0x10C3D7: interfaz_recibir_peticiones (io-peticiones.c:11)
+==4445==    by 0x10BDF4: main (main.c:19)
+==4445== 
+==4445== 4 bytes in 2 blocks are definitely lost in loss record 3 of 73
+==4445==    at 0x484DCD3: realloc (in /usr/libexec/valgrind/vgpreload_memcheck-amd64-linux.so)
+==4445==    by 0x486E64B: string_append (string.c:47)
+==4445==    by 0x486F461: _string_append_with_format_list (string.c:312)
+==4445==    by 0x486E83F: string_from_vformat (string.c:74)
+==4445==    by 0x486E7D0: string_from_format (string.c:67)
+==4445==    by 0x486E881: string_itoa (string.c:79)
+==4445==    by 0x10DE30: set_bloque_inicial_en_archivo_metadata (io-archivos-metadata.c:32)
+==4445==    by 0x10CCAF: operacion_create_file (io-operaciones-dialfs.c:34)
+==4445==    by 0x10CA5A: ejecutar_operaciones_dialFS (io-peticiones.c:174)
+==4445==    by 0x10C3D7: interfaz_recibir_peticiones (io-peticiones.c:11)
+==4445==    by 0x10BDF4: main (main.c:19)
+==4445== 
+==4445== 4 bytes in 2 blocks are definitely lost in loss record 4 of 73
+==4445==    at 0x484DCD3: realloc (in /usr/libexec/valgrind/vgpreload_memcheck-amd64-linux.so)
+==4445==    by 0x486E64B: string_append (string.c:47)
+==4445==    by 0x486F461: _string_append_with_format_list (string.c:312)
+==4445==    by 0x486E83F: string_from_vformat (string.c:74)
+==4445==    by 0x486E7D0: string_from_format (string.c:67)
+==4445==    by 0x486E881: string_itoa (string.c:79)
+==4445==    by 0x10DE6E: set_tamanio_archivo_en_archivo_metadata (io-archivos-metadata.c:38)
+==4445==    by 0x10CCC0: operacion_create_file (io-operaciones-dialfs.c:35)
+==4445==    by 0x10CA5A: ejecutar_operaciones_dialFS (io-peticiones.c:174)
+==4445==    by 0x10C3D7: interfaz_recibir_peticiones (io-peticiones.c:11)
+==4445==    by 0x10BDF4: main (main.c:19)
+==4445== 
+==4445== 4 bytes in 2 blocks are definitely lost in loss record 5 of 73
+==4445==    at 0x484DCD3: realloc (in /usr/libexec/valgrind/vgpreload_memcheck-amd64-linux.so)
+==4445==    by 0x486E64B: string_append (string.c:47)
+==4445==    by 0x486F461: _string_append_with_format_list (string.c:312)
+==4445==    by 0x486E83F: string_from_vformat (string.c:74)
+==4445==    by 0x486E7D0: string_from_format (string.c:67)
+==4445==    by 0x486E881: string_itoa (string.c:79)
+==4445==    by 0x10DE30: set_bloque_inicial_en_archivo_metadata (io-archivos-metadata.c:32)
+==4445==    by 0x10E83E: compactar_fs (io-compactacion.c:52)
+==4445==    by 0x10D5C6: operacion_truncate_file (io-operaciones-dialfs.c:239)
+==4445==    by 0x10CB31: ejecutar_operaciones_dialFS (io-peticiones.c:190)
+==4445==    by 0x10C3D7: interfaz_recibir_peticiones (io-peticiones.c:11)
+==4445==    by 0x10BDF4: main (main.c:19)
+==4445== 
+==4445== 4 bytes in 2 blocks are definitely lost in loss record 6 of 73
+==4445==    at 0x484DCD3: realloc (in /usr/libexec/valgrind/vgpreload_memcheck-amd64-linux.so)
+==4445==    by 0x486E64B: string_append (string.c:47)
+==4445==    by 0x486F461: _string_append_with_format_list (string.c:312)
+==4445==    by 0x486E83F: string_from_vformat (string.c:74)
+==4445==    by 0x486E7D0: string_from_format (string.c:67)
+==4445==    by 0x486E881: string_itoa (string.c:79)
+==4445==    by 0x10DE30: set_bloque_inicial_en_archivo_metadata (io-archivos-metadata.c:32)
+==4445==    by 0x10E8DD: compactar_fs (io-compactacion.c:72)
+==4445==    by 0x10D5C6: operacion_truncate_file (io-operaciones-dialfs.c:239)
+==4445==    by 0x10CB31: ejecutar_operaciones_dialFS (io-peticiones.c:190)
+==4445==    by 0x10C3D7: interfaz_recibir_peticiones (io-peticiones.c:11)
+==4445==    by 0x10BDF4: main (main.c:19)
+==4445== 
+==4445== 6 bytes in 2 blocks are definitely lost in loss record 7 of 73
+==4445==    at 0x484DCD3: realloc (in /usr/libexec/valgrind/vgpreload_memcheck-amd64-linux.so)
+==4445==    by 0x486E64B: string_append (string.c:47)
+==4445==    by 0x486F461: _string_append_with_format_list (string.c:312)
+==4445==    by 0x486E83F: string_from_vformat (string.c:74)
+==4445==    by 0x486E7D0: string_from_format (string.c:67)
+==4445==    by 0x486E881: string_itoa (string.c:79)
+==4445==    by 0x10DE6E: set_tamanio_archivo_en_archivo_metadata (io-archivos-metadata.c:38)
+==4445==    by 0x10D6AC: operacion_truncate_file (io-operaciones-dialfs.c:254)
+==4445==    by 0x10CB31: ejecutar_operaciones_dialFS (io-peticiones.c:190)
+==4445==    by 0x10C3D7: interfaz_recibir_peticiones (io-peticiones.c:11)
+==4445==    by 0x10BDF4: main (main.c:19)
+==4445== 
+==4445== 30 bytes in 1 blocks are definitely lost in loss record 21 of 73
+==4445==    at 0x484DCD3: realloc (in /usr/libexec/valgrind/vgpreload_memcheck-amd64-linux.so)
+==4445==    by 0x486E64B: string_append (string.c:47)
+==4445==    by 0x10E256: get_path_archivo (io-utils.c:141)
+==4445==    by 0x10DC49: persistir_archivo (io-archivos.c:33)
+==4445==    by 0x10DBB7: abrir_archivo_bitmap (io-archivos.c:18)
+==4445==    by 0x10D705: crear_bitmap (io-bitmap.c:7)
+==4445==    by 0x10C971: ejecutar_operaciones_dialFS (io-peticiones.c:155)
+==4445==    by 0x10C3D7: interfaz_recibir_peticiones (io-peticiones.c:11)
+==4445==    by 0x10BDF4: main (main.c:19)
+==4445== 
+==4445== 31 bytes in 1 blocks are definitely lost in loss record 22 of 73
+==4445==    at 0x484DCD3: realloc (in /usr/libexec/valgrind/vgpreload_memcheck-amd64-linux.so)
+==4445==    by 0x486E64B: string_append (string.c:47)
+==4445==    by 0x10E256: get_path_archivo (io-utils.c:141)
+==4445==    by 0x10DC49: persistir_archivo (io-archivos.c:33)
+==4445==    by 0x10DB2A: abrir_archivo_bloques (io-archivos.c:6)
+==4445==    by 0x10C957: ejecutar_operaciones_dialFS (io-peticiones.c:154)
+==4445==    by 0x10C3D7: interfaz_recibir_peticiones (io-peticiones.c:11)
+==4445==    by 0x10BDF4: main (main.c:19)
+==4445== 
+==4445== 67 bytes in 2 blocks are definitely lost in loss record 26 of 73
+==4445==    at 0x484DCD3: realloc (in /usr/libexec/valgrind/vgpreload_memcheck-amd64-linux.so)
+==4445==    by 0x486E64B: string_append (string.c:47)
+==4445==    by 0x10E256: get_path_archivo (io-utils.c:141)
+==4445==    by 0x10DD48: abrir_archivo_metadata_config (io-archivos-metadata.c:4)
+==4445==    by 0x10CC4A: operacion_create_file (io-operaciones-dialfs.c:21)
+==4445==    by 0x10CA5A: ejecutar_operaciones_dialFS (io-peticiones.c:174)
+==4445==    by 0x10C3D7: interfaz_recibir_peticiones (io-peticiones.c:11)
+==4445==    by 0x10BDF4: main (main.c:19)
+==4445== 
+==4445== LEAK SUMMARY:
+==4445==    definitely lost: 150 bytes in 16 blocks
+==4445==    indirectly lost: 0 bytes in 0 blocks
+==4445==      possibly lost: 0 bytes in 0 blocks
+==4445==    still reachable: 204,181 bytes in 223 blocks
+==4445==         suppressed: 0 bytes in 0 blocks
+==4445== Reachable blocks (those to which a pointer was found) are not shown.
+==4445== To see them, rerun with: --leak-check=full --show-leak-kinds=all
+==4445== 
+==4445== For lists of detected and suppressed errors, rerun with: -s
+==4445== ERROR SUMMARY: 26 errors from 14 contexts (suppressed: 0 from 0)
