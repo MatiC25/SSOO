@@ -28,10 +28,10 @@ void ejecutar_operacion_generica(t_interfaz * interfaz) {
 
         // Logeamos la operación:
         log_info(logger, "PID: %d - Operacion: %s", *pid_proceso, operacion);
-        log_info(logger, "Tiempo de espera de segundos: %d", *tiempo_espera * tiempo_unidad);
+        log_info(logger, "Tiempo de espera de milisegundos: %d", *tiempo_espera * tiempo_unidad);
 
         // Esperamos el tiempo de espera:
-        usleep(*tiempo_espera * tiempo_unidad);
+        usleep(*tiempo_espera * tiempo_unidad * 1000);
 
         // Enviamos la respuesta al kernel:
         send_respuesta_a_kernel(1, interfaz);
@@ -44,6 +44,8 @@ void ejecutar_operacion_generica(t_interfaz * interfaz) {
 
         // Liberamos la lista de argumentos:
         list_destroy(argumentos);
+
+        log_fede(logger2, "Se ejecuto una operacion generica");
     }
 }
 
@@ -101,6 +103,8 @@ void ejecutar_operacion_stdin(t_interfaz *interfaz) {
 
         // Liberamos la lista de argumentos
         list_destroy(argumentos);
+
+        log_fede(logger2, "Se ejecuto una operacion stdin");
     }
 }
 
@@ -134,6 +138,8 @@ void ejecutar_operacion_stdout(t_interfaz *interfaz) {
 
         // Liberamos la lista de argumentos:
         list_destroy(argumentos);
+
+        log_fede(logger2, "Se ejecuto una operacion stdout");
     }
 }
 
@@ -204,5 +210,7 @@ void ejecutar_operaciones_dialFS(t_interfaz *interfaz) {
 
         // Liberamos la lista de argumentos:
         list_destroy(argumentos);
+
+        log_fede(logger2, "Se ejecuto una operacion dialFS");
     }
 }

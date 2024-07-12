@@ -5,6 +5,7 @@
 #include <readline/readline.h>
 #include <utils/estructuras_compartidas.h>
 #include <utils/logger.h>
+#include <utils/cositas.h>
 #include <commons/bitarray.h>
 #include <commons/collections/list.h>
 
