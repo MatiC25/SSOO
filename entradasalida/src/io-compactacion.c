@@ -15,6 +15,7 @@ void compactar_fs(t_interfaz  *interfaz, FILE *bloques, t_bitarray *bitmap, t_li
     int bloque_inicial_archivo_actual;
     int tamanio_archivo_archivo_actual;
     int cantidad_bloques_asignados;
+    int *tam_buffer_archivo_a_compactar;
     unsigned char *buffer_archivo_a_compactar;
 
     // Recorremos los archivos abiertos:
@@ -53,15 +54,21 @@ void compactar_fs(t_interfaz  *interfaz, FILE *bloques, t_bitarray *bitmap, t_li
                 set_archivo_metada_en_fs(archivo_metadata_archivo_actual);
 
                 // Agregamos el buffer a la cola:
+                int *tam_bufer = malloc(sizeof(int));
+                *tam_bufer = tamanio_archivo_archivo_actual;
+
                 queue_push(buffers, buffer);
+                queue_push(buffers, tam_bufer);
             } else {
-                buffer_archivo_a_compactar = malloc(tamanio_archivo_archivo_actual);
                 buffer_archivo_a_compactar = buffer;
+                tam_buffer_archivo_a_compactar = malloc(sizeof(int));
+                *tam_buffer_archivo_a_compactar = tamanio_archivo_archivo_actual;
             }
         }
     }
 
     queue_push(buffers, buffer_archivo_a_compactar);
+    queue_push(buffers, tam_buffer_archivo_a_compactar);
 
     // Calculamos los bloques necesarios para el archivo a compactar:
     nuevo_bloque_libre = bloque_final_anterior + 1;

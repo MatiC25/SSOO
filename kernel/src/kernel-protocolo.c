@@ -198,6 +198,9 @@ void send_message_to_dialfs_read_o_write(int socket, t_list *args, int *response
 
         agregar_a_paquete(paquete, direccion_fisica, sizeof(int)); 
         agregar_a_paquete(paquete, bytes_a_leer_o_escribir, sizeof(int));
+
+        free(direccion_fisica);
+        free(bytes_a_leer_o_escribir);
     }
 
     enviar_paquete(paquete, socket);
