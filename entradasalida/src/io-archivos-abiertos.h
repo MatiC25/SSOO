@@ -34,4 +34,7 @@ void cerrar_archivo_abierto(t_list *archivos_abiertos, char *nombre_archivo);
 // Funciones para cerrar todos los archivos abiertos:
 void cerrar_todos_los_archivos_abiertos(t_list *archivos_abiertos);
 
+// Funciones para liberar un archivo abierto:
+void liberar_archivo_abierto(void *archivo_abierto);
+
 #endif

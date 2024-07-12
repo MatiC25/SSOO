@@ -58,7 +58,7 @@ void set_nuevo_archivo_abierto(t_list *archivos_abiertos, char *name_file, t_con
     archivo_abierto->name_file = name_file;
     archivo_abierto->archivo_metadata = archivo_metadata;
 
-    list_add_sorted(archivos_abiertos, archivo_abierto, comparar_bloque_inicial);
+    list_add(archivos_abiertos, archivo_abierto);
 }
 
 // Funciones para gettear los datos del archivo abierto:
@@ -129,18 +129,16 @@ void cerrar_archivo_abierto(t_list *archivos_abiertos, char *nombre_archivo) {
 
 // Funciones para cerrar todos los archivos abiertos:
 void cerrar_todos_los_archivos_abiertos(t_list *archivos_abiertos) {
-    int size = list_size(archivos_abiertos);
+    list_destroy_and_destroy_elements(archivos_abiertos, liberar_archivo_abierto);
+}
 
-    for (int i = 0; i < size; i++) {
-        t_archivo_abierto *archivo_abierto = list_get(archivos_abiertos, i);
-        t_config *archivo_metadata = archivo_abierto->archivo_metadata;
-        char *nombre_archivo = archivo_abierto->name_file;
+// Funciones para liberar un archivo abierto:
+void liberar_archivo_abierto(void *archivo_abierto) {
+    t_archivo_abierto *archivo = archivo_abierto;
+    t_config *archivo_metadata = get_archivo_metadata(archivo);
 
-        // Cerramos el archivo:
-        config_destroy(archivo_metadata);
-        free(nombre_archivo);
-        free(archivo_abierto); 
-    }
-
-    list_destroy(archivos_abiertos);
-}   
+    // Liberamos el archivo abierto:
+    config_destroy(archivo_metadata);
+    free(archivo->name_file);
+    free(archivo);
+}

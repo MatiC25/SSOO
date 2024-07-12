@@ -150,6 +150,7 @@ void send_message_to_dialfs_interface(int socket, t_list *args, int *response) {
 }
 
 void send_message_to_dialfs_create_o_delete(int socket, t_list *args, int *response) {
+
     // Obtenemos los argumentos:
     int *pid_proceso_ptr = list_remove(args, 0);
     int *operacion_a_realizar_ptr = list_remove(args, 0);
@@ -175,6 +176,7 @@ void send_message_to_dialfs_create_o_delete(int socket, t_list *args, int *respo
 }
 
 void send_message_to_dialfs_read_o_write(int socket, t_list *args, int *response) {
+
     // Obtenemos los argumentos:
     int *pid_proceso_ptr = list_remove(args, 0);
     int *operacion_a_realizar_ptr =list_remove(args, 0);
@@ -215,6 +217,7 @@ void send_message_to_dialfs_read_o_write(int socket, t_list *args, int *response
 }
 
 void send_message_to_dialfs_truncate(int socket, t_list *args, int *response) {
+
     // Obtenemos los argumentos:
     int *pid_proceso_ptr = list_remove(args, 0);
     int *operacion_a_realizar_ptr = list_remove(args, 0);
@@ -302,6 +305,7 @@ char *parsear_string(void *buffer, int *desplazamiento) {
 }
 
 t_list *obtener_argumentos(void *buffer, int *desplazamiento, int size, int operacion_a_realizar, int pid_proceso) {
+
     // Creamos la lista de argumentos:
     t_list *argumentos = list_create();
 
@@ -343,7 +347,6 @@ t_list *obtener_argumentos(void *buffer, int *desplazamiento, int size, int oper
 }
 
 void obtener_argumentos_generica(t_list *argumentos, void *buffer, int *desplazamiento) {
-    // Obtenemos el tiempo de sleep:
     int *tiempo_sleep = malloc(sizeof(int));
     *tiempo_sleep = parsear_int(buffer, desplazamiento);
 
@@ -351,6 +354,8 @@ void obtener_argumentos_generica(t_list *argumentos, void *buffer, int *desplaza
 }
 
 void obtener_argumentos_std(t_list *argumentos, void *buffer, int *desplazamiento, int size) {
+
+    // Obtenemos el desplazamiento inicial:
     int desplazamiento_inicial = *desplazamiento;
 
     // Obtenemos las direcciones físicas y los bytes a leer o escribir:
@@ -370,28 +375,31 @@ void obtener_argumentos_std(t_list *argumentos, void *buffer, int *desplazamient
 
 
 void obtener_argumentos_dialfs_create_o_delete(t_list *argumentos, void *buffer, int *desplazamiento) {
-    // Obtenemos el nombre del archivo:
     char *nombre_archivo = parsear_string(buffer, desplazamiento);
     list_add(argumentos, nombre_archivo);
 }
 
 void obtener_argumentos_dialfs_read_o_write(t_list *argumentos, void *buffer, int *desplazamiento, int size) {
+
+    // Obtenemos el desplazamiento inicial:
+    int desplazamiento_inicial = *desplazamiento;
+
     // Obtenemos el nombre del archivo:
-    char *nombre_archivo = parsear_string(buffer, desplazamiento);
+    char *nombre_archivo = parsear_string(buffer, &desplazamiento_inicial);
     list_add(argumentos, nombre_archivo);
 
     // Obtenemos el offset:
     int *offset = malloc(sizeof(int));
-    *offset = parsear_int(buffer, desplazamiento);
+    *offset = parsear_int(buffer, &desplazamiento_inicial);
     list_add(argumentos, offset);
 
     // Obtenemos la dirección física y los bytes a leer o escribir:
-    int *direccion_fisica = malloc(sizeof(int));
-    int *bytes_a_leer_o_escribir = malloc(sizeof(int));
+    while(&desplazamiento_inicial < size) {
+        int *direccion_fisica = malloc(sizeof(int));
+        int *bytes_a_leer_o_escribir = malloc(sizeof(int));
 
-    while(*desplazamiento < size) {
-        *direccion_fisica = parsear_int(buffer, desplazamiento);
-        *bytes_a_leer_o_escribir = parsear_int(buffer, desplazamiento);
+        *direccion_fisica = parsear_int(buffer, &desplazamiento_inicial);
+        *bytes_a_leer_o_escribir = parsear_int(buffer, &desplazamiento_inicial);
 
         log_info(logger, "Direccion fisica: %i", *direccion_fisica);
         log_info(logger, "Bytes a leer o escribir: %i", *bytes_a_leer_o_escribir);
@@ -399,6 +407,8 @@ void obtener_argumentos_dialfs_read_o_write(t_list *argumentos, void *buffer, in
         list_add(argumentos, direccion_fisica);
         list_add(argumentos, bytes_a_leer_o_escribir);
     }
+
+    *desplazamiento = desplazamiento_inicial;
 }
 
 void obtener_argumentos_dialfs_truncate(t_list *argumentos, void *buffer, int *desplazamiento) {

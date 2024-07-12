@@ -1,9 +1,12 @@
 #include "io-compactacion.h"
 
 void compactar_fs(t_interfaz  *interfaz, FILE *bloques, t_bitarray *bitmap, t_list *archivos_ya_abiertos, t_config *archivo_metadata, int cantidad_bloques_asignados_a_archivo_compactar, int bloque_inicial_archivo_a_compactar, int tam_nuevo_archivo_a_compactar) {
-    
-    // Variables auxiliares:
+
+    // Ordenamos los archivos abiertos por bloque inicial:
     int cantidad_archivos_abiertos = list_size(archivos_ya_abiertos);
+    list_sort(archivos_ya_abiertos, (void *) comparar_bloque_inicial);
+
+    // Creamos una cola para los buffers:
     t_queue *buffers = queue_create();
 
     // Variables auxiliares:
