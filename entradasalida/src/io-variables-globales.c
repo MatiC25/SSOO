@@ -21,7 +21,6 @@ void cerrar_programa(int signal) {
             cerrar_bitmap(bitmap);
             fclose(archivo_bitmap);
             fclose(archivo_bloque);
-            free(bitmap_data);
         }
 
         log_destroy(logger);

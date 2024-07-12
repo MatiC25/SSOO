@@ -13,6 +13,7 @@ t_config *abrir_archivo_metadata_config(t_interfaz *interfaz, char *name_file, c
 
     // Liberamos memoria:
     fclose(archivo);
+    free(path);
 
     return config;
 }
@@ -32,12 +33,14 @@ void set_bloque_inicial_en_archivo_metadata(t_config *archivo_metadata, int bloq
     char *bloque_inicial_string = string_itoa(bloque_inicial);
 
     config_set_value(archivo_metadata, "BLOQUE_INICIAL", bloque_inicial_string);
+    free(bloque_inicial_string);
 }
 
 void set_tamanio_archivo_en_archivo_metadata(t_config *archivo_metadata, int tamanio_archivo) {
     char *tamanio_archivo_string = string_itoa(tamanio_archivo);
 
     config_set_value(archivo_metadata, "TAMANIO_ARCHIVO", tamanio_archivo_string);
+    free(tamanio_archivo_string);
 }
 
 void set_archivo_metada_en_fs(t_config *archivo_metadata) {
