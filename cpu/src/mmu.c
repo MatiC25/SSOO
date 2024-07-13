@@ -155,7 +155,7 @@ t_mmu_cpu* traducirDireccion(int direccionLogica, int tamanio) {
 
                     *ptr_dirc_fisica = dirc_fisica;
                     list_add(mmu->direccionFIsica, ptr_dirc_fisica);
-                    free(tab);
+                    // free(tab);
                 } else {
                     log_error(logger, "Algoritmo no es valido en mmu");
                     
@@ -175,7 +175,7 @@ t_mmu_cpu* traducirDireccion(int direccionLogica, int tamanio) {
             *ptr_dirc_fisica = dirc_fisica;
             log_info(logger, "PID %i - TLB HIT - Pagina: %i", pcb->pid, tabla->nropagina);
             log_info(logger, "PID %i - OBTENER MARCO - Pagina: %i - Marco: %i", pcb->pid, tabla->nropagina, tabla->marco);
-            free(tabla);
+            // free(tabla);
             list_add(mmu->direccionFIsica, ptr_dirc_fisica);
         }
     }

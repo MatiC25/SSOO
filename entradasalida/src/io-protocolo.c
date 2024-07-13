@@ -228,9 +228,6 @@ char *rcv_contenido_a_mostrar(t_interfaz *interfaz, t_list *direcciones_fisicas,
         int direccion_fisica = direccion->direccion_fisica;
         int tamanio = direccion->tamanio;
 
-        log_info(logger, "Dirección física leída: %d", direccion_fisica);
-        log_info(logger, "Tamaño leído: %d", tamanio);
-
         // Enviamos la dirección física a memoria:
         t_paquete *paquete = crear_paquete(ACCESO_A_LECTURA);
         agregar_a_paquete(paquete, &pid_proceso, sizeof(int));
@@ -245,7 +242,6 @@ char *rcv_contenido_a_mostrar(t_interfaz *interfaz, t_list *direcciones_fisicas,
 
         // Recibimos la respuesta de memoria:
         int respuesta = recibir_entero(socket_memoria);
-        log_info(logger, "Respuesta de memoria: %d", respuesta);
 
         if(respuesta == -1) {
             log_error(logger, "Error al leer en memoria");
@@ -255,9 +251,6 @@ char *rcv_contenido_a_mostrar(t_interfaz *interfaz, t_list *direcciones_fisicas,
         // Recibimos el buffer de memoria:
         int size;
         void *buffer = recibir_buffer(&size, socket_memoria);
-
-        // Logueamos el buffer recibido:
-        log_info(logger, "Se recibe el buffer: %s", buffer);
 
         // Copiamos el contenido al buffer a mostrar:
         memcpy(contenido_a_mostrar + desplazamiento_interno, buffer, tamanio);

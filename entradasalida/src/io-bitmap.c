@@ -67,9 +67,8 @@ int contar_bloques_libres(t_bitarray *bitmap, int inicio, int fin) {
     int cantidad_bloques_libres = 0;
 
     for(int i = inicio; i < fin; i++) {
-        if(!bitarray_test_bit(bitmap, i)) {
+        if(!bitarray_test_bit(bitmap, i)) 
             cantidad_bloques_libres++;
-        }
     }
 
     return cantidad_bloques_libres;
@@ -81,7 +80,6 @@ int no_hay_bloques_contiguos_libres(t_bitarray *bitmap, int bloque_final, int bl
 
     // Verifico si hay bloques contiguos libres:
     for(int i = bloque_final + 1; i <= limites_de_bloques; i++) {
-        log_info(logger, "Bloque supuestamente libre: %i", i);
         if(bitarray_test_bit(bitmap, i))
             return 1; // Si no hay bloques contiguos libres, retorno 1
     }
@@ -93,13 +91,8 @@ int no_hay_bloques_contiguos_libres(t_bitarray *bitmap, int bloque_final, int bl
 void set_bloques_como_ocupados(t_bitarray *bitmap, int bloque_final, int bloques_necesarios) {
     int limite_de_bloques = bloque_final + bloques_necesarios;
 
-    log_info(logger, "Bloque final: %i", bloque_final);
-    log_info(logger, "Limites de bloques: %i", limite_de_bloques);
-
-    for(int i = bloque_final + 1; i <= limite_de_bloques; i++) {
-        log_info(logger, "Bloque nuevo ocupado: %i", i);
+    for(int i = bloque_final + 1; i <= limite_de_bloques; i++) 
         bitarray_set_bit(bitmap, i);
-    }
 
     msync(bitmap, bitarray_get_max_bit(bitmap), MS_SYNC);
 }
@@ -109,10 +102,8 @@ void set_bloques_como_ocupados(t_bitarray *bitmap, int bloque_final, int bloques
 void liberar_bloques_asignados(t_bitarray *bitmap, int bloque_inicial, int bloques_necesarios) {
     int limite_de_bloques = bloque_inicial + bloques_necesarios - 1;
 
-    for(int i = bloque_inicial; i <= limite_de_bloques; i++) {
-        log_info(logger, "Bloque nuevo liberados: %i", i);
+    for(int i = bloque_inicial; i <= limite_de_bloques; i++)
         bitarray_clean_bit(bitmap, i);
-    }
 
     msync(bitmap, bitarray_get_max_bit(bitmap), MS_SYNC);
 }
@@ -121,10 +112,8 @@ void liberar_bloques_asignados(t_bitarray *bitmap, int bloque_inicial, int bloqu
 void set_bloques_como_ocupados_desde(t_bitarray *bitmap, int bloque_inicial, int bloques_necesarios) {
     int limite_de_bloques = bloque_inicial + bloques_necesarios - 1;
 
-    for(int i = bloque_inicial; i <= limite_de_bloques; i++) {
-        log_info(logger, "Bloque nuevo ocupado: %i", i);
+    for(int i = bloque_inicial; i <= limite_de_bloques; i++)
         bitarray_set_bit(bitmap, i);
-    }
 
     msync(bitmap, bitarray_get_max_bit(bitmap), MS_SYNC);
 }

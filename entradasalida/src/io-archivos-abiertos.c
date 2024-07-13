@@ -1,3 +1,4 @@
+
 #include "io-archivos-abiertos.h"
 
 t_list *obtener_archivos_ya_abiertos(t_interfaz *interfaz) {
@@ -106,12 +107,9 @@ t_archivo_abierto *obtener_archivo_abierto(t_list *archivos_abiertos, char *nomb
     for (int i = 0; i < size; i++) {
         t_archivo_abierto *archivo_abierto = list_get(archivos_abiertos, i);
         char *nombre_archivo_abierto = archivo_abierto->name_file;
-        log_info(logger, "Archivo en lista: %s", nombre_archivo_abierto);
 
-        if (strncmp(nombre_archivo_abierto, nombre_archivo, tamanio_de_caracteres) == 0) {
-            log_info(logger, "Llegue aca");
+        if (strncmp(nombre_archivo_abierto, nombre_archivo, tamanio_de_caracteres) == 0) 
             return archivo_abierto;
-        }
     }
 
     return NULL;
@@ -131,6 +129,7 @@ void cerrar_archivo_abierto(t_list *archivos_abiertos, char *nombre_archivo) {
 
         if (strncmp(nombre_archivo_abierto, nombre_archivo, cantidad_de_caracteres) == 0) {
             list_remove(archivos_abiertos, i);
+            
             free(archivo_abierto);
             return;
         }
@@ -149,5 +148,6 @@ void liberar_archivo_abierto(void *archivo_abierto) {
 
     // Liberamos el archivo abierto:
     config_destroy(archivo_metadata);
+    free(archivo->name_file);
     free(archivo);
 }

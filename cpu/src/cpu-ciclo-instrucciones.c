@@ -479,7 +479,6 @@ void ejecutar_IO_STDIN_READ(char* interfaz, char* registro_direccion, char* regi
 
     t_paquete* paquete_stdin = crear_paquete(IO_STDIN_READ_INT);
     solicitar_a_kernel_std(interfaz, paquete_stdin);
-    eliminar_paquete(paquete_stdin);
     liberar_mmu();
 }
 
@@ -501,7 +500,6 @@ void ejecutar_IO_STDOUT_WRITE(char* interfaz, char* registro_direccion, char* re
 
     t_paquete* paquete_stdout = crear_paquete(IO_STDOUT_WRITE_INT);
     solicitar_a_kernel_std(interfaz, paquete_stdout);
-    eliminar_paquete(paquete_stdout);
     liberar_mmu();
 }
 
@@ -658,32 +656,54 @@ void ejecutar_IO_FS_READ(char* interfaz, char* nombre_archivo, char* registro_di
     liberar_mmu();
 }
 
+// void liberar_pcb(){
+//   if (pcb != NULL) {
+//         if (pcb->registros != NULL) {
+//             free(pcb->registros); // Liberar el arreglo dentro de Registros
+//         }
+//         free(pcb); // Liberar la estructura PCB
+//     }
+// }
+
 void liberar_pcb(){
-  if (pcb != NULL) {
+    if (pcb != NULL) {
         if (pcb->registros != NULL) {
-            free(pcb->registros); // Liberar el arreglo dentro de Registros
+            free(pcb->registros);
+            pcb->registros = NULL;  // Previene la doble liberación
         }
-        free(pcb); // Liberar la estructura PCB
+        free(pcb);
+        pcb = NULL;  // Previene la doble liberación
     }
 }
 
-void liberar_mmu() {
-    if (mmu == NULL) {return;}
-    if (!list_is_empty(mmu->num_pagina)) {list_destroy_and_destroy_elements(mmu->num_pagina, free);}
-    else {list_destroy(mmu->num_pagina);}
+// void liberar_mmu() {
+//     if (mmu == NULL) {return;}
+//     if (!list_is_empty(mmu->num_pagina)) {list_destroy_and_destroy_elements(mmu->num_pagina, free);}
+//     else {list_destroy(mmu->num_pagina);}
     
-    if (!list_is_empty(mmu->direccionFIsica)) {list_destroy_and_destroy_elements(mmu->direccionFIsica, free);}
-    else {list_destroy(mmu->direccionFIsica);}
+//     if (!list_is_empty(mmu->direccionFIsica)) {list_destroy_and_destroy_elements(mmu->direccionFIsica, free);}
+//     else {list_destroy(mmu->direccionFIsica);}
     
-    if (!list_is_empty(mmu->ofset)) {list_destroy_and_destroy_elements(mmu->ofset, free);}
-    else {list_destroy(mmu->ofset);}
+//     if (!list_is_empty(mmu->ofset)) {list_destroy_and_destroy_elements(mmu->ofset, free);}
+//     else {list_destroy(mmu->ofset);}
     
-    if (!list_is_empty(mmu->tamanio)) {list_destroy_and_destroy_elements(mmu->tamanio, free);}
-    else {list_destroy(mmu->tamanio);}
+//     if (!list_is_empty(mmu->tamanio)) {list_destroy_and_destroy_elements(mmu->tamanio, free);}
+//     else {list_destroy(mmu->tamanio);}
     
-    free(mmu);
-}
+//     free(mmu);
+// }
 
+void liberar_mmu() {
+    if (mmu == NULL) return;
+
+    liberar_lista(mmu->num_pagina);
+    liberar_lista(mmu->ofset);
+    liberar_lista(mmu->direccionFIsica);
+    liberar_lista(mmu->tamanio);
+
+    free(mmu);
+    mmu = NULL; // Evitar acceso posterior a memoria liberada
+}
 
 void liberar_instrucciones(t_instruccion* instruccion){
     if (instruccion) {
@@ -694,5 +714,52 @@ void liberar_instrucciones(t_instruccion* instruccion){
         free(instruccion->parametro4);
         free(instruccion->parametro5);
         free(instruccion);
+    }
+}
+
+// void liberar_instrucciones(t_instruccion* instruccion) {
+    
+//     if (instruccion == NULL)
+//         return;
+//     if (instruccion != NULL) {
+//         if (instruccion->opcode) {
+//             free(instruccion->opcode);
+//             instruccion->opcode = NULL;
+//         }
+//         if (instruccion->parametro1) {
+//             free(instruccion->parametro1);
+//             instruccion->parametro1 = NULL;
+//         }
+//         if (instruccion->parametro2) {
+//             free(instruccion->parametro2);
+//             instruccion->parametro2 = NULL;
+//         }
+//         if (instruccion->parametro3) {
+//             free(instruccion->parametro3);
+//             instruccion->parametro3 = NULL;
+//         }
+//         if (instruccion->parametro4) {
+//             free(instruccion->parametro4);
+//             instruccion->parametro4 = NULL;
+//         }
+//         if (instruccion->parametro5) {
+//             free(instruccion->parametro5);
+//             instruccion->parametro5 = NULL;
+//         }
+//         free(instruccion);
+//         instruccion = NULL;
+//     }
+// }
+
+void liberar_elemento(void* elemento) {
+    if (elemento != NULL) {
+        free(elemento);
+         elemento = NULL; // Evitar acceso posterior a memoria liberada
+    }
+}
+
+void liberar_lista(t_list* lista) {
+    if (lista != NULL) {
+        list_destroy_and_destroy_elements(lista, liberar_elemento);
     }
 }

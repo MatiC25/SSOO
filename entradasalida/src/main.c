@@ -11,6 +11,7 @@ int main(int argc, char *argv[]) {
     string_trim_right(&config_path);
 
     logger = log_create("io.log", "IO", 1, LOG_LEVEL_TRACE);
+    logger2 = log_create2("io.log", "IO", 1, LOG_LEVEL_MATI);
     interfaz = inicializar_interfaz(name_interfaz, config_path);
 
     configurar_senial_cierre();
