@@ -380,8 +380,8 @@ void peticion_IO() {
     pthread_mutex_unlock(&mutex_proceso_exec);
     
     // Desalojamos el proceso actual:
-    sem_post(&desalojo_proceso);
     esta_block = 1;
+    sem_post(&desalojo_proceso);
 
     // Esperamos una respuesta de CPU para poder seguir con la ejecución:
     int response = 1;
