@@ -22,18 +22,12 @@ void hilo_motivo_de_desalojo() {
     }
 }
 
-
 void* escuchar_peticiones_dispatch() {
-
     while (1) {
         pthread_mutex_lock(&reanudar_ds);
         pthread_mutex_unlock(&reanudar_ds);
 
         t_tipo_instruccion motivo_desalojo = recibir_operacion(config_kernel->SOCKET_DISPATCH);
-        if (motivo_desalojo < 0) {
-            log_error(logger, "Dispatch acaba de recibir un motivo de desalojo inválido!");
-            continue;
-        }
 
         const char* tipo_de_exit = transformar_motivos_a_exit(&motivo_desalojo);
 
@@ -54,13 +48,14 @@ void* escuchar_peticiones_dispatch() {
                 peticion_exit(tipo_de_exit);
                 break;
             case -1:
-                log_error(logger, "El motivo de desalojo no existe!");
-                return NULL;
+                log_error(logger, "¡Cerrando Dispatch!");
+                return;
             default:
                 log_error(logger, "El motivo de desalojo no existe!");
                 break;  
         }
     }
+    return NULL;
 }
 
 
@@ -200,8 +195,8 @@ void peticion_wait() {
             if (vector_recursos_pedidos[i].PID == -1) {
                 vector_recursos_pedidos[i].PID = pcb->pid;
                 vector_recursos_pedidos[i].recurso = strdup(recurso);
-                log_facu(logger, "PID: %i - Asignado: %s", pcb->pid, recurso, i);
-                log_facu(logger, "¡WAIT exitoso!\n");
+                log_facu(logger2, "PID: %i - Asignado: %s", pcb->pid, recurso);
+                log_facu(logger2, "¡WAIT exitoso!\n");
                 break;
             }
         }
@@ -210,8 +205,8 @@ void peticion_wait() {
         send(config_kernel->SOCKET_DISPATCH, &wait_exitoso, sizeof(int),  MSG_WAITALL);
 
     } else {
-        log_leo(logger, "Recurso no disponible actualmente");
-        log_leo(logger, "Moviendo proceso a BLOCK");
+        log_leo(logger2, "Recurso no disponible actualmente");
+        log_leo(logger2, "Moviendo proceso a BLOCK");
 
         int wait_fallido = 0;
         send(config_kernel->SOCKET_DISPATCH, &wait_fallido, sizeof(int),  MSG_WAITALL);
@@ -279,14 +274,14 @@ void peticion_signal() {
     for (int i = 0; i < tam_vector_recursos_pedidos; i++) {
         int size = strlen(config_kernel->RECURSOS[indice_recurso]);
         if (vector_recursos_pedidos[i].PID == pcb->pid && strncmp(vector_recursos_pedidos[i].recurso, recurso, size) == 0) {
-            log_facu(logger, "Proceso: %i - Devuelve: %s", pcb->pid, recurso);
+            log_facu(logger2, "Proceso: %i - Devuelve: %s", pcb->pid, recurso);
             vector_recursos_pedidos[i].PID = -1;
             free(vector_recursos_pedidos[i].recurso);
             vector_recursos_pedidos[i].recurso = NULL;
         }
     }
 
-    log_facu(logger, "¡SIGNAL exitoso!");
+    log_facu(logger2, "¡SIGNAL exitoso!");
     int signal_exitoso = 1;
     send(config_kernel->SOCKET_DISPATCH, &signal_exitoso, sizeof(int), MSG_WAITALL);
 
@@ -321,9 +316,9 @@ void mover_a_bloqueado_por_wait(t_pcb* pcb, char* recurso) {
 void mover_a_cola_block_general(t_pcb* pcb, char* motivo) {
 
     pthread_mutex_lock(&mutex_cola_block);
-    log_leo(logger, "PID: %i - Bloqueado por: %s\n", pcb->pid, motivo);
+    log_leo(logger2, "PID: %i - Bloqueado por: %s\n", pcb->pid, motivo);
     log_info(logger, "PID: %i - Estado Anterior: EXEC - Estado Actual: BLOCK", pcb->pid);
-    //log_facu(logger, "Quantum en Block: %i", pcb->quantum);
+    //log_facu(logger2, "Quantum en Block: %i", pcb->quantum);
     pcb->estado = BLOCK;
     list_add(cola_block, pcb);
     pthread_mutex_unlock(&mutex_cola_block);
@@ -457,7 +452,7 @@ void peticion_IO() {
 
 
 void rcv_nombre_recurso(char** recurso, int socket) {
-    op_code code = recibir_operacion(socket);
+    int code = recibir_operacion(socket);
     int desplazamiento = 0;;
     int size;
     int tamanio = 0;
@@ -503,7 +498,7 @@ int calcular_total_instancias() {
 
 int inicializar_tam_cola_resources() {
     tam_cola_resource = string_array_size(config_kernel->RECURSOS);
-    //log_facu(logger, "%i", tam_cola_resource);
+    //log_facu(logger2, "%i", tam_cola_resource);
     return tam_cola_resource;
 }
 

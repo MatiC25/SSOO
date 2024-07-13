@@ -177,7 +177,7 @@ void* proceso_estado(void* args) {
 void imprimir_procesos_en_cola(char* estado, t_list* cola) {
     int size_estados_proceso = list_size(cola);
 
-    log_info("Estado %s:\n", estado);
+    log_info(logger, "Estado %s:\n", estado);
 
     for (int i = 0; i < size_estados_proceso; i++) {
         t_pcb* pcb = list_get(cola, i);
@@ -356,6 +356,7 @@ void *detener_planificacion(void* args) {
         esta_pausada = 1;
         log_info(logger, "Planificacion pausada!");
     }
+    return NULL;
 }
 // Iniciar planificacion: Este mensaje se encargara de retomar (en caso que se encuentre pausada) 
 // la planificacion de corto y largo plazo. En caso que la planificacion no se encuentre pausada, 
@@ -374,6 +375,7 @@ void *iniciar_planif(void* args){
     } else {
         log_info(logger, "La planificación ya está en marcha, ignorando comando ...");
     }
+    return NULL;
 }
 
 

@@ -54,5 +54,6 @@ void *detener_planificacion(void* args);
 void *iniciar_planif(void* args);
 void inicializar_mutex_consola();
 void mover_todos_los_procesos_bloqueados_a_ready();
+void eliminar_proceso_de_cola_recursos(int pid_buscado);
 
 #endif

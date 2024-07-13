@@ -5,7 +5,7 @@ sem_t semaforo_interfaces;
 // Funciones de manejo de interfaz desde el lado del kernel:
 
 void handle_new_interface(void *arg) {
-    int socket_kernel = (int) arg;
+    int socket_kernel = (int)arg;
     sem_init(&semaforo_interfaces, 0, 1);
     inicializar_diccionario_interfaces();
 
@@ -15,7 +15,7 @@ void handle_new_interface(void *arg) {
         if(socket_cliente_nueva_interfaz != -1) {
             pthread_t hilo_nueva_interfaz;
 
-            pthread_create(&hilo_nueva_interfaz, NULL, (void *) manage_interface, (void *) socket_cliente_nueva_interfaz);
+            pthread_create(&hilo_nueva_interfaz, NULL, (void *) manage_interface, (void *)socket_cliente_nueva_interfaz);
             pthread_detach(hilo_nueva_interfaz);
         }
     }
@@ -50,7 +50,7 @@ void create_consumer_thread(char *interface_name) {
     pthread_t consumer_thread;
 
     // Crear un hilo consumidor y manejar cualquier error de creación
-    if (pthread_create(&consumer_thread, NULL, consumers_pcbs_blockeds, (void *) interface_name) != 0) {
+    if (pthread_create(&consumer_thread, NULL, (void*) consumers_pcbs_blockeds, interface_name) != 0) {
         perror("Error al crear el hilo consumidor");
         exit(EXIT_FAILURE);
     }

@@ -174,8 +174,9 @@ void mover_procesos_de_bloqueado_a_ready(t_pcb* proceso) {
                 pthread_mutex_lock(&mutex_estado_ready);
                 pcb_a_ready->estado = READY;
                 log_info(logger, "PID: %i - Estado Anterior: BLOCK - Estado Actual: READY", pcb_a_ready->pid);
-                log_facu(logger, "Quantum Restante: %i", pcb_a_ready->quantum);
+                log_facu(logger2, "Quantum Restante: %i", pcb_a_ready->quantum);
                 list_add(cola_ready, pcb_a_ready);
+                mostrar_lista_de_pids(cola_ready);
                 pthread_mutex_unlock(&mutex_estado_ready);
                 sem_post(&hay_en_estado_ready);
             }
@@ -183,8 +184,9 @@ void mover_procesos_de_bloqueado_a_ready(t_pcb* proceso) {
                 pthread_mutex_lock(&mutex_cola_priori_vrr);
                 pcb_a_ready->estado = READY;
                 log_info(logger, "PID: %i - Estado Anterior: BLOCK - Estado Actual: READY", pcb_a_ready->pid);
-                log_facu(logger, "Quantum Restante: %i", pcb_a_ready->quantum);
+                log_facu(logger2, "Quantum Restante: %i", pcb_a_ready->quantum);
                 list_add(cola_prima_VRR, pcb_a_ready);
+                mostrar_lista_de_pids(cola_prima_VRR);
                 pthread_mutex_unlock(&mutex_cola_priori_vrr);
                 sem_post(&hay_en_estado_ready);
             }
@@ -193,7 +195,8 @@ void mover_procesos_de_bloqueado_a_ready(t_pcb* proceso) {
             pthread_mutex_lock(&mutex_estado_ready);
             pcb_a_ready->estado = READY;
             list_add(cola_ready, pcb_a_ready);
-            log_info(logger2, "PID: %i - Estado Anterior: BLOCK - Estado Actual: READY", pcb_a_ready->pid);
+            log_info(logger, "PID: %i - Estado Anterior: BLOCK - Estado Actual: READY", pcb_a_ready->pid);
+            mostrar_lista_de_pids(cola_ready);
             pthread_mutex_unlock(&mutex_estado_ready);
             sem_post(&hay_en_estado_ready);
         }
@@ -206,7 +209,7 @@ t_pcb* obtener_siguiente_a_ready() {
     pthread_mutex_lock(&mutex_estado_new);
     t_pcb* pcb = list_remove(cola_new, 0);
     pcb->estado = READY;
-    log_info(logger2, "PID: %i - Estado Anterior: NEW - Estado Actual: READY\n", pcb->pid);
+    log_info(logger, "PID: %i - Estado Anterior: NEW - Estado Actual: READY\n", pcb->pid);
     pthread_mutex_unlock(&mutex_estado_new);
     return pcb;
 }
@@ -347,6 +350,10 @@ void* planificador_corto_plazo_RoundRobin(void* arg) {
             log_info(logger, "¡Se rompe hilo de Sleep!");
             pthread_cancel(hilo_quantum);
             pthread_join(hilo_quantum, NULL);  // Esperar a que el hilo del quantum termine y liberar sus recursos
+            if(esta_finalizado == 1) {
+                sem_wait(&hay_proceso_exec);
+                esta_finalizado = 0;
+            }
 
         } else {
 
@@ -564,7 +571,7 @@ void mostrar_lista_de_pids(t_list* lista) {
 
 
 void mostrar_pid (t_pcb* pcb) {
-    log_info(logger2, "Cola Ready: %i", pcb->pid);
+    log_info(logger, "Cola Ready: %i", pcb->pid);
 }
 
 

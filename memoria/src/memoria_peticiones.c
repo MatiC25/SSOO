@@ -335,7 +335,7 @@ void acceso_lectura(int socket_cliente){
     // Realizar la lectura del espacio de usuario
     mem_hexdump(espacio_de_usuario + direc_fisica, tamanio_lectura);
     memcpy(contenido_leer, espacio_de_usuario + direc_fisica, tamanio_lectura);
-    log_fede(logger2, "Lo que leemos es: %s ", (char*)contenido_leer);
+    //log_fede(logger2, "Lo que leemos es: %s ", mem_hexdump(espacio_de_usuario + direc_fisica, tamanio_lectura));
     log_mati(logger2, "Acceso a espacio de usuario: PID: %d - Accion: LEER - Direccion fisica: %d - Tamaño: %d", pid, direc_fisica, tamanio_lectura);
     //mem_hexdump(espacio_de_usuario + direc_fisica, tamanio_lectura);
 
@@ -372,7 +372,7 @@ void acceso_escritura(int socket_cliente){
     contenido_a_escribir = malloc(tamanio_escritura); // Asignar memoria para el contenido a escribir
     memcpy(contenido_a_escribir, buffer + desplazamiento, tamanio_escritura);
     
-    log_fede(logger2, "Lo que escribimos es: %s", (char*)contenido_a_escribir);
+    //log_fede(logger2, "Lo que leemos es: %s ", memcpy(contenido_a_escribir, buffer + desplazamiento, tamanio_escritura));
 
     
     int verificacion = 1;

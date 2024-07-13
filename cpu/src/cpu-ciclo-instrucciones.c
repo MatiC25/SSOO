@@ -404,15 +404,12 @@ void ejecutar_COPY_STRING(char* tam){
 
     char* valor = malloc(tamanio + 1); //linea 406
     valor = comunicaciones_con_memoria_lectura_copy_string(mmu);
-    log_warning(logger, "La palabra es %s", valor);
     liberar_mmu();
     int tamm = strlen(valor);
-    log_warning(logger, "tamm %i", tamm);
 
-      log_nico(logger2,"registroDI");
     mmu = traducirDireccion(registreDI, tamm);
 
-        if(comunicaciones_con_memoria_escritura_copy_string(valor) == 1){
+    if(comunicaciones_con_memoria_escritura_copy_string(valor) == 1){
         log_info(logger,"Se puedo escribir correctamente");
     }else{
         log_error(logger,"No se pudo escribir en memoria");
@@ -612,14 +609,12 @@ void ejecutar_IO_FD_WRITE(char* interfaz, char* nombre_archivo, char* registro_d
         while (!list_is_empty(mmu->direccionFIsica)){
             int* direccion_fisica = list_remove(mmu->direccionFIsica, 0);
             int* ptr_tamanio = list_remove(mmu->tamanio, 0);
-            int tamanio = *ptr_tamanio;
-            int direc_fisica = *direccion_fisica;
 
-            log_info(logger, "DIRECCION FISICA:%i", direc_fisica);
-            log_info(logger, "TAMANIO: %i", tamanio);
+            log_info(logger, "DIRECCION FISICA:%i", *direccion_fisica);
+            log_info(logger, "TAMANIO: %i", *ptr_tamanio);
 
-            agregar_a_paquete(paquete, &direc_fisica, sizeof(int));
-            agregar_a_paquete(paquete, &tamanio, sizeof(int));
+            agregar_a_paquete(paquete, direccion_fisica, sizeof(int));
+            agregar_a_paquete(paquete, ptr_tamanio, sizeof(int));
         }
 
         enviar_paquete(paquete, config_cpu->SOCKET_KERNEL);
@@ -658,16 +653,14 @@ void ejecutar_IO_FS_READ(char* interfaz, char* nombre_archivo, char* registro_di
     log_info(logger, "tamanio tamanios: %i", list_size(mmu->tamanio));
 
     while (!list_is_empty(mmu->direccionFIsica)){
-        int* direccion_fisica = list_remove(mmu->direccionFIsica, 0);
-        int* ptr_tamanio = list_remove(mmu->tamanio, 0);
-        int tamanio = *ptr_tamanio;
-        int direc_fisica = *direccion_fisica;
+        int *direccion_fisica = list_remove(mmu->direccionFIsica, 0);
+        int *ptr_tamanio = list_remove(mmu->tamanio, 0);
 
-        log_info(logger, "DIRECCION FISICA:%i", direc_fisica);
-        log_info(logger, "TAMANIO: %i", tamanio);
+        log_info(logger, "DIRECCION FISICA:%i", *direccion_fisica);
+        log_info(logger, "TAMANIO: %i", *ptr_tamanio);
 
-        agregar_a_paquete(paquete, &direc_fisica, sizeof(int));
-        agregar_a_paquete(paquete, &tamanio, sizeof(int));
+        agregar_a_paquete(paquete, direccion_fisica, sizeof(int));
+        agregar_a_paquete(paquete, ptr_tamanio, sizeof(int));
     }
 
     enviar_paquete(paquete, config_cpu->SOCKET_KERNEL);

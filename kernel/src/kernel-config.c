@@ -110,11 +110,11 @@ void cargar_valores_de_planificacion(t_config *config, t_config_kernel *config_k
 void cargar_valores_de_recursos(t_config *config, t_config_kernel *config_kernel) {
     char** recursos = config_get_array_value(config, "RECURSOS");
     crear_vector_dinamico_char(&config_kernel->RECURSOS, recursos);
-    liberar_array(recursos); // Liberar el array de recursos
+    string_array_destroy(recursos); // Liberar el array de recursos TODO
 
     char** instancias_recursos = config_get_array_value(config, "INSTANCIAS_RECURSOS");
     crear_vector_dinamico_int(&config_kernel->INST_RECURSOS, instancias_recursos);
-    liberar_array(instancias_recursos); // Liberar el array de instancias de recursos
+    string_array_destroy(instancias_recursos); // Liberar el array de instancias de recursos
 }
 
 void cargar_valores_de_grado_multiprogramacion(t_config *config, t_config_kernel *config_kernel) {

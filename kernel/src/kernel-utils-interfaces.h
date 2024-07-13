@@ -21,12 +21,12 @@ int consulta_existencia_interfaz(interface_io *interface);
 void set_socket_interface(interface_io *interface, int socket);
 void set_tipo_interfaz(interface_io *interface, tipo_interfaz tipo);
 int ya_esta_conectada_interface(char *name);
-
+void inicializar_diccionario_interfaces();
 // Funciones para pedir operaciones a la interfaz
 int consulta_interfaz_para_aceptacion_de_operacion(interface_io *interface);
 int acepta_operacion_interfaz(interface_io *interface, tipo_operacion operacion);
 
-int set_estado_de_conexion_interface(interface_io *interface, int estado);
+void set_estado_de_conexion_interface(interface_io *interface, int estado);
 int estado_de_conexion_interface(interface_io *interface);
 
 void liberar_interfaces();

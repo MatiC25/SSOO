@@ -38,5 +38,6 @@ int inicializar_tam_cola_resources();
 void actualizar_pcb(t_pcb*, t_pcb_cpu*);
 void liberar_procesos();
 void liberar_interfaces_y_args(void *elemento);
+void mover_a_cola_block_general(t_pcb* pcb, char* motivo);
 
 #endif // KERNEL_PETICIONES_DISPATCH_H

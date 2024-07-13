@@ -59,3 +59,16 @@ memcheck: debug
 .PHONY: helgrind
 helgrind: debug
 	valgrind --tool=helgrind $(HELGRIND_FLAGS) ./$(BIN) $(ARGS)
+
+# .PHONY: start all
+
+# all: start
+
+# start: 
+#     @gnome-terminal -- bash -c "cd memoria && make start; exec bash" &
+#     @sleep 2  # Espera a que la memoria se inicie completamente
+#     @gnome-terminal -- bash -c "cd cpu && make start; exec bash" &
+#     @sleep 2  # Espera a que la cpu se inicie completamente
+#     @gnome-terminal -- bash -c "cd kernel && make start; exec bash" &
+#     @sleep 2  # Espera a que el kernel se inicie completamente
+#     @gnome-terminal -- bash -c "cd entradasalida && make start; exec bash"

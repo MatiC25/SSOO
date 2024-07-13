@@ -94,7 +94,7 @@ void cerrar_programa(int signal) {
         liberar_interfaces();
         liberar_procesos(proceso_en_exec);
         log_destroy(logger);
-        log_destroy(logger2);
+        log_destroy2(logger2);
         
         sem_destroy(&semaforo_interfaces);
         pthread_mutex_destroy(&reanudar_block);

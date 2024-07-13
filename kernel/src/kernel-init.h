@@ -33,8 +33,10 @@ void manejar_peticion_con_cpu();
 void inicializar_lista();
 void finalizar_programa();
 void close_signal();
-void cerrar_programa();
+void cerrar_programa(int);
 void liberar_interface_io(interface_io *interface);
 void liberar_lista_de_argumentos(t_list *args);
+void liberar_array(char** array);
+void liberar_config_kernel(t_config_kernel *config_kernel);
 
 #endif //KERNEL_INIT_H

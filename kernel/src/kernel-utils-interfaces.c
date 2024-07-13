@@ -119,7 +119,7 @@ int acepta_operacion_interfaz(interface_io *interface, tipo_operacion operacion)
         return 0; // Operacion invalida
 }
 
-int set_estado_de_conexion_interface(interface_io *interface, int estado) {
+void set_estado_de_conexion_interface(interface_io *interface, int estado) {
     interface->esta_conectado = estado;
 }
 

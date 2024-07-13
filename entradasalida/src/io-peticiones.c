@@ -45,7 +45,7 @@ void ejecutar_operacion_generica(t_interfaz * interfaz) {
         // Liberamos la lista de argumentos:
         list_destroy(argumentos);
 
-        log_fede(logger2, "Se ejecuto una operacion generica");
+        // log_fede(logger2, "Se ejecuto una operacion generica");
     }
 }
 
@@ -104,7 +104,7 @@ void ejecutar_operacion_stdin(t_interfaz *interfaz) {
         // Liberamos la lista de argumentos
         list_destroy(argumentos);
 
-        log_fede(logger2, "Se ejecuto una operacion stdin");
+        // log_fede(logger2, "Se ejecuto una operacion stdin");
     }
 }
 
@@ -139,7 +139,7 @@ void ejecutar_operacion_stdout(t_interfaz *interfaz) {
         // Liberamos la lista de argumentos:
         list_destroy(argumentos);
 
-        log_fede(logger2, "Se ejecuto una operacion stdout");
+        // log_fede(logger2, "Se ejecuto una operacion stdout");
     }
 }
 
@@ -211,6 +211,6 @@ void ejecutar_operaciones_dialFS(t_interfaz *interfaz) {
         // Liberamos la lista de argumentos:
         list_destroy(argumentos);
 
-        log_fede(logger2, "Se ejecuto una operacion dialFS");
+        // log_fede(logger2, "Se ejecuto una operacion dialFS");
     }
 }

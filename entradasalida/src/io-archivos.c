@@ -24,7 +24,7 @@ void *mapear_archivo_bloques(t_interfaz *interfaz, char *modo_de_apertura) {
     archivo_bloque = persistir_archivo(interfaz, "bloques.bin", modo_de_apertura, tamanio_archivo);
 
     // Mapeamos el archivo:
-    void *region_bloques_en_memoria = mmap(NULL, tamanio_archivo, PROT_READ | PROT_WRITE, MAP_SHARED, fileno(archivo), 0);
+    void *region_bloques_en_memoria = mmap(NULL, tamanio_archivo, PROT_READ | PROT_WRITE, MAP_SHARED, fileno(archivo_bloque), 0);
 
     // Verifico que se haya mapeado correctamente:
     if(region_bloques == MAP_FAILED) {
@@ -89,7 +89,7 @@ void escribir_contenido_en_bloques(void *bloques, t_queue *buffers) {
 void liberar_region_memoria_bloques(void *region, t_interfaz *interfaz) {
     int block_size = get_block_size(interfaz);
     int block_count = get_block_count(interfaz);
-    int tamanio = bloque_size * block_count;
+    int tamanio = block_size * block_count;
 
     munmap(region, tamanio);
 }

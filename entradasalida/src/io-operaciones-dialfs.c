@@ -76,7 +76,7 @@ void operacion_write_file(t_interfaz *interfaz, void *bloques, t_list *argumento
     }
 
     // Verificamos si el tamaño supera el tamaño del archivo:
-    if(cantidad_de_bytes + *offset > get_tamanio_archivo(get_archivo_metadata(archivo_abierto))) {
+    if(cantidad_de_bytes + *offset < get_tamanio_archivo(get_archivo_metadata(archivo_abierto))) {
         log_error(logger, "No se puede escribir en el archivo, el tamanio a escribir supera el tamanio del archivo");
 
         // Liberamos la memoria utilizada:
@@ -96,7 +96,7 @@ void operacion_write_file(t_interfaz *interfaz, void *bloques, t_list *argumento
     char *contenido = rcv_contenido_a_mostrar(interfaz, direcciones_fisicas, *pid_proceso);
 
     // Escribimos el contenido en el archivo:
-    memcpy(bloques, bloque_inicial * get_block_size(interfaz) + *offset, contenido, cantidad_de_bytes);
+    memcpy(bloques + bloque_inicial * get_block_size(interfaz) + *offset, contenido, cantidad_de_bytes);
     msync(bloques, get_block_size(interfaz) * get_block_count(interfaz), MS_SYNC);
 
     // Logeamos la operación:
@@ -140,7 +140,7 @@ void operacion_read_file(t_interfaz *interfaz, void *bloques, t_list *argumentos
     }
 
     // Verificamos si el tamaño supera el tamaño del archivo:
-    if(*offset + cantidad_de_bytes > get_tamanio_archivo(get_archivo_metadata(archivo_abierto))) {
+    if(cantidad_de_bytes + *offset < get_tamanio_archivo(get_archivo_metadata(archivo_abierto))) {
         log_error(logger, "No se puede leer el archivo, el tamanio a leer supera el tamanio del archivo");
 
         // Liberamos la memoria utilizada:

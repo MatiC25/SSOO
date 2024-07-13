@@ -150,7 +150,7 @@ int comunicaciones_con_memoria_escritura_copy_string(char* valor){
         log_warning(logger, "*tam: %i ", tam);
 
         // Reservar memoria para la parte del valor
-        char* palabra_parte = (char*)malloc(tam);
+        char* palabra_parte = (char*)malloc(tam + 1);
         if (palabra_parte == NULL){
             log_warning(logger, "ERRORE ASIGNAR MEMORIA");
             free(direccionFIsicaa);
@@ -167,7 +167,7 @@ int comunicaciones_con_memoria_escritura_copy_string(char* valor){
         // Reconstruir la parte del valor dividido
         memcpy(palbara_reconstruida + des, palabra_parte, tam); // NOC SI VA EL (unsigned char*)&
         des += tam;
-
+        log_warning(logger, "tamanio: %i ", tam);
         send_escribi_memoria_string(pcb->pid, direc, tam, palabra_parte);
         verificador = recv_escribir_memoria();
         if (verificador == -1) {
@@ -470,7 +470,8 @@ void send_escribi_memoria_string(int pid,int direccionFIsica, int tamanio,char* 
     t_paquete* solicitud_escritura = crear_paquete(ACCESO_A_ESCRITURA);
     agregar_a_paquete(solicitud_escritura, &pid ,sizeof(int));
     agregar_a_paquete(solicitud_escritura, &direccionFIsica,sizeof(int));
-    agregar_a_paquete_string(solicitud_escritura,valor,strlen(valor) + 1);
+    agregar_a_paquete(solicitud_escritura, &tamanio ,sizeof(int));
+    agregar_a_paquete(solicitud_escritura, valor,tamanio);
     enviar_paquete(solicitud_escritura, config_cpu->SOCKET_MEMORIA);
     eliminar_paquete(solicitud_escritura);
 }

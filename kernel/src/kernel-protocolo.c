@@ -397,7 +397,7 @@ void obtener_argumentos_dialfs_read_o_write(t_list *argumentos, void *buffer, in
     list_add(argumentos, offset);
 
     // Obtenemos la dirección física y los bytes a leer o escribir:
-    while(&desplazamiento_inicial < size) {
+    while(desplazamiento_inicial < size) {
         int *direccion_fisica = malloc(sizeof(int));
         int *bytes_a_leer_o_escribir = malloc(sizeof(int));
 

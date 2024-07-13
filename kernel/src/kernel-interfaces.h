@@ -1,11 +1,6 @@
 #ifndef KERNEL_INTERFACES_H
 #define KERNEL_INTERFACES_H
 
-#include <pthread.h>
-#include <semaphore.h>
-#include <commons/collections/queue.h>
-#include <commons/collections/list.h>
-#include <utils/estructuras_compartidas.h>
 #include <commons/collections/dictionary.h>
 #include <utils/socket.h>
 #include <utils/protocolo.h>
