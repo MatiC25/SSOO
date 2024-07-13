@@ -210,5 +210,10 @@ void ejecutar_operaciones_dialFS(t_interfaz *interfaz) {
 
         // Liberamos la lista de argumentos:
         list_destroy(argumentos);
+
+        for(int i = 0; i < bitarray_get_max_bit(bitmap); i++) {
+            if(bitarray_test_bit(bitmap, i))
+                log_info(logger, "Este bloque esta ocupado: %i", i);
+        }
     }
 }

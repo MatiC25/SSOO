@@ -30,7 +30,7 @@ int contar_bloques_libres(t_bitarray *bitmap, int inicio, int fin);
 int hay_suficientes_bloques_libres(t_bitarray *bitmap, t_interfaz *interfaz, int bloques_necesarios);
 
 // Funcion para averiguar si hay bloques contiguos libres:
-int hay_bloques_contiguos_libres(t_bitarray *bitmap, int bloque_final, int bloques_necesarios);
+int no_hay_bloques_contiguos_libres(t_bitarray *bitmap, int bloque_final, int bloques_necesarios);
 
 // Funcion para setear bloques como ocupados:
 void set_bloques_como_ocupados(t_bitarray *bitmap, int bloque_final, int bloques_necesarios);

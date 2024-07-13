@@ -8,6 +8,7 @@ void operacion_create_file(t_interfaz *interfaz, t_bitarray *bitmap, t_list *arg
 
     // Logeamos la operación:
     log_info(logger, "PID: %i - Crear Archivo: %s", *pid_proceso, nombre_archivo);
+    string_trim_left(&nombre_archivo);
 
     // Primero verificamos si el archivo ya se encuentra abierto:
     if(ya_esta_abierto(archivos_ya_abiertos, nombre_archivo)) {
@@ -41,6 +42,7 @@ void operacion_create_file(t_interfaz *interfaz, t_bitarray *bitmap, t_list *arg
     // Logeamos la operación:
     log_info(logger, "Se creo el archivo %s", nombre_archivo);
     log_info(logger, "Bloque inicial: %d", bloque_inicial);
+    log_info(logger, "-------------");
 
     // Liberamos la memoria utilizada:
     free(pid_proceso);
@@ -256,7 +258,7 @@ void operacion_truncate_file(t_interfaz *interfaz, void *bloques, t_bitarray *bi
         return;
     }
 
-    int bloques_necesarios = get_bloques_necesarios(interfaz, *nuevo_tamanio);
+    int bloques_necesarios = get_bloques_necesarios(interfaz, *nuevo_tamanio) - 1;
     int tam_resultante = *nuevo_tamanio  + tamanio_actual;
 
     log_info(logger, "Cantidad de bloques necesarios: %d", bloques_necesarios);
@@ -269,9 +271,8 @@ void operacion_truncate_file(t_interfaz *interfaz, void *bloques, t_bitarray *bi
         }
 
         int bloque_final = calcular_bloque_final(interfaz, bloque_inicial, tamanio_actual);
-        log_info(logger, "Archivo: %s", nombre_archivo);
 
-        if(!hay_bloques_contiguos_libres(bitmap, bloque_final, bloques_necesarios)) {
+        if(no_hay_bloques_contiguos_libres(bitmap, bloque_final, bloques_necesarios)) {
             log_info(logger, "PID: %i - Inicio Compactación.", *pid_proceso);
             compactar_fs(interfaz, bloques, bitmap, archivos_ya_abiertos, archivo_metadata, bloques_necesarios, bloque_inicial, tam_resultante);
             retardo_compactacion(interfaz);
@@ -288,7 +289,7 @@ void operacion_truncate_file(t_interfaz *interfaz, void *bloques, t_bitarray *bi
     log_info(logger, "Se truncó el archivo %s", nombre_archivo);
     log_info(logger, "Nuevo tamanio: %d", tam_resultante);
     log_info(logger, "Cantidad de nuevos bloques asignados: %d", bloques_necesarios);
-    log_info(logger, "Cantidad de bloques actuales: %d", cantidad_de_bloques_anterior + bloques_necesarios - 1);
+    log_info(logger, "Cantidad de bloques actuales: %d", cantidad_de_bloques_anterior + bloques_necesarios);
 
     // Seteamos los datos del archivo:
     set_tamanio_archivo_en_archivo_metadata(archivo_metadata, tam_resultante);
