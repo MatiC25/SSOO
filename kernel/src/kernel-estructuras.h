@@ -38,6 +38,7 @@ typedef struct {
     t_queue *args_process;
     sem_t semaforo_used;
     sem_t size_blocked;
+    pthread_mutex_t mutex_blocked;
     int esta_conectado;
 } interface_io;
 

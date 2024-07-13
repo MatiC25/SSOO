@@ -177,8 +177,6 @@ void* proceso_estado(void* args) {
 void imprimir_procesos_en_cola(char* estado, t_list* cola) {
     int size_estados_proceso = list_size(cola);
 
-    log_info(logger, "Estado %s:\n", estado);
-
     for (int i = 0; i < size_estados_proceso; i++) {
         t_pcb* pcb = list_get(cola, i);
         log_info(logger, "Proceso/s en %s: %d\n", estado, pcb->pid);
@@ -189,7 +187,6 @@ void imprimir_procesos_en_cola(char* estado, t_list* cola) {
 void imprimir_proceso_exec() {
     pthread_mutex_lock(&mutex_estado_exec);
     if(proceso_en_exec && proceso_en_exec->estado == EXEC) {
-        log_info(logger, "Estado EXEC:\n");
         if (proceso_en_exec) {
             log_info(logger, "Proceso en EXEC: %d\n", proceso_en_exec->pid);
         } else {
@@ -231,14 +228,11 @@ void* ejecutar_script(void* args) {
         log_error(logger, "Error al asignar memoria para path_nuevo");
         return NULL;
     }
-    log_warning(logger, "PATH: %s", script_path);
-    log_warning(logger, "PATH2: %s", path_inicial);
     // Copiar path_inicial a path_nuevo
     strcpy(path_nuevo, path_inicial);
 
     // Concatenar script_path a path_nuevo
     strcat(path_nuevo, script_path);
-    log_warning(logger, "PATH2: %s", path_inicial);
 
     FILE* archivo_script = fopen(path_nuevo, "r");
     if (!archivo_script) {
@@ -267,7 +261,6 @@ void* finalizar_proceso(void* pid) {
     pthread_mutex_lock(&mutex_estado_exec);
     if (proceso_en_exec != NULL && pid_buscado == proceso_en_exec->pid) {
         proceso_finalizado_por_consola = 1;
-        esta_finalizado = 1;
         puede_ejecutar_otro_proceso();
         finalizar_por_invalidacion(proceso_en_exec, "INTERRUPTED_BY_USER");
         log_info(logger, "¡Proceso a Finalizar encontrado en EXEC!");
@@ -287,7 +280,6 @@ void* finalizar_proceso(void* pid) {
             pcb = pcb_encontrado(cola_ready, pid_buscado);
             if (pcb && list_remove_element(cola_ready, pcb)) {
                 puede_ejecutar_otro_proceso();
-                esta_finalizado = 1;
                 finalizar_por_invalidacion(pcb, "INTERRUPTED_BY_USER");
                 log_info(logger, "Proceso a Finalizar encontrado en READY");
                 pthread_mutex_unlock(&mutex_estado_ready);
@@ -298,7 +290,6 @@ void* finalizar_proceso(void* pid) {
                 pcb = pcb_encontrado(cola_prima_VRR, pid_buscado);
                 if (pcb && list_remove_element(cola_prima_VRR, pcb)) {
                     puede_ejecutar_otro_proceso();
-                    esta_finalizado = 1;
                     finalizar_por_invalidacion(pcb, "INTERRUPTED_BY_USER");
                     log_info(logger, "Proceso a Finalizar encontrado en READY_VRR");
                     pthread_mutex_unlock(&mutex_cola_priori_vrr);
@@ -308,7 +299,6 @@ void* finalizar_proceso(void* pid) {
                 }
             }
         }
-            liberar_procesos(pcb);
     }
 
     return NULL;

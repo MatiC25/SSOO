@@ -57,7 +57,7 @@ void liberar_interfaz(void *interface) {
         if (!queue_is_empty(interface_a_liberar->args_process)) {
             log_info(logger, "Liberando procesos bloqueados en la interfaz %s", interface_a_liberar->name);
 
-            queue_destroy_and_destroy_elements(interface_a_liberar->args_process, (void*) liberar_procesos);
+            queue_destroy_and_destroy_elements(interface_a_liberar->args_process, liberar_argumentos_proceso);
         } else {
             log_info(logger, "No hay argumentos de procesos bloqueados en la interfaz %s", interface_a_liberar->name);
 
@@ -67,7 +67,7 @@ void liberar_interfaz(void *interface) {
         if (!queue_is_empty(interface_a_liberar->process_blocked)) {
             log_info(logger, "Liberando argumentos de procesos bloqueados en la interfaz %s", interface_a_liberar->name);
 
-            queue_destroy_and_destroy_elements(interface_a_liberar->process_blocked, liberar_argumentos_proceso);
+            queue_destroy_and_destroy_elements(interface_a_liberar->process_blocked, (void*) liberar_procesos);
         } else {
             log_info(logger, "No hay procesos bloqueados en la interfaz %s", interface_a_liberar->name);
 
@@ -86,7 +86,6 @@ void liberar_interfaz(void *interface) {
 
 void liberar_argumentos_proceso(void *argumentos) {
     t_list *argumentos_a_liberar = (t_list *) argumentos;
-
     // Liberamos memoria:
     list_destroy_and_destroy_elements(argumentos_a_liberar, free);
 }

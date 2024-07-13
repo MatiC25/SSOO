@@ -158,7 +158,6 @@ void send_bytes_a_leer(t_interfaz *interfaz, int pid, t_list *direcciones, void 
     // Inicializamos las variables:
     int bytes_mandados = 0;
     int respuesta;
-    void *buffer;
 
     // Enviamos el input a memoria:
     while(bytes_mandados < bytes_leidos) {
@@ -172,23 +171,18 @@ void send_bytes_a_leer(t_interfaz *interfaz, int pid, t_list *direcciones, void 
         agregar_a_paquete(paquete, &direccion_fisica, sizeof(int));
         agregar_a_paquete(paquete, &tamanio, sizeof(int));
 
-        log_info(logger, "Dirección física a escribir: %d", direccion_fisica);
-        log_info(logger, "Tamaño a escribir: %d", tamanio);
+        if(bytes_mandados + tamanio > bytes_leidos) {
+            tamanio = bytes_leidos - bytes_mandados;
+        }
 
         // Creamos el buffer a enviar:
-        buffer = malloc(tamanio);
-        memcpy(buffer, input + tamanio, tamanio);
-        log_info(logger, "input: %s", buffer);
-        log_info(logger, "tamanio: %i", tamanio);
+        void *buffer = malloc(tamanio);
+        memcpy(buffer, input + bytes_mandados, tamanio);
 
         // Logueamos el buffer:
-        log_info(logger, "Se manda el buffer: %s", buffer);
-
-        // Agregamos el buffer al paquete:
         agregar_a_paquete(paquete, buffer, tamanio);
-
-        // Enviamos el paquete a memoria:
         enviar_paquete(paquete, socket_memoria);
+        eliminar_paquete(paquete);
 
         // Esperamos la respuesta de memoria:
         respuesta = recibir_entero(socket_memoria);
@@ -197,11 +191,12 @@ void send_bytes_a_leer(t_interfaz *interfaz, int pid, t_list *direcciones, void 
             log_error(logger, "Error al escribir en memoria");
             exit(EXIT_FAILURE);
         }
+        
+        log_info(logger, "Se manda el buffer: %s", buffer);
 
         // Liberamos la memoria usada para el buffer y el paquete:
         free(buffer);
         free(direccion);
-        eliminar_paquete(paquete);
 
         // Actualizamos las variables:
         bytes_mandados += tamanio;
@@ -233,6 +228,9 @@ char *rcv_contenido_a_mostrar(t_interfaz *interfaz, t_list *direcciones_fisicas,
         int direccion_fisica = direccion->direccion_fisica;
         int tamanio = direccion->tamanio;
 
+        log_info(logger, "Dirección física leída: %d", direccion_fisica);
+        log_info(logger, "Tamaño leído: %d", tamanio);
+
         // Enviamos la dirección física a memoria:
         t_paquete *paquete = crear_paquete(ACCESO_A_LECTURA);
         agregar_a_paquete(paquete, &pid_proceso, sizeof(int));
@@ -245,15 +243,14 @@ char *rcv_contenido_a_mostrar(t_interfaz *interfaz, t_list *direcciones_fisicas,
         // Liberar la memoria usada para el paquete
         eliminar_paquete(paquete);
 
+        // Recibimos la respuesta de memoria:
         int respuesta = recibir_entero(socket_memoria);
+        log_info(logger, "Respuesta de memoria: %d", respuesta);
 
         if(respuesta == -1) {
             log_error(logger, "Error al leer en memoria");
             exit(EXIT_FAILURE);
         }
-
-        log_info(logger, "Dirección física leída: %d", direccion_fisica);
-        log_info(logger, "Tamaño leído: %d", tamanio);
 
         // Recibimos el buffer de memoria:
         int size;
@@ -316,4 +313,3 @@ int recibir_entero(int socket) {
 
     return dato;
 }
-

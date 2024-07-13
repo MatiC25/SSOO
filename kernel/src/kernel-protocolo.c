@@ -345,7 +345,7 @@ t_list *obtener_argumentos(void *buffer, int *desplazamiento, int size, int oper
             // Manejo de error o caso por defecto
             break;
     }
-
+    
     return argumentos;
 }
 

@@ -32,10 +32,10 @@ int main()
     // memoria de usuario y bitmap
     crear_bitmap();
     crear_espacio_usuario();
-
     inicializar_bitmap();
 
     //abrimos el servidor
+    
     iniciar_modulo(config_memoria);
  
 

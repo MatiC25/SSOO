@@ -77,14 +77,14 @@ void leer_archivoPseudo(int socket_kernel) {
     // leemos el archivo y lo pasamos a una lista
     while ((read = getline(&cadena, &len, archivo)) != -1) { // && program_counter != -1
         parametros = string_split(cadena, " "); //separamos los parametros
-        parametros_instruccion = list_create(); 
+        parametros_instruccion = list_create();
 
         for (int i = 0; parametros[i] != NULL; i++) {
             list_add(parametros_instruccion, strdup(parametros[i])); // Duplicar la cadena
         }
         
         list_add(lista_de_instrucciones, parametros_instruccion);
-        
+
         // Liberar la memoria de `parametros`
         for (int i = 0; parametros[i] != NULL; i++) {
             free(parametros[i]);
@@ -95,16 +95,14 @@ void leer_archivoPseudo(int socket_kernel) {
 
     agregar_a_diccionario_instrucciones(pid, lista_de_instrucciones);
 
-    free(path);
+
     free(cadena);
+    free(path);
     fclose(archivo);
+
+    //liberar_lista_instrucciones(lista_de_instrucciones);
 }
 
-
-void liberar_lista_parametros(void *parametros) {
-    t_list *lista = parametros;
-    list_destroy_and_destroy_elements(lista, free);
-}
 
 void enviar_instruccion_a_cpu(int socket_cpu) {
 

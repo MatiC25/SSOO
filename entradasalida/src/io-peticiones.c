@@ -81,7 +81,7 @@ void ejecutar_operacion_stdin(t_interfaz *interfaz) {
                 log_error(logger, "Error al leer el input");
                 exit(EXIT_FAILURE);
             }
-
+            
             while(strlen(input) > bytes_a_escribir || strlen(input) < bytes_a_escribir) {
                 log_error(logger, "El input ingresado es mayor al tamaño de bytes a leer");
                 input = readline("Ingrese un valor: ");
@@ -210,7 +210,5 @@ void ejecutar_operaciones_dialFS(t_interfaz *interfaz) {
 
         // Liberamos la lista de argumentos:
         list_destroy(argumentos);
-
-        // log_fede(logger2, "Se ejecuto una operacion dialFS");
     }
 }

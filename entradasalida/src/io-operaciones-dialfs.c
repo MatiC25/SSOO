@@ -217,6 +217,7 @@ void operacion_delete_file(t_interfaz *interfaz, t_bitarray *bitmap, t_list *arg
     
     // Liberamos la memoria utilizada:
     free(nombre_archivo);
+    free(pid_proceso);
 }
 
 void operacion_truncate_file(t_interfaz *interfaz, void *bloques, t_bitarray *bitmap, t_list *argumentos, t_list *archivos_ya_abiertos) {
@@ -268,13 +269,13 @@ void operacion_truncate_file(t_interfaz *interfaz, void *bloques, t_bitarray *bi
         int bloque_final = calcular_bloque_final(interfaz, bloque_inicial, tamanio_actual);
 
         if(!hay_bloques_contiguos_libres(bitmap, bloque_final, bloques_necesarios)) {
-            log_info(logger, "Hay bloques libres suficientes para truncar el archivo");
-            set_bloques_como_ocupados(bitmap, bloque_final, bloques_necesarios);
-        } else {
             log_info(logger, "PID: %i - Inicio Compactación.", *pid_proceso);
             compactar_fs(interfaz, bloques, bitmap, archivos_ya_abiertos, archivo_metadata, bloques_necesarios, bloque_inicial, tam_resultante);
             retardo_compactacion(interfaz);
             log_info(logger, "PID: %i - Fin Compactación.", *pid_proceso);
+        } else {
+            log_info(logger, "Hay bloques libres suficientes para truncar el archivo");
+            set_bloques_como_ocupados(bitmap, bloque_final, bloques_necesarios);
         }
     }
 

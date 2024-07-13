@@ -194,7 +194,9 @@ void eliminar_archivo_en_fs(t_interfaz *interfaz, char *nombre_archivo) {
 
     log_info(logger, "Eliminando archivo %s", path);
     
+    // Libero el archivo:
     remove(path);
+    free(path);
 }
 
 // Funcion para cerrar los sockets:

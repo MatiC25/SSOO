@@ -142,7 +142,7 @@ void* agregar_a_cola_ready() {
         list_add(cola_ready, proceso);
         pthread_mutex_unlock(&mutex_estado_ready);
 
-        //mostrar_lista_de_pids(cola_ready);
+        mostrar_lista_de_pids_ready(cola_ready);
         
         sem_post(&habilitar_corto_plazo);
         sem_post(&hay_en_estado_ready);
@@ -173,30 +173,30 @@ void mover_procesos_de_bloqueado_a_ready(t_pcb* proceso) {
             if(pcb_a_ready->quantum <= 0) {
                 pthread_mutex_lock(&mutex_estado_ready);
                 pcb_a_ready->estado = READY;
-                log_info(logger, "PID: %i - Estado Anterior: BLOCK - Estado Actual: READY", pcb_a_ready->pid);
+                log_info(logger, "PID: %i - Estado Anterior: BLOCK - Estado Actual: READY \n", pcb_a_ready->pid);
                 log_facu(logger2, "Quantum Restante: %i", pcb_a_ready->quantum);
                 list_add(cola_ready, pcb_a_ready);
-                mostrar_lista_de_pids(cola_ready);
+                mostrar_lista_de_pids_ready(cola_ready);
                 pthread_mutex_unlock(&mutex_estado_ready);
                 sem_post(&hay_en_estado_ready);
             }
             else {
                 pthread_mutex_lock(&mutex_cola_priori_vrr);
                 pcb_a_ready->estado = READY;
-                log_info(logger, "PID: %i - Estado Anterior: BLOCK - Estado Actual: READY", pcb_a_ready->pid);
+                log_info(logger, "PID: %i - Estado Anterior: BLOCK - Estado Actual: READY \n", pcb_a_ready->pid);
                 log_facu(logger2, "Quantum Restante: %i", pcb_a_ready->quantum);
                 list_add(cola_prima_VRR, pcb_a_ready);
-                mostrar_lista_de_pids(cola_prima_VRR);
+                mostrar_lista_de_pids_prima(cola_prima_VRR);
                 pthread_mutex_unlock(&mutex_cola_priori_vrr);
                 sem_post(&hay_en_estado_ready);
             }
 
         } else {
             pthread_mutex_lock(&mutex_estado_ready);
+            log_info(logger, "PID: %i - Estado Anterior: BLOCK - Estado Actual: READY \n", pcb_a_ready->pid);
             pcb_a_ready->estado = READY;
             list_add(cola_ready, pcb_a_ready);
-            log_info(logger, "PID: %i - Estado Anterior: BLOCK - Estado Actual: READY", pcb_a_ready->pid);
-            mostrar_lista_de_pids(cola_ready);
+            mostrar_lista_de_pids_ready(cola_ready);
             pthread_mutex_unlock(&mutex_estado_ready);
             sem_post(&hay_en_estado_ready);
         }
@@ -313,7 +313,6 @@ void puede_ejecutar_otro_proceso() {
 
 
 void* planificador_corto_plazo_RoundRobin(void* arg) {
-     //Se envia signal en el largo plazo
     sem_wait(&habilitar_corto_plazo);
 
     while (1) {
@@ -338,10 +337,11 @@ void* planificador_corto_plazo_RoundRobin(void* arg) {
             pthread_mutex_unlock(&mutex_proceso_exec);
 
             enviar_proceso_a_cpu(proceso_en_exec);
-            log_info(logger, "Enviando proceso %i a CPU", proceso_en_exec->pid);
             log_info(logger, "PID: %i - Estado Anterior: READY - Estado Actual: EXEC", proceso_en_exec->pid);
+            log_info(logger, "Enviando proceso %i a CPU", proceso_en_exec->pid);
 
             pthread_t hilo_quantum; // Crear un hilo para manejar el quantum
+            log_info(logger, "En ejecucion %i milisegundos ...", config_kernel->QUANTUM);
             if (pthread_create(&hilo_quantum, NULL, quantum_handler, (void*)proceso_en_exec) != 0) { //mandarle el contador global
                 log_error(logger, "Error al crear el hilo del quantum para el proceso %d", proceso_en_exec->pid);
             }
@@ -350,13 +350,12 @@ void* planificador_corto_plazo_RoundRobin(void* arg) {
             log_info(logger, "¡Se rompe hilo de Sleep!");
             pthread_cancel(hilo_quantum);
             pthread_join(hilo_quantum, NULL);  // Esperar a que el hilo del quantum termine y liberar sus recursos
+
             if(esta_finalizado == 1) {
                 sem_wait(&hay_proceso_exec);
                 esta_finalizado = 0;
             }
-
         } else {
-
             sem_post(&habilitar_corto_plazo);  // Rehabilitar el planificador si no se encontró un proceso
         }
     }
@@ -419,13 +418,13 @@ void* planificacion_cortoplazo_VRR() {
             proceso_en_exec->quantum = config_kernel->QUANTUM;
         }
         pthread_mutex_unlock(&mutex_proceso_exec);
-        mostrar_pcb(proceso_en_exec);
         enviar_proceso_a_cpu(proceso_en_exec);
 
         t_temporal* tiempo_de_ejecucion = temporal_create();
         int64_t tiempo_inicial_de_exec = temporal_gettime(tiempo_de_ejecucion);
               
         pthread_t hilo_quantum; // Crear un hilo para manejar el quantum
+        log_info(logger, "En ejecucion %i milisegundos ...", proceso_en_exec->quantum);
         if (pthread_create(&hilo_quantum, NULL, quantum_handler, (void*)proceso_en_exec) != 0) { //mandarle el contador global
             log_error(logger, "Error al crear el hilo del quantum para el proceso %d", proceso_en_exec->pid);
         }
@@ -450,12 +449,9 @@ void* planificacion_cortoplazo_VRR() {
 
 void* quantum_handler(void* arg) {
     t_pcb* proceso = (t_pcb*)arg;
-    // log_warning(logger, "En ejecución %d milisegundos...", config_kernel->QUANTUM);
-    log_info(logger, "En ejecución %d milisegundos...", proceso->quantum);
     usleep(proceso->quantum * 1000); // Dormir por el tiempo del quantum
     int codigo = FINQUANTUM;
     send(config_kernel->SOCKET_INTERRUPT, &codigo, sizeof(int), MSG_WAITALL); // Enviar interrupción al final del quantum
-    liberar_procesos(proceso);
     return NULL;
 }
 
@@ -562,21 +558,25 @@ void destruir_semaforos() {
 }
 
 
-void mostrar_lista_de_pids(t_list* lista) { 
-    // Iterar sobre cada elemento de la lista y aplicar la función mostrar_pid
-    list_iterate(lista, (void (*)(void *))mostrar_pid);
-    // Itera la lista segun X funcion
-    // APunta a una funcion que es de cualquier tipo
+void mostrar_lista_de_pids_ready(t_list* lista) { 
+    list_iterate(lista, (void (*)(void *))mostrar_pid);  // Iterar sobre cada elemento de la lista y aplicar la función mostrar_pid
 }
 
+void mostrar_lista_de_pids_prima(t_list* lista) { 
+    list_iterate(lista, (void (*)(void *))mostrar_pid_prima);  // Iterar sobre cada elemento de la lista y aplicar la función mostrar_pid
+}
 
 void mostrar_pid (t_pcb* pcb) {
-    log_info(logger, "Cola Ready: %i", pcb->pid);
+    log_mati(logger, "Ready Normal: %i\n", pcb->pid);
+}
+
+void mostrar_pid_prima (t_pcb* pcb) {
+    log_mati(logger, "Ready Prima: %i\n", pcb->pid);
 }
 
 
 t_pcb_cpu* rcv_contexto_ejecucion_cpu(int socket_cliente) {
-    t_pcb_cpu* proceso = (t_pcb_cpu*)malloc(sizeof(t_pcb_cpu));
+    proceso = (t_pcb_cpu*)malloc(sizeof(t_pcb_cpu));
     if (proceso == NULL) {
         log_error(logger, "Error al asignar memoria para el proceso");
         return NULL;

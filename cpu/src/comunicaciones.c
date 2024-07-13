@@ -112,7 +112,7 @@ char* comunicaciones_con_memoria_lectura_copy_string() {
 
     palabra[total_tam] = '\0'; // Agregar el carácter nulo al final
 
-    char* resultado_filtrado = filtrar_nueva_linea(palabra);
+    char* resultado_filtrado = concatenar_lineas(palabra);
     free(palabra);
 
     return resultado_filtrado;
@@ -472,6 +472,7 @@ void send_escribi_memoria_string(int pid,int direccionFIsica, int tamanio,char* 
     agregar_a_paquete(solicitud_escritura, &direccionFIsica,sizeof(int));
     agregar_a_paquete(solicitud_escritura, &tamanio ,sizeof(int));
     agregar_a_paquete(solicitud_escritura, valor,tamanio);
+    log_warning(logger, "valor: %s|",valor);
     enviar_paquete(solicitud_escritura, config_cpu->SOCKET_MEMORIA);
     eliminar_paquete(solicitud_escritura);
 }
@@ -492,9 +493,7 @@ void solicitar_a_kernel_std(char* interfaz ,t_paquete* solicitar_std){
     int respuesta;
     recv(config_cpu->SOCKET_KERNEL, &respuesta , sizeof(int), MSG_WAITALL);
     if(respuesta == 1) {
-        //log_info(logger, "Hola!");
         agregar_a_paquete_string(solicitar_std ,interfaz,strlen(interfaz) + 1);
-        //log_warning(logger, "interfaz:%s", interfaz);
         while (!list_is_empty(mmu->direccionFIsica)){
             int* direccion_fisica = list_remove(mmu->direccionFIsica, 0);
             int* ptr_tamanio = list_remove(mmu->tamanio, 0);
@@ -526,7 +525,7 @@ void mostrar_pcb(t_pcb_cpu* pcb){
     log_info(logger,"Reg DI:%i",pcb->registros->DI);
 }
 
-char* filtrar_nueva_linea(char* cadena) {
+char* concatenar_lineas(char* cadena) {
     int longitud = strlen(cadena);
     char* resultado = malloc(longitud + 1);
     if (resultado == NULL) {
@@ -537,10 +536,13 @@ char* filtrar_nueva_linea(char* cadena) {
     for (int i = 0; i < longitud; i++) {
         if (cadena[i] != '\n') {
             resultado[j++] = cadena[i];
+        } else {
+            resultado[j++] = ' ';  // Reemplazar el salto de línea por un espacio
         }
     }
     resultado[j] = '\0';
     return resultado;
 }
+
 
 

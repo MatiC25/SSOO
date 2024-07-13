@@ -133,7 +133,7 @@ void terminar_proceso(int socket_cliente){
         free(pag_a_eliminar); //libero la pagina [i]
     }
     list_destroy(tabla_de_paginas); //libero la tabla de paginas
-    dictionary_remove_and_destroy(diccionario_de_instrucciones_porPID, pid_string, free);
+    dictionary_remove_and_destroy(diccionario_de_instrucciones_porPID, pid_string, liberar_lista_instrucciones);    
     log_mati(logger2, "Destruccion de Tabla de Paginas: PID: %i - Tamanio: %i", pid, cantidad_de_paginas); // Log minimo y obligatorio
     free(pid_string);
     free(buffer);
@@ -311,7 +311,7 @@ void acceso_lectura(int socket_cliente){
     // Asignar memoria para el contenido a leer
     void* contenido_leer = malloc(tamanio_lectura);
 
-    if((direc_fisica+tamanio_lectura) > config_memoria->tam_memoria){
+    if((direc_fisica + tamanio_lectura) > config_memoria->tam_memoria){
         log_error(logger, "Quisieron leer fuera del espacio de memoria");
         t_paquete* paquete = crear_paquete(OUT_OF_MEMORY);
         int fuera_de_memoria = -1;
@@ -332,8 +332,13 @@ void acceso_lectura(int socket_cliente){
         eliminar_paquete(paquete);
         return;
     }
+
+    //mem_hexdump(espacio_de_usuario, 200);
+
     // Realizar la lectura del espacio de usuario
     mem_hexdump(espacio_de_usuario + direc_fisica, tamanio_lectura);
+
+
     memcpy(contenido_leer, espacio_de_usuario + direc_fisica, tamanio_lectura);
     //log_fede(logger2, "Lo que leemos es: %s ", mem_hexdump(espacio_de_usuario + direc_fisica, tamanio_lectura));
     log_mati(logger2, "Acceso a espacio de usuario: PID: %d - Accion: LEER - Direccion fisica: %d - Tamaño: %d", pid, direc_fisica, tamanio_lectura);
@@ -371,7 +376,6 @@ void acceso_escritura(int socket_cliente){
     log_warning(logger, "Tamanio a escribir : %i", tamanio_escritura);
     contenido_a_escribir = malloc(tamanio_escritura); // Asignar memoria para el contenido a escribir
     memcpy(contenido_a_escribir, buffer + desplazamiento, tamanio_escritura);
-    
     //log_fede(logger2, "Lo que leemos es: %s ", memcpy(contenido_a_escribir, buffer + desplazamiento, tamanio_escritura));
 
     
@@ -391,6 +395,9 @@ void acceso_escritura(int socket_cliente){
 
     memcpy(espacio_de_usuario + direc_fisica, contenido_a_escribir, tamanio_escritura);
     mem_hexdump(espacio_de_usuario + direc_fisica, tamanio_escritura);
+
+    //mem_hexdump(espacio_de_usuario, 200);
+
     log_mati(logger2, "Acceso a espacio de usuario: PID: %d - Accion: ESCRIBIR - Direccion fisica: %d - Tamaño: %d", pid, direc_fisica, tamanio_escritura);
     
     t_paquete* paquete = crear_paquete(EXITO);

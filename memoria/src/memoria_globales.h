@@ -13,8 +13,8 @@
 #include "memoria_config.h"
 #include "memoria_estructuras_compartidas.h"
 
-extern t_dictionary* diccionario_de_instrucciones_porPID;
-extern t_dictionary * diccionario_tabla_de_paginas_porPID;
+extern t_dictionary *diccionario_de_instrucciones_porPID;
+extern t_dictionary *diccionario_tabla_de_paginas_porPID;
 
 extern t_tabla_de_paginas* tabla_de_paginas;
 extern t_bitarray* bitmap;
@@ -23,7 +23,7 @@ extern void* memoria_usuario_bitmap;
 
 extern char* path_proceso;
 extern t_config_memoria* config_memoria;
-
+void free_parametro_array(void* array);
 void crear_espacio_usuario();
 void crear_bitmap();
 void crear_config_memoria();
@@ -34,5 +34,5 @@ void liberar_lista_instrucciones(void* lista);
 void liberar_paginas_porPID(void *pagina);
 void elemento_lista_instrucciones_destroyer(void* elemento);
 void configurar_senial_cierre();
-
+void liberar_lista_parametros(void* lista);
 #endif

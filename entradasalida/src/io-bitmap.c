@@ -78,10 +78,10 @@ int hay_bloques_contiguos_libres(t_bitarray *bitmap, int bloque_final, int bloqu
     // Verifico si hay bloques contiguos libres:
     for(int i = bloque_final + 1; i <= bloques_necesarios; i++) {
         if(bitarray_test_bit(bitmap, i))
-            return 1; // Si no hay bloques contiguos libres, retorno 1
+            return 0; // Si no hay bloques contiguos libres, retorno 1
     }
 
-    return 0; // Si hay bloques contiguos libres, retorno 0
+    return 1; // Si hay bloques contiguos libres, retorno 0
 }
 
 // Funcion para setear bloques como ocupados:

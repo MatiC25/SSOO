@@ -74,8 +74,10 @@ void consumers_pcbs_blockeds(void *args) {
         int socket_with_interface = get_socket_interface(interface);
 
         // Obtenemos el PCB y los argumentos del proceso bloqueado:
+        pthread_mutex_lock(&interface->mutex_blocked);
         t_pcb *pcb = queue_pop(interface->process_blocked);
         t_list *args_pcb = queue_pop(interface->args_process);
+        pthread_mutex_unlock(&interface->mutex_blocked);
 
         // Verificamos si la interfaz sigue conectada:
         int sigue_conectado = recv(socket_with_interface, &buffer, sizeof(int), MSG_PEEK | MSG_DONTWAIT);
@@ -119,6 +121,7 @@ interface_io *initialize_interface() {
     interface->args_process = queue_create();
     sem_init(&interface->semaforo_used, 0, 1);
     sem_init(&interface->size_blocked, 0, 0);
+    pthread_mutex_init(&interface->mutex_blocked, NULL);
     interface->esta_conectado = 1;
 
     return interface;

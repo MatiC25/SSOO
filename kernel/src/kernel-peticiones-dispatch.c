@@ -175,6 +175,7 @@ void peticion_wait() {
     t_pcb* pcb = proceso_en_exec;
     actualizar_pcb(pcb, contexto);
     pthread_mutex_unlock(&mutex_proceso_exec);
+    liberar_procesos(contexto);
 
     if (!recurso_existe(recurso)) {
         log_error(logger, "El recurso solicitado no existe!");
@@ -229,9 +230,7 @@ void peticion_wait() {
         pthread_mutex_unlock(&mutex_proceso_exec);
 
         puede_ejecutar_otro_proceso();
-        return;
     }
-    liberar_procesos(contexto);
     free(recurso);
 }
 
@@ -316,7 +315,7 @@ void mover_a_bloqueado_por_wait(t_pcb* pcb, char* recurso) {
 void mover_a_cola_block_general(t_pcb* pcb, char* motivo) {
 
     pthread_mutex_lock(&mutex_cola_block);
-    log_leo(logger2, "PID: %i - Bloqueado por: %s\n", pcb->pid, motivo);
+    log_leo(logger2, "PID: %i - Bloqueado por: %s", pcb->pid, motivo);
     log_info(logger, "PID: %i - Estado Anterior: EXEC - Estado Actual: BLOCK", pcb->pid);
     //log_facu(logger2, "Quantum en Block: %i", pcb->quantum);
     pcb->estado = BLOCK;
@@ -366,7 +365,6 @@ t_pcb_cpu* recibir_contexto_y_recurso(char** recurso) {
 
 void peticion_IO() {
 
-    // Recibimos el contexto de ejecución:
     t_pcb_cpu* contexto = rcv_contexto_ejecucion_cpu(config_kernel->SOCKET_DISPATCH);
 
     if (!contexto) {
@@ -417,7 +415,6 @@ void peticion_IO() {
         free(operacion);
         list_destroy_and_destroy_elements(args, free);
         list_destroy(interfaz_y_argumentos);
-
         liberar_procesos(contexto);
 
         return;
@@ -437,17 +434,19 @@ void peticion_IO() {
     pthread_mutex_unlock(&mutex_proceso_exec);
 
     // Agregamos el proceso junto a sus argumentos a la cola de bloqueados:
+    pthread_mutex_lock(&interface->mutex_blocked);
     queue_push(interface->process_blocked, pcb);
     queue_push(interface->args_process, args);
+    pthread_mutex_unlock(&interface->mutex_blocked);
     sem_post(&interface->size_blocked);
 
+    puede_ejecutar_otro_proceso();
     // Liberamos memoria de los elementos que ya no se necesitan:
     free(nombre_interfaz);
     free(operacion);
     liberar_procesos(contexto);
-    list_destroy(interfaz_y_argumentos);
+    list_destroy(interfaz_y_argumentos); // TODO
     // Avisamos al planificador que puede ejecutar otro proceso:
-    puede_ejecutar_otro_proceso();
 }
 
 
@@ -466,10 +465,10 @@ void rcv_nombre_recurso(char** recurso, int socket) {
     memcpy(&tamanio, buffer + desplazamiento, sizeof(int));
     desplazamiento += sizeof(int);
 
-    *recurso = malloc(tamanio + 1);
+    *recurso = malloc(tamanio);
 
     memcpy(*recurso, buffer + desplazamiento, tamanio);
-    desplazamiento += tamanio + 1;
+    desplazamiento += tamanio;
         
     free(buffer);     
 }
@@ -561,22 +560,23 @@ void liberar_recurso_por_exit(t_pcb* pcb) {
             vector_recursos_pedidos[i].recurso = NULL;
         }
     }
-    sem_post(&desalojo_proceso);
+    if(proceso_finalizado_por_consola == 1) {
+        sem_post(&desalojo_proceso);
+        proceso_finalizado_por_consola = 0;
+    }
+    //sem_post(&desalojo_proceso); TODO
     sem_post(&sem_multiprogramacion);
 }
 
 
 void liberar_procesos(t_pcb* pcb) {
-    if (!pcb) return;
-
-    if (pcb->registros) {
-        free(pcb->registros);
-        pcb->registros = NULL;
+  if (pcb != NULL) {
+        if (pcb->registros != NULL) {
+                free(pcb->registros); // Liberar el arreglo dentro de Registros
+        }
+        free(pcb); // Liberar la estructura PCB
     }
-
-    free(pcb);
 }
-
 
 void mostrar_pcb(t_pcb* pcb){
     log_info(logger,"PID: %i", pcb->pid);

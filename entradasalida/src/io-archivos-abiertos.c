@@ -78,7 +78,7 @@ int ya_esta_abierto(t_list *archivos_abiertos, char *nombre_archivo) {
         t_archivo_abierto *archivo_abierto = list_get(archivos_abiertos, i);
         char *nombre_archivo_abierto = archivo_abierto->name_file;
 
-        if (strcmp(nombre_archivo_abierto, nombre_archivo) == 0) {
+        if (!nombre_archivo_abierto && strcmp(nombre_archivo_abierto, nombre_archivo) == 0) {
             return 1;
         }
     }
@@ -98,7 +98,7 @@ t_archivo_abierto *obtener_archivo_abierto(t_list *archivos_abiertos, char *nomb
         t_archivo_abierto *archivo_abierto = list_get(archivos_abiertos, i);
         char *nombre_archivo_abierto = archivo_abierto->name_file;
 
-        if (strncmp(nombre_archivo_abierto, nombre_archivo, cantidad_de_caracteres) == 0) {
+        if (!nombre_archivo_abierto && strncmp(nombre_archivo_abierto, nombre_archivo, cantidad_de_caracteres) == 0) {
             return archivo_abierto;
         }
     }
@@ -118,7 +118,7 @@ void cerrar_archivo_abierto(t_list *archivos_abiertos, char *nombre_archivo) {
         t_archivo_abierto *archivo_abierto = list_get(archivos_abiertos, i);
         char *nombre_archivo_abierto = archivo_abierto->name_file;
 
-        if (strncmp(nombre_archivo_abierto, nombre_archivo, cantidad_de_caracteres) == 0) {
+        if (!nombre_archivo_abierto && strncmp(nombre_archivo_abierto, nombre_archivo, cantidad_de_caracteres) == 0) {
             list_remove(archivos_abiertos, i);
             free(archivo_abierto);
             return;
@@ -138,6 +138,5 @@ void liberar_archivo_abierto(void *archivo_abierto) {
 
     // Liberamos el archivo abierto:
     config_destroy(archivo_metadata);
-    free(archivo->name_file);
     free(archivo);
 }

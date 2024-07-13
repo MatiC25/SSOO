@@ -138,7 +138,7 @@ void operar_con_registros(void* registro_destino, void* registro_origen, char* r
 void tengoAlgunaInterrupcion(){
     if (atomic_load(&interrupt_flag) == 1){
     t_paquete* paquete_a_kernel = crear_paquete(FIN_QUANTUM);
-        //log_warning(logger, "ESTOY DESALOJANDO");
+         log_info(logger, "DESALAJANDO");
         atomic_store(&interrupt_flag, 0);  // Reset the flag here
         enviar_pcb_a_kernel(paquete_a_kernel);
         enviar_paquete(paquete_a_kernel, config_cpu->SOCKET_KERNEL);
@@ -387,37 +387,34 @@ void ejecutar_RESIZE(char* tam){
         t_paquete* paquete_a_kernel = crear_paquete(OUT_OF_MEMORY);
         enviar_pcb_a_kernel(paquete_a_kernel);
         enviar_paquete(paquete_a_kernel, config_cpu->SOCKET_KERNEL);
-        free(paquete_a_kernel);
+        eliminar_paquete(paquete_a_kernel);
     }
 }
 
 
-void ejecutar_COPY_STRING(char* tam){
+void ejecutar_COPY_STRING(char* tam) {
     int tamanio = atoi(tam);
     void* registroSI = obtener_registro("SI");
-    void* registroDI = obtener_registro ("DI");
-  
-    int registerSI = encontrar_int(registroSI, 4);
-    int registreDI =  encontrar_int(registroDI, 4);
-    
-    mmu = traducirDireccion(registerSI, tamanio);
+    void* registroDI = obtener_registro("DI");
 
-    char* valor = malloc(tamanio + 1); //linea 406
-    valor = comunicaciones_con_memoria_lectura_copy_string(mmu);
-    liberar_mmu();
+    int registerSI = encontrar_int(registroSI, 4);
+    int registreDI = encontrar_int(registroDI, 4);
+
+    mmu = traducirDireccion(registerSI, tamanio);
+    char* valor = comunicaciones_con_memoria_lectura_copy_string(); // Acordarse que lo cambie!!
+    liberar_mmu(mmu);
     int tamm = strlen(valor);
 
     mmu = traducirDireccion(registreDI, tamm);
 
-    if(comunicaciones_con_memoria_escritura_copy_string(valor) == 1){
-        log_info(logger,"Se puedo escribir correctamente");
-    }else{
-        log_error(logger,"No se pudo escribir en memoria");
+    if(comunicaciones_con_memoria_escritura_copy_string(valor) == 1) {
+        log_info(logger, "Se pudo escribir correctamente");
+    }else {
+        log_error(logger, "No se pudo escribir en memoria");
     }
-    liberar_mmu();
+    liberar_mmu(mmu);
     free(valor);
     tengoAlgunaInterrupcion();
-    
 }
 
 void ejecutar_WAIT(char* recurso){
@@ -466,49 +463,48 @@ void ejecutar_SINGAL(char* recurso) {
 }
 
 
-void ejecutar_IO_STDIN_READ(char* interfaz, char* registro_direccion, char* registro_tamanio){
+void ejecutar_IO_STDIN_READ(char* interfaz, char* registro_direccion, char* registro_tamanio) {
     void* registroDireccion = obtener_registro(registro_direccion);
-    void* registroTamanio  = obtener_registro(registro_tamanio);
+    void* registroTamanio = obtener_registro(registro_tamanio);
 
-    int tamanio_registro = espacio_de_registro(registro_tamanio); 
+    int tamanio_registro = espacio_de_registro(registro_tamanio);
     int tamanio_logica = espacio_de_registro(registro_direccion);
 
-    int reg_Direc = encontrar_int(registroDireccion, tamanio_logica );
-    int reg_Tamanio =  encontrar_int(registroTamanio, tamanio_registro);
-    //mostrar_pcb(pcb);
+    int reg_Direc = encontrar_int(registroDireccion, tamanio_logica);
+    int reg_Tamanio = encontrar_int(registroTamanio, tamanio_registro);
 
-    mmu = traducirDireccion(reg_Direc,reg_Tamanio);
-    //mostrar_pcb(pcb);
-    t_paquete* paquete_std = crear_paquete(OPERACION_IO); // dejo asi 
-    enviar_pcb_a_kernel(paquete_std);   
-    enviar_paquete(paquete_std , config_cpu->SOCKET_KERNEL);
+    mmu = traducirDireccion(reg_Direc, reg_Tamanio);
+    t_paquete* paquete_std = crear_paquete(OPERACION_IO);
+    enviar_pcb_a_kernel(paquete_std);
+    enviar_paquete(paquete_std, config_cpu->SOCKET_KERNEL);
     eliminar_paquete(paquete_std);
 
     t_paquete* paquete_stdin = crear_paquete(IO_STDIN_READ_INT);
     solicitar_a_kernel_std(interfaz, paquete_stdin);
-    liberar_mmu();
+    eliminar_paquete(paquete_stdin);
+    liberar_mmu(mmu);
 }
 
-void ejecutar_IO_STDOUT_WRITE(char* interfaz, char* registro_direccion, char* registro_tamanio){
+void ejecutar_IO_STDOUT_WRITE(char* interfaz, char* registro_direccion, char* registro_tamanio) {
     void* registroDireccion = obtener_registro(registro_direccion);
-    void* registroTamanio  = obtener_registro(registro_tamanio);
+    void* registroTamanio = obtener_registro(registro_tamanio);
 
-    int tamanio_registro = espacio_de_registro(registro_tamanio); 
+    int tamanio_registro = espacio_de_registro(registro_tamanio);
     int tamanio_logica = espacio_de_registro(registro_direccion);
 
-    int reg_Direc = encontrar_int(registroDireccion, tamanio_logica );
-    int reg_Tamanio =  encontrar_int(registroTamanio, tamanio_registro);
+    int reg_Direc = encontrar_int(registroDireccion, tamanio_logica);
+    int reg_Tamanio = encontrar_int(registroTamanio, tamanio_registro);
 
-    mmu = traducirDireccion(reg_Direc,reg_Tamanio);
-    //mostrar_pcb(pcb);
-    t_paquete* paquete_std = crear_paquete(OPERACION_IO); // dejo asi 
-    enviar_pcb_a_kernel(paquete_std);   
+    mmu = traducirDireccion(reg_Direc, reg_Tamanio);
+    t_paquete* paquete_std = crear_paquete(OPERACION_IO);
+    enviar_pcb_a_kernel(paquete_std);
     enviar_paquete(paquete_std, config_cpu->SOCKET_KERNEL);
     eliminar_paquete(paquete_std);
 
-    t_paquete* paquete_stdout = crear_paquete(IO_STDOUT_WRITE_INT); // dejo asi 
-    solicitar_a_kernel_std(interfaz,  paquete_stdout);
-    liberar_mmu();
+    t_paquete* paquete_stdout = crear_paquete(IO_STDOUT_WRITE_INT);
+    solicitar_a_kernel_std(interfaz, paquete_stdout);
+    eliminar_paquete(paquete_stdout);
+    liberar_mmu(mmu);
 }
 
 
@@ -573,31 +569,30 @@ void ejecutar_IO_FS_TRUNCATE(char* interfaz, char* nombre_archivo, char* registr
     }
 }
 
-void ejecutar_IO_FD_WRITE(char* interfaz, char* nombre_archivo, char* registro_direccion, char* registro_tamanio, char* registro_puntero_archivo){
+void ejecutar_IO_FD_WRITE(char* interfaz, char* nombre_archivo, char* registro_direccion, char* registro_tamanio, char* registro_puntero_archivo) {
     void* registroDireccion = obtener_registro(registro_direccion);
     int tamanio1 = espacio_de_registro(registro_direccion);
     int reg_Direc = encontrar_int(registroDireccion, tamanio1);
 
-    void* registroTamanio  = obtener_registro(registro_tamanio);
+    void* registroTamanio = obtener_registro(registro_tamanio);
     int tamanio2 = espacio_de_registro(registro_tamanio);
     int reg_Tamanio = encontrar_int(registroTamanio, tamanio2);
 
-    void* registroArchivo  = obtener_registro(registro_puntero_archivo);
+    void* registroArchivo = obtener_registro(registro_puntero_archivo);
     int tamanio3 = espacio_de_registro(registro_puntero_archivo);
     int reg_Archi = encontrar_int(registroArchivo, tamanio3);
 
-    mmu = traducirDireccion(reg_Direc,reg_Tamanio);
+    mmu = traducirDireccion(reg_Direc, reg_Tamanio);
 
     t_paquete* paquete_IO = crear_paquete(OPERACION_IO);
     enviar_pcb_a_kernel(paquete_IO);
     enviar_paquete(paquete_IO, config_cpu->SOCKET_KERNEL);
     eliminar_paquete(paquete_IO);
 
-
     int respuesta;
-    recv(config_cpu->SOCKET_KERNEL, &respuesta , sizeof(int), MSG_WAITALL);
+    recv(config_cpu->SOCKET_KERNEL, &respuesta, sizeof(int), MSG_WAITALL);
 
-    if(respuesta == 1) {
+    if (respuesta == 1) {
         t_paquete* paquete = crear_paquete(IO_FS_WRITE_INT);
         agregar_a_paquete_string(paquete, interfaz, strlen(interfaz) + 1);
         agregar_a_paquete_string(paquete, nombre_archivo, strlen(nombre_archivo) + 1);
@@ -606,66 +601,70 @@ void ejecutar_IO_FD_WRITE(char* interfaz, char* nombre_archivo, char* registro_d
         log_info(logger, "tamanio direcciones fisicas: %i", list_size(mmu->direccionFIsica));
         log_info(logger, "tamanio tamanios: %i", list_size(mmu->tamanio));
 
-        while (!list_is_empty(mmu->direccionFIsica)){
+        while (!list_is_empty(mmu->direccionFIsica)) {
             int* direccion_fisica = list_remove(mmu->direccionFIsica, 0);
             int* ptr_tamanio = list_remove(mmu->tamanio, 0);
 
-            log_info(logger, "DIRECCION FISICA:%i", *direccion_fisica);
+            log_info(logger, "DIRECCION FISICA: %i", *direccion_fisica);
             log_info(logger, "TAMANIO: %i", *ptr_tamanio);
 
             agregar_a_paquete(paquete, direccion_fisica, sizeof(int));
             agregar_a_paquete(paquete, ptr_tamanio, sizeof(int));
+
+            free(direccion_fisica);
+            free(ptr_tamanio);
         }
 
         enviar_paquete(paquete, config_cpu->SOCKET_KERNEL);
         eliminar_paquete(paquete);
-    
     }
-    liberar_mmu();
+    liberar_mmu(mmu);
 }
 
-
-void ejecutar_IO_FS_READ(char* interfaz, char* nombre_archivo, char* registro_direccion, char* registro_tamanio, char* registro_puntero_archivo){
+void ejecutar_IO_FS_READ(char* interfaz, char* nombre_archivo, char* registro_direccion, char* registro_tamanio, char* registro_puntero_archivo) {
     void* registroDireccion = obtener_registro(registro_direccion);
-     int tamanio1 = espacio_de_registro(registro_direccion);
+    int tamanio1 = espacio_de_registro(registro_direccion);
     int reg_Direc = encontrar_int(registroDireccion, tamanio1);
 
-    void* registroTamanio  = obtener_registro(registro_tamanio);
+    void* registroTamanio = obtener_registro(registro_tamanio);
     int tamanio2 = espacio_de_registro(registro_tamanio);
-    int reg_Tamanio = encontrar_int(registroTamanio ,tamanio2);
+    int reg_Tamanio = encontrar_int(registroTamanio, tamanio2);
 
-    void* registroArchivo  = obtener_registro(registro_puntero_archivo);
+    void* registroArchivo = obtener_registro(registro_puntero_archivo);
     int tamanio3 = espacio_de_registro(registro_puntero_archivo);
     int reg_Archi = encontrar_int(registroArchivo, tamanio3);
 
-    mmu = traducirDireccion(reg_Direc,reg_Tamanio);
+    mmu = traducirDireccion(reg_Direc, reg_Tamanio);
     t_paquete* paquete_IO = crear_paquete(OPERACION_IO);
     enviar_pcb_a_kernel(paquete_IO);
     enviar_paquete(paquete_IO, config_cpu->SOCKET_KERNEL);
     eliminar_paquete(paquete_IO);
-    
+
     t_paquete* paquete = crear_paquete(IO_FS_READ_INT);
     agregar_a_paquete_string(paquete, interfaz, strlen(interfaz) + 1);
-    agregar_a_paquete_string(paquete, nombre_archivo, strlen(interfaz) + 1);
-    agregar_a_paquete(paquete,&reg_Tamanio, sizeof(int));
+    agregar_a_paquete_string(paquete, nombre_archivo, strlen(nombre_archivo) + 1);
+    agregar_a_paquete(paquete, &reg_Tamanio, sizeof(int));
 
     log_info(logger, "tamanio direcciones fisicas: %i", list_size(mmu->direccionFIsica));
     log_info(logger, "tamanio tamanios: %i", list_size(mmu->tamanio));
 
-    while (!list_is_empty(mmu->direccionFIsica)){
-        int *direccion_fisica = list_remove(mmu->direccionFIsica, 0);
-        int *ptr_tamanio = list_remove(mmu->tamanio, 0);
+    while (!list_is_empty(mmu->direccionFIsica)) {
+        int* direccion_fisica = list_remove(mmu->direccionFIsica, 0);
+        int* ptr_tamanio = list_remove(mmu->tamanio, 0);
 
-        log_info(logger, "DIRECCION FISICA:%i", *direccion_fisica);
+        log_info(logger, "DIRECCION FISICA: %i", *direccion_fisica);
         log_info(logger, "TAMANIO: %i", *ptr_tamanio);
 
         agregar_a_paquete(paquete, direccion_fisica, sizeof(int));
         agregar_a_paquete(paquete, ptr_tamanio, sizeof(int));
+
+        free(direccion_fisica);
+        free(ptr_tamanio);
     }
 
     enviar_paquete(paquete, config_cpu->SOCKET_KERNEL);
     eliminar_paquete(paquete);
-    liberar_mmu();
+    liberar_mmu(mmu);
 }
 
 void liberar_pcb(){
@@ -680,14 +679,12 @@ void liberar_pcb(){
 }
 
 void liberar_mmu() {
-    if (mmu == NULL) {
-        return;
-    }
-        list_destroy_and_destroy_elements(mmu->num_pagina, free);
-        list_destroy_and_destroy_elements(mmu->direccionFIsica, free);
-        list_destroy_and_destroy_elements(mmu->ofset, free);
-        list_destroy_and_destroy_elements(mmu->tamanio, free);
-        free(mmu);
+    if (mmu == NULL) {return;}
+    if (mmu->num_pagina != NULL) {list_destroy_and_destroy_elements(mmu->num_pagina, free);}
+    if (mmu->direccionFIsica != NULL) {list_destroy_and_destroy_elements(mmu->direccionFIsica, free);}
+    if (mmu->ofset != NULL) {list_destroy_and_destroy_elements(mmu->ofset, free);}
+    if (mmu->tamanio != NULL) {list_destroy_and_destroy_elements(mmu->tamanio, free);}
+    free(mmu);
 }
 
 
