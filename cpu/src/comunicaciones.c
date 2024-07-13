@@ -485,7 +485,6 @@ char* recv_escribir_memoria_string(int tamanio){
 }   
 
 void solicitar_a_kernel_std(char* interfaz ,t_paquete* solicitar_std){
-
     int respuesta;
     recv(config_cpu->SOCKET_KERNEL, &respuesta , sizeof(int), MSG_WAITALL);
     if(respuesta == 1) {
@@ -498,12 +497,15 @@ void solicitar_a_kernel_std(char* interfaz ,t_paquete* solicitar_std){
 
             agregar_a_paquete(solicitar_std, &direc_fisica, sizeof(int));
             agregar_a_paquete(solicitar_std, &tamanio, sizeof(int));
+            
+            free(direccion_fisica);
+            free(ptr_tamanio);
         }
 
         enviar_paquete(solicitar_std, config_cpu->SOCKET_KERNEL);
         eliminar_paquete(solicitar_std);
     } else
-        log_error(logger , "Erro en la respuesta de desalojo de I/O");
+        log_error(logger , "Error en la respuesta de desalojo de I/O");
 }
 
 void mostrar_pcb(t_pcb_cpu* pcb){

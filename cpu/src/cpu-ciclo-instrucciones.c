@@ -670,9 +670,17 @@ void liberar_pcb(){
 void liberar_mmu() {
     if (mmu == NULL) {return;}
     if (!list_is_empty(mmu->num_pagina)) {list_destroy_and_destroy_elements(mmu->num_pagina, free);}
-    if (list_is_empty(mmu->direccionFIsica)) {list_destroy(mmu->direccionFIsica);}
+    else {list_destroy(mmu->num_pagina);}
+    
+    if (!list_is_empty(mmu->direccionFIsica)) {list_destroy_and_destroy_elements(mmu->direccionFIsica, free);}
+    else {list_destroy(mmu->direccionFIsica);}
+    
     if (!list_is_empty(mmu->ofset)) {list_destroy_and_destroy_elements(mmu->ofset, free);}
-    if (list_is_empty(mmu->tamanio)) {list_destroy(mmu->tamanio);}
+    else {list_destroy(mmu->ofset);}
+    
+    if (!list_is_empty(mmu->tamanio)) {list_destroy_and_destroy_elements(mmu->tamanio, free);}
+    else {list_destroy(mmu->tamanio);}
+    
     free(mmu);
 }
 

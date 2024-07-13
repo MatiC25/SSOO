@@ -46,7 +46,7 @@ t_mmu_cpu* traducirDireccion(int direccionLogica, int tamanio) {
     tamanio_Actualizado = tamanio - tamanio_Actualizado;
 
     while (config_cpu->TAMANIO_PAGINA <= tamanio_Actualizado) {
-        log_warning(logger, "*tamanio_Actualizad: %i ", tamanio_Actualizado);
+        //log_warning(logger, "*tamanio_Actualizad: %i ", tamanio_Actualizado);
         int* pagina_ptrr = malloc(sizeof(int));
         int* offset_ptrr = malloc(sizeof(int)); //linea 52
         int* tamanio_ptrr = malloc(sizeof(int));
