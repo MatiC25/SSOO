@@ -32,8 +32,6 @@ void compactar_fs(t_interfaz  *interfaz, void *bloques, t_bitarray *bitmap, t_li
 
         // Verificamos si el archivo actual es el archivo a compactar o si es un archivo que se puede mover:
         if(nuevo_bloque_libre < bloque_inicial_archivo_actual || bloque_inicial_archivo_actual == bloque_inicial_archivo_a_compactar) {
-            
-            log_info(logger, "Archivo a mover: %s", archivo_abierto_actual->name_file);
 
             // Liberamos los bloques asignados al archivo actual:
             cantidad_bloques_asignados = calcular_cantidad_bloques_asignados(interfaz, tamanio_archivo_archivo_actual);

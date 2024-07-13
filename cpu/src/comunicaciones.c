@@ -130,8 +130,6 @@ int comunicaciones_con_memoria_escritura_copy_string(char* valor){
     while (!list_is_empty(mmu->direccionFIsica)) {
         int* direccionFIsicaa = (int*)list_remove(mmu->direccionFIsica, 0);
         int* tamanio = (int*)list_remove(mmu->tamanio, 0);
-            log_warning(logger, "*direccionFIsicaa : %i ", *direccionFIsicaa );
-            log_warning(logger, "*tamanio: %i ", *tamanio);
 
         if (!direccionFIsicaa || !tamanio) {
             log_error(logger, "Error al obtener dirección física o tamaño");
@@ -143,8 +141,6 @@ int comunicaciones_con_memoria_escritura_copy_string(char* valor){
 
         int tam = *tamanio;
         int direc = *direccionFIsicaa;
-        log_warning(logger, "direc : %i ", direc );
-        log_warning(logger, "*tam: %i ", tam);
 
         // Reservar memoria para la parte del valor
         char* palabra_parte = (char*)malloc(tam + 1);
@@ -164,7 +160,7 @@ int comunicaciones_con_memoria_escritura_copy_string(char* valor){
         // Reconstruir la parte del valor dividido
         memcpy(palbara_reconstruida + des, palabra_parte, tam); // NOC SI VA EL (unsigned char*)&
         des += tam;
-        log_warning(logger, "tamanio: %i ", tam);
+        
         send_escribi_memoria_string(pcb->pid, direc, tam, palabra_parte);
         verificador = recv_escribir_memoria();
         if (verificador == -1) {

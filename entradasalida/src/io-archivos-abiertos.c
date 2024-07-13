@@ -1,3 +1,4 @@
+
 #include "io-archivos-abiertos.h"
 
 t_list *obtener_archivos_ya_abiertos(t_interfaz *interfaz) {
@@ -21,18 +22,20 @@ t_list *obtener_archivos_ya_abiertos(t_interfaz *interfaz) {
     while(archivo = readdir(directorio)) {
         if(archivo->d_type == DT_REG) {
             if(strncmp(archivo->d_name, name_de_archivo_bloque, 7) != 0 && strncmp(archivo->d_name, name_de_archivo_bitmap, 6) != 0) {
-    
+                log_info(logger, "Archivo recuperado: %s", archivo->d_name);
+
                 // Inicializamos el archivo abierto:
                 t_config *archivo_metadata = abrir_archivo_metadata_config(interfaz, archivo->d_name, "r");
                 t_archivo_abierto *archivo_abierto = malloc(sizeof(t_archivo_abierto));
-                
-                // Seteamos los datos del archivo abierto:
-                set_archivo_metada_en_archivo_abierto(archivo_abierto, archivo_metadata);
-                set_name_file_en_archivo_abierto(archivo_abierto, archivo->d_name);
 
                 // Agregamos el archivo a la lista de archivos abiertos:
-                if(es_un_archivo_valido(archivo_metadata))
+                if(es_un_archivo_valido(archivo_metadata)) {
+                    // Seteamos los datos del archivo abierto:
+                    set_archivo_metada_en_archivo_abierto(archivo_abierto, archivo_metadata);
+                    set_name_file_en_archivo_abierto(archivo_abierto, archivo->d_name);
+
                     list_add(archivos_abiertos, archivo_abierto);
+                }
             }
         }
     }
@@ -50,7 +53,11 @@ void set_archivo_metada_en_archivo_abierto(t_archivo_abierto *archivo_abierto, t
 }
 
 void set_name_file_en_archivo_abierto(t_archivo_abierto *archivo_abierto, char *name_file) {
-    archivo_abierto->name_file = name_file;
+    char *new_name_file = string_new();
+    string_append(&new_name_file, name_file);
+    string_trim_left(&new_name_file);
+
+    archivo_abierto->name_file = new_name_file;
 }
 
 void set_nuevo_archivo_abierto(t_list *archivos_abiertos, char *name_file, t_config *archivo_metadata) {
@@ -72,13 +79,15 @@ int ya_esta_abierto(t_list *archivos_abiertos, char *nombre_archivo) {
 
     // Iteramos sobre los archivos abiertos:
     int size = list_size(archivos_abiertos);
+    string_trim_right(&nombre_archivo);
+    int tamanio_de_caracteres = strlen(nombre_archivo);
 
     // Buscamos si el archivo ya esta abierto:
     for (int i = 0; i < size; i++) {
         t_archivo_abierto *archivo_abierto = list_get(archivos_abiertos, i);
         char *nombre_archivo_abierto = archivo_abierto->name_file;
 
-        if (strcmp(nombre_archivo_abierto, nombre_archivo) == 0) {
+        if (strncmp(nombre_archivo_abierto, nombre_archivo, tamanio_de_caracteres) == 0) {
             return 1;
         }
     }
@@ -91,16 +100,16 @@ t_archivo_abierto *obtener_archivo_abierto(t_list *archivos_abiertos, char *nomb
 
     // Iteramos sobre los archivos abiertos:
     int size = list_size(archivos_abiertos);
-    int cantidad_de_caracteres = strlen(nombre_archivo);
+    string_trim_right(&nombre_archivo);
+    int tamanio_de_caracteres = strlen(nombre_archivo);
 
     // Buscamos el archivo abierto:
     for (int i = 0; i < size; i++) {
         t_archivo_abierto *archivo_abierto = list_get(archivos_abiertos, i);
         char *nombre_archivo_abierto = archivo_abierto->name_file;
 
-        if (strncmp(nombre_archivo_abierto, nombre_archivo, cantidad_de_caracteres) == 0) {
+        if (strncmp(nombre_archivo_abierto, nombre_archivo, tamanio_de_caracteres) == 0) 
             return archivo_abierto;
-        }
     }
 
     return NULL;
@@ -120,6 +129,7 @@ void cerrar_archivo_abierto(t_list *archivos_abiertos, char *nombre_archivo) {
 
         if (strncmp(nombre_archivo_abierto, nombre_archivo, cantidad_de_caracteres) == 0) {
             list_remove(archivos_abiertos, i);
+            
             free(archivo_abierto);
             return;
         }
@@ -138,5 +148,6 @@ void liberar_archivo_abierto(void *archivo_abierto) {
 
     // Liberamos el archivo abierto:
     config_destroy(archivo_metadata);
+    free(archivo->name_file);
     free(archivo);
 }

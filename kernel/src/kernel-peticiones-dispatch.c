@@ -570,11 +570,13 @@ void liberar_recurso_por_exit(t_pcb* pcb) {
 
 
 void liberar_procesos(t_pcb* pcb) {
-  if (pcb != NULL) {
+    if (pcb != NULL) {
         if (pcb->registros != NULL) {
-                free(pcb->registros); // Liberar el arreglo dentro de Registros
+            free(pcb->registros);
+            pcb->registros = NULL;  // Previene la doble liberación
         }
-        free(pcb); // Liberar la estructura PCB
+        free(pcb);
+        pcb = NULL;  // Previene la doble liberación
     }
 }
 

@@ -76,7 +76,7 @@ void operacion_write_file(t_interfaz *interfaz, void *bloques, t_list *argumento
     }
 
     // Verificamos si el tamaño supera el tamaño del archivo:
-    if(cantidad_de_bytes + *offset < get_tamanio_archivo(get_archivo_metadata(archivo_abierto))) {
+    if(cantidad_de_bytes + *offset > get_tamanio_archivo(get_archivo_metadata(archivo_abierto))) {
         log_error(logger, "No se puede escribir en el archivo, el tamanio a escribir supera el tamanio del archivo");
 
         // Liberamos la memoria utilizada:
@@ -97,7 +97,7 @@ void operacion_write_file(t_interfaz *interfaz, void *bloques, t_list *argumento
 
     // Escribimos el contenido en el archivo:
     memcpy(bloques + bloque_inicial * get_block_size(interfaz) + *offset, contenido, cantidad_de_bytes);
-    msync(bloques, get_block_size(interfaz) * get_block_count(interfaz), MS_SYNC);
+    msync(bloques, get_block_size(interfaz) * get_block_count(interfaz) + *offset, MS_SYNC);
 
     // Logeamos la operación:
     log_info(logger, "Se escribio en el archivo %s", nombre_archivo);
@@ -107,7 +107,6 @@ void operacion_write_file(t_interfaz *interfaz, void *bloques, t_list *argumento
     free(contenido);
     free(pid_proceso);
     free(offset);
-    free(nombre_archivo);
 }
 
 void operacion_read_file(t_interfaz *interfaz, void *bloques, t_list *argumentos, t_list *archivos_ya_abiertos) {
@@ -140,7 +139,7 @@ void operacion_read_file(t_interfaz *interfaz, void *bloques, t_list *argumentos
     }
 
     // Verificamos si el tamaño supera el tamaño del archivo:
-    if(cantidad_de_bytes + *offset < get_tamanio_archivo(get_archivo_metadata(archivo_abierto))) {
+    if(cantidad_de_bytes + *offset > get_tamanio_archivo(get_archivo_metadata(archivo_abierto))) {
         log_error(logger, "No se puede leer el archivo, el tamanio a leer supera el tamanio del archivo");
 
         // Liberamos la memoria utilizada:
@@ -175,7 +174,6 @@ void operacion_read_file(t_interfaz *interfaz, void *bloques, t_list *argumentos
     free(contenido);
     free(pid_proceso);
     free(offset);
-    free(nombre_archivo);
 }
 
 void operacion_delete_file(t_interfaz *interfaz, t_bitarray *bitmap, t_list *argumentos, t_list *archivos_ya_abiertos) {
@@ -216,7 +214,6 @@ void operacion_delete_file(t_interfaz *interfaz, t_bitarray *bitmap, t_list *arg
     log_info(logger, "Se elimino el archivo %s", nombre_archivo);
     
     // Liberamos la memoria utilizada:
-    free(nombre_archivo);
     free(pid_proceso);
 }
 
@@ -256,7 +253,7 @@ void operacion_truncate_file(t_interfaz *interfaz, void *bloques, t_bitarray *bi
         return;
     }
 
-    int bloques_necesarios = get_bloques_necesarios(interfaz, *nuevo_tamanio);
+    int bloques_necesarios = get_bloques_necesarios(interfaz, *nuevo_tamanio) - 1;
     int tam_resultante = *nuevo_tamanio  + tamanio_actual;
 
     log_info(logger, "Cantidad de bloques necesarios: %d", bloques_necesarios);
@@ -269,9 +266,8 @@ void operacion_truncate_file(t_interfaz *interfaz, void *bloques, t_bitarray *bi
         }
 
         int bloque_final = calcular_bloque_final(interfaz, bloque_inicial, tamanio_actual);
-        log_info(logger, "Archivo: %s", nombre_archivo);
 
-        if(!hay_bloques_contiguos_libres(bitmap, bloque_final, bloques_necesarios)) {
+        if(no_hay_bloques_contiguos_libres(bitmap, bloque_final, bloques_necesarios)) {
             log_info(logger, "PID: %i - Inicio Compactación.", *pid_proceso);
             compactar_fs(interfaz, bloques, bitmap, archivos_ya_abiertos, archivo_metadata, bloques_necesarios, bloque_inicial, tam_resultante);
             retardo_compactacion(interfaz);
@@ -288,7 +284,7 @@ void operacion_truncate_file(t_interfaz *interfaz, void *bloques, t_bitarray *bi
     log_info(logger, "Se truncó el archivo %s", nombre_archivo);
     log_info(logger, "Nuevo tamanio: %d", tam_resultante);
     log_info(logger, "Cantidad de nuevos bloques asignados: %d", bloques_necesarios);
-    log_info(logger, "Cantidad de bloques actuales: %d", cantidad_de_bloques_anterior + bloques_necesarios - 1);
+    log_info(logger, "Cantidad de bloques actuales: %d", cantidad_de_bloques_anterior + bloques_necesarios);
 
     // Seteamos los datos del archivo:
     set_tamanio_archivo_en_archivo_metadata(archivo_metadata, tam_resultante);
@@ -297,5 +293,4 @@ void operacion_truncate_file(t_interfaz *interfaz, void *bloques, t_bitarray *bi
     // Liberamos la memoria utilizada:
     free(pid_proceso);
     free(nuevo_tamanio);
-    free(nombre_archivo);
 }

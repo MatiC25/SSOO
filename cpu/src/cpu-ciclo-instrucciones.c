@@ -154,7 +154,7 @@ void tengoAlgunaInterrupcion(){
 void ejecutar_instruccion(int socket_cliente) {
     t_instruccion *instruccion = recv_instruccion(socket_cliente);
     if (strncmp(instruccion->opcode, "Desalojo de usuario.", 20) == 0){
-        log_warning(logger, "Desalojo de usuario");
+        log_warning(logger, "Desalojado por usuario CPU");
         liberar_pcb();
         return; //En caso de que kenrel pida desalojar y para que no explote.
     }
@@ -171,7 +171,7 @@ void ejecutar_instruccion(int socket_cliente) {
             liberar_pcb();
             liberar_instrucciones(instruccion);
             atomic_store(&interrupt_flag, 0); //Para no acumular un desalojo que no este acorde al proceso
-            return; 
+            return;
         case SET:
             log_nico(logger2,"Instruccion Ejecutada: PID: %d- Ejecutando: %s - %s %s", pcb->pid,instruccion->opcode,instruccion->parametro1,instruccion->parametro2);
             ejecutar_set(instruccion->parametro1,instruccion->parametro2);
@@ -479,7 +479,6 @@ void ejecutar_IO_STDIN_READ(char* interfaz, char* registro_direccion, char* regi
 
     t_paquete* paquete_stdin = crear_paquete(IO_STDIN_READ_INT);
     solicitar_a_kernel_std(interfaz, paquete_stdin);
-    eliminar_paquete(paquete_stdin);
     liberar_mmu();
 }
 
@@ -501,7 +500,6 @@ void ejecutar_IO_STDOUT_WRITE(char* interfaz, char* registro_direccion, char* re
 
     t_paquete* paquete_stdout = crear_paquete(IO_STDOUT_WRITE_INT);
     solicitar_a_kernel_std(interfaz, paquete_stdout);
-    eliminar_paquete(paquete_stdout);
     liberar_mmu();
 }
 
@@ -593,7 +591,7 @@ void ejecutar_IO_FD_WRITE(char* interfaz, char* nombre_archivo, char* registro_d
         t_paquete* paquete = crear_paquete(IO_FS_WRITE_INT);
         agregar_a_paquete_string(paquete, interfaz, strlen(interfaz) + 1);
         agregar_a_paquete_string(paquete, nombre_archivo, strlen(nombre_archivo) + 1);
-        agregar_a_paquete(paquete, &reg_Tamanio, sizeof(int));
+        agregar_a_paquete(paquete, &reg_Archi, sizeof(int));
 
         while (!list_is_empty(mmu->direccionFIsica)) {
             int* direccion_fisica = list_remove(mmu->direccionFIsica, 0);
@@ -609,6 +607,7 @@ void ejecutar_IO_FD_WRITE(char* interfaz, char* nombre_archivo, char* registro_d
         enviar_paquete(paquete, config_cpu->SOCKET_KERNEL);
         eliminar_paquete(paquete);
     }
+
     liberar_mmu();
 }
 
@@ -637,7 +636,7 @@ void ejecutar_IO_FS_READ(char* interfaz, char* nombre_archivo, char* registro_di
     t_paquete* paquete = crear_paquete(IO_FS_READ_INT);
     agregar_a_paquete_string(paquete, interfaz, strlen(interfaz) + 1);
     agregar_a_paquete_string(paquete, nombre_archivo, strlen(nombre_archivo) + 1);
-    agregar_a_paquete(paquete, &reg_Tamanio, sizeof(int));
+    agregar_a_paquete(paquete, &reg_Archi, sizeof(int));
 
     while (!list_is_empty(mmu->direccionFIsica)) {
         int* direccion_fisica = list_remove(mmu->direccionFIsica, 0);
@@ -653,46 +652,90 @@ void ejecutar_IO_FS_READ(char* interfaz, char* nombre_archivo, char* registro_di
     enviar_paquete(paquete, config_cpu->SOCKET_KERNEL);
     eliminar_paquete(paquete);
     }
-    
-    
+
     liberar_mmu();
 }
 
 void liberar_pcb(){
-  if (pcb != NULL) {
+    if (pcb != NULL) {
         if (pcb->registros != NULL) {
-            free(pcb->registros); // Liberar el arreglo dentro de Registros
+            free(pcb->registros);
+            pcb->registros = NULL;  // Previene la doble liberación
         }
-        free(pcb); // Liberar la estructura PCB
+        free(pcb);
+        pcb = NULL;  // Previene la doble liberación
     }
 }
 
-void liberar_mmu() {
-    if (mmu == NULL) {return;}
-    if (!list_is_empty(mmu->num_pagina)) {list_destroy_and_destroy_elements(mmu->num_pagina, free);}
-    else {list_destroy(mmu->num_pagina);}
-    
-    if (!list_is_empty(mmu->direccionFIsica)) {list_destroy_and_destroy_elements(mmu->direccionFIsica, free);}
-    else {list_destroy(mmu->direccionFIsica);}
-    
-    if (!list_is_empty(mmu->ofset)) {list_destroy_and_destroy_elements(mmu->ofset, free);}
-    else {list_destroy(mmu->ofset);}
-    
-    if (!list_is_empty(mmu->tamanio)) {list_destroy_and_destroy_elements(mmu->tamanio, free);}
-    else {list_destroy(mmu->tamanio);}
-    
-    free(mmu);
-}
+// void liberar_mmu() {
+//     if(list_is_empty(mmu->direccionFIsica))
+//         list_destroy(mmu->direccionFIsica);
+//     if(list_is_empty(mmu->tamanio))
+//         list_destroy(mmu->tamanio);
+//     if(!list_is_empty(mmu->ofset))
+//         list_destroy_and_destroy_elements(mmu->ofset, free);
+//     if(!list_is_empty(mmu->num_pagina))
+//         list_destroy_and_destroy_elements(mmu->num_pagina, free);
+
+//     free(mmu);
+// }
 
 
-void liberar_instrucciones(t_instruccion* instruccion){
-    if (instruccion) {
-        free(instruccion->opcode);
-        free(instruccion->parametro1);
-        free(instruccion->parametro2);
-        free(instruccion->parametro3);
-        free(instruccion->parametro4);
-        free(instruccion->parametro5);
+
+void liberar_instrucciones(t_instruccion* instruccion) {
+    
+    if (instruccion == NULL)
+        return;
+    if (instruccion != NULL) {
+        if (instruccion->opcode) {
+            free(instruccion->opcode);
+            instruccion->opcode = NULL;
+        }
+        if (instruccion->parametro1) {
+            free(instruccion->parametro1);
+            instruccion->parametro1 = NULL;
+        }
+        if (instruccion->parametro2) {
+            free(instruccion->parametro2);
+            instruccion->parametro2 = NULL;
+        }
+        if (instruccion->parametro3) {
+            free(instruccion->parametro3);
+            instruccion->parametro3 = NULL;
+        }
+        if (instruccion->parametro4) {
+            free(instruccion->parametro4);
+            instruccion->parametro4 = NULL;
+        }
+        if (instruccion->parametro5) {
+            free(instruccion->parametro5);
+            instruccion->parametro5 = NULL;
+        }
         free(instruccion);
+        instruccion = NULL;
     }
+}
+
+void liberar_elemento(void* elemento) {
+    if (elemento != NULL) {
+        free(elemento);
+         elemento = NULL; // Evitar acceso posterior a memoria liberada
+    }
+}
+
+void liberar_lista(t_list* lista) {
+    if (lista != NULL) {
+        list_destroy_and_destroy_elements(lista, liberar_elemento);
+    }
+}
+void liberar_mmu() {
+    if (mmu == NULL) return;
+
+    liberar_lista(mmu->num_pagina);
+    liberar_lista(mmu->ofset);
+    liberar_lista(mmu->direccionFIsica);
+    liberar_lista(mmu->tamanio);
+
+    free(mmu);
+    mmu = NULL; // Evitar acceso posterior a memoria liberada
 }

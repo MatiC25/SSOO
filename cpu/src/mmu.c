@@ -136,7 +136,7 @@ t_mmu_cpu* traducirDireccion(int direccionLogica, int tamanio) {
                     if (!ptr_dirc_fisica) {
                         log_error(logger, "Error al asignar memoria para ptr_dirc_fisica");
                         liberar_mmu();
-                        free(tab);
+                        //free(tab);
                         return NULL;
                     }
 
@@ -149,13 +149,13 @@ t_mmu_cpu* traducirDireccion(int direccionLogica, int tamanio) {
                     if (!ptr_dirc_fisica) {
                         log_error(logger, "Error al asignar memoria para ptr_dirc_fisica");
                         liberar_mmu();
-                        free(tab);
+                        //free(tab);
                         return NULL;
                     }
 
                     *ptr_dirc_fisica = dirc_fisica;
                     list_add(mmu->direccionFIsica, ptr_dirc_fisica);
-                    free(tab);
+                    //free(tab);
                 } else {
                     log_error(logger, "Algoritmo no es valido en mmu");
                     
@@ -175,7 +175,7 @@ t_mmu_cpu* traducirDireccion(int direccionLogica, int tamanio) {
             *ptr_dirc_fisica = dirc_fisica;
             log_info(logger, "PID %i - TLB HIT - Pagina: %i", pcb->pid, tabla->nropagina);
             log_info(logger, "PID %i - OBTENER MARCO - Pagina: %i - Marco: %i", pcb->pid, tabla->nropagina, tabla->marco);
-            free(tabla);
+            //free(tabla);
             list_add(mmu->direccionFIsica, ptr_dirc_fisica);
         }
     }
@@ -277,7 +277,7 @@ t_tabla_de_paginas_cpu* actualizar_Tlb_por_lru(int numero_pagina){
 if (indice != -1){
    t_tabla_de_paginas_cpu* tabla_a_eliminar = (t_tabla_de_paginas_cpu*)list_remove(tlb,indice);
    log_nico(logger2, "Pagina extraida: %i", tabla_a_eliminar->nropagina);
-    free(tabla_a_eliminar);
+   free(tabla_a_eliminar);
 
     solicitar_tablas_a_memoria(numero_pagina);
     t_tabla_de_paginas_cpu* nueva_tabla = recv_tablas();

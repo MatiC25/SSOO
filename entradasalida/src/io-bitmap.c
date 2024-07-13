@@ -17,7 +17,7 @@ t_bitarray *crear_bitmap(t_interfaz *interfaz, char *modo_de_apertura) {
     }
 
     // Creo el bitmap:
-    t_bitarray *bitarray = bitarray_create_with_mode(bitmap_data, size, LSB_FIRST);
+    t_bitarray *bitarray = bitarray_create_with_mode(bitmap_data, size, MSB_FIRST);
 
     if(strcmp(modo_de_apertura, "wb+") == 0)
         inicializar_bitmap(bitarray);
@@ -50,6 +50,8 @@ int obtener_bloque_libre(t_bitarray *bitmap, t_interfaz *interfaz) {
 // Funciones para settear bloques como ocupados:
 void set_bloque_ocupado(t_bitarray *bitmap, int bloque_inicial) {
     bitarray_set_bit(bitmap, bloque_inicial);
+
+    msync(bitmap, bitarray_get_max_bit(bitmap), MS_SYNC);
 }
 
 // Funcion para averiguar si hay los suficientes bloques libres:
@@ -65,35 +67,34 @@ int contar_bloques_libres(t_bitarray *bitmap, int inicio, int fin) {
     int cantidad_bloques_libres = 0;
 
     for(int i = inicio; i < fin; i++) {
-        if(!bitarray_test_bit(bitmap, i)) {
-            log_info(logger, "Bloque %d libre", i);
+        if(!bitarray_test_bit(bitmap, i)) 
             cantidad_bloques_libres++;
-        }
     }
 
     return cantidad_bloques_libres;
 }
 
 // Funcion para averiguar si hay bloques contiguos libres:
-int hay_bloques_contiguos_libres(t_bitarray *bitmap, int bloque_final, int bloques_necesarios) {
+int no_hay_bloques_contiguos_libres(t_bitarray *bitmap, int bloque_final, int bloques_necesarios) {
+    int limites_de_bloques = bloque_final + 1 + bloques_necesarios;
 
     // Verifico si hay bloques contiguos libres:
-    for(int i = bloque_final + 1; i <= bloques_necesarios; i++) {
-        if(!bitarray_test_bit(bitmap, i))
-            return 0; // Si no hay bloques contiguos libres, retorno 1
+    for(int i = bloque_final + 1; i <= limites_de_bloques; i++) {
+        if(bitarray_test_bit(bitmap, i))
+            return 1; // Si no hay bloques contiguos libres, retorno 1
     }
 
-    return 1; // Si hay bloques contiguos libres, retorno 0
+    return 0; // Si hay bloques contiguos libres, retorno 0
 }
 
 // Funcion para setear bloques como ocupados:
 void set_bloques_como_ocupados(t_bitarray *bitmap, int bloque_final, int bloques_necesarios) {
     int limite_de_bloques = bloque_final + bloques_necesarios;
 
-    for(int i = bloque_final + 1; i <= limite_de_bloques; i++) {
-        log_info(logger, "Seteando bloque %d como ocupado", i);
-        set_bloque_ocupado(bitmap, i);
-    }
+    for(int i = bloque_final + 1; i <= limite_de_bloques; i++) 
+        bitarray_set_bit(bitmap, i);
+
+    msync(bitmap, bitarray_get_max_bit(bitmap), MS_SYNC);
 }
 
 
@@ -101,20 +102,20 @@ void set_bloques_como_ocupados(t_bitarray *bitmap, int bloque_final, int bloques
 void liberar_bloques_asignados(t_bitarray *bitmap, int bloque_inicial, int bloques_necesarios) {
     int limite_de_bloques = bloque_inicial + bloques_necesarios - 1;
 
-    for(int i = bloque_inicial; i <= limite_de_bloques; i++) {
-        log_info(logger, "Liberando bloque %d", i);
+    for(int i = bloque_inicial; i <= limite_de_bloques; i++)
         bitarray_clean_bit(bitmap, i);
-    }
+
+    msync(bitmap, bitarray_get_max_bit(bitmap), MS_SYNC);
 }
 
 // Funcion para setear bloques como ocupados desde un bloque inicial:
 void set_bloques_como_ocupados_desde(t_bitarray *bitmap, int bloque_inicial, int bloques_necesarios) {
     int limite_de_bloques = bloque_inicial + bloques_necesarios - 1;
 
-    for(int i = bloque_inicial; i <= limite_de_bloques; i++) {
-        log_info(logger, "Seteando bloque %d como ocupado", i);
+    for(int i = bloque_inicial; i <= limite_de_bloques; i++)
         bitarray_set_bit(bitmap, i);
-    }
+
+    msync(bitmap, bitarray_get_max_bit(bitmap), MS_SYNC);
 }
 
 // Funcion para cerrar el bitmap:

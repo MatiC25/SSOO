@@ -38,6 +38,8 @@ void ejecutar_JNZ(char* registro, char* valor);
 void ejecutar_IO_GEN_SLEEP(char* interfazAUsar, char* tiempoDeTrabajo);
 void liberar_pcb();
 void liberar_mmu();
+void liberar_elemento(void* elemento);
+void liberar_lista(t_list* lista);
 void liberar_instrucciones(t_instruccion* instruccion);
 
 void ejecutar_MOV_IN(char* registro_Datos, char* registro_Direccion);

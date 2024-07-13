@@ -3,6 +3,7 @@
 
 // Incluye las bibliotecas necesarias externas:
 #include <utils/logger.h>
+#include <utils/cositas.h>
 #include <commons/string.h>
 
 // Incluye las bibliotecas necesarias internas:
@@ -13,6 +14,7 @@
 #include "io-peticiones.h"
 #include "io-protocolo.h"
 #include "io-variables-globales.h"
+
 
 
 #endif // IO_H

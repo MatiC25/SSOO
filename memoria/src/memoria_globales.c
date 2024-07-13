@@ -40,7 +40,6 @@ void cerrar_programa_memoria(int signal) {
 
         //liberamos la memoria que reservamos
         dictionary_destroy_and_destroy_elements(diccionario_de_instrucciones_porPID, liberar_lista_instrucciones);
-        log_error(logger, "ENTRO");
         dictionary_destroy_and_destroy_elements(diccionario_tabla_de_paginas_porPID, liberar_paginas_porPID);
 
         free(espacio_de_usuario);

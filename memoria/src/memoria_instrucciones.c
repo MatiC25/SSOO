@@ -162,7 +162,7 @@ t_list* obtener_lista_instrucciones(int pid) {
     char *pid_en_string = string_itoa(pid);
 
     if(!dictionary_has_key(diccionario_de_instrucciones_porPID, pid_en_string)){
-        log_error(logger, "Esta key no esta en el diccionario pelotudos %i", pid);
+        log_warning(logger, "Desalojado por usuario MEMORIA");
         free(pid_en_string);
         return NULL;        
     }
