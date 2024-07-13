@@ -20,7 +20,7 @@ void iniciar_ciclo_de_ejecucion(int socket_server ,int socket_cliente) {
             close(socket_cliente);
             return; 
         default:
-        log_error(logger, "Operacion desconocida");
+        log_error(logger, "Operacion desconocida dispatch");
        }
     }   
 }
@@ -253,7 +253,7 @@ void ejecutar_instruccion(int socket_cliente) {
             liberar_pcb();
             break;
         default:
-            log_error(logger, "Operacion desconocida");          
+            log_error(logger, "Operacion desconocida instruccion");          
         }
         liberar_instrucciones(instruccion);
 }
@@ -309,7 +309,6 @@ void ejecutar_JNZ(char* registro, char* valor){
 }
 
 void ejecutar_IO_GEN_SLEEP(char* interfazAUsar, char* tiempoDeTrabajo){
-    //mostrar_pcb(pcb);
     int tiempo = atoi(tiempoDeTrabajo);
     t_paquete* paquete_a_kernel = crear_paquete(OPERACION_IO);
     enviar_pcb_a_kernel(paquete_a_kernel);
@@ -412,7 +411,7 @@ void ejecutar_COPY_STRING(char* tam) {
     }else {
         log_error(logger, "No se pudo escribir en memoria");
     }
-    liberar_mmu(mmu);
+    liberar_mmu();
     free(valor);
     tengoAlgunaInterrupcion();
 }
@@ -421,7 +420,6 @@ void ejecutar_WAIT(char* recurso){
     t_paquete* paquete_a_kernel = crear_paquete(WAIT);
     enviar_pcb_a_kernel(paquete_a_kernel);
     enviar_paquete(paquete_a_kernel, config_cpu->SOCKET_KERNEL);
-    //log_warning(logger,"PCB ENVIADA");
     eliminar_paquete(paquete_a_kernel);
 
     t_paquete* paquete = crear_paquete(WAIT);
@@ -434,7 +432,7 @@ void ejecutar_WAIT(char* recurso){
     if (respuesta == 1){
         tengoAlgunaInterrupcion();
     }else{
-        liberar_pcb(pcb);
+        liberar_pcb();
         return;
     }
        
@@ -457,7 +455,7 @@ void ejecutar_SINGAL(char* recurso) {
     if (respuesta == 1) {
         tengoAlgunaInterrupcion();
     } else {
-        liberar_pcb(pcb);
+        liberar_pcb();
         return;
     }
 }
@@ -482,7 +480,7 @@ void ejecutar_IO_STDIN_READ(char* interfaz, char* registro_direccion, char* regi
     t_paquete* paquete_stdin = crear_paquete(IO_STDIN_READ_INT);
     solicitar_a_kernel_std(interfaz, paquete_stdin);
     eliminar_paquete(paquete_stdin);
-    liberar_mmu(mmu);
+    liberar_mmu();
 }
 
 void ejecutar_IO_STDOUT_WRITE(char* interfaz, char* registro_direccion, char* registro_tamanio) {
@@ -504,11 +502,11 @@ void ejecutar_IO_STDOUT_WRITE(char* interfaz, char* registro_direccion, char* re
     t_paquete* paquete_stdout = crear_paquete(IO_STDOUT_WRITE_INT);
     solicitar_a_kernel_std(interfaz, paquete_stdout);
     eliminar_paquete(paquete_stdout);
-    liberar_mmu(mmu);
+    liberar_mmu();
 }
 
 
-void ejecutar_IO_FS_CREATE(char* interfaz, char* nombre_archibo){
+void ejecutar_IO_FS_CREATE(char* interfaz, char* nombre_archivo){
     t_paquete* paquete_IO = crear_paquete(OPERACION_IO);
     enviar_pcb_a_kernel(paquete_IO);
     enviar_paquete(paquete_IO, config_cpu->SOCKET_KERNEL);
@@ -519,7 +517,7 @@ void ejecutar_IO_FS_CREATE(char* interfaz, char* nombre_archibo){
     if (respuesta == 1){
     t_paquete* paquet_fs_create = crear_paquete(IO_FS_CREATE_INT);
     agregar_a_paquete_string(paquet_fs_create, interfaz, strlen(interfaz) + 1);
-    agregar_a_paquete_string(paquet_fs_create, nombre_archibo, strlen(nombre_archibo) + 1);
+    agregar_a_paquete_string(paquet_fs_create, nombre_archivo, strlen(nombre_archivo) + 1);
     enviar_paquete(paquet_fs_create, config_cpu->SOCKET_KERNEL);
     eliminar_paquete(paquet_fs_create); 
     }
@@ -527,7 +525,7 @@ void ejecutar_IO_FS_CREATE(char* interfaz, char* nombre_archibo){
     
 }
 
-void ejecutar_IO_FS_DELETE(char* interfaz, char* nombre_archibo){
+void ejecutar_IO_FS_DELETE(char* interfaz, char* nombre_archivo){
     t_paquete* paquete_IO = crear_paquete(OPERACION_IO);
     enviar_pcb_a_kernel(paquete_IO);
     enviar_paquete(paquete_IO, config_cpu->SOCKET_KERNEL);
@@ -539,7 +537,7 @@ void ejecutar_IO_FS_DELETE(char* interfaz, char* nombre_archibo){
     if(respuesta == 1) {
         t_paquete* paquete_delete = crear_paquete(IO_FS_DELETE_INT);
         agregar_a_paquete_string(paquete_delete, interfaz, strlen(interfaz ) + 1);
-        agregar_a_paquete_string(paquete_delete, nombre_archibo, strlen(nombre_archibo ) + 1);  
+        agregar_a_paquete_string(paquete_delete, nombre_archivo, strlen(nombre_archivo ) + 1);  
         enviar_paquete(paquete_delete, config_cpu->SOCKET_KERNEL);
         eliminar_paquete(paquete_delete); 
     }
@@ -591,22 +589,15 @@ void ejecutar_IO_FD_WRITE(char* interfaz, char* nombre_archivo, char* registro_d
 
     int respuesta;
     recv(config_cpu->SOCKET_KERNEL, &respuesta, sizeof(int), MSG_WAITALL);
-
-    if (respuesta == 1) {
+    if (respuesta == 1) { 
         t_paquete* paquete = crear_paquete(IO_FS_WRITE_INT);
         agregar_a_paquete_string(paquete, interfaz, strlen(interfaz) + 1);
         agregar_a_paquete_string(paquete, nombre_archivo, strlen(nombre_archivo) + 1);
         agregar_a_paquete(paquete, &reg_Tamanio, sizeof(int));
 
-        log_info(logger, "tamanio direcciones fisicas: %i", list_size(mmu->direccionFIsica));
-        log_info(logger, "tamanio tamanios: %i", list_size(mmu->tamanio));
-
         while (!list_is_empty(mmu->direccionFIsica)) {
             int* direccion_fisica = list_remove(mmu->direccionFIsica, 0);
             int* ptr_tamanio = list_remove(mmu->tamanio, 0);
-
-            log_info(logger, "DIRECCION FISICA: %i", *direccion_fisica);
-            log_info(logger, "TAMANIO: %i", *ptr_tamanio);
 
             agregar_a_paquete(paquete, direccion_fisica, sizeof(int));
             agregar_a_paquete(paquete, ptr_tamanio, sizeof(int));
@@ -618,7 +609,7 @@ void ejecutar_IO_FD_WRITE(char* interfaz, char* nombre_archivo, char* registro_d
         enviar_paquete(paquete, config_cpu->SOCKET_KERNEL);
         eliminar_paquete(paquete);
     }
-    liberar_mmu(mmu);
+    liberar_mmu();
 }
 
 void ejecutar_IO_FS_READ(char* interfaz, char* nombre_archivo, char* registro_direccion, char* registro_tamanio, char* registro_puntero_archivo) {
@@ -640,20 +631,17 @@ void ejecutar_IO_FS_READ(char* interfaz, char* nombre_archivo, char* registro_di
     enviar_paquete(paquete_IO, config_cpu->SOCKET_KERNEL);
     eliminar_paquete(paquete_IO);
 
+    int respuesta;
+    recv(config_cpu->SOCKET_KERNEL, &respuesta, sizeof(int), MSG_WAITALL);
+    if (respuesta == 1){
     t_paquete* paquete = crear_paquete(IO_FS_READ_INT);
     agregar_a_paquete_string(paquete, interfaz, strlen(interfaz) + 1);
     agregar_a_paquete_string(paquete, nombre_archivo, strlen(nombre_archivo) + 1);
     agregar_a_paquete(paquete, &reg_Tamanio, sizeof(int));
 
-    log_info(logger, "tamanio direcciones fisicas: %i", list_size(mmu->direccionFIsica));
-    log_info(logger, "tamanio tamanios: %i", list_size(mmu->tamanio));
-
     while (!list_is_empty(mmu->direccionFIsica)) {
         int* direccion_fisica = list_remove(mmu->direccionFIsica, 0);
         int* ptr_tamanio = list_remove(mmu->tamanio, 0);
-
-        log_info(logger, "DIRECCION FISICA: %i", *direccion_fisica);
-        log_info(logger, "TAMANIO: %i", *ptr_tamanio);
 
         agregar_a_paquete(paquete, direccion_fisica, sizeof(int));
         agregar_a_paquete(paquete, ptr_tamanio, sizeof(int));
@@ -664,15 +652,16 @@ void ejecutar_IO_FS_READ(char* interfaz, char* nombre_archivo, char* registro_di
 
     enviar_paquete(paquete, config_cpu->SOCKET_KERNEL);
     eliminar_paquete(paquete);
-    liberar_mmu(mmu);
+    }
+    
+    
+    liberar_mmu();
 }
 
 void liberar_pcb(){
   if (pcb != NULL) {
         if (pcb->registros != NULL) {
-            if (pcb->registros != NULL) {
-                free(pcb->registros); // Liberar el arreglo dentro de Registros
-            }
+            free(pcb->registros); // Liberar el arreglo dentro de Registros
         }
         free(pcb); // Liberar la estructura PCB
     }
@@ -680,10 +669,10 @@ void liberar_pcb(){
 
 void liberar_mmu() {
     if (mmu == NULL) {return;}
-    if (mmu->num_pagina != NULL) {list_destroy_and_destroy_elements(mmu->num_pagina, free);}
-    if (mmu->direccionFIsica != NULL) {list_destroy_and_destroy_elements(mmu->direccionFIsica, free);}
-    if (mmu->ofset != NULL) {list_destroy_and_destroy_elements(mmu->ofset, free);}
-    if (mmu->tamanio != NULL) {list_destroy_and_destroy_elements(mmu->tamanio, free);}
+    if (!list_is_empty(mmu->num_pagina)) {list_destroy_and_destroy_elements(mmu->num_pagina, free);}
+    if (list_is_empty(mmu->direccionFIsica)) {list_destroy(mmu->direccionFIsica);}
+    if (!list_is_empty(mmu->ofset)) {list_destroy_and_destroy_elements(mmu->ofset, free);}
+    if (list_is_empty(mmu->tamanio)) {list_destroy(mmu->tamanio);}
     free(mmu);
 }
 

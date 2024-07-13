@@ -128,7 +128,6 @@ void* server_interrupt(void* args) {
 
         while (1) {
             int cod_op = recibir_operacion(socket_cliente);
-            //log_warning(logger, "Cod op: %i", cod_op);
             switch (cod_op) {
                 case HANDSHAKE:
                     //log_warning(logger,"Haciendo HANDSHAKE");
@@ -144,7 +143,7 @@ void* server_interrupt(void* args) {
                     free(args);
                     return NULL;
                 default:
-                    log_error(logger, "Operación desconocida");
+                    log_error(logger, "Operación desconocida interrapt");
                     break;
             }
         }

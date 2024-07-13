@@ -576,7 +576,7 @@ void mostrar_pid_prima (t_pcb* pcb) {
 
 
 t_pcb_cpu* rcv_contexto_ejecucion_cpu(int socket_cliente) {
-    proceso = (t_pcb_cpu*)malloc(sizeof(t_pcb_cpu));
+    t_pcb_cpu* proceso = (t_pcb_cpu*)malloc(sizeof(t_pcb_cpu));
     if (proceso == NULL) {
         log_error(logger, "Error al asignar memoria para el proceso");
         return NULL;

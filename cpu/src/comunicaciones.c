@@ -1,6 +1,5 @@
 #include "comunicaciones.h"
 
-
 int recv_pagina(int socket){
     recibir_operacion(socket);
     int size;
@@ -14,8 +13,6 @@ int recv_pagina(int socket){
     free(buffer); // CAMBIADO
     return valor;
 }
-
-
 
 int comunicaciones_con_memoria_lectura(){
     int valor_final = 0;
@@ -195,7 +192,19 @@ int comunicaciones_con_memoria_escritura_copy_string(char* valor){
     free(palbara_reconstruida);
     return verificador;
     
+}
+
+void configurar_senial_cierre_cpu() {
+    struct sigaction sa;
+    sa.sa_handler = limpiar_recursos;
+    sa.sa_flags = 0;
+    sigemptyset(&sa.sa_mask);
+
+    if (sigaction(SIGINT, &sa, NULL) == -1) {
+        perror("Error al configurar la senial de cierre");
+        exit(1);
     }
+}
 
 int comunicaciones_con_memoria_escritura(int valor) {
     int verificador = -1;
@@ -324,18 +333,6 @@ t_pcb_cpu* rcv_contexto_ejecucion_cpu(int socket_cliente) {
 
     free(buffer);
     return proceso;
-}
-
-void configurar_senial_cierre_cpu() {
-    struct sigaction sa;
-    sa.sa_handler = limpiar_recursos;
-    sa.sa_flags = 0;
-    sigemptyset(&sa.sa_mask);
-
-    if (sigaction(SIGINT, &sa, NULL) == -1) {
-        perror("Error al configurar la senial de cierre");
-        exit(1);
-    }
 }
 
 
@@ -472,7 +469,6 @@ void send_escribi_memoria_string(int pid,int direccionFIsica, int tamanio,char* 
     agregar_a_paquete(solicitud_escritura, &direccionFIsica,sizeof(int));
     agregar_a_paquete(solicitud_escritura, &tamanio ,sizeof(int));
     agregar_a_paquete(solicitud_escritura, valor,tamanio);
-    log_warning(logger, "valor: %s|",valor);
     enviar_paquete(solicitud_escritura, config_cpu->SOCKET_MEMORIA);
     eliminar_paquete(solicitud_escritura);
 }
@@ -543,6 +539,3 @@ char* concatenar_lineas(char* cadena) {
     resultado[j] = '\0';
     return resultado;
 }
-
-
-

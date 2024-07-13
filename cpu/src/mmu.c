@@ -3,7 +3,7 @@ int posicion_fifo = 0;
 
 
 t_mmu_cpu* traducirDireccion(int direccionLogica, int tamanio) {
-    mmu = (t_mmu_cpu*) malloc(sizeof(t_mmu_cpu)); //linea 6
+    t_mmu_cpu* mmu = (t_mmu_cpu*) malloc(sizeof(t_mmu_cpu)); //linea 6
     if (!mmu) {
         log_error(logger, "Error al asignar memoria para MMU");
         return NULL;

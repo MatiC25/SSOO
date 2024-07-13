@@ -259,6 +259,8 @@ void operacion_truncate_file(t_interfaz *interfaz, void *bloques, t_bitarray *bi
     int bloques_necesarios = get_bloques_necesarios(interfaz, *nuevo_tamanio);
     int tam_resultante = *nuevo_tamanio  + tamanio_actual;
 
+    log_info(logger, "Cantidad de bloques necesarios: %d", bloques_necesarios);
+
     if(bloques_necesarios > 1) {
         if(!hay_suficientes_bloques_libres(bitmap, interfaz, bloques_necesarios)) {
             log_error(logger, "No hay bloques libres suficientes para truncar el archivo");
@@ -267,6 +269,7 @@ void operacion_truncate_file(t_interfaz *interfaz, void *bloques, t_bitarray *bi
         }
 
         int bloque_final = calcular_bloque_final(interfaz, bloque_inicial, tamanio_actual);
+        log_info(logger, "Archivo: %s", nombre_archivo);
 
         if(!hay_bloques_contiguos_libres(bitmap, bloque_final, bloques_necesarios)) {
             log_info(logger, "PID: %i - Inicio Compactación.", *pid_proceso);
@@ -277,7 +280,7 @@ void operacion_truncate_file(t_interfaz *interfaz, void *bloques, t_bitarray *bi
             log_info(logger, "Hay bloques libres suficientes para truncar el archivo");
             set_bloques_como_ocupados(bitmap, bloque_final, bloques_necesarios);
         }
-    }
+    } 
 
     int cantidad_de_bloques_anterior = calcular_cantidad_bloques_asignados(interfaz, tamanio_actual);
 

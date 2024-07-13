@@ -56,21 +56,21 @@ void cerrar_programa_memoria(int signal) {
 
 void liberar_lista_instrucciones(void* lista) {
     t_list *lista_instrucciones = (t_list*) lista;
-    log_info(logger, "Entrando a liberar_lista_instrucciones");
+    //log_info(logger, "Entrando a liberar_lista_instrucciones");
     list_destroy_and_destroy_elements(lista_instrucciones, liberar_lista_parametros);
 }
 
 void liberar_lista_parametros(void* lista) {
     t_list *lista_parametros = (t_list*) lista;
-    log_info(logger, "Entrando a liberar_lista_parametros");
+    //log_info(logger, "Entrando a liberar_lista_parametros");
     list_destroy_and_destroy_elements(lista_parametros, free);
 }
 
 void free_parametro_array(void* array) {
     char **parametros = (char**) array;
-    log_info(logger, "Entrando a free_parametro_array");
+    //log_info(logger, "Entrando a free_parametro_array");
     for (int i = 0; parametros[i] != NULL; i++) {
-        log_info(logger, "Liberando parámetro: %s", parametros[i]);
+        //log_info(logger, "Liberando parámetro: %s", parametros[i]);
         free(parametros[i]);
     }
     free(parametros);

@@ -44,14 +44,14 @@ void limpiar_recursos(int signal) {
         free(config_cpu->ALGORITMO_TLB);
         free(config_cpu);
     }
+
+    liberar_pcb();
+    liberar_mmu();
     
     if (tlb) {list_destroy_and_destroy_elements(tlb, (void (*)(void*)) free);}
     if (logger) {log_destroy(logger);}
     if (logger2) {log_destroy(logger2);}
-
-    liberar_mmu();
-    liberar_pcb();
-
+    
     exit(0);
     }
 }

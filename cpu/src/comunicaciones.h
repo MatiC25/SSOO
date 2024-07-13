@@ -24,7 +24,6 @@
 
 char* filtrar_nueva_linea(char* cadena);
 int recv_pagina(int socket);
-void configurar_senial_cierre_cpu();
 t_pcb_cpu* rcv_contexto_ejecucion_cpu(int socket_cliente);
 void enviar_pcb_a_kernel(t_paquete* paquete_a_kernel);
 void mostrar_pcb(t_pcb_cpu* pcb);
@@ -35,6 +34,7 @@ void enviar_pcb_a_kernel(t_paquete* paquete_a_kernel);
 void enviar_a_leer_memoria(int pid,int direccionFIsica, int tamanio);
 void send_escribi_memoria(int pid, int direccionFIsica, int tamanio, int valor);
 int recv_escribir_memoria();
+void configurar_senial_cierre_cpu();
 void solicitar_tablas_a_memoria(int numero_pagina);
 t_tabla_de_paginas_cpu* recv_tablas();
 void send_escribi_memoria_string(int pid,int direccionFIsica, int tamanio,char* valor);
