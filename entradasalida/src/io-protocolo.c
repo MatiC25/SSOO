@@ -267,6 +267,9 @@ char *rcv_contenido_a_mostrar(t_interfaz *interfaz, t_list *direcciones_fisicas,
     // Liberamos la memoria usada para las direcciones físicas:
     list_destroy(direcciones_fisicas);
 
+    // Agregamos el caracter de fin de cadena:
+    contenido_a_mostrar[cantidad_bytes] = '\0';
+
     return contenido_a_mostrar;
 }
 

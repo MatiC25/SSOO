@@ -591,7 +591,7 @@ void ejecutar_IO_FD_WRITE(char* interfaz, char* nombre_archivo, char* registro_d
         t_paquete* paquete = crear_paquete(IO_FS_WRITE_INT);
         agregar_a_paquete_string(paquete, interfaz, strlen(interfaz) + 1);
         agregar_a_paquete_string(paquete, nombre_archivo, strlen(nombre_archivo) + 1);
-        agregar_a_paquete(paquete, &reg_Tamanio, sizeof(int));
+        agregar_a_paquete(paquete, &tamanio3, sizeof(int));
 
         while (!list_is_empty(mmu->direccionFIsica)) {
             int* direccion_fisica = list_remove(mmu->direccionFIsica, 0);
@@ -635,7 +635,7 @@ void ejecutar_IO_FS_READ(char* interfaz, char* nombre_archivo, char* registro_di
     t_paquete* paquete = crear_paquete(IO_FS_READ_INT);
     agregar_a_paquete_string(paquete, interfaz, strlen(interfaz) + 1);
     agregar_a_paquete_string(paquete, nombre_archivo, strlen(nombre_archivo) + 1);
-    agregar_a_paquete(paquete, &reg_Tamanio, sizeof(int));
+    agregar_a_paquete(paquete, &tamanio3, sizeof(int));
 
     while (!list_is_empty(mmu->direccionFIsica)) {
         int* direccion_fisica = list_remove(mmu->direccionFIsica, 0);
