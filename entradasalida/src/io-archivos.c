@@ -68,8 +68,9 @@ void escribir_contenido_en_bloques(void *bloques, t_queue *buffers) {
     
     // Iteramos sobre los buffers:
     while(!queue_is_empty(buffers)) {
+        
         // Obtenemos el buffer y la cantidad de bytes a escribir:
-        unsigned char *buffer = queue_pop(buffers);
+        char *buffer = queue_pop(buffers);
         int *bytes_a_escribir = queue_pop(buffers);
 
         // Escribimos el contenido en los bloques:

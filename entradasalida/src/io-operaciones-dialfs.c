@@ -98,6 +98,7 @@ void operacion_write_file(t_interfaz *interfaz, void *bloques, t_list *argumento
     // Escribimos el contenido en el archivo:
     memcpy(bloques + bloque_inicial * get_block_size(interfaz) + *offset, contenido, cantidad_de_bytes);
     msync(bloques, get_block_size(interfaz) * get_block_count(interfaz) + *offset, MS_SYNC);
+    contenido[cantidad_de_bytes] = '\0';
 
     // Logeamos la operación:
     log_info(logger, "Se escribio en el archivo %s", nombre_archivo);
@@ -158,10 +159,11 @@ void operacion_read_file(t_interfaz *interfaz, void *bloques, t_list *argumentos
     // Obtenemos los datos necesarios:
     int bloque_inicial = get_bloque_inicial(archivo_metadata);
     int bytes_a_escribir = get_total_de_bytes(direcciones_fisicas);
-    char *contenido = malloc(bytes_a_escribir);
+    char *contenido = malloc(bytes_a_escribir + 1);
 
     // Leemos el contenido del archivo:
     memcpy(contenido, bloques + bloque_inicial * get_block_size(interfaz) + *offset, bytes_a_escribir);
+    contenido[bytes_a_escribir] = '\0';
 
     // Enviamos los bytes leidos a memoria:
     send_bytes_a_leer(interfaz, *pid_proceso, direcciones_fisicas, contenido, bytes_a_escribir);

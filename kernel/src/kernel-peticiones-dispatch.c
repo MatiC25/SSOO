@@ -407,6 +407,7 @@ void peticion_IO() {
         // Logueamos el error:
         log_error(logger, "La interfaz %s no acepta la operación %i o no está conectada", nombre_interfaz, *operacion);
         puede_ejecutar_otro_proceso();
+
         // Finalizamos el proceso por invalidación:
         finalizar_por_invalidacion(pcb, "INVALID_INTERFACE");
 
@@ -437,8 +438,8 @@ void peticion_IO() {
     pthread_mutex_lock(&interface->mutex_blocked);
     queue_push(interface->process_blocked, pcb);
     queue_push(interface->args_process, args);
-    pthread_mutex_unlock(&interface->mutex_blocked);
     sem_post(&interface->size_blocked);
+    pthread_mutex_unlock(&interface->mutex_blocked);
 
     puede_ejecutar_otro_proceso();
     // Liberamos memoria de los elementos que ya no se necesitan:

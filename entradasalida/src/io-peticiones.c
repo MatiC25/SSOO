@@ -117,6 +117,7 @@ void ejecutar_operacion_stdout(t_interfaz *interfaz) {
         int *pid_proceso = list_remove(argumentos, 0);
         int *tipo_operacion = list_remove(argumentos, 0);
         t_list *direcciones = list_remove(argumentos, 0);
+        int cantidad_de_bytes = get_total_de_bytes(direcciones);
         char *operacion = get_nombre_operacion(*tipo_operacion);
         
         // Logeamos la operación:
@@ -124,6 +125,7 @@ void ejecutar_operacion_stdout(t_interfaz *interfaz) {
 
         // Solicitamos los bytes a memoria:
         char *contenido_a_mostrar = rcv_contenido_a_mostrar(interfaz, direcciones, *pid_proceso);
+        contenido_a_mostrar[cantidad_de_bytes] = '\0';
 
         // Mostramos el contenido:
         log_info(logger, "PID: %i - Contenido leido: %s", *pid_proceso, contenido_a_mostrar);
@@ -138,8 +140,6 @@ void ejecutar_operacion_stdout(t_interfaz *interfaz) {
 
         // Liberamos la lista de argumentos:
         list_destroy(argumentos);
-
-        // log_fede(logger2, "Se ejecuto una operacion stdout");
     }
 }
 
