@@ -176,7 +176,8 @@ void send_bytes_a_leer(t_interfaz *interfaz, int pid, t_list *direcciones, void 
         }
 
         // Creamos el buffer a enviar:
-        void *buffer = malloc(tamanio);
+        char *buffer = malloc(tamanio + 1);
+        buffer[tamanio] = '\0';
         memcpy(buffer, input + bytes_mandados, tamanio);
 
         // Logueamos el buffer:
