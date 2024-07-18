@@ -97,7 +97,7 @@ void operacion_write_file(t_interfaz *interfaz, void *bloques, t_list *argumento
 
     // Escribimos el contenido en el archivo:
     memcpy(bloques + bloque_inicial * get_block_size(interfaz) + *offset, contenido, cantidad_de_bytes);
-    msync(bloques, get_block_size(interfaz) * get_block_count(interfaz) + *offset, MS_SYNC);
+    msync(bloques, get_block_size(interfaz) * get_block_count(interfaz), MS_SYNC);
     contenido[cantidad_de_bytes] = '\0';
 
     // Logeamos la operación:

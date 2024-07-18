@@ -125,6 +125,7 @@ void operar_con_registros(void* registro_destino, void* registro_origen, char* r
         }else if (strcmp(operacion, "-") == 0){
             *(uint32_t*)registro_destino = *(uint32_t*)registro_destino - *(uint32_t*) registro_origen;
         }else if(strcmp(operacion, "set") == 0){
+            log_info(logger, "Entre a set!");
             *(uint32_t*)registro_destino = (uint32_t)valor;
         }else{
             log_error(logger, "los registros no son de 32 bits");
@@ -591,7 +592,7 @@ void ejecutar_IO_FD_WRITE(char* interfaz, char* nombre_archivo, char* registro_d
         t_paquete* paquete = crear_paquete(IO_FS_WRITE_INT);
         agregar_a_paquete_string(paquete, interfaz, strlen(interfaz) + 1);
         agregar_a_paquete_string(paquete, nombre_archivo, strlen(nombre_archivo) + 1);
-        agregar_a_paquete(paquete, &tamanio3, sizeof(int));
+        agregar_a_paquete(paquete, &reg_Archi, sizeof(int));
 
         while (!list_is_empty(mmu->direccionFIsica)) {
             int* direccion_fisica = list_remove(mmu->direccionFIsica, 0);
@@ -635,7 +636,7 @@ void ejecutar_IO_FS_READ(char* interfaz, char* nombre_archivo, char* registro_di
     t_paquete* paquete = crear_paquete(IO_FS_READ_INT);
     agregar_a_paquete_string(paquete, interfaz, strlen(interfaz) + 1);
     agregar_a_paquete_string(paquete, nombre_archivo, strlen(nombre_archivo) + 1);
-    agregar_a_paquete(paquete, &tamanio3, sizeof(int));
+    agregar_a_paquete(paquete, &reg_Archi, sizeof(int));
 
     while (!list_is_empty(mmu->direccionFIsica)) {
         int* direccion_fisica = list_remove(mmu->direccionFIsica, 0);
