@@ -105,6 +105,8 @@ t_mmu_cpu* traducirDireccion(int direccionLogica, int tamanio) {
             if (list_size(tlb) < config_cpu->CANTIDAD_ENTRADAS_TLB || config_cpu->CANTIDAD_ENTRADAS_TLB == 0) {
                 solicitar_tablas_a_memoria(pagina_a_buscar);
                 t_tabla_de_paginas_cpu* tab = recv_tablas();
+                log_error(logger2, "PiD: %i <3", pcb->pid);
+                log_error(logger2, "marco: %i <3", tab->marco);
                 tab->pid = pcb->pid;
                 tab->contador = 0;
                 tab->nropagina = pagina_a_buscar;
@@ -203,7 +205,7 @@ t_tabla_de_paginas_cpu* buscarEnTLB(int num_pagina){
     for (int i = 0; i < list_size(tlb); i++){
         t_tabla_de_paginas_cpu* tabla_a_buscar = (t_tabla_de_paginas_cpu*)list_get(tlb,i); // recorremos la TLB
         //log_warning(logger, "Nro de pagina: %i", tabla_a_buscar->nropagina);
-        if (tabla_a_buscar->nropagina == num_pagina){ //caundo hallamos la pagina requerida, returneamos
+        if (tabla_a_buscar->nropagina == num_pagina && tabla_a_buscar->pid == pcb->pid ){ //caundo hallamos la pagina requerida, returneamos
             if (strcmp(config_cpu->ALGORITMO_TLB, "LRU") == 0){
                 t_tabla_de_paginas_cpu* tabla = (t_tabla_de_paginas_cpu*)list_remove(tlb,i);
                 tabla->contador = 0;
@@ -281,7 +283,7 @@ if (indice != -1){
 
     solicitar_tablas_a_memoria(numero_pagina);
     t_tabla_de_paginas_cpu* nueva_tabla = recv_tablas();
-    //log_nico(logger2, "marco: %i <3", nueva_tabla->marco);
+    log_error(logger2, "marco: %i <3", nueva_tabla->marco);
     if (nueva_tabla != NULL){
         nueva_tabla->contador = 0;
         nueva_tabla->nropagina = numero_pagina;
