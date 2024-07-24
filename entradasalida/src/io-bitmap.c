@@ -17,7 +17,7 @@ t_bitarray *crear_bitmap(t_interfaz *interfaz, char *modo_de_apertura) {
     }
 
     // Creo el bitmap:
-    t_bitarray *bitarray = bitarray_create_with_mode(bitmap_data, size, MSB_FIRST);
+    t_bitarray *bitarray = bitarray_create_with_mode(bitmap_data, size, LSB_FIRST);
 
     if(strcmp(modo_de_apertura, "wb+") == 0)
         inicializar_bitmap(bitarray);

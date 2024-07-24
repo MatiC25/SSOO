@@ -27,8 +27,6 @@ void iniciar_ciclo_de_ejecucion(int socket_server ,int socket_cliente) {
 
 void ejecutar_ciclo_instrucciones() {
     pcb = rcv_contexto_ejecucion_cpu(config_cpu->SOCKET_KERNEL);
-            log_warning(logger, "pcb que llego de kernel");
-    mostrar_pcb(pcb);
     seguir_ciclo();
 }   
 
@@ -42,7 +40,7 @@ void fecth(int socket_server) {
     int PID = pcb->pid;
     program_counter = pcb->registros->PC++;
     solicitar_instruccion(socket_server,PID, program_counter);
-    log_warning(logger,"Fetch Instruccion: PID: %d - FETCH -Programn Counter: %d",PID,program_counter);  
+    log_nico(logger2,"Fetch Instruccion: PID: %d - FETCH -Programn Counter: %d",PID,program_counter);  
 }
 
 void* obtener_registro (char *registro) {
@@ -77,7 +75,7 @@ int encontrar_int(void* registro, int tamanio){
      //log_info(logger, "CONVIRTIENDO DE VOID* A INT");
     
     if (registro == NULL) {
-        log_warning(logger, "REGISTRO EN NULL");
+        log_nico(logger2, "REGISTRO EN NULL");
         return -1;
     }
     
@@ -141,15 +139,14 @@ void operar_con_registros(void* registro_destino, void* registro_origen, char* r
 void tengoAlgunaInterrupcion(){
     if (atomic_load(&interrupt_flag) == 1){
     t_paquete* paquete_a_kernel = crear_paquete(FIN_QUANTUM);
-         log_info(logger, "DESALAJANDO");
+        log_info(logger, "DESALAJANDO");
         atomic_store(&interrupt_flag, 0);  // Reset the flag here
         enviar_pcb_a_kernel(paquete_a_kernel);
         enviar_paquete(paquete_a_kernel, config_cpu->SOCKET_KERNEL);
         eliminar_paquete(paquete_a_kernel);
         liberar_pcb();
     return;
-    }else{
-        //log_warning(logger, "PCB SEGUIR CICLO");
+    }else{;
         seguir_ciclo();
     }  
 }
@@ -157,7 +154,7 @@ void tengoAlgunaInterrupcion(){
 void ejecutar_instruccion(int socket_cliente) {
     t_instruccion *instruccion = recv_instruccion(socket_cliente);
     if (strncmp(instruccion->opcode, "Desalojo de usuario.", 20) == 0){
-        log_warning(logger, "Desalojo de usuario");
+        log_nico(logger2, "Desalojo de usuario");
         liberar_pcb();
         return; //En caso de que kenrel pida desalojar y para que no explote.
     }
@@ -166,7 +163,7 @@ void ejecutar_instruccion(int socket_cliente) {
 
         switch (tipo_instruccion){
         case EXIT:
-            log_warning(logger,"Instruccion Ejecutada: PID: %i Ejecutando: %s", pcb->pid,instruccion->opcode);
+            log_nico(logger2,"Instruccion Ejecutada: PID: %i Ejecutando: %s", pcb->pid,instruccion->opcode);
             t_paquete* paquete_a_kernel = crear_paquete(EXIT);
             enviar_pcb_a_kernel(paquete_a_kernel);
             enviar_paquete(paquete_a_kernel, config_cpu->SOCKET_KERNEL);
@@ -176,82 +173,82 @@ void ejecutar_instruccion(int socket_cliente) {
             atomic_store(&interrupt_flag, 0); //Para no acumular un desalojo que no este acorde al proceso
             return; 
         case SET:
-            log_warning(logger,"Instruccion Ejecutada: PID: %d- Ejecutando: %s - %s %s", pcb->pid,instruccion->opcode,instruccion->parametro1,instruccion->parametro2);
+            log_nico(logger2,"Instruccion Ejecutada: PID: %d- Ejecutando: %s - %s %s", pcb->pid,instruccion->opcode,instruccion->parametro1,instruccion->parametro2);
             ejecutar_set(instruccion->parametro1,instruccion->parametro2);
             break;
         case SUM:
-            log_warning(logger,"Instruccion Ejecutada: PID: %d- Ejecutando: %s - %s %s", pcb->pid,instruccion->opcode,instruccion->parametro1,instruccion->parametro2);
+            log_nico(logger2,"Instruccion Ejecutada: PID: %d- Ejecutando: %s - %s %s", pcb->pid,instruccion->opcode,instruccion->parametro1,instruccion->parametro2);
             ejecutar_sum(instruccion->parametro1,instruccion->parametro2);
             break;
         case SUB:
-            log_warning(logger,"Instruccion Ejecutada: PID: %d- Ejecutando: %s - %s %s", pcb->pid,instruccion->opcode,instruccion->parametro1,instruccion->parametro2);
+            log_nico(logger2,"Instruccion Ejecutada: PID: %d- Ejecutando: %s - %s %s", pcb->pid,instruccion->opcode,instruccion->parametro1,instruccion->parametro2);
             ejecutar_sub(instruccion->parametro1,instruccion->parametro2);
             break;           
         case JNZ:
-            log_warning(logger,"Instruccion Ejecutada: PID: %d- Ejecutando: %s - %s %s", pcb->pid,instruccion->opcode,instruccion->parametro1,instruccion->parametro2);
+            log_nico(logger2,"Instruccion Ejecutada: PID: %d- Ejecutando: %s - %s %s", pcb->pid,instruccion->opcode,instruccion->parametro1,instruccion->parametro2);
             ejecutar_JNZ(instruccion->parametro1,instruccion->parametro2);
             break;
         case IO_GEN_SLEEP:
-            log_warning(logger,"Instruccion Ejecutada: PID: %d- Ejecutando: %s - %s %s", pcb->pid,instruccion->opcode,instruccion->parametro1,instruccion->parametro2);
+            log_nico(logger2,"Instruccion Ejecutada: PID: %d- Ejecutando: %s - %s %s", pcb->pid,instruccion->opcode,instruccion->parametro1,instruccion->parametro2);
             ejecutar_IO_GEN_SLEEP(instruccion->parametro1,instruccion->parametro2);
             liberar_pcb();
             break;
         case MOV_IN:
-            log_warning(logger,"Instruccion Ejecutada: PID: %d- Ejecutando: %s - %s %s", pcb->pid,instruccion->opcode,instruccion->parametro1,instruccion->parametro2);
+            log_nico(logger2,"Instruccion Ejecutada: PID: %d- Ejecutando: %s - %s %s", pcb->pid,instruccion->opcode,instruccion->parametro1,instruccion->parametro2);
             ejecutar_MOV_IN(instruccion->parametro1, instruccion->parametro2);
             break;
         case MOV_OUT:
-            log_warning(logger,"Instruccion Ejecutada: PID: %d- Ejecutando: %s - %s %s", pcb->pid,instruccion->opcode,instruccion->parametro1,instruccion->parametro2);
+            log_nico(logger2,"Instruccion Ejecutada: PID: %d- Ejecutando: %s - %s %s", pcb->pid,instruccion->opcode,instruccion->parametro1,instruccion->parametro2);
             ejecutar_MOV_OUT(instruccion->parametro1, instruccion->parametro2);
             break;
         case RESIZE:
-            log_warning(logger,"Instruccion Ejecutada: PID: %d- Ejecutando: %s - %s ", pcb->pid,instruccion->opcode,instruccion->parametro1);
+            log_nico(logger2,"Instruccion Ejecutada: PID: %d- Ejecutando: %s - %s ", pcb->pid,instruccion->opcode,instruccion->parametro1);
             ejecutar_RESIZE(instruccion->parametro1);
             break;
         case COPY_STRING:
-            log_warning(logger,"Instruccion Ejecutada: PID: %d- Ejecutando: %s - %s ", pcb->pid,instruccion->opcode,instruccion->parametro1);
+            log_nico(logger2,"Instruccion Ejecutada: PID: %d- Ejecutando: %s - %s ", pcb->pid,instruccion->opcode,instruccion->parametro1);
             ejecutar_COPY_STRING(instruccion->parametro1);
             break;
         case WAIT:
-            log_warning(logger,"Instruccion Ejecutada: PID: %d- Ejecutando: %s - %s", pcb->pid,instruccion->opcode,instruccion->parametro1);
+            log_nico(logger2,"Instruccion Ejecutada: PID: %d- Ejecutando: %s - %s", pcb->pid,instruccion->opcode,instruccion->parametro1);
             ejecutar_WAIT(instruccion->parametro1);
             break;
         case SIGNAL:
-            log_warning(logger,"Instruccion Ejecutada: PID: %d- Ejecutando: %s - %s", pcb->pid,instruccion->opcode,instruccion->parametro1);
+            log_nico(logger2,"Instruccion Ejecutada: PID: %d- Ejecutando: %s - %s", pcb->pid,instruccion->opcode,instruccion->parametro1);
             ejecutar_SINGAL(instruccion->parametro1);
             break;
         case IO_STDIN_READ:
-            log_warning(logger,"Instruccion Ejecutada: PID: %d- Ejecutando: %s - %s %s %s", pcb->pid,instruccion->opcode,instruccion->parametro1,instruccion->parametro2, instruccion->parametro3);
+            log_nico(logger2,"Instruccion Ejecutada: PID: %d- Ejecutando: %s - %s %s %s", pcb->pid,instruccion->opcode,instruccion->parametro1,instruccion->parametro2, instruccion->parametro3);
             ejecutar_IO_STDIN_READ(instruccion->parametro1, instruccion->parametro2,instruccion->parametro3);
             liberar_pcb();
             break;
         case IO_STDOUT_WRITE:
-            log_warning(logger,"Instruccion Ejecutada: PID: %d- Ejecutando: %s - %s %s %s", pcb->pid,instruccion->opcode,instruccion->parametro1,instruccion->parametro2, instruccion->parametro3);
+            log_nico(logger2,"Instruccion Ejecutada: PID: %d- Ejecutando: %s - %s %s %s", pcb->pid,instruccion->opcode,instruccion->parametro1,instruccion->parametro2, instruccion->parametro3);
             ejecutar_IO_STDOUT_WRITE(instruccion->parametro1, instruccion->parametro2,instruccion->parametro3);
             liberar_pcb();
             break;
         case IO_FS_CREATE:
-            log_warning(logger,"Instruccion Ejecutada: PID: %d- Ejecutando: %s - %s %s", pcb->pid,instruccion->opcode,instruccion->parametro1,instruccion->parametro2);
+            log_nico(logger2,"Instruccion Ejecutada: PID: %d- Ejecutando: %s - %s %s", pcb->pid,instruccion->opcode,instruccion->parametro1,instruccion->parametro2);
             ejecutar_IO_FS_CREATE(instruccion->parametro1,instruccion->parametro2);
             liberar_pcb();
             break;
         case IO_FS_DELETE:
-            log_warning(logger,"Instruccion Ejecutada: PID: %d- Ejecutando: %s - %s %s", pcb->pid,instruccion->opcode,instruccion->parametro1,instruccion->parametro2);
+            log_nico(logger2,"Instruccion Ejecutada: PID: %d- Ejecutando: %s - %s %s", pcb->pid,instruccion->opcode,instruccion->parametro1,instruccion->parametro2);
             ejecutar_IO_FS_DELETE(instruccion->parametro1,instruccion->parametro2);
             liberar_pcb();
             break;
         case IO_FS_TRUNCATE:
-            log_warning(logger,"Instruccion Ejecutada: PID: %d- Ejecutando: %s - %s %s %s", pcb->pid,instruccion->opcode,instruccion->parametro1,instruccion->parametro2, instruccion->parametro3);
+            log_nico(logger2,"Instruccion Ejecutada: PID: %d- Ejecutando: %s - %s %s %s", pcb->pid,instruccion->opcode,instruccion->parametro1,instruccion->parametro2, instruccion->parametro3);
             ejecutar_IO_FS_TRUNCATE(instruccion->parametro1, instruccion->parametro2,instruccion->parametro3);
             liberar_pcb();
             break;
         case IO_FS_WRITE:
-            log_warning(logger,"Instruccion Ejecutada: PID: %d- Ejecutando: %s - %s %s %s %s %s", pcb->pid,instruccion->opcode,instruccion->parametro1,instruccion->parametro2,instruccion->parametro3,instruccion->parametro4,instruccion->parametro5);
+            log_nico(logger2,"Instruccion Ejecutada: PID: %d- Ejecutando: %s - %s %s %s %s %s", pcb->pid,instruccion->opcode,instruccion->parametro1,instruccion->parametro2,instruccion->parametro3,instruccion->parametro4,instruccion->parametro5);
             ejecutar_IO_FD_WRITE(instruccion->parametro1,instruccion->parametro2,instruccion->parametro3,instruccion->parametro4,instruccion->parametro5);
             liberar_pcb();
             break;       
          case IO_FS_READ:
-            log_warning(logger,"Instruccion Ejecutada: PID: %d- Ejecutando: %s - %s %s %s %s %s", pcb->pid,instruccion->opcode,instruccion->parametro1,instruccion->parametro2,instruccion->parametro3,instruccion->parametro4,instruccion->parametro5);
+            log_nico(logger2,"Instruccion Ejecutada: PID: %d- Ejecutando: %s - %s %s %s %s %s", pcb->pid,instruccion->opcode,instruccion->parametro1,instruccion->parametro2,instruccion->parametro3,instruccion->parametro4,instruccion->parametro5);
             ejecutar_IO_FS_READ(instruccion->parametro1,instruccion->parametro2,instruccion->parametro3,instruccion->parametro4,instruccion->parametro5);
             liberar_pcb();
             break;
@@ -262,8 +259,7 @@ void ejecutar_instruccion(int socket_cliente) {
 }
 
 void ejecutar_set (char* registro, char* valor){
-        log_warning(logger, "pcb al iniciar");
-    mostrar_pcb(pcb);
+
     void* reg = obtener_registro(registro);
    
     if(reg != NULL){
@@ -271,15 +267,13 @@ void ejecutar_set (char* registro, char* valor){
     }else{
         log_error(logger,"Error al obtener el SET");
     }
-        log_warning(logger, "pcb al terminar");
-    mostrar_pcb(pcb);
+
     tengoAlgunaInterrupcion();
 
 }
 
 void ejecutar_sum (char* registro_desitino_char ,char* registro_origen_char) {
-            log_warning(logger, "pcb al iniciar");
-    mostrar_pcb(pcb);
+
     void* registro_origen = obtener_registro(registro_origen_char);
     void* registro_destino = obtener_registro(registro_desitino_char);
 
@@ -289,15 +283,13 @@ void ejecutar_sum (char* registro_desitino_char ,char* registro_origen_char) {
     }else{
         log_error(logger,"Error al obtener el SUM");
     } 
-        log_warning(logger, "pcb al terminar");
-    mostrar_pcb(pcb);
+
     tengoAlgunaInterrupcion();  
 }
 
 
 void ejecutar_sub (char* registro_desitino_char, char* registro_origen_char){
-            log_warning(logger, "pcb al iniciar");
-    mostrar_pcb(pcb);
+
     void* registro_origen = obtener_registro(registro_origen_char);
     void* registro_destino = obtener_registro(registro_desitino_char);
 
@@ -307,28 +299,24 @@ void ejecutar_sub (char* registro_desitino_char, char* registro_origen_char){
     }else{
         log_error(logger,"Error al obtener el SUB");
     }
-        log_warning(logger, "pcb al terminar");
-    mostrar_pcb(pcb);
+
     tengoAlgunaInterrupcion();
 }
 
 void ejecutar_JNZ(char* registro, char* valor){
-            log_warning(logger, "pcb al iniciar");
-    mostrar_pcb(pcb);
+
     void* reg = obtener_registro(registro);
     uint32_t regg = *(uint32_t*)reg;
     if (regg == 0){
         pcb->registros->PC += atoi(valor);
         tengoAlgunaInterrupcion();
     }
-        log_warning(logger, "pcb al terminar");
-    mostrar_pcb(pcb);
+
     tengoAlgunaInterrupcion();
 }
 
 void ejecutar_IO_GEN_SLEEP(char* interfazAUsar, char* tiempoDeTrabajo){
-            log_warning(logger, "pcb al iniciar");
-    mostrar_pcb(pcb);
+
     int tiempo = atoi(tiempoDeTrabajo);
     t_paquete* paquete_a_kernel = crear_paquete(OPERACION_IO);
     enviar_pcb_a_kernel(paquete_a_kernel);
@@ -338,8 +326,7 @@ void ejecutar_IO_GEN_SLEEP(char* interfazAUsar, char* tiempoDeTrabajo){
     int respuesta;
 
     recv(config_cpu->SOCKET_KERNEL,&respuesta , sizeof(int), MSG_WAITALL);
-        log_warning(logger, "pcb al terminar");
-    mostrar_pcb(pcb);
+
     if(respuesta == 1){
         t_paquete* paquete = crear_paquete(IO_GEN_SLEEP_INT);
         //log_warning(logger, "OP: %i", IO_GEN_SLEEP_INT);
@@ -353,8 +340,7 @@ void ejecutar_IO_GEN_SLEEP(char* interfazAUsar, char* tiempoDeTrabajo){
 
 
 void ejecutar_MOV_IN(char* registro_Datos ,char* registro_Direccion){
-            log_warning(logger, "pcb al iniciar");
-    mostrar_pcb(pcb);
+
     void* reg_Direccion = obtener_registro(registro_Direccion);
     void* reg_Datos   = obtener_registro(registro_Datos);
 
@@ -371,14 +357,12 @@ void ejecutar_MOV_IN(char* registro_Datos ,char* registro_Direccion){
 
     operar_con_registros(reg_Datos,NULL,registro_Datos,"set",valor);
     liberar_mmu();
-        log_warning(logger, "pcb al terminar");
-    mostrar_pcb(pcb);
+
     tengoAlgunaInterrupcion();
 }
 
 void ejecutar_MOV_OUT(char* Registro_Direccion, char* Registro_Datos) {
-            log_warning(logger, "pcb al iniciar");
-    mostrar_pcb(pcb);
+
     void* reg_Direc = obtener_registro(Registro_Direccion);
     void* reg_Datos = obtener_registro(Registro_Datos);
 
@@ -397,8 +381,7 @@ void ejecutar_MOV_OUT(char* Registro_Direccion, char* Registro_Datos) {
     }
 
     liberar_mmu();
-        log_warning(logger, "pcb al terminar");
-    mostrar_pcb(pcb);
+
     tengoAlgunaInterrupcion();
 }
 
@@ -409,8 +392,8 @@ void ejecutar_RESIZE(char* tam){
     int valor = recv_agrandar_memoria();
     if(valor != -1){
         log_info(logger,"Se pudo agrandar correctamente");
-            log_warning(logger, "pcb al terminar");
-    mostrar_pcb(pcb);
+
+
         tengoAlgunaInterrupcion();
     }else{
         log_error(logger,"NO se pudo agrandar correctamente !!");
@@ -424,8 +407,7 @@ void ejecutar_RESIZE(char* tam){
 
 
 void ejecutar_COPY_STRING(char* tam) {
-            log_warning(logger, "pcb al iniciar");
-    mostrar_pcb(pcb);
+
     int tamanio = atoi(tam);
     void* registroSI = obtener_registro("SI");
     void* registroDI = obtener_registro("DI");
@@ -447,14 +429,12 @@ void ejecutar_COPY_STRING(char* tam) {
     }
     liberar_mmu();
     free(valor);
-    log_warning(logger, "pcb al terminar");
-    mostrar_pcb(pcb);
+
     tengoAlgunaInterrupcion();
 }
 
 void ejecutar_WAIT(char* recurso){
-            log_warning(logger, "pcb al iniciar");
-    mostrar_pcb(pcb);
+
     t_paquete* paquete_a_kernel = crear_paquete(WAIT);
     enviar_pcb_a_kernel(paquete_a_kernel);
     enviar_paquete(paquete_a_kernel, config_cpu->SOCKET_KERNEL);
@@ -472,14 +452,12 @@ void ejecutar_WAIT(char* recurso){
     }else{
         liberar_pcb();
         return;
-    }  
-    log_warning(logger, "pcb al terminar");
-    mostrar_pcb(pcb);
+    } 
+
 }
 
 void ejecutar_SINGAL(char* recurso) {
-            log_warning(logger, "pcb al iniciar");
-    mostrar_pcb(pcb);
+
     t_paquete* paquete_a_kernel = crear_paquete(SIGNAL);
     enviar_pcb_a_kernel(paquete_a_kernel);
     enviar_paquete(paquete_a_kernel, config_cpu->SOCKET_KERNEL);
@@ -493,8 +471,8 @@ void ejecutar_SINGAL(char* recurso) {
     int respuesta = -1;
     recv(config_cpu->SOCKET_KERNEL, &respuesta, sizeof(int), MSG_WAITALL);
     if (respuesta == 1) {
-            log_warning(logger, "pcb al terminar");
-    mostrar_pcb(pcb);
+
+
         tengoAlgunaInterrupcion();
     } else {
         liberar_pcb();
@@ -504,8 +482,8 @@ void ejecutar_SINGAL(char* recurso) {
 
 
 void ejecutar_IO_STDIN_READ(char* interfaz, char* registro_direccion, char* registro_tamanio) {
-                log_warning(logger, "pcb al iniciar");
-    mostrar_pcb(pcb);
+
+
     void* registroDireccion = obtener_registro(registro_direccion);
     void* registroTamanio = obtener_registro(registro_tamanio);
 
@@ -524,13 +502,12 @@ void ejecutar_IO_STDIN_READ(char* interfaz, char* registro_direccion, char* regi
     t_paquete* paquete_stdin = crear_paquete(IO_STDIN_READ_INT);
     solicitar_a_kernel_std(interfaz, paquete_stdin);
     liberar_mmu();
-        log_warning(logger, "pcb al terminar");
-    mostrar_pcb(pcb);
+
 }
 
 void ejecutar_IO_STDOUT_WRITE(char* interfaz, char* registro_direccion, char* registro_tamanio) {
-                log_warning(logger, "pcb al iniciar");
-    mostrar_pcb(pcb);
+
+
     void* registroDireccion = obtener_registro(registro_direccion);
     void* registroTamanio = obtener_registro(registro_tamanio);
 
@@ -549,8 +526,8 @@ void ejecutar_IO_STDOUT_WRITE(char* interfaz, char* registro_direccion, char* re
     t_paquete* paquete_stdout = crear_paquete(IO_STDOUT_WRITE_INT);
     solicitar_a_kernel_std(interfaz, paquete_stdout);
     liberar_mmu();
-            log_warning(logger, "pcb al terminar");
-    mostrar_pcb(pcb);
+
+
 }
 
 
@@ -706,14 +683,6 @@ void ejecutar_IO_FS_READ(char* interfaz, char* nombre_archivo, char* registro_di
     liberar_mmu();
 }
 
-// void liberar_pcb(){
-//   if (pcb != NULL) {
-//         if (pcb->registros != NULL) {
-//             free(pcb->registros); // Liberar el arreglo dentro de Registros
-//         }
-//         free(pcb); // Liberar la estructura PCB
-//     }
-// }
 
 void liberar_pcb(){
     if (pcb != NULL) {
@@ -725,23 +694,6 @@ void liberar_pcb(){
         pcb = NULL;  // Previene la doble liberación
     }
 }
-
-// void liberar_mmu() {
-//     if (mmu == NULL) {return;}
-//     if (!list_is_empty(mmu->num_pagina)) {list_destroy_and_destroy_elements(mmu->num_pagina, free);}
-//     else {list_destroy(mmu->num_pagina);}
-    
-//     if (!list_is_empty(mmu->direccionFIsica)) {list_destroy_and_destroy_elements(mmu->direccionFIsica, free);}
-//     else {list_destroy(mmu->direccionFIsica);}
-    
-//     if (!list_is_empty(mmu->ofset)) {list_destroy_and_destroy_elements(mmu->ofset, free);}
-//     else {list_destroy(mmu->ofset);}
-    
-//     if (!list_is_empty(mmu->tamanio)) {list_destroy_and_destroy_elements(mmu->tamanio, free);}
-//     else {list_destroy(mmu->tamanio);}
-    
-//     free(mmu);
-// }
 
 void liberar_mmu() {
     if (mmu == NULL) return;
@@ -766,40 +718,6 @@ void liberar_instrucciones(t_instruccion* instruccion){
         free(instruccion);
     }
 }
-
-// void liberar_instrucciones(t_instruccion* instruccion) {
-    
-//     if (instruccion == NULL)
-//         return;
-//     if (instruccion != NULL) {
-//         if (instruccion->opcode) {
-//             free(instruccion->opcode);
-//             instruccion->opcode = NULL;
-//         }
-//         if (instruccion->parametro1) {
-//             free(instruccion->parametro1);
-//             instruccion->parametro1 = NULL;
-//         }
-//         if (instruccion->parametro2) {
-//             free(instruccion->parametro2);
-//             instruccion->parametro2 = NULL;
-//         }
-//         if (instruccion->parametro3) {
-//             free(instruccion->parametro3);
-//             instruccion->parametro3 = NULL;
-//         }
-//         if (instruccion->parametro4) {
-//             free(instruccion->parametro4);
-//             instruccion->parametro4 = NULL;
-//         }
-//         if (instruccion->parametro5) {
-//             free(instruccion->parametro5);
-//             instruccion->parametro5 = NULL;
-//         }
-//         free(instruccion);
-//         instruccion = NULL;
-//     }
-// }
 
 void liberar_elemento(void* elemento) {
     if (elemento != NULL) {

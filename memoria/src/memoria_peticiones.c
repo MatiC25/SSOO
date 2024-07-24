@@ -336,13 +336,13 @@ void acceso_lectura(int socket_cliente){
     //mem_hexdump(espacio_de_usuario, 200);
 
     // Realizar la lectura del espacio de usuario
-    mem_hexdump(espacio_de_usuario + direc_fisica, tamanio_lectura);
+    //mem_hexdump(espacio_de_usuario + direc_fisica, tamanio_lectura);
 
 
     memcpy(contenido_leer, espacio_de_usuario + direc_fisica, tamanio_lectura);
     //log_fede(logger2, "Lo que leemos es: %s ", mem_hexdump(espacio_de_usuario + direc_fisica, tamanio_lectura));
     log_info(logger, "Acceso a espacio de usuario: PID: %d - Accion: LEER - Direccion fisica: %d - Tamaño: %d", pid, direc_fisica, tamanio_lectura);
-    log_info(logger, "El espacio de memoria es: %s", mem_hexstring(espacio_de_usuario, 300));
+    //log_info(logger, "El espacio de memoria es: %s", mem_hexstring(espacio_de_usuario, 300));
     //mem_hexdump(espacio_de_usuario + direc_fisica, tamanio_lectura);
 
 
@@ -395,12 +395,12 @@ void acceso_escritura(int socket_cliente){
     // se escribe en el espacio usuario el contenido a escribir
 
     memcpy(espacio_de_usuario + direc_fisica, contenido_a_escribir, tamanio_escritura);
-    mem_hexdump(espacio_de_usuario + direc_fisica, tamanio_escritura);
+    //mem_hexdump(espacio_de_usuario + direc_fisica, tamanio_escritura);
 
     //mem_hexdump(espacio_de_usuario, 200);
 
     log_info(logger2, "Acceso a espacio de usuario: PID: %d - Accion: ESCRIBIR - Direccion fisica: %d - Tamaño: %d", pid, direc_fisica, tamanio_escritura);
-    log_info(logger, "El espacio de memoria es: %s", mem_hexstring(espacio_de_usuario, 300));
+    //log_info(logger, "El espacio de memoria es: %s", mem_hexstring(espacio_de_usuario, 300));
     t_paquete* paquete = crear_paquete(EXITO);
     agregar_a_paquete(paquete, &verificacion,sizeof(int));
     enviar_paquete(paquete, socket_cliente);

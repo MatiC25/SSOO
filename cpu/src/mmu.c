@@ -105,8 +105,7 @@ t_mmu_cpu* traducirDireccion(int direccionLogica, int tamanio) {
             if (list_size(tlb) < config_cpu->CANTIDAD_ENTRADAS_TLB || config_cpu->CANTIDAD_ENTRADAS_TLB == 0) {
                 solicitar_tablas_a_memoria(pagina_a_buscar);
                 t_tabla_de_paginas_cpu* tab = recv_tablas();
-                log_error(logger2, "PiD: %i <3", pcb->pid);
-                log_error(logger2, "marco: %i <3", tab->marco);
+
                 tab->pid = pcb->pid;
                 tab->contador = 0;
                 tab->nropagina = pagina_a_buscar;
@@ -283,7 +282,6 @@ if (indice != -1){
 
     solicitar_tablas_a_memoria(numero_pagina);
     t_tabla_de_paginas_cpu* nueva_tabla = recv_tablas();
-    log_error(logger2, "marco: %i <3", nueva_tabla->marco);
     if (nueva_tabla != NULL){
         nueva_tabla->contador = 0;
         nueva_tabla->nropagina = numero_pagina;
